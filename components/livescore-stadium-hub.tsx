@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { MatchData } from '../lib/sports-api';
+import { sortLeagueGroups, sortMatchesByClosestKickoff } from '../lib/match-sorter';
 import { 
   Star, 
   ChevronRight, 
@@ -36,25 +37,32 @@ export const LiveScoreStadiumHub: React.FC<LiveScoreHubProps> = ({
   onToggleFollow,
   followedMatchIds = [],
 }) => {
-  const [selectedMatch, setSelectedMatch] = useState<MatchData | null>(matches[0] || null);
+  // Sort all incoming matches chronologically by closest to begin
+  const sortedMatches = React.useMemo(() => {
+    return sortMatchesByClosestKickoff(matches, 'ALL');
+  }, [matches]);
+
+  const [selectedMatch, setSelectedMatch] = useState<MatchData | null>(sortedMatches[0] || null);
   const [selectedLeagueFilter, setSelectedLeagueFilter] = useState<string | null>(null);
   const [isTopCompetitionsOpen, setIsTopCompetitionsOpen] = useState(true);
   const [collapsedLeagues, setCollapsedLeagues] = useState<Record<string, boolean>>({});
 
   // Sync selected match when matches list updates
   React.useEffect(() => {
-    if (matches.length > 0 && (!selectedMatch || !matches.some((m) => m.id === selectedMatch.id))) {
-      setSelectedMatch(matches[0]);
+    if (sortedMatches.length > 0 && (!selectedMatch || !sortedMatches.some((m) => m.id === selectedMatch.id))) {
+      setSelectedMatch(sortedMatches[0]);
     }
-  }, [matches]);
+  }, [sortedMatches]);
 
   // Group matches by League
-  const matchesByLeague = matches.reduce((acc, match) => {
-    const league = match.league || 'Other Fixtures';
-    if (!acc[league]) acc[league] = [];
-    acc[league].push(match);
-    return acc;
-  }, {} as Record<string, MatchData[]>);
+  const matchesByLeague = React.useMemo(() => {
+    return sortedMatches.reduce((acc, match) => {
+      const league = match.league || 'Other Fixtures';
+      if (!acc[league]) acc[league] = [];
+      acc[league].push(match);
+      return acc;
+    }, {} as Record<string, MatchData[]>);
+  }, [sortedMatches]);
 
   const toggleLeagueCollapse = (leagueName: string) => {
     setCollapsedLeagues((prev) => ({
@@ -63,13 +71,18 @@ export const LiveScoreStadiumHub: React.FC<LiveScoreHubProps> = ({
     }));
   };
 
-  const displayedLeagues = selectedLeagueFilter
-    ? Object.entries(matchesByLeague).filter(([name]) => name === selectedLeagueFilter)
-    : Object.entries(matchesByLeague);
+  // Sort league groups so leagues with LIVE or games starting soonest appear first
+  const sortedLeagueEntries = React.useMemo(() => {
+    return sortLeagueGroups(matchesByLeague);
+  }, [matchesByLeague]);
 
-  const activeMatch = selectedMatch && matches.some((m) => m.id === selectedMatch.id)
+  const displayedLeagues = selectedLeagueFilter
+    ? sortedLeagueEntries.filter(([name]) => name === selectedLeagueFilter)
+    : sortedLeagueEntries;
+
+  const activeMatch = selectedMatch && sortedMatches.some((m) => m.id === selectedMatch.id)
     ? selectedMatch
-    : matches[0] || null;
+    : sortedMatches[0] || null;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 font-mono text-xs">

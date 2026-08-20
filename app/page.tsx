@@ -45,6 +45,7 @@ import { SettlementLedgerSection } from '../components/settlement-ledger-section
 import { RealtimeCaptureStatus } from '../components/realtime-capture-status';
 import { GlobalClubExplorer } from '../components/global-club-explorer';
 import { MatchAlertScheduler } from '../lib/match-alert-scheduler';
+import { sortMatchesByClosestKickoff } from '../lib/match-sorter';
 import { Sparkles, Search, LayoutGrid, List, ChevronDown, ChevronUp, Mic, MapPin, Camera, ShieldAlert, Cpu, RefreshCw, Radio, Share2 } from 'lucide-react';
 
 export default function Home() {
@@ -181,20 +182,24 @@ export default function Home() {
     setBetSlipItems((prev) => prev.filter((_, idx) => idx !== index));
   };
 
-  const filteredMatches = matches.filter((m) => {
-    if (m.sport !== selectedSport) return false;
+  const filteredMatches = React.useMemo(() => {
+    const base = matches.filter((m) => {
+      if (m.sport !== selectedSport) return false;
 
-    const queryMatch = m.homeTeam.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                       m.awayTeam.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                       m.league.toLowerCase().includes(searchQuery.toLowerCase());
-    if (!queryMatch) return false;
+      const queryMatch = m.homeTeam.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         m.awayTeam.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         m.league.toLowerCase().includes(searchQuery.toLowerCase());
+      if (!queryMatch) return false;
 
-    if (activeFilter === 'LIVE') return m.status === 'LIVE';
-    if (activeFilter === 'UPCOMING') return m.status === 'SCHEDULED';
-    if (activeFilter === 'PLAYED') return m.status === 'FINISHED';
-    if (activeFilter === 'BANKERS') return m.prediction.topPick.confidenceTier === 'ULTRA-BANKER';
-    return true;
-  });
+      if (activeFilter === 'LIVE') return m.status === 'LIVE';
+      if (activeFilter === 'UPCOMING') return m.status === 'SCHEDULED';
+      if (activeFilter === 'PLAYED') return m.status === 'FINISHED';
+      if (activeFilter === 'BANKERS') return m.prediction.topPick.confidenceTier === 'ULTRA-BANKER';
+      return true;
+    });
+    // Sort by closest to kick off: LIVE first, then SCHEDULED earliest first, FINISHED most recent first
+    return sortMatchesByClosestKickoff(base, activeFilter);
+  }, [matches, selectedSport, searchQuery, activeFilter]);
 
   const displayedMatches = filteredMatches.slice(0, visibleCount);
 
