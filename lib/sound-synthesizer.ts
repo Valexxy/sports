@@ -66,6 +66,40 @@ class StadiumAudioEngine {
       console.warn('Audio playback not allowed yet');
     }
   }
+
+  // Play realistic synthesized referee kickoff / full-time whistle
+  public playWhistle() {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.audioCtx) return;
+
+    try {
+      if (this.audioCtx.state === 'suspended') {
+        this.audioCtx.resume();
+      }
+
+      const now = this.audioCtx.currentTime;
+      const osc = this.audioCtx.createOscillator();
+      const gain = this.audioCtx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(2800, now);
+      osc.frequency.linearRampToValueAtTime(3200, now + 0.1);
+      osc.frequency.linearRampToValueAtTime(2900, now + 0.3);
+
+      gain.gain.setValueAtTime(0.01, now);
+      gain.gain.linearRampToValueAtTime(0.25, now + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+      osc.connect(gain);
+      gain.connect(this.audioCtx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.35);
+    } catch (e) {
+      console.warn('Audio whistle playback not allowed yet');
+    }
+  }
 }
 
 export const stadiumAudio = new StadiumAudioEngine();
