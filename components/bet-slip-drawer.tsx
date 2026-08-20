@@ -16,10 +16,20 @@ interface BetSlipProps {
   items: BetItem[];
   onRemoveItem: (index: number) => void;
   onClearAll: () => void;
+  isOpenControlled?: boolean;
+  onToggleControlled?: () => void;
 }
 
-export const BetSlipDrawer: React.FC<BetSlipProps> = ({ items, onRemoveItem, onClearAll }) => {
-  const [open, setOpen] = useState(false);
+export const BetSlipDrawer: React.FC<BetSlipProps> = ({ 
+  items, 
+  onRemoveItem, 
+  onClearAll,
+  isOpenControlled,
+  onToggleControlled,
+}) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = isOpenControlled !== undefined ? isOpenControlled : internalOpen;
+  const toggleOpen = onToggleControlled || (() => setInternalOpen(!internalOpen));
   const [stake, setStake] = useState(10);
 
   if (items.length === 0) return null;
@@ -42,7 +52,7 @@ export const BetSlipDrawer: React.FC<BetSlipProps> = ({ items, onRemoveItem, onC
       {/* Floating Bar with SOLID Opaque Background (Zero Under-text bleed) */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[92vw] max-w-lg bg-[#070c18] rounded-2xl p-3.5 border-2 border-stadiumGreen shadow-2xl shadow-black flex items-center justify-between animate-fadeIn">
         <button
-          onClick={() => setOpen(!open)}
+          onClick={toggleOpen}
           className="flex items-center space-x-3 text-left hover:opacity-90 transition-all flex-1"
         >
           <div className="relative p-2.5 rounded-xl bg-stadiumGreen text-black font-black">
@@ -64,7 +74,7 @@ export const BetSlipDrawer: React.FC<BetSlipProps> = ({ items, onRemoveItem, onC
         </button>
 
         <button
-          onClick={() => setOpen(!open)}
+          onClick={toggleOpen}
           className="px-4 py-2 rounded-xl bg-stadiumGreen hover:bg-emerald-400 text-black font-black text-xs shadow-md transition-all font-mono"
         >
           {open ? 'Hide Slip' : 'View Slip'}

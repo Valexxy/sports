@@ -12,7 +12,7 @@ interface TriggerUpdatesSectionProps {
 
 export const TriggerUpdatesSection: React.FC<TriggerUpdatesSectionProps> = ({ matches = [], onSelectUpdate }) => {
   const updates = generateDynamicTriggerUpdates(matches).slice(0, 4);
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div className="bg-panel/60 border border-white/10 rounded-3xl p-4 sm:p-5 shadow-xl space-y-3 font-mono text-xs">

@@ -21,7 +21,7 @@ export const SportsNewsSection: React.FC = () => {
   const [visibleCount, setVisibleCount] = useState(3);
   const [activeArticle, setActiveArticle] = useState<SportsArticle | null>(null);
   const [autoSync, setAutoSync] = useState(true);
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [reactions, setReactions] = useState<Record<string, { flame: number; target: number; clap: number }>>({});
 
   const loadNews = async () => {

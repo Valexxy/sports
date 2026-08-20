@@ -23,7 +23,7 @@ export const SmartVisitorBanner: React.FC = () => {
   });
 
   const [loading, setLoading] = useState(false);
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   const fetchDetails = () => {
     setLoading(true);

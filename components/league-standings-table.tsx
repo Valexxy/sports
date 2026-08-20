@@ -22,7 +22,7 @@ export const LeagueStandingsTable: React.FC = () => {
   const [selectedLeague, setSelectedLeague] = useState<'PREMIER_LEAGUE' | 'LA_LIGA' | 'SERIE_A' | 'BUNDESLIGA'>('PREMIER_LEAGUE');
   const [tableData, setTableData] = useState<StandingRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   const loadStandings = async (leagueKey: string) => {
     setLoading(true);

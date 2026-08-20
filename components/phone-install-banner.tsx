@@ -24,7 +24,7 @@ export const PhoneHardwareBanner: React.FC = () => {
   const [wakeLockActive, setWakeLockActive] = useState(false);
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {

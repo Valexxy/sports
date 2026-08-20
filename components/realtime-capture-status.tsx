@@ -6,7 +6,7 @@ import { Radio, Activity, Cpu, Zap, Wifi, ShieldCheck, ChevronDown, ChevronUp } 
 
 export const RealtimeCaptureStatus: React.FC = () => {
   const { telemetry } = useRealtimeCapture();
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
   return (

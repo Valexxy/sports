@@ -305,7 +305,7 @@ GLOBAL_CLUBS_DIRECTORY.ALL = [
 export const GlobalClubExplorer: React.FC = () => {
   const [selectedCountry, setSelectedCountry] = useState<string>('ALL');
   const [selectedClub, setSelectedClub] = useState<WorldClub | null>(null);
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   const clubs = GLOBAL_CLUBS_DIRECTORY[selectedCountry] || GLOBAL_CLUBS_DIRECTORY.ALL;
 

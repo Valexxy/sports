@@ -103,8 +103,9 @@ export default function Home() {
   const [followedMatchIds, setFollowedMatchIds] = useState<string[]>([]);
 
   // Collapsible Section States
-  const [showHeroBanner, setShowHeroBanner] = useState(true);
+  const [showHeroBanner, setShowHeroBanner] = useState(false);
   const [showMatchCenter, setShowMatchCenter] = useState(true);
+  const [showBetSlipDrawer, setShowBetSlipDrawer] = useState(false);
 
   const handleToggleFollow = (match: MatchData) => {
     const exists = followedMatchIds.includes(match.id);
@@ -322,6 +323,162 @@ export default function Home() {
             setSearchQuery('');
           }} />
 
+          {/* STADIUM SUPER-APP UPGRADES HUB (8 1-Tap Feature Launchers) */}
+          <div className="glass-panel-premium rounded-3xl p-4 sm:p-5 border border-stadiumGreen/40 shadow-2xl space-y-3 font-mono text-xs">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+              <div className="flex items-center space-x-2">
+                <span className="p-1.5 rounded-xl bg-stadiumGreen text-black font-black">⚡</span>
+                <div>
+                  <h3 className="font-black text-white text-xs sm:text-sm">STADIUM SUPER-APP FEATURE HUB</h3>
+                  <span className="text-[10px] text-gray-400 font-sans">1-Tap instant access to all audited intelligence & viral tools</span>
+                </div>
+              </div>
+              <span className="text-[9px] px-2 py-0.5 rounded bg-stadiumGreen/20 text-stadiumGreen font-black border border-stadiumGreen/40 animate-pulse">
+                8 LIVE SUITES
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+              
+              {/* 1. Star Birthdays */}
+              <button
+                onClick={() => setShowBirthdaysModal(true)}
+                className="p-3 rounded-2xl bg-panel/90 hover:bg-white/5 border border-white/10 hover:border-pink-400/50 text-left transition-all flex flex-col justify-between space-y-2 group shadow-lg"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xl">🎂</span>
+                  <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-pink-500/20 text-pink-400 border border-pink-500/30">
+                    VOTE XP
+                  </span>
+                </div>
+                <div>
+                  <span className="font-black text-white text-xs block group-hover:text-pink-400 transition-all">Star Birthdays</span>
+                  <span className="text-[9px] text-gray-400 font-sans">Player photos & records</span>
+                </div>
+              </button>
+
+              {/* 2. Tipster Leaderboard */}
+              <button
+                onClick={() => setShowLeaderboardModal(true)}
+                className="p-3 rounded-2xl bg-panel/90 hover:bg-white/5 border border-white/10 hover:border-gold/50 text-left transition-all flex flex-col justify-between space-y-2 group shadow-lg"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xl">👑</span>
+                  <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-gold/20 text-gold border border-gold/30">
+                    RANKS
+                  </span>
+                </div>
+                <div>
+                  <span className="font-black text-white text-xs block group-hover:text-gold transition-all">Tipster Leaderboard</span>
+                  <span className="text-[9px] text-gray-400 font-sans">Win rates & top tipsters</span>
+                </div>
+              </button>
+
+              {/* 3. Historical Settlement Ledger */}
+              <button
+                onClick={() => setShowHistoryModal(true)}
+                className="p-3 rounded-2xl bg-panel/90 hover:bg-white/5 border border-white/10 hover:border-stadiumGreen/50 text-left transition-all flex flex-col justify-between space-y-2 group shadow-lg"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xl">📜</span>
+                  <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/30">
+                    AUDITED
+                  </span>
+                </div>
+                <div>
+                  <span className="font-black text-white text-xs block group-hover:text-stadiumGreen transition-all">Settlement Ledger</span>
+                  <span className="text-[9px] text-gray-400 font-sans">Calendar & score sheets</span>
+                </div>
+              </button>
+
+              {/* 4. Bankroll Optimizer */}
+              <button
+                onClick={() => setShowBankroll(true)}
+                className="p-3 rounded-2xl bg-panel/90 hover:bg-white/5 border border-white/10 hover:border-stadiumGreen/50 text-left transition-all flex flex-col justify-between space-y-2 group shadow-lg"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xl">💰</span>
+                  <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/30">
+                    KELLY
+                  </span>
+                </div>
+                <div>
+                  <span className="font-black text-white text-xs block group-hover:text-stadiumGreen transition-all">Bankroll & Stake</span>
+                  <span className="text-[9px] text-gray-400 font-sans">Smart staking math</span>
+                </div>
+              </button>
+
+              {/* 5. Reverse Jinx */}
+              <button
+                onClick={() => setShowReverseJinxModal(true)}
+                className="p-3 rounded-2xl bg-panel/90 hover:bg-white/5 border border-white/10 hover:border-purple-400/50 text-left transition-all flex flex-col justify-between space-y-2 group shadow-lg"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xl">🔮</span>
+                  <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                    HEDGE
+                  </span>
+                </div>
+                <div>
+                  <span className="font-black text-white text-xs block group-hover:text-purple-400 transition-all">Reverse Jinx</span>
+                  <span className="text-[9px] text-gray-400 font-sans">Emotional win-win slip</span>
+                </div>
+              </button>
+
+              {/* 6. Viral Social Flex Slip */}
+              <button
+                onClick={() => setShowCloutCardModal(true)}
+                className="p-3 rounded-2xl bg-panel/90 hover:bg-white/5 border border-white/10 hover:border-stadiumGreen/50 text-left transition-all flex flex-col justify-between space-y-2 group shadow-lg"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xl">📲</span>
+                  <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/30">
+                    VIRAL
+                  </span>
+                </div>
+                <div>
+                  <span className="font-black text-white text-xs block group-hover:text-stadiumGreen transition-all">Social Flex Slip</span>
+                  <span className="text-[9px] text-gray-400 font-sans">Share on WhatsApp/X</span>
+                </div>
+              </button>
+
+              {/* 7. Arbitrage Radar */}
+              <a
+                href="/arbitrage"
+                className="p-3 rounded-2xl bg-panel/90 hover:bg-white/5 border border-white/10 hover:border-gold/50 text-left transition-all flex flex-col justify-between space-y-2 group shadow-lg"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xl">📈</span>
+                  <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-gold/20 text-gold border border-gold/30">
+                    PRICE EDGE
+                  </span>
+                </div>
+                <div>
+                  <span className="font-black text-white text-xs block group-hover:text-gold transition-all">Arbitrage Radar</span>
+                  <span className="text-[9px] text-gray-400 font-sans">Multi-bookmaker odds</span>
+                </div>
+              </a>
+
+              {/* 8. Rotating Feeds */}
+              <button
+                onClick={() => setShowRotatingPoolModal(true)}
+                className="p-3 rounded-2xl bg-panel/90 hover:bg-white/5 border border-white/10 hover:border-cyan-400/50 text-left transition-all flex flex-col justify-between space-y-2 group shadow-lg"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xl">🛡️</span>
+                  <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                    API POOL
+                  </span>
+                </div>
+                <div>
+                  <span className="font-black text-white text-xs block group-hover:text-cyan-400 transition-all">Live Feeds Pool</span>
+                  <span className="text-[9px] text-gray-400 font-sans">Zero quota failover</span>
+                </div>
+              </button>
+
+            </div>
+          </div>
+
           {/* Global Settings & Currency / Odds Switcher Bar */}
           <GlobalSettingsBar
             selectedSport={selectedSport}
@@ -521,6 +678,8 @@ export default function Home() {
           items={betSlipItems}
           onRemoveItem={handleRemoveBetItem}
           onClearAll={() => setBetSlipItems([])}
+          isOpenControlled={showBetSlipDrawer}
+          onToggleControlled={() => setShowBetSlipDrawer(!showBetSlipDrawer)}
         />
 
         {/* Mobile App Dock */}
@@ -528,6 +687,7 @@ export default function Home() {
           activeTab={activeDockTab}
           onSelectTab={(tab) => {
             setActiveDockTab(tab);
+            if (tab === 'SLIP') setShowBetSlipDrawer(true);
             if (tab === 'CHAT' && matches.length > 0) setSelectedMatchForInsights(matches[0]);
             if (tab === 'PROFILE') setShowProfile(true);
           }}

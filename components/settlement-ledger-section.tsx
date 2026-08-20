@@ -10,7 +10,7 @@ interface SettlementLedgerSectionProps {
 }
 
 export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = ({ onOpenAuditModal }) => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [filter, setFilter] = useState<'ALL' | 'WON' | 'LOST'>('ALL');
   const [selectedDate, setSelectedDate] = useState<string>('ALL');
 
