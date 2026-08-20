@@ -1,0 +1,161 @@
+'use client';
+
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { stadiumAudio } from '../lib/sound-synthesizer';
+import { 
+  Zap, 
+  Trophy, 
+  ShieldCheck, 
+  Cake, 
+  Volume2, 
+  VolumeX, 
+  Sparkles, 
+  User, 
+  Flame,
+  Share2
+} from 'lucide-react';
+
+interface StadiumHeaderProps {
+  onOpenReceipt: () => void;
+  onOpenLedger: () => void;
+  onOpenBankroll: () => void;
+  onOpenProfile: () => void;
+  onOpenTeams?: () => void;
+  onOpenBirthdays: () => void;
+  onOpenLeaderboard: () => void;
+}
+
+export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
+  onOpenReceipt,
+  onOpenLedger,
+  onOpenBankroll,
+  onOpenProfile,
+  onOpenBirthdays,
+  onOpenLeaderboard,
+}) => {
+  const [isMuted, setIsMuted] = useState(false);
+  const [soundPlaying, setSoundPlaying] = useState(false);
+
+  const toggleSound = () => {
+    if (isMuted) {
+      setIsMuted(false);
+      stadiumAudio.isMuted = false;
+      stadiumAudio.playCrowdRoar();
+      setSoundPlaying(true);
+      setTimeout(() => setSoundPlaying(false), 800);
+    } else {
+      setIsMuted(true);
+      stadiumAudio.isMuted = true;
+    }
+  };
+
+  return (
+    <header className="sticky top-0 z-40 bg-void/90 backdrop-blur-xl border-b border-white/10 shadow-2xl">
+      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3 font-mono text-xs">
+        
+        {/* Brand Logo & Tagline */}
+        <Link href="/" className="flex items-center space-x-3 group">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-stadiumGreen via-cyberPurple to-gold p-0.5 shadow-lg group-hover:scale-105 transition-all glow-emerald flex items-center justify-center">
+            <div className="w-full h-full bg-void rounded-[14px] flex items-center justify-center">
+              <Zap className="w-5 h-5 text-stadiumGreen animate-pulse" />
+            </div>
+          </div>
+          <div>
+            <div className="flex items-center space-x-1.5">
+              <span className="font-black text-sm text-white tracking-wider">AURASCORE STADIUM</span>
+              <span className="px-1.5 py-0.2 rounded bg-stadiumGreen text-black font-black text-[9px]">2.0</span>
+            </div>
+            <span className="text-[10px] text-gray-400 font-sans hidden sm:block">World-First Live Prediction & Stadium Atmosphere</span>
+          </div>
+        </Link>
+
+        {/* Clean, Organized Navigation Menu Bar */}
+        <nav className="hidden lg:flex items-center space-x-1 bg-black/60 p-1.5 rounded-2xl border border-white/10">
+          <Link
+            href="/"
+            className="px-3 py-1.5 rounded-xl bg-stadiumGreen text-black font-black text-xs transition-all shadow-md"
+          >
+            Live Matches ⚡
+          </Link>
+
+          <Link
+            href="/arbitrage"
+            className="px-3 py-1.5 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 font-bold transition-all flex items-center space-x-1"
+          >
+            <span>Arbitrage</span>
+            <Zap className="w-3 h-3 text-gold" />
+          </Link>
+
+          <button
+            onClick={onOpenLeaderboard}
+            className="px-3 py-1.5 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 font-bold transition-all flex items-center space-x-1"
+          >
+            <Trophy className="w-3 h-3 text-gold" />
+            <span>Leaderboard</span>
+          </button>
+
+          <button
+            onClick={onOpenBankroll}
+            className="px-3 py-1.5 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 font-bold transition-all flex items-center space-x-1"
+          >
+            <ShieldCheck className="w-3 h-3 text-stadiumGreen" />
+            <span>Bankroll</span>
+          </button>
+
+          <button
+            onClick={onOpenBirthdays}
+            className="px-3 py-1.5 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 font-bold transition-all flex items-center space-x-1"
+          >
+            <Cake className="w-3 h-3 text-pink-400" />
+            <span>Birthdays</span>
+          </button>
+        </nav>
+
+        {/* Right Action Icons: Digital Gamer Avatar, Viral Flex, Sound Button */}
+        <div className="flex items-center space-x-2">
+          
+          {/* Digital Avatar & Handle (Strictly digital anonymous alias) */}
+          <button
+            onClick={onOpenProfile}
+            className="p-1.5 sm:px-3 sm:py-1.5 rounded-2xl bg-panel border border-white/10 hover:border-gold/40 text-gold flex items-center space-x-2 transition-all hover:scale-105"
+            title="Digital Member Avatar & XP"
+          >
+            <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-gold to-stadiumGreen flex items-center justify-center text-black font-black text-xs">
+              ⚡
+            </div>
+            <span className="hidden md:inline font-bold text-xs text-white">CyberStriker_99</span>
+            <span className="hidden xl:inline text-[9px] px-1.5 py-0.2 rounded bg-gold/20 text-gold font-bold">3.8k XP</span>
+          </button>
+
+          {/* Viral Flex Card Generator Button */}
+          <button
+            onClick={onOpenReceipt}
+            className="px-3 py-2 rounded-2xl bg-stadiumGreen hover:bg-emerald-400 text-black font-black text-xs flex items-center space-x-1.5 shadow-lg glow-emerald transition-all hover:scale-105"
+            title="Generate Social Flex Slip"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Flex Slip</span>
+          </button>
+
+          {/* Interactive Stadium Crowd Audio Synthesizer */}
+          <button
+            onClick={toggleSound}
+            className={`p-2.5 rounded-2xl border transition-all hover:scale-110 ${
+              isMuted
+                ? 'bg-panel border-white/10 text-gray-500 hover:text-white'
+                : soundPlaying
+                ? 'bg-stadiumGreen text-black border-stadiumGreen scale-110'
+                : 'bg-stadiumGreen/20 text-stadiumGreen border-stadiumGreen/40 glow-emerald'
+            }`}
+            title={isMuted ? 'Turn Stadium Crowd Sound ON 🔊' : 'Playing Live Crowd Audio (Click to Mute)'}
+          >
+            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className={`w-4 h-4 ${soundPlaying ? 'animate-bounce' : ''}`} />}
+          </button>
+
+        </div>
+
+      </div>
+    </header>
+  );
+};
