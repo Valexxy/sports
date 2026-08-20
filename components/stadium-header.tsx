@@ -24,6 +24,7 @@ interface StadiumHeaderProps {
   onOpenTeams?: () => void;
   onOpenBirthdays: () => void;
   onOpenLeaderboard: () => void;
+  onOpenSuitesMenu?: () => void;
 }
 
 export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
@@ -33,6 +34,7 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
   onOpenProfile,
   onOpenBirthdays,
   onOpenLeaderboard,
+  onOpenSuitesMenu,
 }) => {
   const [isMuted, setIsMuted] = useState(false);
   const [soundPlaying, setSoundPlaying] = useState(false);
@@ -79,6 +81,14 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
             Live Matches ⚡
           </Link>
 
+          <button
+            onClick={onOpenSuitesMenu}
+            className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-stadiumGreen/20 to-gold/20 hover:from-stadiumGreen/30 hover:to-gold/30 text-white font-bold transition-all flex items-center space-x-1.5 border border-stadiumGreen/30"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-gold animate-pulse" />
+            <span>Suites & Tools ▾</span>
+          </button>
+
           <Link
             href="/arbitrage"
             className="px-3 py-1.5 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 font-bold transition-all flex items-center space-x-1"
@@ -112,10 +122,22 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
           </button>
         </nav>
 
-        {/* Right Action Icons: Digital Gamer Avatar, Viral Flex, Sound Button */}
+        {/* Right Action Icons: Suites Menu, Avatar, Viral Flex, Sound Button */}
         <div className="flex items-center space-x-1.5 sm:space-x-2">
           
-          {/* Digital Avatar & Handle (Strictly digital anonymous alias) */}
+          {/* Mobile Suites Menu Button */}
+          {onOpenSuitesMenu && (
+            <button
+              onClick={onOpenSuitesMenu}
+              className="lg:hidden px-2.5 py-1.5 rounded-2xl bg-gradient-to-r from-stadiumGreen/30 to-gold/20 border border-stadiumGreen/40 text-stadiumGreen font-black text-xs flex items-center space-x-1 shadow-md active:scale-95"
+              title="Open Stadium Suites Menu"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-gold" />
+              <span>Menu</span>
+            </button>
+          )}
+
+          {/* Digital Avatar & Handle */}
           <button
             onClick={onOpenProfile}
             className="p-1.5 sm:px-3 sm:py-1.5 rounded-2xl bg-panel border border-white/10 hover:border-gold/40 text-gold flex items-center space-x-1.5 sm:space-x-2 transition-all hover:scale-105 active:scale-95"

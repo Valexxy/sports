@@ -11,6 +11,7 @@ interface AppDockProps {
   betSlipCount: number;
   onOpenProfile: () => void;
   onOpenLedger: () => void;
+  onOpenSuitesMenu?: () => void;
 }
 
 export const MobileAppDock: React.FC<AppDockProps> = ({
@@ -19,6 +20,7 @@ export const MobileAppDock: React.FC<AppDockProps> = ({
   betSlipCount,
   onOpenProfile,
   onOpenLedger,
+  onOpenSuitesMenu,
 }) => {
   const handleTabClick = (tab: string, action?: () => void) => {
     phoneHardware.triggerHaptic('SELECTION');
@@ -76,13 +78,13 @@ export const MobileAppDock: React.FC<AppDockProps> = ({
             <span className="text-[9px] font-mono font-black mt-0.5 tracking-tighter">SLIP</span>
           </button>
 
-          {/* Live 2D Radar / Insights */}
+          {/* Suites & Tools Menu */}
           <button
-            onClick={() => handleTabClick('CHAT')}
-            className="relative flex flex-col items-center py-1.5 px-3 rounded-2xl text-cyan-400 hover:text-white transition-all"
+            onClick={() => handleTabClick('SUITES', onOpenSuitesMenu)}
+            className="relative flex flex-col items-center py-1.5 px-3 rounded-2xl text-stadiumGreen hover:text-white transition-all"
           >
-            <Radio className="w-4 h-4 animate-spin text-cyan-400" />
-            <span className="text-[10px] font-mono font-bold mt-0.5">Radar 2D</span>
+            <Sparkles className="w-4 h-4 text-gold animate-pulse" />
+            <span className="text-[10px] font-mono font-bold mt-0.5">Suites</span>
           </button>
 
           {/* User Profile */}

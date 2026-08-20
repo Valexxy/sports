@@ -33,6 +33,7 @@ import { TriggerUpdatesSection } from '../components/trigger-updates-section';
 import { SportsNewsSection } from '../components/sports-news-section';
 import { BetSlipDrawer, BetItem } from '../components/bet-slip-drawer';
 import { MobileAppDock } from '../components/mobile-app-dock';
+import { StadiumSuitesMenu } from '../components/stadium-suites-menu';
 import { GlobalSettingsBar } from '../components/global-settings-bar';
 import { fetchLiveMatches, MatchData } from '../lib/sports-api';
 import { computeRealPlatformAnalytics } from '../lib/real-analytics-engine';
@@ -92,6 +93,12 @@ export default function Home() {
   const [showCloutCardModal, setShowCloutCardModal] = useState(false);
   const [showReverseJinxModal, setShowReverseJinxModal] = useState(false);
   const [showRotatingPoolModal, setShowRotatingPoolModal] = useState(false);
+  const [showSuitesMenu, setShowSuitesMenu] = useState(false);
+  const [showStandingsModal, setShowStandingsModal] = useState(false);
+  const [showNewsModal, setShowNewsModal] = useState(false);
+  const [showTelemetryModal, setShowTelemetryModal] = useState(false);
+  const [showHardwareModal, setShowHardwareModal] = useState(false);
+  const [showVisitorModal, setShowVisitorModal] = useState(false);
 
   // Bookmarked Saved Tickets state
   const [savedMatches, setSavedMatches] = useState<MatchData[]>([]);
@@ -103,7 +110,6 @@ export default function Home() {
   const [followedMatchIds, setFollowedMatchIds] = useState<string[]>([]);
 
   // Collapsible Section States
-  const [showHeroBanner, setShowHeroBanner] = useState(false);
   const [showMatchCenter, setShowMatchCenter] = useState(true);
   const [showBetSlipDrawer, setShowBetSlipDrawer] = useState(false);
 
@@ -208,7 +214,7 @@ export default function Home() {
           onOpenMatchAudit={() => setShowHistoryModal(true)}
         />
 
-        {/* Stadium Header */}
+        {/* Stadium Header with Suites Menu Integration */}
         <StadiumHeader
           onOpenReceipt={() => matches.length > 0 && setSelectedMatchForReceipt(matches[0])}
           onOpenLedger={() => setShowTrackRecord(true)}
@@ -217,284 +223,21 @@ export default function Home() {
           onOpenTeams={() => setShowTeamsModal(true)}
           onOpenBirthdays={() => setShowBirthdaysModal(true)}
           onOpenLeaderboard={() => setShowLeaderboardModal(true)}
+          onOpenSuitesMenu={() => setShowSuitesMenu(true)}
         />
 
-        {/* Main Content Area */}
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 space-y-6">
+        {/* Main Content Area - 100% LASER-FOCUSED ON LIVE MATCH PREDICTIONS */}
+        <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-5">
           
-          {/* Smart Visitor Location, Live Weather & Time-of-Day Greeting Banner */}
-          <SmartVisitorBanner />
-
-          {/* Real-Time Data Capturing Telemetry & Stream Status */}
-          <RealtimeCaptureStatus />
-
-          {/* Phone Hardware & Background Notification Control Center */}
-          <PhoneHardwareBanner />
-
-          {/* Hero Banner with Collapsible Control */}
-          <div className="relative glass-panel-premium rounded-3xl p-5 sm:p-7 border border-stadiumGreen/30 overflow-hidden shadow-2xl space-y-4">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-stadiumGreen/10 rounded-full blur-3xl -z-10"></div>
-            <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyberPurple/10 rounded-full blur-3xl -z-10"></div>
-
-            <div 
-              onClick={() => setShowHeroBanner(!showHeroBanner)}
-              className="flex items-center justify-between cursor-pointer select-none border-b border-white/5 pb-2"
-            >
-              <div className="flex items-center space-x-2">
-                <span className="w-2 h-2 rounded-full bg-stadiumGreen animate-ping"></span>
-                <span className="text-xs font-black text-stadiumGreen font-mono uppercase tracking-wide">
-                  STADIUM INTELLIGENCE SUPER-APP • MATCHDAY ACTIVE
-                </span>
-              </div>
-
-              <div className="flex items-center space-x-1 text-gray-400 text-xs font-bold font-mono">
-                <span className="hidden sm:inline">{showHeroBanner ? 'Collapse' : 'Expand'}</span>
-                {showHeroBanner ? <ChevronUp className="w-4 h-4 text-stadiumGreen" /> : <ChevronDown className="w-4 h-4 text-gold" />}
-              </div>
-            </div>
-
-            {showHeroBanner && (
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 animate-fadeIn">
-                <div className="space-y-3 max-w-2xl">
-
-                  <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
-                    Feel the Stadium. <br className="hidden sm:inline" />
-                    <span className="animate-shimmer">
-                      {visitorData?.city ? `${visitorData.city} & Worldwide` : 'Live'} Matchday Active.
-                    </span>
-                  </h2>
-
-                  <p className="text-xs sm:text-sm text-gray-300 font-sans leading-relaxed">
-                    Real-time live scores, Poisson goal power analytics, and referee-verified match settlements for Premier League, La Liga, Champions League, Serie A, and continental tournaments.
-                  </p>
-
-                  {/* Feature Quick Badges with Clear Purpose */}
-                  <div className="flex flex-wrap items-center gap-2.5 pt-2">
-                    <button
-                      onClick={() => setShowReverseJinxModal(true)}
-                      className="px-4 py-2 rounded-2xl bg-gradient-to-r from-cyberPurple/30 via-crimson/20 to-black hover:from-cyberPurple/50 border border-cyberPurple/50 text-white text-xs font-mono font-black flex items-center space-x-2 transition-all hover:scale-105 shadow-lg"
-                    >
-                      <ShieldAlert className="w-4 h-4 text-pink-400" />
-                      <span>Reverse Jinx 🔮 (Emotional Hedge)</span>
-                    </button>
-
-                    <button
-                      onClick={() => setShowCloutCardModal(true)}
-                      className="px-4 py-2 rounded-2xl bg-gradient-to-r from-stadiumGreen/30 via-panel to-gold/20 hover:from-stadiumGreen/50 border border-stadiumGreen/50 text-white text-xs font-mono font-black flex items-center space-x-2 transition-all hover:scale-105 shadow-lg glow-emerald"
-                    >
-                      <Share2 className="w-4 h-4 text-stadiumGreen" />
-                      <span>Social Flex Slip 📲</span>
-                    </button>
-                  </div>
-
-                </div>
-
-                {/* Dynamic Live Stadium Pulse Matrix */}
-                <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full md:w-auto">
-                  <div 
-                    onClick={() => setShowHistoryModal(true)}
-                    className="p-4 rounded-2xl bg-panel/90 border border-stadiumGreen/30 text-center cursor-pointer hover:scale-105 transition-all glow-emerald"
-                    title="Click to view Track Record & Daily Successes"
-                  >
-                    <span className="text-[10px] font-mono text-gray-400 block font-semibold">PITCH INTENSITY</span>
-                    <span className="text-3xl font-black text-stadiumGreen font-mono">
-                      {matches.filter((m) => m.status === 'LIVE').length > 0 ? '94%' : '88%'}
-                    </span>
-                    <span className="text-[10px] text-stadiumGreen font-mono block mt-0.5">Live Match Tension ➔</span>
-                  </div>
-
-                  <div 
-                    onClick={() => setShowBankroll(true)}
-                    className="p-4 rounded-2xl bg-panel/90 border border-gold/30 text-center cursor-pointer hover:scale-105 transition-all glow-gold"
-                    title="Click to view Smart Stake Optimizer"
-                  >
-                    <span className="text-[10px] font-mono text-gray-400 block font-semibold">ACCA MULTI-BOOST</span>
-                    <span className="text-3xl font-black text-gold font-mono">+{betSlipItems.length >= 3 ? '25%' : '15%'}</span>
-                    <span className="text-[10px] text-gold font-mono block mt-0.5">Slip Multiplier ➔</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Date Navigator Bar with Smart Yesterday / Today / Tomorrow Filtering */}
+          {/* Quick Date Navigator Bar (Yesterday | Today | Tomorrow) */}
           <GoogleDateNavigator onSelectDate={(filter, label) => {
             setActiveFilter(filter);
             setSearchQuery('');
           }} />
 
-          {/* STADIUM SUPER-APP UPGRADES HUB (8 1-Tap Feature Launchers) */}
-          <div className="glass-panel-premium rounded-3xl p-4 sm:p-5 border border-stadiumGreen/40 shadow-2xl space-y-3 font-mono text-xs">
-            <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-              <div className="flex items-center space-x-2">
-                <span className="p-1.5 rounded-xl bg-stadiumGreen text-black font-black">⚡</span>
-                <div>
-                  <h3 className="font-black text-white text-xs sm:text-sm">STADIUM SUPER-APP FEATURE HUB</h3>
-                  <span className="text-[10px] text-gray-400 font-sans">1-Tap instant access to all audited intelligence & viral tools</span>
-                </div>
-              </div>
-              <span className="text-[9px] px-2 py-0.5 rounded bg-stadiumGreen/20 text-stadiumGreen font-black border border-stadiumGreen/40 animate-pulse">
-                8 LIVE SUITES
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
-              
-              {/* 1. Star Birthdays */}
-              <button
-                onClick={() => setShowBirthdaysModal(true)}
-                className="p-3 rounded-2xl bg-panel/90 hover:bg-white/5 border border-white/10 hover:border-pink-400/50 text-left transition-all flex flex-col justify-between space-y-2 group shadow-lg"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xl">🎂</span>
-                  <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-pink-500/20 text-pink-400 border border-pink-500/30">
-                    VOTE XP
-                  </span>
-                </div>
-                <div>
-                  <span className="font-black text-white text-xs block group-hover:text-pink-400 transition-all">Star Birthdays</span>
-                  <span className="text-[9px] text-gray-400 font-sans">Player photos & records</span>
-                </div>
-              </button>
-
-              {/* 2. Tipster Leaderboard */}
-              <button
-                onClick={() => setShowLeaderboardModal(true)}
-                className="p-3 rounded-2xl bg-panel/90 hover:bg-white/5 border border-white/10 hover:border-gold/50 text-left transition-all flex flex-col justify-between space-y-2 group shadow-lg"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xl">👑</span>
-                  <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-gold/20 text-gold border border-gold/30">
-                    RANKS
-                  </span>
-                </div>
-                <div>
-                  <span className="font-black text-white text-xs block group-hover:text-gold transition-all">Tipster Leaderboard</span>
-                  <span className="text-[9px] text-gray-400 font-sans">Win rates & top tipsters</span>
-                </div>
-              </button>
-
-              {/* 3. Historical Settlement Ledger */}
-              <button
-                onClick={() => setShowHistoryModal(true)}
-                className="p-3 rounded-2xl bg-panel/90 hover:bg-white/5 border border-white/10 hover:border-stadiumGreen/50 text-left transition-all flex flex-col justify-between space-y-2 group shadow-lg"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xl">📜</span>
-                  <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/30">
-                    AUDITED
-                  </span>
-                </div>
-                <div>
-                  <span className="font-black text-white text-xs block group-hover:text-stadiumGreen transition-all">Settlement Ledger</span>
-                  <span className="text-[9px] text-gray-400 font-sans">Calendar & score sheets</span>
-                </div>
-              </button>
-
-              {/* 4. Bankroll Optimizer */}
-              <button
-                onClick={() => setShowBankroll(true)}
-                className="p-3 rounded-2xl bg-panel/90 hover:bg-white/5 border border-white/10 hover:border-stadiumGreen/50 text-left transition-all flex flex-col justify-between space-y-2 group shadow-lg"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xl">💰</span>
-                  <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/30">
-                    KELLY
-                  </span>
-                </div>
-                <div>
-                  <span className="font-black text-white text-xs block group-hover:text-stadiumGreen transition-all">Bankroll & Stake</span>
-                  <span className="text-[9px] text-gray-400 font-sans">Smart staking math</span>
-                </div>
-              </button>
-
-              {/* 5. Reverse Jinx */}
-              <button
-                onClick={() => setShowReverseJinxModal(true)}
-                className="p-3 rounded-2xl bg-panel/90 hover:bg-white/5 border border-white/10 hover:border-purple-400/50 text-left transition-all flex flex-col justify-between space-y-2 group shadow-lg"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xl">🔮</span>
-                  <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30">
-                    HEDGE
-                  </span>
-                </div>
-                <div>
-                  <span className="font-black text-white text-xs block group-hover:text-purple-400 transition-all">Reverse Jinx</span>
-                  <span className="text-[9px] text-gray-400 font-sans">Emotional win-win slip</span>
-                </div>
-              </button>
-
-              {/* 6. Viral Social Flex Slip */}
-              <button
-                onClick={() => setShowCloutCardModal(true)}
-                className="p-3 rounded-2xl bg-panel/90 hover:bg-white/5 border border-white/10 hover:border-stadiumGreen/50 text-left transition-all flex flex-col justify-between space-y-2 group shadow-lg"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xl">📲</span>
-                  <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/30">
-                    VIRAL
-                  </span>
-                </div>
-                <div>
-                  <span className="font-black text-white text-xs block group-hover:text-stadiumGreen transition-all">Social Flex Slip</span>
-                  <span className="text-[9px] text-gray-400 font-sans">Share on WhatsApp/X</span>
-                </div>
-              </button>
-
-              {/* 7. Arbitrage Radar */}
-              <a
-                href="/arbitrage"
-                className="p-3 rounded-2xl bg-panel/90 hover:bg-white/5 border border-white/10 hover:border-gold/50 text-left transition-all flex flex-col justify-between space-y-2 group shadow-lg"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xl">📈</span>
-                  <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-gold/20 text-gold border border-gold/30">
-                    PRICE EDGE
-                  </span>
-                </div>
-                <div>
-                  <span className="font-black text-white text-xs block group-hover:text-gold transition-all">Arbitrage Radar</span>
-                  <span className="text-[9px] text-gray-400 font-sans">Multi-bookmaker odds</span>
-                </div>
-              </a>
-
-              {/* 8. Rotating Feeds */}
-              <button
-                onClick={() => setShowRotatingPoolModal(true)}
-                className="p-3 rounded-2xl bg-panel/90 hover:bg-white/5 border border-white/10 hover:border-cyan-400/50 text-left transition-all flex flex-col justify-between space-y-2 group shadow-lg"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xl">🛡️</span>
-                  <span className="text-[8px] font-black px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
-                    API POOL
-                  </span>
-                </div>
-                <div>
-                  <span className="font-black text-white text-xs block group-hover:text-cyan-400 transition-all">Live Feeds Pool</span>
-                  <span className="text-[9px] text-gray-400 font-sans">Zero quota failover</span>
-                </div>
-              </button>
-
-            </div>
-          </div>
-
-          {/* Global Settings & Currency / Odds Switcher Bar */}
-          <GlobalSettingsBar
-            selectedSport={selectedSport}
-            onSelectSport={setSelectedSport}
-            currency={currency}
-            onChangeCurrency={setCurrency}
-            oddsFormat={oddsFormat}
-            onChangeOddsFormat={setOddsFormat}
-          />
-
-          {/* High-Trigger Updates Stream Section */}
-          <TriggerUpdatesSection matches={matches} onSelectUpdate={handleSelectTickerUpdate} />
-
-          {/* Dynamic Instant Search Bar & 3-State Match Filters (Collapsible Header) */}
-          <div className="bg-panel/60 p-3.5 sm:p-4 rounded-3xl border border-white/10 space-y-3 font-mono text-xs shadow-xl">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          {/* Dynamic Instant Search Bar & Match Filters Bar */}
+          <div className="bg-panel/70 p-3 sm:p-4 rounded-3xl border border-white/10 space-y-3 font-mono text-xs shadow-xl backdrop-blur-md">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
               
               {/* Dynamic Search Input */}
               <div className="relative flex-1 flex items-center">
@@ -504,7 +247,7 @@ export default function Home() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search team, fixture, or league..."
-                  className="w-full pl-10 pr-10 py-2 rounded-xl bg-black/60 border border-white/10 text-xs text-white placeholder-gray-500 focus:border-stadiumGreen focus:outline-none font-mono"
+                  className="w-full pl-10 pr-10 py-2.5 rounded-2xl bg-black/60 border border-white/10 text-xs text-white placeholder-gray-500 focus:border-stadiumGreen focus:outline-none font-mono"
                 />
                 {searchQuery && (
                   <button
@@ -516,9 +259,19 @@ export default function Home() {
                 )}
               </div>
 
-              {/* Filter Pills & View Switcher */}
-              <div className="flex items-center space-x-2">
+              {/* Action Buttons, Filter Pills & View Switcher */}
+              <div className="flex items-center space-x-2 overflow-x-auto pb-1 sm:pb-0">
                 
+                {/* 1-Tap All Suites Menu Launcher */}
+                <button
+                  onClick={() => setShowSuitesMenu(true)}
+                  className="px-3 py-2 rounded-xl bg-gradient-to-r from-stadiumGreen/20 via-panel to-gold/20 hover:from-stadiumGreen/30 border border-stadiumGreen/40 text-stadiumGreen font-black text-xs flex items-center space-x-1.5 whitespace-nowrap shadow-md hover:scale-105 transition-all"
+                  title="Open All Tools & Suites Menu"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-gold animate-pulse" />
+                  <span>Suites Menu ⚡</span>
+                </button>
+
                 <button
                   onClick={loadMatches}
                   className="p-2 rounded-xl bg-panel border border-white/10 text-stadiumGreen hover:bg-stadiumGreen/20 transition-all"
@@ -557,7 +310,7 @@ export default function Home() {
                   </button>
                 </div>
 
-                <div className="flex items-center space-x-1.5 overflow-x-auto">
+                <div className="flex items-center space-x-1.5">
                   {(['ALL', 'LIVE', 'UPCOMING', 'PLAYED', 'BANKERS'] as const).map((filter) => (
                     <button
                       key={filter}
@@ -573,103 +326,108 @@ export default function Home() {
                   ))}
                 </div>
 
-                <button
-                  onClick={() => setShowMatchCenter(!showMatchCenter)}
-                  className="flex items-center space-x-1 text-gray-400 hover:text-white text-xs font-bold px-2 py-1.5 rounded-xl bg-panel border border-white/10"
-                >
-                  <span className="hidden sm:inline">{showMatchCenter ? 'Collapse' : 'Expand'}</span>
-                  {showMatchCenter ? <ChevronUp className="w-4 h-4 text-stadiumGreen" /> : <ChevronDown className="w-4 h-4 text-gold" />}
-                </button>
-
               </div>
 
             </div>
           </div>
 
-          {/* Real Matches List (Collapsible) */}
-          {showMatchCenter && (
-            <div className="animate-fadeIn space-y-4">
-              {loadingMatches ? (
-                <div className="p-6 text-center rounded-3xl glass-panel border border-stadiumGreen/20 flex items-center justify-center space-x-2 font-mono text-xs text-stadiumGreen">
-                  <RefreshCw className="w-4 h-4 animate-spin text-stadiumGreen" />
-                  <span>Loading games...</span>
-                </div>
-              ) : filteredMatches.length > 0 ? (
-                displayMode === 'LIVESCORE' ? (
-                  <LiveScoreStadiumHub
-                    matches={filteredMatches}
-                    onOpenReceipt={(m) => setSelectedMatchForReceipt(m)}
-                    onOpenInsights={(m) => setSelectedMatchForInsights(m)}
-                    onSelectOdds={handleAddBetItem}
-                    onToggleFollow={handleToggleFollow}
-                    followedMatchIds={followedMatchIds}
-                  />
-                ) : displayMode === 'COMPACT' ? (
-                  <MatchesTableView
-                    matches={displayedMatches}
-                    onOpenReceipt={(m) => setSelectedMatchForReceipt(m)}
-                    onOpenInsights={(m) => setSelectedMatchForInsights(m)}
-                    onSelectOdds={handleAddBetItem}
-                    onBookmarkMatch={handleBookmarkToggle}
-                  />
-                ) : (
-                  <div className="grid grid-cols-1 gap-5">
-                    {displayedMatches.map((match) => (
-                      <MatchCard
-                        key={match.id}
-                        match={match}
-                        onOpenReceipt={(m) => setSelectedMatchForReceipt(m)}
-                        onOpenInsights={(m) => setSelectedMatchForInsights(m)}
-                        onSelectOdds={handleAddBetItem}
-                        onBookmarkMatch={handleBookmarkToggle}
-                      />
-                    ))}
-                  </div>
-                )
+          {/* Primary Match Center Feed & Tactical 2D Radar */}
+          <div className="animate-fadeIn space-y-4">
+            {loadingMatches ? (
+              <div className="p-10 text-center rounded-3xl glass-panel border border-stadiumGreen/20 flex items-center justify-center space-x-2 font-mono text-xs text-stadiumGreen">
+                <RefreshCw className="w-5 h-5 animate-spin text-stadiumGreen" />
+                <span className="font-bold text-sm">Syncing Live Global Match Center...</span>
+              </div>
+            ) : filteredMatches.length > 0 ? (
+              displayMode === 'LIVESCORE' ? (
+                <LiveScoreStadiumHub
+                  matches={filteredMatches}
+                  onOpenReceipt={(m) => setSelectedMatchForReceipt(m)}
+                  onOpenInsights={(m) => setSelectedMatchForInsights(m)}
+                  onSelectOdds={handleAddBetItem}
+                  onToggleFollow={handleToggleFollow}
+                  followedMatchIds={followedMatchIds}
+                />
+              ) : displayMode === 'COMPACT' ? (
+                <MatchesTableView
+                  matches={displayedMatches}
+                  onOpenReceipt={(m) => setSelectedMatchForReceipt(m)}
+                  onOpenInsights={(m) => setSelectedMatchForInsights(m)}
+                  onSelectOdds={handleAddBetItem}
+                  onBookmarkMatch={handleBookmarkToggle}
+                />
               ) : (
-                <div className="p-10 text-center rounded-3xl glass-panel border border-white/10 space-y-3">
-                  <Radio className="w-8 h-8 text-gold mx-auto" />
-                  <h3 className="text-white font-black text-sm">No matches found matching filter "{activeFilter}"</h3>
-                  <p className="text-xs text-gray-400">Switch filter to "ALL" or "PLAYED" to see real fixtures and settled overnight games.</p>
-                  <button
-                    onClick={() => {
-                      setActiveFilter('ALL');
-                      setSearchQuery('');
-                      loadMatches();
-                    }}
-                    className="px-4 py-2 rounded-xl bg-stadiumGreen text-black font-black text-xs inline-flex items-center space-x-1"
-                  >
-                    <span>Reset Filters & Reload</span>
-                  </button>
+                <div className="grid grid-cols-1 gap-5">
+                  {displayedMatches.map((match) => (
+                    <MatchCard
+                      key={match.id}
+                      match={match}
+                      onOpenReceipt={(m) => setSelectedMatchForReceipt(m)}
+                      onOpenInsights={(m) => setSelectedMatchForInsights(m)}
+                      onSelectOdds={handleAddBetItem}
+                      onBookmarkMatch={handleBookmarkToggle}
+                    />
+                  ))}
                 </div>
-              )}
+              )
+            ) : (
+              <div className="p-10 text-center rounded-3xl glass-panel border border-white/10 space-y-3">
+                <Radio className="w-8 h-8 text-gold mx-auto" />
+                <h3 className="text-white font-black text-sm">No matches found matching filter "{activeFilter}"</h3>
+                <p className="text-xs text-gray-400">Switch filter to "ALL" or "PLAYED" to see real fixtures and settled overnight games.</p>
+                <button
+                  onClick={() => {
+                    setActiveFilter('ALL');
+                    setSearchQuery('');
+                    loadMatches();
+                  }}
+                  className="px-4 py-2 rounded-xl bg-stadiumGreen text-black font-black text-xs inline-flex items-center space-x-1"
+                >
+                  <span>Reset Filters & Reload</span>
+                </button>
+              </div>
+            )}
 
-              {/* Pagination Controls */}
-              {filteredMatches.length > visibleCount && (
-                <div className="text-center pt-2">
-                  <button
-                    onClick={() => setVisibleCount((prev) => prev + 6)}
-                    className="px-6 py-3 rounded-2xl bg-stadiumGreen/20 hover:bg-stadiumGreen/30 border border-stadiumGreen/40 text-stadiumGreen font-mono font-black text-xs shadow-lg transition-all hover:scale-105 inline-flex items-center space-x-2"
-                  >
-                    <span>⚡ Load More Matches ({filteredMatches.length - visibleCount} remaining)</span>
-                    <ChevronDown className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
+            {/* Pagination Controls */}
+            {filteredMatches.length > visibleCount && (
+              <div className="text-center pt-2">
+                <button
+                  onClick={() => setVisibleCount((prev) => prev + 6)}
+                  className="px-6 py-3 rounded-2xl bg-stadiumGreen/20 hover:bg-stadiumGreen/30 border border-stadiumGreen/40 text-stadiumGreen font-mono font-black text-xs shadow-lg transition-all hover:scale-105 inline-flex items-center space-x-2"
+                >
+                  <span>⚡ Load More Matches ({filteredMatches.length - visibleCount} remaining)</span>
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Collapsible Auxiliary Sections at Bottom of Page */}
+          <div className="pt-6 space-y-4 border-t border-white/5">
+            <div className="flex items-center justify-between pb-1">
+              <span className="text-[11px] font-black text-gray-400 font-mono uppercase tracking-wider">
+                AUXILIARY AUDIT SUITES & LIVE WIRE
+              </span>
+              <button
+                onClick={() => setShowSuitesMenu(true)}
+                className="text-[10px] text-stadiumGreen font-bold hover:underline"
+              >
+                Open Full Suites Menu ➔
+              </button>
             </div>
-          )}
 
-          {/* Official League Standings Table */}
-          <LeagueStandingsTable />
+            {/* Official League Standings Table */}
+            <LeagueStandingsTable />
 
-          {/* Historical Settlement Ledger Section (Collapsible & Clickable with Calendar) */}
-          <SettlementLedgerSection onOpenAuditModal={() => setShowHistoryModal(true)} />
+            {/* Historical Settlement Ledger Section */}
+            <SettlementLedgerSection onOpenAuditModal={() => setShowHistoryModal(true)} />
 
-          {/* Global Club Explorer Hub (12+ Leagues & Countries) */}
-          <GlobalClubExplorer />
+            {/* Global Club Explorer Hub */}
+            <GlobalClubExplorer />
 
-          {/* Live Sky Sports & BBC Sport RSS News Section */}
-          <SportsNewsSection />
+            {/* Live Sports RSS News Section */}
+            <SportsNewsSection />
+          </div>
 
         </main>
 
@@ -688,13 +446,94 @@ export default function Home() {
           onSelectTab={(tab) => {
             setActiveDockTab(tab);
             if (tab === 'SLIP') setShowBetSlipDrawer(true);
-            if (tab === 'CHAT' && matches.length > 0) setSelectedMatchForInsights(matches[0]);
+            if (tab === 'SUITES') setShowSuitesMenu(true);
             if (tab === 'PROFILE') setShowProfile(true);
           }}
           betSlipCount={betSlipItems.length}
           onOpenProfile={() => setShowProfile(true)}
           onOpenLedger={() => setShowTrackRecord(true)}
+          onOpenSuitesMenu={() => setShowSuitesMenu(true)}
         />
+
+        {/* Organized Stadium Suites & Tools Hub Menu Modal */}
+        <StadiumSuitesMenu
+          isOpen={showSuitesMenu}
+          onClose={() => setShowSuitesMenu(false)}
+          onOpenBirthdays={() => setShowBirthdaysModal(true)}
+          onOpenLeaderboard={() => setShowLeaderboardModal(true)}
+          onOpenLedger={() => setShowHistoryModal(true)}
+          onOpenBankroll={() => setShowBankroll(true)}
+          onOpenReverseJinx={() => setShowReverseJinxModal(true)}
+          onOpenFlexSlip={() => setShowCloutCardModal(true)}
+          onOpenTelemetry={() => setShowTelemetryModal(true)}
+          onOpenHardware={() => setShowHardwareModal(true)}
+          onOpenStandings={() => setShowStandingsModal(true)}
+          onOpenClubs={() => setShowTeamsModal(true)}
+          onOpenNews={() => setShowNewsModal(true)}
+          onOpenRotatingPool={() => setShowRotatingPoolModal(true)}
+          onOpenVisitor={() => setShowVisitorModal(true)}
+        />
+
+        {/* Auxiliary Modals Opened from Menu */}
+        {showStandingsModal && (
+          <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-5">
+            <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto glass-panel-premium rounded-3xl p-4 sm:p-6 border border-stadiumGreen/40 space-y-4">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <span className="font-mono font-black text-white text-sm">📊 OFFICIAL LEAGUE STANDINGS</span>
+                <button onClick={() => setShowStandingsModal(false)} className="px-3 py-1 rounded-xl bg-panel border border-white/10 text-xs text-white">Close ✕</button>
+              </div>
+              <LeagueStandingsTable />
+            </div>
+          </div>
+        )}
+
+        {showNewsModal && (
+          <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-5">
+            <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto glass-panel-premium rounded-3xl p-4 sm:p-6 border border-gold/40 space-y-4">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <span className="font-mono font-black text-white text-sm">📰 LIVE FOOTBALL NEWS WIRE</span>
+                <button onClick={() => setShowNewsModal(false)} className="px-3 py-1 rounded-xl bg-panel border border-white/10 text-xs text-white">Close ✕</button>
+              </div>
+              <SportsNewsSection />
+            </div>
+          </div>
+        )}
+
+        {showTelemetryModal && (
+          <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-5">
+            <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto glass-panel-premium rounded-3xl p-4 sm:p-6 border border-cyan-400/40 space-y-4">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <span className="font-mono font-black text-white text-sm">📶 REAL-TIME STREAM & SENSOR TELEMETRY</span>
+                <button onClick={() => setShowTelemetryModal(false)} className="px-3 py-1 rounded-xl bg-panel border border-white/10 text-xs text-white">Close ✕</button>
+              </div>
+              <RealtimeCaptureStatus />
+            </div>
+          </div>
+        )}
+
+        {showHardwareModal && (
+          <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-5">
+            <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto glass-panel-premium rounded-3xl p-4 sm:p-6 border border-stadiumGreen/40 space-y-4">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <span className="font-mono font-black text-white text-sm">📳 PHONE HARDWARE & NOTIFICATION CONTROLS</span>
+                <button onClick={() => setShowHardwareModal(false)} className="px-3 py-1 rounded-xl bg-panel border border-white/10 text-xs text-white">Close ✕</button>
+              </div>
+              <PhoneHardwareBanner />
+            </div>
+          </div>
+        )}
+
+        {showVisitorModal && (
+          <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-5">
+            <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto glass-panel-premium rounded-3xl p-4 sm:p-6 border border-pink-400/40 space-y-4">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <span className="font-mono font-black text-white text-sm">📍 SMART VISITOR & WEATHER GREETING</span>
+                <button onClick={() => setShowVisitorModal(false)} className="px-3 py-1 rounded-xl bg-panel border border-white/10 text-xs text-white">Close ✕</button>
+              </div>
+              <SmartVisitorBanner />
+            </div>
+          </div>
+        )}
 
         {/* Modals */}
         {selectedMatchForReceipt && (
