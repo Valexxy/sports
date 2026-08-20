@@ -43,7 +43,7 @@ import { PhoneHardwareBanner } from '../components/phone-install-banner';
 import { SettlementLedgerSection } from '../components/settlement-ledger-section';
 import { RealtimeCaptureStatus } from '../components/realtime-capture-status';
 import { GlobalClubExplorer } from '../components/global-club-explorer';
-import { Sparkles, Search, LayoutGrid, List, ChevronDown, Mic, MapPin, Camera, ShieldAlert, Cpu, RefreshCw, Radio, Share2 } from 'lucide-react';
+import { Sparkles, Search, LayoutGrid, List, ChevronDown, ChevronUp, Mic, MapPin, Camera, ShieldAlert, Cpu, RefreshCw, Radio, Share2 } from 'lucide-react';
 
 export default function Home() {
   const [matches, setMatches] = useState<MatchData[]>([]);
