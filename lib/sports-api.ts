@@ -13,7 +13,7 @@ export interface MatchPrediction {
     selection: string;
     market: string;
     odds: number;
-    confidenceTier: 'ULTRA-BANKER' | 'HIGH VALUE' | 'MODERATE';
+    confidenceTier: 'ULTRA-BANKER' | 'BANKER' | 'HIGH VALUE' | 'MODERATE';
     kellyStake: number;
     probability: number;
     rationale: string;

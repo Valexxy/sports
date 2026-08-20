@@ -67,7 +67,16 @@ export const SportsNewsSection: React.FC = () => {
     });
   };
 
-  const displayedArticles = articles.slice(0, visibleCount);
+  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
+
+  const handleImgError = (articleId: string) => {
+    setImgErrors(prev => ({ ...prev, [articleId]: true }));
+  };
+
+  // Only show articles with real content
+  const displayedArticles = articles
+    .filter(a => a.title && a.title.length > 5 && a.description && a.description.length > 10)
+    .slice(0, visibleCount);
 
   return (
     <div className="glass-panel rounded-3xl p-5 border border-white/10 space-y-4 shadow-2xl font-mono text-xs">
@@ -144,19 +153,29 @@ export const SportsNewsSection: React.FC = () => {
                     onClick={() => setActiveArticle(item)}
                     className="rounded-3xl bg-panel/90 hover:bg-panel border border-white/10 hover:border-stadiumGreen/60 transition-all cursor-pointer flex flex-col justify-between group shadow-xl overflow-hidden hover:scale-[1.01]"
                   >
-                    {/* Photo Thumbnail */}
-                    <div className="relative h-40 w-full overflow-hidden bg-black">
-                      <img
-                        src={item.imageUrl}
-                        alt={item.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
-                      />
-                      <div className="absolute top-3 left-3">
-                        <span className="text-[9px] px-2.5 py-1 rounded-xl bg-black/85 text-stadiumGreen font-black border border-stadiumGreen/40 shadow-lg">
+                    {/* Photo Thumbnail — hidden if broken or missing */}
+                    {item.imageUrl && !imgErrors[item.id] ? (
+                      <div className="relative h-40 w-full overflow-hidden bg-black">
+                        <img
+                          src={item.imageUrl}
+                          alt={item.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
+                          onError={() => handleImgError(item.id)}
+                        />
+                        <div className="absolute top-3 left-3">
+                          <span className="text-[9px] px-2.5 py-1 rounded-xl bg-black/85 text-stadiumGreen font-black border border-stadiumGreen/40">
+                            {item.category}
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="relative h-16 w-full overflow-hidden bg-gradient-to-r from-stadiumGreen/20 via-gold/10 to-cyberPurple/10 flex items-center px-4">
+                        <span className="text-[10px] px-2.5 py-1 rounded-xl bg-black/50 text-stadiumGreen font-black border border-stadiumGreen/30">
                           {item.category}
                         </span>
+                        <span className="ml-2 text-[10px] text-gold font-bold">{item.source}</span>
                       </div>
-                    </div>
+                    )}
 
                     {/* Content */}
                     <div className="p-4 flex-1 flex flex-col justify-between space-y-2.5">

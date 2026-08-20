@@ -92,56 +92,46 @@ export const BroadcastTicker: React.FC<TickerProps> = ({ matches = [], onSelectU
 
   return (
     <div
-      className="bg-black/95 border-b border-stadiumGreen/40 py-2 px-4 text-xs font-mono overflow-hidden relative z-30 shadow-md glow-emerald"
+      className="bg-black/95 border-b border-stadiumGreen/40 py-2 px-2 sm:px-4 text-xs font-mono overflow-hidden relative z-30 shadow-md glow-emerald"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        
-        {/* Fixed Header Label */}
-        <div className="flex items-center space-x-2 pr-3 border-r border-white/10 flex-shrink-0">
-          <div className="w-2 h-2 rounded-full bg-crimson animate-ping"></div>
-          <span className="font-extrabold text-stadiumGreen uppercase tracking-wider text-[11px] flex items-center space-x-1">
-            <Zap className="w-3.5 h-3.5" />
-            <span>LIVE WIRE ⚡</span>
-          </span>
+      <div className="max-w-7xl mx-auto flex items-center gap-1 sm:gap-0">
+
+        {/* Fixed Header Label — icon only on mobile */}
+        <div className="flex items-center space-x-1.5 pr-2 sm:pr-3 border-r border-white/10 flex-shrink-0">
+          <div className="w-2 h-2 rounded-full bg-crimson animate-ping flex-shrink-0"></div>
+          <Zap className="w-3.5 h-3.5 text-stadiumGreen flex-shrink-0" />
+          <span className="hidden sm:inline font-extrabold text-stadiumGreen uppercase tracking-wider text-[11px]">LIVE WIRE</span>
         </div>
 
         {/* Vertical Upward Scrolling Content */}
-        <div className="flex-1 overflow-hidden mx-3 h-6 relative cursor-pointer">
+        <div className="flex-1 min-w-0 overflow-hidden mx-1 sm:mx-3 h-6 relative cursor-pointer">
           {triggerUpdates.map((item, idx) => {
             const isCurrent = idx === currentIndex;
             const isPrev = idx === (currentIndex - 1 + triggerUpdates.length) % triggerUpdates.length;
-
             return (
               <div
                 key={item.id}
                 onClick={() => onSelectUpdate && onSelectUpdate(item)}
-                className={`absolute inset-0 flex items-center space-x-2 transition-all duration-700 ease-in-out ${
-                  isCurrent
-                    ? 'translate-y-0 opacity-100'
-                    : isPrev
-                    ? '-translate-y-full opacity-0'
-                    : 'translate-y-full opacity-0'
+                className={`absolute inset-0 flex items-center gap-1.5 transition-all duration-700 ease-in-out ${
+                  isCurrent ? 'translate-y-0 opacity-100' : isPrev ? '-translate-y-full opacity-0' : 'translate-y-full opacity-0'
                 }`}
               >
-                <span className={`px-2 py-0.5 rounded font-black text-[10px] uppercase font-mono ${item.badgeColor}`}>
+                <span className={`flex-shrink-0 px-1.5 py-0.5 rounded font-black text-[9px] sm:text-[10px] uppercase ${item.badgeColor}`}>
                   {item.badge}
                 </span>
-                <span className="font-extrabold text-white hover:underline">{item.matchTitle}:</span>
-                <span className="text-gray-200 truncate">{item.text}</span>
-                <span className="text-gray-500 text-[10px]">({item.timeAgo})</span>
+                <span className="font-extrabold text-white text-[10px] sm:text-xs flex-shrink-0 hidden xs:inline">{item.matchTitle}:</span>
+                <span className="text-gray-300 text-[10px] sm:text-xs truncate min-w-0">{item.text}</span>
               </div>
             );
           })}
         </div>
 
-        {/* Counter & Scroll Indicator */}
-        <div className="hidden sm:flex items-center space-x-2 text-gray-400 text-[10px] pl-3 border-l border-white/10 flex-shrink-0 font-bold">
+        {/* Counter — desktop only */}
+        <div className="hidden sm:flex items-center space-x-1.5 text-gray-400 text-[10px] pl-3 border-l border-white/10 flex-shrink-0 font-bold">
           <ChevronUp className="w-3.5 h-3.5 text-stadiumGreen animate-bounce" />
-          <span>
-            {currentIndex + 1} / {triggerUpdates.length}
-          </span>
+          <span>{currentIndex + 1}/{triggerUpdates.length}</span>
         </div>
 
       </div>
