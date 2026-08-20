@@ -1,7 +1,7 @@
 'use client';
 
 // Advanced Phone Hardware & Background Service Worker Integration Engine
-export type VibrationPattern = 'GOAL_SCORED' | 'RED_CARD' | 'MATCH_SETTLED_WON' | 'BANKER_LOCKED' | 'HEARTBEAT';
+export type VibrationPattern = 'GOAL_SCORED' | 'RED_CARD' | 'MATCH_SETTLED_WON' | 'BANKER_LOCKED' | 'HEARTBEAT' | 'SELECTION';
 
 class PhoneHardwareEngine {
   private wakeLock: any = null;
@@ -82,6 +82,9 @@ class PhoneHardwareEngine {
           break;
         case 'HEARTBEAT':
           navigator.vibrate([80, 120, 80]); // High tension in-play
+          break;
+        case 'SELECTION':
+          navigator.vibrate([40]); // Crisp tactile tap feedback
           break;
         case 'BANKER_LOCKED':
         default:
