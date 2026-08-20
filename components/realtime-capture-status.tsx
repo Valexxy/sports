@@ -5,14 +5,18 @@ import { useRealtimeCapture } from '../lib/use-realtime-capture';
 import { Radio, Activity, Cpu, Zap, Wifi, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
 
 export const RealtimeCaptureStatus: React.FC = () => {
-  const { telemetry, liveStreamEvents } = useRealtimeCapture();
+  const { telemetry } = useRealtimeCapture();
+  const [isOpen, setIsOpen] = useState(true);
   const [showDetails, setShowDetails] = useState(false);
 
   return (
     <div className="glass-panel rounded-2xl p-3 sm:p-3.5 border border-stadiumGreen/40 font-mono text-xs shadow-xl space-y-2">
       
-      {/* Main Status Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      {/* Main Status Bar with Collapsible Header */}
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 cursor-pointer select-none"
+      >
         
         {/* Left: Engine Status Badge */}
         <div className="flex items-center space-x-2.5">
@@ -23,7 +27,7 @@ export const RealtimeCaptureStatus: React.FC = () => {
 
           <div>
             <div className="flex items-center space-x-2">
-              <span className="font-black text-white text-xs">REAL-TIME DATA CAPTURING ENGINE</span>
+              <span className="font-black text-white text-xs">REAL-TIME DATA CAPTURING ENGINE ⚡</span>
               <span className="px-2 py-0.2 rounded bg-stadiumGreen text-black font-black text-[9px]">
                 {telemetry.isConnected ? 'ONLINE (1s SYNC)' : 'RECONNECTING'}
               </span>
@@ -34,7 +38,7 @@ export const RealtimeCaptureStatus: React.FC = () => {
           </div>
         </div>
 
-        {/* Right: Live Telemetry Metrics */}
+        {/* Right: Live Telemetry Metrics & Collapse Button */}
         <div className="flex items-center space-x-3 self-stretch sm:self-auto justify-between sm:justify-end text-[10px]">
           
           <div className="flex items-center space-x-1.5 bg-black/60 px-2.5 py-1 rounded-xl border border-white/10">
@@ -49,21 +53,17 @@ export const RealtimeCaptureStatus: React.FC = () => {
             <span className="text-gold font-bold">{telemetry.latencyMs}ms</span>
           </div>
 
-          <button
-            onClick={() => setShowDetails(!showDetails)}
-            className="p-1.5 rounded-xl bg-panel hover:bg-white/10 border border-white/10 text-gray-300 transition-all flex items-center space-x-1"
-            title="Inspect Real-Time Ingestion Telemetry"
-          >
-            <span>Feeds</span>
-            {showDetails ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-          </button>
+          <div className="flex items-center space-x-1 text-gray-400 text-xs font-bold px-2 py-1 rounded-lg bg-panel border border-white/10">
+            <span className="hidden sm:inline">{isOpen ? 'Collapse' : 'Expand'}</span>
+            {isOpen ? <ChevronUp className="w-3.5 h-3.5 text-stadiumGreen" /> : <ChevronDown className="w-3.5 h-3.5 text-gold" />}
+          </div>
 
         </div>
 
       </div>
 
-      {/* Expandable Live Ingestion Feeds Drawer */}
-      {showDetails && (
+      {/* Expandable Live Ingestion Feeds Drawer (Collapsible) */}
+      {isOpen && (
         <div className="pt-2 border-t border-white/10 grid grid-cols-1 sm:grid-cols-4 gap-2 animate-fadeIn text-[10px]">
           <div className="p-2 rounded-xl bg-black/50 border border-white/5 space-y-0.5">
             <span className="text-gray-400 block font-bold">1. ESPN AKAMAI CDN</span>
@@ -90,7 +90,7 @@ export const RealtimeCaptureStatus: React.FC = () => {
           </div>
 
           <div className="p-2 rounded-xl bg-black/50 border border-white/5 space-y-0.5">
-            <span className="text-gray-400 block font-bold">4. EDGE STREAM RELAY</span>
+            <span className="text-cyan-400 block font-bold">4. EDGE STREAM RELAY</span>
             <span className="text-cyan-400 font-bold flex items-center space-x-1">
               <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
               <span>1,000 Client Broadcast/s</span>

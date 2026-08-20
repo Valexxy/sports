@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Globe, Trophy, Users, MapPin, Activity, Flame, Shield, ChevronDown, ExternalLink } from 'lucide-react';
+import { Globe, Trophy, Users, MapPin, Activity, Flame, Shield, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 
 export interface WorldClub {
   id: string;
@@ -305,15 +305,19 @@ GLOBAL_CLUBS_DIRECTORY.ALL = [
 export const GlobalClubExplorer: React.FC = () => {
   const [selectedCountry, setSelectedCountry] = useState<string>('ALL');
   const [selectedClub, setSelectedClub] = useState<WorldClub | null>(null);
+  const [isOpen, setIsOpen] = useState(true);
 
   const clubs = GLOBAL_CLUBS_DIRECTORY[selectedCountry] || GLOBAL_CLUBS_DIRECTORY.ALL;
 
   return (
     <div className="glass-panel rounded-3xl p-5 border border-white/10 space-y-4 font-mono text-xs shadow-2xl">
       
-      {/* Header */}
+      {/* Header with Collapsible Toggle */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
-        <div className="flex items-center space-x-2.5">
+        <div 
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex items-center space-x-2.5 cursor-pointer select-none"
+        >
           <div className="p-2 rounded-xl bg-stadiumGreen text-black font-black">
             <Globe className="w-5 h-5" />
           </div>
@@ -330,100 +334,116 @@ export const GlobalClubExplorer: React.FC = () => {
           </div>
         </div>
 
-        {/* Country Filter Selector */}
-        <div className="flex items-center space-x-1.5 bg-black/50 p-1 rounded-xl border border-white/10 overflow-x-auto self-stretch sm:self-auto">
-          {[
-            { key: 'ALL', label: '🌍 All Clubs' },
-            { key: 'ENGLAND', label: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 England' },
-            { key: 'SPAIN', label: '🇪🇸 Spain' },
-            { key: 'ITALY', label: '🇮🇹 Italy' },
-            { key: 'GERMANY', label: '🇩🇪 Germany' },
-            { key: 'NIGERIA', label: '🇳🇬 Nigeria (NPFL)' },
-            { key: 'BRAZIL', label: '🇧🇷 Brazil' },
-          ].map((c) => (
-            <button
-              key={c.key}
-              onClick={() => setSelectedCountry(c.key)}
-              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all whitespace-nowrap ${
-                selectedCountry === c.key
-                  ? 'bg-stadiumGreen text-black font-black shadow-md'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              {c.label}
-            </button>
-          ))}
+        {/* Right side controls */}
+        <div className="flex items-center space-x-2 self-stretch sm:self-auto justify-between sm:justify-end">
+          {/* Country Filter Selector */}
+          <div className="flex items-center space-x-1.5 bg-black/50 p-1 rounded-xl border border-white/10 overflow-x-auto">
+            {[
+              { key: 'ALL', label: '🌍 All' },
+              { key: 'ENGLAND', label: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 England' },
+              { key: 'SPAIN', label: '🇪🇸 Spain' },
+              { key: 'ITALY', label: '🇮🇹 Italy' },
+              { key: 'GERMANY', label: '🇩🇪 Germany' },
+              { key: 'NIGERIA', label: '🇳🇬 NPFL' },
+              { key: 'BRAZIL', label: '🇧🇷 Brazil' },
+            ].map((c) => (
+              <button
+                key={c.key}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedCountry(c.key);
+                }}
+                className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all whitespace-nowrap ${
+                  selectedCountry === c.key
+                    ? 'bg-stadiumGreen text-black font-black shadow-md'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="flex items-center space-x-1 text-gray-400 hover:text-white text-xs font-bold px-2 py-1 rounded-lg bg-panel border border-white/10"
+          >
+            <span className="hidden sm:inline">{isOpen ? 'Collapse' : 'Expand'}</span>
+            {isOpen ? <ChevronUp className="w-4 h-4 text-stadiumGreen" /> : <ChevronDown className="w-4 h-4 text-gold" />}
+          </button>
         </div>
       </div>
 
-      {/* Clubs Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-        {clubs.map((club) => (
-          <div
-            key={club.id}
-            onClick={() => setSelectedClub(club)}
-            className="p-4 rounded-2xl bg-panel/90 hover:bg-panel border border-white/10 hover:border-stadiumGreen/40 transition-all cursor-pointer flex flex-col justify-between space-y-3 group shadow-lg"
-          >
-            {/* Club Top Row */}
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-black/60 border border-white/10 p-1 flex items-center justify-center flex-shrink-0">
-                <img
-                  src={club.logo}
-                  alt={club.name}
-                  className="w-full h-full object-contain"
-                  onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center space-x-1.5">
-                  <h4 className="font-extrabold text-xs text-white group-hover:text-stadiumGreen transition-all truncate">
-                    {club.name}
-                  </h4>
-                  <span className="text-xs">{club.countryFlag}</span>
+      {/* Clubs Grid (Collapsible) */}
+      {isOpen && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 animate-fadeIn">
+          {clubs.map((club) => (
+            <div
+              key={club.id}
+              onClick={() => setSelectedClub(club)}
+              className="p-4 rounded-2xl bg-panel/90 hover:bg-panel border border-white/10 hover:border-stadiumGreen/40 transition-all cursor-pointer flex flex-col justify-between space-y-3 group shadow-lg"
+            >
+              {/* Club Top Row */}
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-black/60 border border-white/10 p-1 flex items-center justify-center flex-shrink-0">
+                  <img
+                    src={club.logo}
+                    alt={club.name}
+                    className="w-full h-full object-contain"
+                    onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                  />
                 </div>
-                <span className="text-[10px] text-gray-400 font-sans block truncate">{club.league}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center space-x-1.5">
+                    <h4 className="font-extrabold text-xs text-white group-hover:text-stadiumGreen transition-all truncate">
+                      {club.name}
+                    </h4>
+                    <span className="text-xs">{club.countryFlag}</span>
+                  </div>
+                  <span className="text-[10px] text-gray-400 font-sans block truncate">{club.league}</span>
+                </div>
               </div>
-            </div>
 
-            {/* Stadium & Manager Capsule */}
-            <div className="p-2.5 rounded-xl bg-black/60 border border-white/5 space-y-1 text-[10px]">
-              <div className="flex justify-between text-gray-300">
-                <span className="text-gray-500">Stadium:</span>
-                <span className="font-bold text-white truncate max-w-[160px]">{club.stadium} ({club.capacity})</span>
+              {/* Stadium & Manager Capsule */}
+              <div className="p-2.5 rounded-xl bg-black/60 border border-white/5 space-y-1 text-[10px]">
+                <div className="flex justify-between text-gray-300">
+                  <span className="text-gray-500">Stadium:</span>
+                  <span className="font-bold text-white truncate max-w-[160px]">{club.stadium} ({club.capacity})</span>
+                </div>
+                <div className="flex justify-between text-gray-300">
+                  <span className="text-gray-500">Manager:</span>
+                  <span className="font-bold text-gold">{club.manager}</span>
+                </div>
+                <div className="flex justify-between text-gray-300">
+                  <span className="text-gray-500">Squad Value:</span>
+                  <span className="font-black text-stadiumGreen">{club.squadValue}</span>
+                </div>
               </div>
-              <div className="flex justify-between text-gray-300">
-                <span className="text-gray-500">Manager:</span>
-                <span className="font-bold text-gold">{club.manager}</span>
-              </div>
-              <div className="flex justify-between text-gray-300">
-                <span className="text-gray-500">Squad Value:</span>
-                <span className="font-black text-stadiumGreen">{club.squadValue}</span>
-              </div>
-            </div>
 
-            {/* Goal Power & Form */}
-            <div className="flex items-center justify-between pt-1 border-t border-white/5 text-[10px]">
-              <div className="flex items-center space-x-1 font-bold">
-                <Activity className="w-3 h-3 text-stadiumGreen" />
-                <span className="text-stadiumGreen">Goal Power: {club.goalPowerXG.toFixed(2)} xG</span>
+              {/* Goal Power & Form */}
+              <div className="flex items-center justify-between pt-1 border-t border-white/5 text-[10px]">
+                <div className="flex items-center space-x-1 font-bold">
+                  <Activity className="w-3 h-3 text-stadiumGreen" />
+                  <span className="text-stadiumGreen">Goal Power: {club.goalPowerXG.toFixed(2)} xG</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  {club.form.map((f, idx) => (
+                    <span
+                      key={idx}
+                      className={`w-3 h-3 rounded text-[8px] font-black flex items-center justify-center ${
+                        f === 'W' ? 'bg-stadiumGreen text-black' : f === 'D' ? 'bg-gray-600 text-white' : 'bg-crimson text-white'
+                      }`}
+                    >
+                      {f}
+                    </span>
+                  ))}
+                </div>
               </div>
-              <div className="flex items-center space-x-1">
-                {club.form.map((f, idx) => (
-                  <span
-                    key={idx}
-                    className={`w-3 h-3 rounded text-[8px] font-black flex items-center justify-center ${
-                      f === 'W' ? 'bg-stadiumGreen text-black' : f === 'D' ? 'bg-gray-600 text-white' : 'bg-crimson text-white'
-                    }`}
-                  >
-                    {f}
-                  </span>
-                ))}
-              </div>
-            </div>
 
-          </div>
-        ))}
-      </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Detailed Club Modal */}
       {selectedClub && (

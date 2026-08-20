@@ -12,7 +12,9 @@ import {
   EyeOff, 
   Vibrate, 
   Volume2,
-  X
+  X,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { phoneHardware } from '../lib/phone-hardware-engine';
 import { stadiumAudio } from '../lib/sound-synthesizer';
@@ -22,6 +24,7 @@ export const PhoneHardwareBanner: React.FC = () => {
   const [wakeLockActive, setWakeLockActive] = useState(false);
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
@@ -95,8 +98,11 @@ export const PhoneHardwareBanner: React.FC = () => {
   return (
     <div className="glass-panel-premium rounded-3xl p-4 sm:p-5 border border-stadiumGreen/40 shadow-2xl font-mono text-xs space-y-3 animate-fadeIn">
       
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+      {/* Header with Collapsible Toggle */}
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center justify-between cursor-pointer select-none border-b border-white/10 pb-2.5"
+      >
         <div className="flex items-center space-x-2.5">
           <div className="p-2 rounded-xl bg-stadiumGreen text-black font-black">
             <Smartphone className="w-4 h-4" />
@@ -114,102 +120,115 @@ export const PhoneHardwareBanner: React.FC = () => {
           </div>
         </div>
 
-        <button
-          onClick={() => setDismissed(true)}
-          className="p-1 text-gray-400 hover:text-white rounded-full bg-panel border border-white/10"
-        >
-          <X className="w-3.5 h-3.5" />
-        </button>
+        <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 text-gray-400 text-xs font-bold">
+            <span className="hidden sm:inline">{isOpen ? 'Collapse' : 'Expand'}</span>
+            {isOpen ? <ChevronUp className="w-4 h-4 text-stadiumGreen" /> : <ChevronDown className="w-4 h-4 text-gold" />}
+          </div>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setDismissed(true);
+            }}
+            className="p-1 text-gray-400 hover:text-white rounded-full bg-panel border border-white/10"
+            title="Dismiss"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
-      {/* 4 Hardware Feature Quick Toggles */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
-        
-        {/* 1. Background Push Notifications */}
-        <button
-          onClick={handleEnableNotifications}
-          className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between space-y-1.5 ${
-            notificationsEnabled
-              ? 'bg-stadiumGreen/15 border-stadiumGreen text-white'
-              : 'bg-panel/80 hover:bg-white/5 border-white/10 text-gray-300'
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <Bell className={`w-4 h-4 ${notificationsEnabled ? 'text-stadiumGreen fill-current' : 'text-gold'}`} />
-            <span className={`text-[9px] font-black px-1.5 py-0.2 rounded ${
-              notificationsEnabled ? 'bg-stadiumGreen text-black' : 'bg-white/10 text-gray-400'
-            }`}>
-              {notificationsEnabled ? 'ENABLED ✓' : 'ENABLE'}
-            </span>
-          </div>
-          <div>
-            <span className="font-black text-[11px] block">Lock-Screen Push</span>
-            <span className="text-[9px] text-gray-400 font-sans">Alerts when phone asleep</span>
-          </div>
-        </button>
+      {/* 4 Hardware Feature Quick Toggles (Collapsible) */}
+      {isOpen && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 animate-fadeIn">
+          
+          {/* 1. Background Push Notifications */}
+          <button
+            onClick={handleEnableNotifications}
+            className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between space-y-1.5 ${
+              notificationsEnabled
+                ? 'bg-stadiumGreen/15 border-stadiumGreen text-white'
+                : 'bg-panel/80 hover:bg-white/5 border-white/10 text-gray-300'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <Bell className={`w-4 h-4 ${notificationsEnabled ? 'text-stadiumGreen fill-current' : 'text-gold'}`} />
+              <span className={`text-[9px] font-black px-1.5 py-0.2 rounded ${
+                notificationsEnabled ? 'bg-stadiumGreen text-black' : 'bg-white/10 text-gray-400'
+              }`}>
+                {notificationsEnabled ? 'ENABLED ✓' : 'ENABLE'}
+              </span>
+            </div>
+            <div>
+              <span className="font-black text-[11px] block">Lock-Screen Push</span>
+              <span className="text-[9px] text-gray-400 font-sans">Alerts when phone asleep</span>
+            </div>
+          </button>
 
-        {/* 2. Hardware Haptic Vibrations */}
-        <button
-          onClick={handleTestHaptic}
-          className="p-3 rounded-2xl bg-panel/80 hover:bg-white/5 border border-white/10 text-left transition-all flex flex-col justify-between space-y-1.5 text-gray-300"
-        >
-          <div className="flex items-center justify-between">
-            <Vibrate className="w-4 h-4 text-cyberPurple" />
-            <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-cyberPurple/20 text-cyberPurple">
-              TEST 📳
-            </span>
-          </div>
-          <div>
-            <span className="font-black text-[11px] block text-white">Stadium Haptics</span>
-            <span className="text-[9px] text-gray-400 font-sans">Goal celebration motor</span>
-          </div>
-        </button>
+          {/* 2. Hardware Haptic Vibrations */}
+          <button
+            onClick={handleTestHaptic}
+            className="p-3 rounded-2xl bg-panel/80 hover:bg-white/5 border border-white/10 text-left transition-all flex flex-col justify-between space-y-1.5 text-gray-300"
+          >
+            <div className="flex items-center justify-between">
+              <Vibrate className="w-4 h-4 text-cyberPurple" />
+              <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-cyberPurple/20 text-cyberPurple">
+                TEST 📳
+              </span>
+            </div>
+            <div>
+              <span className="font-black text-[11px] block text-white">Stadium Haptics</span>
+              <span className="text-[9px] text-gray-400 font-sans">Goal celebration motor</span>
+            </div>
+          </button>
 
-        {/* 3. Screen Wake Lock (Keep Awake) */}
-        <button
-          onClick={handleToggleWakeLock}
-          className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between space-y-1.5 ${
-            wakeLockActive
-              ? 'bg-gold/15 border-gold text-white'
-              : 'bg-panel/80 hover:bg-white/5 border-white/10 text-gray-300'
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            {wakeLockActive ? <Eye className="w-4 h-4 text-gold" /> : <EyeOff className="w-4 h-4 text-gray-400" />}
-            <span className={`text-[9px] font-black px-1.5 py-0.2 rounded ${
-              wakeLockActive ? 'bg-gold text-black' : 'bg-white/10 text-gray-400'
-            }`}>
-              {wakeLockActive ? 'AWAKE ☀️' : 'OFF'}
-            </span>
-          </div>
-          <div>
-            <span className="font-black text-[11px] block">Stadium WakeLock</span>
-            <span className="text-[9px] text-gray-400 font-sans">Keeps screen alive in-play</span>
-          </div>
-        </button>
+          {/* 3. Screen Wake Lock (Keep Awake) */}
+          <button
+            onClick={handleToggleWakeLock}
+            className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between space-y-1.5 ${
+              wakeLockActive
+                ? 'bg-gold/15 border-gold text-white'
+                : 'bg-panel/80 hover:bg-white/5 border-white/10 text-gray-300'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              {wakeLockActive ? <Eye className="w-4 h-4 text-gold" /> : <EyeOff className="w-4 h-4 text-gray-400" />}
+              <span className={`text-[9px] font-black px-1.5 py-0.2 rounded ${
+                wakeLockActive ? 'bg-gold text-black' : 'bg-white/10 text-gray-400'
+              }`}>
+                {wakeLockActive ? 'AWAKE ☀️' : 'OFF'}
+              </span>
+            </div>
+            <div>
+              <span className="font-black text-[11px] block">Stadium WakeLock</span>
+              <span className="text-[9px] text-gray-400 font-sans">Keeps screen alive in-play</span>
+            </div>
+          </button>
 
-        {/* 4. Native PWA Install to Home Screen */}
-        <button
-          onClick={handleInstallApp}
-          className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between space-y-1.5 ${
-            isInstalled
-              ? 'bg-stadiumGreen/20 border-stadiumGreen/50 text-white'
-              : 'bg-stadiumGreen/20 hover:bg-stadiumGreen/30 border-stadiumGreen/40 text-stadiumGreen'
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <Download className="w-4 h-4 text-stadiumGreen" />
-            <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-stadiumGreen text-black">
-              {isInstalled ? 'INSTALLED ✓' : 'INSTALL 📲'}
-            </span>
-          </div>
-          <div>
-            <span className="font-black text-[11px] block text-white">Standalone App</span>
-            <span className="text-[9px] text-gray-400 font-sans">1-tap homescreen launch</span>
-          </div>
-        </button>
+          {/* 4. Native PWA Install to Home Screen */}
+          <button
+            onClick={handleInstallApp}
+            className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between space-y-1.5 ${
+              isInstalled
+                ? 'bg-stadiumGreen/20 border-stadiumGreen/50 text-white'
+                : 'bg-stadiumGreen/20 hover:bg-stadiumGreen/30 border-stadiumGreen/40 text-stadiumGreen'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <Download className="w-4 h-4 text-stadiumGreen" />
+              <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-stadiumGreen text-black">
+                {isInstalled ? 'INSTALLED ✓' : 'INSTALL 📲'}
+              </span>
+            </div>
+            <div>
+              <span className="font-black text-[11px] block text-white">Standalone App</span>
+              <span className="text-[9px] text-gray-400 font-sans">1-tap homescreen launch</span>
+            </div>
+          </button>
 
-      </div>
+        </div>
+      )}
 
     </div>
   );

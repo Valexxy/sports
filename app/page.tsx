@@ -101,6 +101,10 @@ export default function Home() {
   // Followed Matches State
   const [followedMatchIds, setFollowedMatchIds] = useState<string[]>([]);
 
+  // Collapsible Section States
+  const [showHeroBanner, setShowHeroBanner] = useState(true);
+  const [showMatchCenter, setShowMatchCenter] = useState(true);
+
   const handleToggleFollow = (match: MatchData) => {
     stadiumAudio.playCrowdRoar();
     setFollowedMatchIds((prev) => {
@@ -221,71 +225,90 @@ export default function Home() {
           {/* Phone Hardware & Background Notification Control Center */}
           <PhoneHardwareBanner />
 
-          {/* Hero Banner */}
-          <div className="relative glass-panel-premium rounded-3xl p-6 sm:p-8 border border-stadiumGreen/30 overflow-hidden shadow-2xl">
+          {/* Hero Banner with Collapsible Control */}
+          <div className="relative glass-panel-premium rounded-3xl p-5 sm:p-7 border border-stadiumGreen/30 overflow-hidden shadow-2xl space-y-4">
             <div className="absolute top-0 right-0 w-96 h-96 bg-stadiumGreen/10 rounded-full blur-3xl -z-10"></div>
             <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyberPurple/10 rounded-full blur-3xl -z-10"></div>
 
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-3 max-w-2xl">
-
-                <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
-                  Feel the Stadium. <br className="hidden sm:inline" />
-                  <span className="animate-shimmer">
-                    {visitorData?.city ? `${visitorData.city} & Worldwide` : 'Live'} Matchday Active.
-                  </span>
-                </h2>
-
-                <p className="text-xs sm:text-sm text-gray-300 font-sans leading-relaxed">
-                  Real-time live scores, Poisson goal power analytics, and referee-verified match settlements for Premier League, La Liga, Champions League, Serie A, and continental tournaments.
-                </p>
-
-                {/* Feature Quick Badges with Clear Purpose */}
-                <div className="flex flex-wrap items-center gap-2.5 pt-2">
-                  <button
-                    onClick={() => setShowReverseJinxModal(true)}
-                    className="px-4 py-2 rounded-2xl bg-gradient-to-r from-cyberPurple/30 via-crimson/20 to-black hover:from-cyberPurple/50 border border-cyberPurple/50 text-white text-xs font-mono font-black flex items-center space-x-2 transition-all hover:scale-105 shadow-lg"
-                  >
-                    <ShieldAlert className="w-4 h-4 text-pink-400" />
-                    <span>Reverse Jinx 🔮 (Emotional Hedge)</span>
-                  </button>
-
-                  <button
-                    onClick={() => setShowCloutCardModal(true)}
-                    className="px-4 py-2 rounded-2xl bg-gradient-to-r from-stadiumGreen/30 via-panel to-gold/20 hover:from-stadiumGreen/50 border border-stadiumGreen/50 text-white text-xs font-mono font-black flex items-center space-x-2 transition-all hover:scale-105 shadow-lg glow-emerald"
-                  >
-                    <Share2 className="w-4 h-4 text-stadiumGreen" />
-                    <span>Social Flex Slip 📲</span>
-                  </button>
-                </div>
-
+            <div 
+              onClick={() => setShowHeroBanner(!showHeroBanner)}
+              className="flex items-center justify-between cursor-pointer select-none border-b border-white/5 pb-2"
+            >
+              <div className="flex items-center space-x-2">
+                <span className="w-2 h-2 rounded-full bg-stadiumGreen animate-ping"></span>
+                <span className="text-xs font-black text-stadiumGreen font-mono uppercase tracking-wide">
+                  STADIUM INTELLIGENCE SUPER-APP • MATCHDAY ACTIVE
+                </span>
               </div>
 
-              {/* Dynamic Live Stadium Pulse Matrix */}
-              <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full md:w-auto">
-                <div 
-                  onClick={() => setShowHistoryModal(true)}
-                  className="p-4 rounded-2xl bg-panel/90 border border-stadiumGreen/30 text-center cursor-pointer hover:scale-105 transition-all glow-emerald"
-                  title="Click to view Track Record & Daily Successes"
-                >
-                  <span className="text-[10px] font-mono text-gray-400 block font-semibold">PITCH INTENSITY</span>
-                  <span className="text-3xl font-black text-stadiumGreen font-mono">
-                    {matches.filter((m) => m.status === 'LIVE').length > 0 ? '94%' : '88%'}
-                  </span>
-                  <span className="text-[10px] text-stadiumGreen font-mono block mt-0.5">Live Match Tension ➔</span>
-                </div>
-
-                <div 
-                  onClick={() => setShowBankroll(true)}
-                  className="p-4 rounded-2xl bg-panel/90 border border-gold/30 text-center cursor-pointer hover:scale-105 transition-all glow-gold"
-                  title="Click to view Smart Stake Optimizer"
-                >
-                  <span className="text-[10px] font-mono text-gray-400 block font-semibold">ACCA MULTI-BOOST</span>
-                  <span className="text-3xl font-black text-gold font-mono">+{betSlipItems.length >= 3 ? '25%' : '15%'}</span>
-                  <span className="text-[10px] text-gold font-mono block mt-0.5">Slip Multiplier ➔</span>
-                </div>
+              <div className="flex items-center space-x-1 text-gray-400 text-xs font-bold font-mono">
+                <span className="hidden sm:inline">{showHeroBanner ? 'Collapse' : 'Expand'}</span>
+                {showHeroBanner ? <ChevronUp className="w-4 h-4 text-stadiumGreen" /> : <ChevronDown className="w-4 h-4 text-gold" />}
               </div>
             </div>
+
+            {showHeroBanner && (
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 animate-fadeIn">
+                <div className="space-y-3 max-w-2xl">
+
+                  <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
+                    Feel the Stadium. <br className="hidden sm:inline" />
+                    <span className="animate-shimmer">
+                      {visitorData?.city ? `${visitorData.city} & Worldwide` : 'Live'} Matchday Active.
+                    </span>
+                  </h2>
+
+                  <p className="text-xs sm:text-sm text-gray-300 font-sans leading-relaxed">
+                    Real-time live scores, Poisson goal power analytics, and referee-verified match settlements for Premier League, La Liga, Champions League, Serie A, and continental tournaments.
+                  </p>
+
+                  {/* Feature Quick Badges with Clear Purpose */}
+                  <div className="flex flex-wrap items-center gap-2.5 pt-2">
+                    <button
+                      onClick={() => setShowReverseJinxModal(true)}
+                      className="px-4 py-2 rounded-2xl bg-gradient-to-r from-cyberPurple/30 via-crimson/20 to-black hover:from-cyberPurple/50 border border-cyberPurple/50 text-white text-xs font-mono font-black flex items-center space-x-2 transition-all hover:scale-105 shadow-lg"
+                    >
+                      <ShieldAlert className="w-4 h-4 text-pink-400" />
+                      <span>Reverse Jinx 🔮 (Emotional Hedge)</span>
+                    </button>
+
+                    <button
+                      onClick={() => setShowCloutCardModal(true)}
+                      className="px-4 py-2 rounded-2xl bg-gradient-to-r from-stadiumGreen/30 via-panel to-gold/20 hover:from-stadiumGreen/50 border border-stadiumGreen/50 text-white text-xs font-mono font-black flex items-center space-x-2 transition-all hover:scale-105 shadow-lg glow-emerald"
+                    >
+                      <Share2 className="w-4 h-4 text-stadiumGreen" />
+                      <span>Social Flex Slip 📲</span>
+                    </button>
+                  </div>
+
+                </div>
+
+                {/* Dynamic Live Stadium Pulse Matrix */}
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full md:w-auto">
+                  <div 
+                    onClick={() => setShowHistoryModal(true)}
+                    className="p-4 rounded-2xl bg-panel/90 border border-stadiumGreen/30 text-center cursor-pointer hover:scale-105 transition-all glow-emerald"
+                    title="Click to view Track Record & Daily Successes"
+                  >
+                    <span className="text-[10px] font-mono text-gray-400 block font-semibold">PITCH INTENSITY</span>
+                    <span className="text-3xl font-black text-stadiumGreen font-mono">
+                      {matches.filter((m) => m.status === 'LIVE').length > 0 ? '94%' : '88%'}
+                    </span>
+                    <span className="text-[10px] text-stadiumGreen font-mono block mt-0.5">Live Match Tension ➔</span>
+                  </div>
+
+                  <div 
+                    onClick={() => setShowBankroll(true)}
+                    className="p-4 rounded-2xl bg-panel/90 border border-gold/30 text-center cursor-pointer hover:scale-105 transition-all glow-gold"
+                    title="Click to view Smart Stake Optimizer"
+                  >
+                    <span className="text-[10px] font-mono text-gray-400 block font-semibold">ACCA MULTI-BOOST</span>
+                    <span className="text-3xl font-black text-gold font-mono">+{betSlipItems.length >= 3 ? '25%' : '15%'}</span>
+                    <span className="text-[10px] text-gold font-mono block mt-0.5">Slip Multiplier ➔</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Date Navigator Bar with Smart Yesterday / Today / Tomorrow Filtering */}
@@ -307,158 +330,170 @@ export default function Home() {
           {/* High-Trigger Updates Stream Section */}
           <TriggerUpdatesSection matches={matches} onSelectUpdate={handleSelectTickerUpdate} />
 
-          {/* Dynamic Instant Search Bar & 3-State Match Filters */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-panel/60 p-3 rounded-2xl border border-white/10">
-            
-            {/* Dynamic Search Input */}
-            <div className="relative flex-1 flex items-center">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search team, fixture, or league..."
-                className="w-full pl-10 pr-10 py-2 rounded-xl bg-black/60 border border-white/10 text-xs text-white placeholder-gray-500 focus:border-stadiumGreen focus:outline-none font-mono"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white text-xs px-1.5 py-0.5 rounded bg-white/10"
-                >
-                  ×
-                </button>
-              )}
-            </div>
-
-            {/* Filter Pills & View Switcher */}
-            <div className="flex items-center space-x-2">
+          {/* Dynamic Instant Search Bar & 3-State Match Filters (Collapsible Header) */}
+          <div className="bg-panel/60 p-3.5 sm:p-4 rounded-3xl border border-white/10 space-y-3 font-mono text-xs shadow-xl">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
               
-              <button
-                onClick={loadMatches}
-                className="p-2 rounded-xl bg-panel border border-white/10 text-stadiumGreen hover:bg-stadiumGreen/20 transition-all"
-                title="Refresh Live Matches"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${loadingMatches ? 'animate-spin' : ''}`} />
-              </button>
-
-              <div className="flex items-center space-x-1 bg-black/50 p-1 rounded-xl border border-white/10 font-mono text-xs">
-                <button
-                  onClick={() => setDisplayMode('LIVESCORE')}
-                  className={`px-2.5 py-1 rounded-lg transition-all text-xs font-bold flex items-center space-x-1.5 ${
-                    displayMode === 'LIVESCORE' ? 'bg-stadiumGreen text-black font-black' : 'text-gray-400 hover:text-white'
-                  }`}
-                  title="Match Center 3-Column Stadium View"
-                >
-                  <span>🏟️ Match Center Hub</span>
-                </button>
-                <button
-                  onClick={() => setDisplayMode('DETAILED')}
-                  className={`p-1.5 rounded-lg transition-all ${
-                    displayMode === 'DETAILED' ? 'bg-stadiumGreen text-black font-bold' : 'text-gray-400 hover:text-white'
-                  }`}
-                  title="Detailed Cards View"
-                >
-                  <LayoutGrid className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setDisplayMode('COMPACT')}
-                  className={`p-1.5 rounded-lg transition-all ${
-                    displayMode === 'COMPACT' ? 'bg-stadiumGreen text-black font-bold' : 'text-gray-400 hover:text-white'
-                  }`}
-                  title="High-Density Table View"
-                >
-                  <List className="w-4 h-4" />
-                </button>
+              {/* Dynamic Search Input */}
+              <div className="relative flex-1 flex items-center">
+                <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search team, fixture, or league..."
+                  className="w-full pl-10 pr-10 py-2 rounded-xl bg-black/60 border border-white/10 text-xs text-white placeholder-gray-500 focus:border-stadiumGreen focus:outline-none font-mono"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white text-xs px-1.5 py-0.5 rounded bg-white/10"
+                  >
+                    ×
+                  </button>
+                )}
               </div>
 
-              <div className="flex items-center space-x-1.5 overflow-x-auto">
-                {(['ALL', 'LIVE', 'UPCOMING', 'PLAYED', 'BANKERS'] as const).map((filter) => (
+              {/* Filter Pills & View Switcher */}
+              <div className="flex items-center space-x-2">
+                
+                <button
+                  onClick={loadMatches}
+                  className="p-2 rounded-xl bg-panel border border-white/10 text-stadiumGreen hover:bg-stadiumGreen/20 transition-all"
+                  title="Refresh Live Matches"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${loadingMatches ? 'animate-spin' : ''}`} />
+                </button>
+
+                <div className="flex items-center space-x-1 bg-black/50 p-1 rounded-xl border border-white/10 font-mono text-xs">
                   <button
-                    key={filter}
-                    onClick={() => setActiveFilter(filter)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all whitespace-nowrap ${
-                      activeFilter === filter
-                        ? 'bg-stadiumGreen text-black shadow-md shadow-stadiumGreen/20 font-black'
-                        : 'bg-panel text-gray-400 border border-white/10 hover:text-white'
+                    onClick={() => setDisplayMode('LIVESCORE')}
+                    className={`px-2.5 py-1 rounded-lg transition-all text-xs font-bold flex items-center space-x-1.5 ${
+                      displayMode === 'LIVESCORE' ? 'bg-stadiumGreen text-black font-black' : 'text-gray-400 hover:text-white'
                     }`}
+                    title="Match Center 3-Column Stadium View"
                   >
-                    {filter === 'LIVE' ? '🔴 LIVE' : filter === 'UPCOMING' ? '🟡 UPCOMING' : filter === 'PLAYED' ? '🟢 PLAYED' : filter === 'BANKERS' ? '👑 BANKERS' : filter}
+                    <span>🏟️ Match Center</span>
                   </button>
-                ))}
+                  <button
+                    onClick={() => setDisplayMode('DETAILED')}
+                    className={`p-1.5 rounded-lg transition-all ${
+                      displayMode === 'DETAILED' ? 'bg-stadiumGreen text-black font-bold' : 'text-gray-400 hover:text-white'
+                    }`}
+                    title="Detailed Cards View"
+                  >
+                    <LayoutGrid className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setDisplayMode('COMPACT')}
+                    className={`p-1.5 rounded-lg transition-all ${
+                      displayMode === 'COMPACT' ? 'bg-stadiumGreen text-black font-bold' : 'text-gray-400 hover:text-white'
+                    }`}
+                    title="High-Density Table View"
+                  >
+                    <List className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="flex items-center space-x-1.5 overflow-x-auto">
+                  {(['ALL', 'LIVE', 'UPCOMING', 'PLAYED', 'BANKERS'] as const).map((filter) => (
+                    <button
+                      key={filter}
+                      onClick={() => setActiveFilter(filter)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all whitespace-nowrap ${
+                        activeFilter === filter
+                          ? 'bg-stadiumGreen text-black shadow-md shadow-stadiumGreen/20 font-black'
+                          : 'bg-panel text-gray-400 border border-white/10 hover:text-white'
+                      }`}
+                    >
+                      {filter === 'LIVE' ? '🔴 LIVE' : filter === 'UPCOMING' ? '🟡 UPCOMING' : filter === 'PLAYED' ? '🟢 PLAYED' : filter === 'BANKERS' ? '👑 BANKERS' : filter}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setShowMatchCenter(!showMatchCenter)}
+                  className="flex items-center space-x-1 text-gray-400 hover:text-white text-xs font-bold px-2 py-1.5 rounded-xl bg-panel border border-white/10"
+                >
+                  <span className="hidden sm:inline">{showMatchCenter ? 'Collapse' : 'Expand'}</span>
+                  {showMatchCenter ? <ChevronUp className="w-4 h-4 text-stadiumGreen" /> : <ChevronDown className="w-4 h-4 text-gold" />}
+                </button>
+
               </div>
 
             </div>
-
           </div>
 
-          {/* Real Matches List (Front and Center) */}
-          {loadingMatches ? (
-            <div className="space-y-4">
-              <div className="p-6 text-center rounded-3xl glass-panel border border-stadiumGreen/20 flex items-center justify-center space-x-2 font-mono text-xs text-stadiumGreen">
-                <RefreshCw className="w-4 h-4 animate-spin text-stadiumGreen" />
-                <span>Loading games...</span>
-              </div>
-            </div>
-          ) : filteredMatches.length > 0 ? (
-            displayMode === 'LIVESCORE' ? (
-              <LiveScoreStadiumHub
-                matches={filteredMatches}
-                onOpenReceipt={(m) => setSelectedMatchForReceipt(m)}
-                onOpenInsights={(m) => setSelectedMatchForInsights(m)}
-                onSelectOdds={handleAddBetItem}
-                onToggleFollow={handleToggleFollow}
-                followedMatchIds={followedMatchIds}
-              />
-            ) : displayMode === 'COMPACT' ? (
-              <MatchesTableView
-                matches={displayedMatches}
-                onOpenReceipt={(m) => setSelectedMatchForReceipt(m)}
-                onOpenInsights={(m) => setSelectedMatchForInsights(m)}
-                onSelectOdds={handleAddBetItem}
-                onBookmarkMatch={handleBookmarkToggle}
-              />
-            ) : (
-              <div className="grid grid-cols-1 gap-5">
-                {displayedMatches.map((match) => (
-                  <MatchCard
-                    key={match.id}
-                    match={match}
+          {/* Real Matches List (Collapsible) */}
+          {showMatchCenter && (
+            <div className="animate-fadeIn space-y-4">
+              {loadingMatches ? (
+                <div className="p-6 text-center rounded-3xl glass-panel border border-stadiumGreen/20 flex items-center justify-center space-x-2 font-mono text-xs text-stadiumGreen">
+                  <RefreshCw className="w-4 h-4 animate-spin text-stadiumGreen" />
+                  <span>Loading games...</span>
+                </div>
+              ) : filteredMatches.length > 0 ? (
+                displayMode === 'LIVESCORE' ? (
+                  <LiveScoreStadiumHub
+                    matches={filteredMatches}
+                    onOpenReceipt={(m) => setSelectedMatchForReceipt(m)}
+                    onOpenInsights={(m) => setSelectedMatchForInsights(m)}
+                    onSelectOdds={handleAddBetItem}
+                    onToggleFollow={handleToggleFollow}
+                    followedMatchIds={followedMatchIds}
+                  />
+                ) : displayMode === 'COMPACT' ? (
+                  <MatchesTableView
+                    matches={displayedMatches}
                     onOpenReceipt={(m) => setSelectedMatchForReceipt(m)}
                     onOpenInsights={(m) => setSelectedMatchForInsights(m)}
                     onSelectOdds={handleAddBetItem}
                     onBookmarkMatch={handleBookmarkToggle}
                   />
-                ))}
-              </div>
-            )
-          ) : (
-            <div className="p-10 text-center rounded-3xl glass-panel border border-white/10 space-y-3">
-              <Radio className="w-8 h-8 text-gold mx-auto" />
-              <h3 className="text-white font-black text-sm">No matches found matching filter "{activeFilter}"</h3>
-              <p className="text-xs text-gray-400">Switch filter to "ALL" or "PLAYED" to see real fixtures and settled overnight games.</p>
-              <button
-                onClick={() => {
-                  setActiveFilter('ALL');
-                  setSearchQuery('');
-                  loadMatches();
-                }}
-                className="px-4 py-2 rounded-xl bg-stadiumGreen text-black font-black text-xs inline-flex items-center space-x-1"
-              >
-                <span>Reset Filters & Reload</span>
-              </button>
-            </div>
-          )}
+                ) : (
+                  <div className="grid grid-cols-1 gap-5">
+                    {displayedMatches.map((match) => (
+                      <MatchCard
+                        key={match.id}
+                        match={match}
+                        onOpenReceipt={(m) => setSelectedMatchForReceipt(m)}
+                        onOpenInsights={(m) => setSelectedMatchForInsights(m)}
+                        onSelectOdds={handleAddBetItem}
+                        onBookmarkMatch={handleBookmarkToggle}
+                      />
+                    ))}
+                  </div>
+                )
+              ) : (
+                <div className="p-10 text-center rounded-3xl glass-panel border border-white/10 space-y-3">
+                  <Radio className="w-8 h-8 text-gold mx-auto" />
+                  <h3 className="text-white font-black text-sm">No matches found matching filter "{activeFilter}"</h3>
+                  <p className="text-xs text-gray-400">Switch filter to "ALL" or "PLAYED" to see real fixtures and settled overnight games.</p>
+                  <button
+                    onClick={() => {
+                      setActiveFilter('ALL');
+                      setSearchQuery('');
+                      loadMatches();
+                    }}
+                    className="px-4 py-2 rounded-xl bg-stadiumGreen text-black font-black text-xs inline-flex items-center space-x-1"
+                  >
+                    <span>Reset Filters & Reload</span>
+                  </button>
+                </div>
+              )}
 
-          {/* Pagination Controls */}
-          {filteredMatches.length > visibleCount && (
-            <div className="text-center pt-2">
-              <button
-                onClick={() => setVisibleCount((prev) => prev + 6)}
-                className="px-6 py-3 rounded-2xl bg-stadiumGreen/20 hover:bg-stadiumGreen/30 border border-stadiumGreen/40 text-stadiumGreen font-mono font-black text-xs shadow-lg transition-all hover:scale-105 inline-flex items-center space-x-2"
-              >
-                <span>⚡ Load More Matches ({filteredMatches.length - visibleCount} remaining)</span>
-                <ChevronDown className="w-4 h-4" />
-              </button>
+              {/* Pagination Controls */}
+              {filteredMatches.length > visibleCount && (
+                <div className="text-center pt-2">
+                  <button
+                    onClick={() => setVisibleCount((prev) => prev + 6)}
+                    className="px-6 py-3 rounded-2xl bg-stadiumGreen/20 hover:bg-stadiumGreen/30 border border-stadiumGreen/40 text-stadiumGreen font-mono font-black text-xs shadow-lg transition-all hover:scale-105 inline-flex items-center space-x-2"
+                  >
+                    <span>⚡ Load More Matches ({filteredMatches.length - visibleCount} remaining)</span>
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
