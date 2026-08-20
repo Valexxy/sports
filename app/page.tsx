@@ -43,6 +43,7 @@ import { PhoneHardwareBanner } from '../components/phone-install-banner';
 import { SettlementLedgerSection } from '../components/settlement-ledger-section';
 import { RealtimeCaptureStatus } from '../components/realtime-capture-status';
 import { GlobalClubExplorer } from '../components/global-club-explorer';
+import { MatchAlertScheduler } from '../lib/match-alert-scheduler';
 import { Sparkles, Search, LayoutGrid, List, ChevronDown, ChevronUp, Mic, MapPin, Camera, ShieldAlert, Cpu, RefreshCw, Radio, Share2 } from 'lucide-react';
 
 export default function Home() {
@@ -106,12 +107,14 @@ export default function Home() {
   const [showMatchCenter, setShowMatchCenter] = useState(true);
 
   const handleToggleFollow = (match: MatchData) => {
-    stadiumAudio.playCrowdRoar();
-    setFollowedMatchIds((prev) => {
-      const exists = prev.includes(match.id);
-      if (exists) return prev.filter((id) => id !== match.id);
-      return [...prev, match.id];
-    });
+    const exists = followedMatchIds.includes(match.id);
+    if (exists) {
+      MatchAlertScheduler.unfollowMatch(match.id);
+      setFollowedMatchIds((prev) => prev.filter((id) => id !== match.id));
+    } else {
+      MatchAlertScheduler.followMatch(match);
+      setFollowedMatchIds((prev) => [...prev, match.id]);
+    }
   };
 
   const loadMatches = async () => {
@@ -119,6 +122,8 @@ export default function Home() {
     try {
       const data = await fetchLiveMatches();
       setMatches(data);
+      // Run automatic kickoff & live goal alerts check
+      MatchAlertScheduler.checkAndTriggerLiveAlerts(data);
     } catch (err) {
       console.warn('Matches fetch error:', err);
     } finally {

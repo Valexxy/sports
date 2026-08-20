@@ -6,7 +6,9 @@ import { EdgeAiCommentator } from './edge-ai-commentator';
 import { MatchAnalyticsHub } from './match-analytics-hub';
 import { getCountrySpecificBookmakers, CountryBookmaker } from '../lib/country-bookmakers';
 import { getSmartVisitorDetails, SmartVisitorData } from '../lib/smart-visitor-engine';
-import { X, Send, MessageSquare, Flame, Trophy, ExternalLink, Zap, Activity, Radio, Sun, Heart, Plus, ShieldCheck, Newspaper, ThumbsUp } from 'lucide-react';
+import { Live2DPitchVisualizer } from './live-2d-pitch-visualizer';
+import { MatchAlertScheduler } from '../lib/match-alert-scheduler';
+import { X, Send, MessageSquare, Flame, Trophy, ExternalLink, Zap, Activity, Radio, Sun, Heart, Plus, ShieldCheck, Newspaper, ThumbsUp, Bell, BellCheck, Volume2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface InsightsModalProps {
@@ -59,6 +61,26 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
     ];
     setChatFeed(initialComments);
   }, [match]);
+
+  const [isFollowed, setIsFollowed] = useState(false);
+
+  useEffect(() => {
+    if (match) {
+      setIsFollowed(MatchAlertScheduler.isMatchFollowed(match.id));
+    }
+  }, [match]);
+
+  const handleToggleFollow = () => {
+    if (!match) return;
+    if (isFollowed) {
+      MatchAlertScheduler.unfollowMatch(match.id);
+      setIsFollowed(false);
+    } else {
+      MatchAlertScheduler.followMatch(match);
+      setIsFollowed(true);
+      confetti({ particleCount: 40, spread: 50, origin: { y: 0.6 } });
+    }
+  };
 
   if (!match) return null;
 
@@ -162,11 +184,28 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
             </h2>
           </div>
 
-          <div className="flex items-center space-x-3">
-            <span className="text-xs font-bold font-mono px-3 py-1.5 rounded-xl bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/40">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={handleToggleFollow}
+              className={`px-3.5 py-2 rounded-xl text-xs font-mono font-black flex items-center space-x-2 transition-all shadow-md ${
+                isFollowed
+                  ? 'bg-stadiumGreen text-black shadow-stadiumGreen/30'
+                  : 'bg-panel hover:bg-white/10 text-white border border-white/10'
+              }`}
+            >
+              <Bell className={`w-4 h-4 ${isFollowed ? 'fill-black' : 'text-gold animate-bounce'}`} />
+              <span>{isFollowed ? '🔔 Match Alerts Active ✓' : '🔔 Follow for Kickoff & Goal Alerts'}</span>
+            </button>
+
+            <span className="text-xs font-bold font-mono px-3 py-2 rounded-xl bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/40">
               {match.status === 'LIVE' ? `🔴 LIVE ${match.matchTime}` : match.status === 'FINISHED' ? '🟢 FULL TIME' : `🟡 ${match.matchTime}`}
             </span>
           </div>
+        </div>
+
+        {/* 100% Legal Live 2D Tactical Pitch & Match Momentum Simulator */}
+        <div className="mb-5">
+          <Live2DPitchVisualizer match={match} />
         </div>
 
         {/* Top Pick Banner */}
