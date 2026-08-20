@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Home, Zap, ShoppingBag, MessageSquare, User } from 'lucide-react';
+import { Home, Zap, ShoppingBag, ShieldCheck, User, Radio, Flame, Sparkles } from 'lucide-react';
+import { phoneHardware } from '../lib/phone-hardware-engine';
+import { stadiumAudio } from '../lib/sound-synthesizer';
 
 interface AppDockProps {
   activeTab: string;
@@ -18,65 +20,82 @@ export const MobileAppDock: React.FC<AppDockProps> = ({
   onOpenProfile,
   onOpenLedger,
 }) => {
+  const handleTabClick = (tab: string, action?: () => void) => {
+    phoneHardware.triggerHaptic('SELECTION');
+    stadiumAudio.playCrowdRoar();
+    if (action) {
+      action();
+    } else {
+      onSelectTab(tab);
+    }
+  };
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden glass-panel border-t border-white/10 px-3 py-2">
-      <div className="flex items-center justify-around max-w-md mx-auto">
-        
-        {/* Matches Tab */}
-        <button
-          onClick={() => onSelectTab('MATCHES')}
-          className={`flex flex-col items-center space-y-1 transition-all ${
-            activeTab === 'MATCHES' ? 'text-stadiumGreen font-bold scale-105' : 'text-gray-400 hover:text-white'
-          }`}
-        >
-          <Home className="w-5 h-5" />
-          <span className="text-[10px] font-mono">Matches</span>
-        </button>
+    <div className="fixed bottom-3 left-3 right-3 z-50 lg:hidden">
+      <nav className="glass-panel-premium rounded-3xl border-2 border-stadiumGreen/40 px-2 py-2 shadow-2xl backdrop-blur-2xl bg-black/90 glow-emerald">
+        <div className="flex items-center justify-around">
+          
+          {/* Matches Tab */}
+          <button
+            onClick={() => handleTabClick('MATCHES')}
+            className={`relative flex flex-col items-center py-1.5 px-3 rounded-2xl transition-all duration-300 ${
+              activeTab === 'MATCHES'
+                ? 'bg-stadiumGreen text-black font-black shadow-lg shadow-stadiumGreen/30 scale-105'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            <Home className="w-4 h-4" />
+            <span className="text-[10px] font-mono font-bold mt-0.5">Matches</span>
+          </button>
 
-        {/* Ultra Bankers */}
-        <button
-          onClick={onOpenLedger}
-          className="flex flex-col items-center space-y-1 text-gold hover:text-white transition-all"
-        >
-          <Zap className="w-5 h-5" />
-          <span className="text-[10px] font-mono">Bankers</span>
-        </button>
+          {/* Ultra Bankers / Settlement Tab */}
+          <button
+            onClick={() => handleTabClick('LEDGER', onOpenLedger)}
+            className="relative flex flex-col items-center py-1.5 px-3 rounded-2xl text-gold hover:text-white transition-all group"
+          >
+            <div className="relative">
+              <Zap className="w-4 h-4 text-gold group-hover:scale-110 transition-all animate-pulse" />
+              <span className="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-gold animate-ping"></span>
+            </div>
+            <span className="text-[10px] font-mono font-bold mt-0.5">Bankers</span>
+          </button>
 
-        {/* Bet Slip */}
-        <button
-          onClick={() => onSelectTab('SLIP')}
-          className="relative flex flex-col items-center space-y-1 text-stadiumGreen hover:text-white transition-all"
-        >
-          <div className="relative">
-            <ShoppingBag className="w-5 h-5" />
-            {betSlipCount > 0 && (
-              <span className="absolute -top-1.5 -right-2 bg-stadiumGreen text-black font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center border border-black">
-                {betSlipCount}
-              </span>
-            )}
-          </div>
-          <span className="text-[10px] font-mono">My Slip</span>
-        </button>
+          {/* Floating Center Slip Button */}
+          <button
+            onClick={() => handleTabClick('SLIP')}
+            className="relative -top-3 flex flex-col items-center p-2.5 rounded-2xl bg-gradient-to-tr from-stadiumGreen via-emerald-400 to-gold text-black font-black shadow-2xl shadow-stadiumGreen/40 border-2 border-black active:scale-95 transition-all"
+          >
+            <div className="relative">
+              <ShoppingBag className="w-5 h-5" />
+              {betSlipCount > 0 && (
+                <span className="absolute -top-2 -right-2.5 bg-black text-stadiumGreen font-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-stadiumGreen animate-bounce">
+                  {betSlipCount}
+                </span>
+              )}
+            </div>
+            <span className="text-[9px] font-mono font-black mt-0.5 tracking-tighter">SLIP</span>
+          </button>
 
-        {/* Global Fan Chat */}
-        <button
-          onClick={() => onSelectTab('CHAT')}
-          className="flex flex-col items-center space-y-1 text-cyberPurple hover:text-white transition-all"
-        >
-          <MessageSquare className="w-5 h-5" />
-          <span className="text-[10px] font-mono">Fan Chat</span>
-        </button>
+          {/* Live 2D Radar / Insights */}
+          <button
+            onClick={() => handleTabClick('CHAT')}
+            className="relative flex flex-col items-center py-1.5 px-3 rounded-2xl text-cyan-400 hover:text-white transition-all"
+          >
+            <Radio className="w-4 h-4 animate-spin text-cyan-400" />
+            <span className="text-[10px] font-mono font-bold mt-0.5">Radar 2D</span>
+          </button>
 
-        {/* Profile */}
-        <button
-          onClick={onOpenProfile}
-          className="flex flex-col items-center space-y-1 text-gray-300 hover:text-gold transition-all"
-        >
-          <User className="w-5 h-5" />
-          <span className="text-[10px] font-mono">Profile</span>
-        </button>
+          {/* User Profile */}
+          <button
+            onClick={() => handleTabClick('PROFILE', onOpenProfile)}
+            className="relative flex flex-col items-center py-1.5 px-3 rounded-2xl text-gray-300 hover:text-gold transition-all"
+          >
+            <User className="w-4 h-4" />
+            <span className="text-[10px] font-mono font-bold mt-0.5">Profile</span>
+          </button>
 
-      </div>
+        </div>
+      </nav>
     </div>
   );
 };

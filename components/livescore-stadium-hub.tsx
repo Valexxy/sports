@@ -75,9 +75,58 @@ export const LiveScoreStadiumHub: React.FC<LiveScoreHubProps> = ({
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 font-mono text-xs">
       
       {/* LEFT COLUMN: Collapsible & Filterable Top Competitions (3 Cols) */}
-      <div className="lg:col-span-3 space-y-4">
+      <div className="lg:col-span-3 space-y-3 sm:space-y-4">
         
-        <div className="glass-panel rounded-3xl p-4 border border-white/10 space-y-2.5 shadow-xl">
+        {/* Mobile Horizontal Quick-Scroll Competitions Bar */}
+        <div className="lg:hidden flex items-center space-x-2 overflow-x-auto pb-1 no-scrollbar select-none">
+          <button
+            onClick={() => setSelectedLeagueFilter(null)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center space-x-1.5 ${
+              selectedLeagueFilter === null
+                ? 'bg-stadiumGreen text-black font-black shadow-md shadow-stadiumGreen/20'
+                : 'bg-panel border border-white/10 text-gray-400'
+            }`}
+          >
+            <span>🌍 All</span>
+            <span className="text-[10px] opacity-75">({matches.length})</span>
+          </button>
+
+          {[
+            { name: 'Premier League', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', short: 'PL' },
+            { name: 'La Liga', flag: '🇪🇸', short: 'La Liga' },
+            { name: 'UEFA Champions League', flag: '🇪🇺', short: 'UCL' },
+            { name: 'Serie A', flag: '🇮🇹', short: 'Serie A' },
+            { name: 'Bundesliga', flag: '🇩🇪', short: 'Bundesliga' },
+            { name: 'NPFL Nigeria', flag: '🇳🇬', short: 'NPFL' },
+            { name: 'Brasileirao', flag: '🇧🇷', short: 'Brazil' },
+          ].map((comp) => {
+            const count = matchesByLeague[comp.name]?.length || 0;
+            const isSelected = selectedLeagueFilter === comp.name;
+
+            return (
+              <button
+                key={comp.name}
+                onClick={() => {
+                  setSelectedLeagueFilter(isSelected ? null : comp.name);
+                  const firstInLeague = matches.find((m) => m.league === comp.name);
+                  if (firstInLeague) setSelectedMatch(firstInLeague);
+                }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center space-x-1.5 ${
+                  isSelected
+                    ? 'bg-stadiumGreen text-black font-black shadow-md shadow-stadiumGreen/20'
+                    : 'bg-panel border border-white/10 text-gray-300'
+                }`}
+              >
+                <span>{comp.flag}</span>
+                <span>{comp.short}</span>
+                {count > 0 && <span className="text-[9px] opacity-80">({count})</span>}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Desktop Sidebar Competitions */}
+        <div className="hidden lg:block glass-panel rounded-3xl p-4 border border-white/10 space-y-2.5 shadow-xl">
           <div 
             onClick={() => setIsTopCompetitionsOpen(!isTopCompetitionsOpen)}
             className="flex items-center justify-between border-b border-white/10 pb-2.5 cursor-pointer select-none hover:opacity-90 transition-all"
