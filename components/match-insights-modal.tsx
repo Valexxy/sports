@@ -8,7 +8,7 @@ import { getCountrySpecificBookmakers, CountryBookmaker } from '../lib/country-b
 import { getSmartVisitorDetails, SmartVisitorData } from '../lib/smart-visitor-engine';
 import { Live2DPitchVisualizer } from './live-2d-pitch-visualizer';
 import { MatchAlertScheduler } from '../lib/match-alert-scheduler';
-import { X, Send, MessageSquare, Flame, Trophy, ExternalLink, Zap, Activity, Radio, Sun, Heart, Plus, ShieldCheck, Newspaper, ThumbsUp, Bell, BellCheck, Volume2 } from 'lucide-react';
+import { X, Send, MessageSquare, Flame, Trophy, ExternalLink, Zap, Activity, Radio, Sun, Heart, Plus, ShieldCheck, Newspaper, ThumbsUp, Bell, BellRing, Volume2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface InsightsModalProps {
