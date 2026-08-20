@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '../../../../lib/supabase-client';
+import { supabaseAdmin } from '../../../../lib/supabase-client';
 import { DAILY_MATCHES_ARCHIVE } from '../../../../lib/prediction-archive-engine';
 
 export const dynamic = 'force-dynamic';
@@ -28,7 +28,7 @@ export async function GET() {
       accuracy_score: m.accuracyHeatmapScore,
     }));
 
-    const { error: ledgerError } = await supabase
+    const { error: ledgerError } = await supabaseAdmin
       .from('settlement_ledger')
       .upsert(ledgerPayload, { onConflict: 'id' });
 
@@ -68,7 +68,7 @@ export async function GET() {
       },
     ];
 
-    const { error: tipsterError } = await supabase
+    const { error: tipsterError } = await supabaseAdmin
       .from('tipster_leaderboard')
       .upsert(tipstersPayload, { onConflict: 'id' });
 
@@ -99,7 +99,7 @@ export async function GET() {
       },
     ];
 
-    const { error: bdayError } = await supabase
+    const { error: bdayError } = await supabaseAdmin
       .from('star_birthdays')
       .upsert(birthdaysPayload, { onConflict: 'player_id' });
 
