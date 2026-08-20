@@ -47,7 +47,7 @@ export class MatchAlertScheduler {
       alerts[match.id] = {
         matchId: match.id,
         matchTitle: `${match.homeTeam} vs ${match.awayTeam}`,
-        kickoffTime: match.time,
+        kickoffTime: match.matchTime,
         alert15MinSent: false,
         alertKickoffSent: false,
         lastKnownHomeScore: match.homeScore,
@@ -89,7 +89,7 @@ export class MatchAlertScheduler {
       // 1. Check Goal Alert
       if (m.homeScore > alertConfig.lastKnownHomeScore) {
         const title = `⚽ GOAL! ${m.homeTeam} Scores!`;
-        const body = `${m.homeTeam} ${m.homeScore} - ${m.awayScore} ${m.awayTeam} (${m.time})`;
+        const body = `${m.homeTeam} ${m.homeScore} - ${m.awayScore} ${m.awayTeam} (${m.matchTime})`;
         phoneHardware.sendNativeNotification(title, body);
         phoneHardware.triggerHaptic('GOAL_SCORED');
         stadiumAudio.playCrowdRoar();
@@ -100,7 +100,7 @@ export class MatchAlertScheduler {
 
       if (m.awayScore > alertConfig.lastKnownAwayScore) {
         const title = `⚽ GOAL! ${m.awayTeam} Scores!`;
-        const body = `${m.homeTeam} ${m.homeScore} - ${m.awayScore} ${m.awayTeam} (${m.time})`;
+        const body = `${m.homeTeam} ${m.homeScore} - ${m.awayScore} ${m.awayTeam} (${m.matchTime})`;
         phoneHardware.sendNativeNotification(title, body);
         phoneHardware.triggerHaptic('GOAL_SCORED');
         stadiumAudio.playCrowdRoar();
