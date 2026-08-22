@@ -305,8 +305,9 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
                 <div className="text-3xl sm:text-4xl font-black font-mono px-3 py-2 rounded-2xl border shadow-inner text-crimson bg-black/85 border-crimson/50 shadow-crimson/20">
                   {match.homeScore}<span className="text-gray-500 text-2xl mx-1">:</span>{match.awayScore}
                 </div>
-                <span className="text-[10px] text-crimson font-mono font-black flex items-center space-x-1 animate-pulse">
-                  <Flame className="w-3 h-3 text-crimson" />
+                <span className="text-[11px] text-crimson font-mono font-black flex items-center space-x-1.5 animate-pulse px-2.5 py-0.5 rounded-full bg-crimson/15 border border-crimson/40 shadow-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-crimson animate-ping" />
+                  <Flame className="w-3.5 h-3.5 text-crimson animate-bounce" />
                   <span>{match.matchTime}</span>
                 </span>
               </>

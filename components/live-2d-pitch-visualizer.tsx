@@ -109,10 +109,6 @@ export const Live2DPitchVisualizer: React.FC<Live2DPitchVisualizerProps> = ({ ma
             <Volume2 className={'w-3.5 h-3.5 ' + (isPlayingAudio ? 'animate-pulse text-stadiumGreen' : '')} />
             <span>{isPlayingAudio ? 'Stadium Audio ON 🔊' : 'Audio Muted'}</span>
           </button>
-
-          <span className="text-[10px] px-2.5 py-1 rounded-xl bg-black/60 border border-white/10 text-gold font-bold">
-            ⏱️ {match.matchTime}
-          </span>
         </div>
       </div>
 

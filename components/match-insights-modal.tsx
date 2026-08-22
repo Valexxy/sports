@@ -171,12 +171,12 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
         {/* Hero Header Scoreboard */}
         <div className="flex items-center space-x-2 text-xs font-mono text-stadiumGreen font-bold mb-1">
           <Zap className="w-4 h-4 animate-bounce" />
-          <span>STADIUM LIVE MATCH CENTER • {match.venue && match.venue !== 'Official League Stadium' ? match.venue : `${match.homeTeam} Stadium`}</span>
+          <span>STADIUM LIVE MATCH CENTER</span>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-4 mb-4 gap-2">
           <div>
-            <span className="text-xs font-mono text-gray-400">{match.leagueFlag} {match.league} • 🏟️ {match.venue && match.venue !== 'Official League Stadium' ? match.venue : `${match.homeTeam} Arena`}</span>
+            <span className="text-xs font-mono text-gray-400">{match.leagueFlag} {match.league} • 🏟️ {match.venue || `${match.homeTeam} Stadium`}</span>
             <h2 className="text-xl sm:text-3xl font-black text-white flex items-center space-x-2 mt-0.5">
               <span>{match.homeTeam}</span>
               <span className="text-stadiumGreen font-mono">VS</span>
@@ -197,8 +197,15 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
               <span>{isFollowed ? '🔔 Match Alerts Active ✓' : '🔔 Follow for Kickoff & Goal Alerts'}</span>
             </button>
 
-            <span className="text-xs font-bold font-mono px-3 py-2 rounded-xl bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/40">
-              {match.status === 'LIVE' ? `🔴 LIVE ${match.matchTime}` : match.status === 'FINISHED' ? '🟢 FULL TIME' : `🟡 ${match.matchTime}`}
+            <span className={`text-xs font-bold font-mono px-3.5 py-2 rounded-xl border flex items-center space-x-1.5 ${
+              match.status === 'LIVE'
+                ? 'bg-crimson/20 text-crimson border-crimson/50 animate-pulse shadow-lg shadow-crimson/30'
+                : match.status === 'FINISHED'
+                ? 'bg-stadiumGreen/20 text-stadiumGreen border-stadiumGreen/40'
+                : 'bg-gold/20 text-gold border-gold/40'
+            }`}>
+              {match.status === 'LIVE' && <span className="w-2 h-2 rounded-full bg-crimson animate-ping" />}
+              <span>{match.status === 'LIVE' ? `LIVE ${match.matchTime}` : match.status === 'FINISHED' ? 'FULL TIME' : match.matchTime}</span>
             </span>
           </div>
         </div>
