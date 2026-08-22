@@ -7,6 +7,7 @@ import { Bell, BellRing, Star, Eye, Plus, Zap, CheckCircle2, XCircle, Calendar, 
 import { useTranslation } from '../lib/translation-engine';
 
 export interface DailyMatchCardProps {
+  onOpenStandings?: (league: string) => void;
   match: MatchData;
   onOpenInsights: (match: MatchData) => void;
   onSelectOdds: (match: MatchData, selection: string, odds: number) => void;
@@ -161,6 +162,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   onBookmarkMatch,
   followedMatchIds = [],
   onToggleFollow,
+  onOpenStandings,
 }) => {
   const { t } = useTranslation();
   const [bookmarked, setBookmarked] = useState(false);
@@ -241,12 +243,24 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
         {/* Row 1: Official League Crest + Smart Status Badge + Actions */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2 min-w-0">
-            {leagueInfo.logo ? (
-              <img src={leagueInfo.logo} alt={match.league} className="w-5 h-5 object-contain flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-            ) : (
-              <span className="text-base flex-shrink-0">{leagueInfo.flag}</span>
-            )}
-            <span className="text-xs font-black text-white truncate">{leagueInfo.name}</span>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onOpenStandings) onOpenStandings(match.league);
+              }}
+              className="flex items-center space-x-1.5 min-w-0 hover:opacity-90 transition-all group/league py-1 px-2 -ml-1.5 rounded-2xl hover:bg-white/10 border border-transparent hover:border-stadiumGreen/40"
+              title="Click to view full League Table & Standings 🏆"
+            >
+              {leagueInfo.logo ? (
+                <img src={leagueInfo.logo} alt={match.league} className="w-5 h-5 object-contain flex-shrink-0 group-hover/league:scale-110 transition-transform" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              ) : (
+                <span className="text-base flex-shrink-0">{leagueInfo.flag}</span>
+              )}
+              <span className="text-xs font-black text-white group-hover/league:text-stadiumGreen transition-colors truncate flex items-center space-x-1">
+                <span>{leagueInfo.name}</span>
+                <span className="text-[9px] text-gold font-bold">📊 Table ➔</span>
+              </span>
+            </button>
             
             {/* LIVE Glowing Badge */}
             {isLive && (

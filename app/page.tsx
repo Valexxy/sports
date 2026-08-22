@@ -34,6 +34,7 @@ import { EffectsModal } from '../components/effects-modal';
 import { VcFundingModal } from '../components/vc-funding-modal';
 import { fetchLiveMatches, MatchData } from '../lib/sports-api';
 import { PhoneHardwareBanner } from '../components/phone-install-banner';
+import { LeagueStandingsModal } from '../components/league-standings-modal';
 import { SettlementLedgerSection } from '../components/settlement-ledger-section';
 import { RealtimeCaptureStatus } from '../components/realtime-capture-status';
 import { MatchAlertScheduler } from '../lib/match-alert-scheduler';
@@ -84,6 +85,7 @@ export default function Home() {
   const [showBanterModal, setShowBanterModal] = useState(false);
   const [showGrassrootsModal, setShowGrassrootsModal] = useState(false);
   const [showStandingsModal, setShowStandingsModal] = useState(false);
+  const [selectedLeagueForTable, setSelectedLeagueForTable] = useState<string | null>(null);
   const [showNewsModal, setShowNewsModal] = useState(false);
   const [showTelemetryModal, setShowTelemetryModal] = useState(false);
   const [showHardwareModal, setShowHardwareModal] = useState(false);
@@ -374,6 +376,10 @@ export default function Home() {
                       onBookmarkMatch={handleBookmarkToggle}
                       followedMatchIds={followedMatchIds}
                       onToggleFollow={handleToggleFollow}
+                      onOpenStandings={(league) => {
+                        setSelectedLeagueForTable(league);
+                        setShowStandingsModal(true);
+                      }}
                     />
                   ))}
                 </div>
@@ -501,6 +507,13 @@ export default function Home() {
         {showGrassrootsModal && <GrassrootsScoutingModal onClose={() => setShowGrassrootsModal(false)} />}
         {showLeaderboardModal && <TipsterLeaderboardModal onClose={() => setShowLeaderboardModal(false)} />}
         {showLegalModal && <LegalModal onClose={() => setShowLegalModal(false)} />}
+        {showStandingsModal && (
+          <LeagueStandingsModal
+            isOpen={showStandingsModal}
+            initialLeague={selectedLeagueForTable || 'PREMIER_LEAGUE'}
+            onClose={() => setShowStandingsModal(false)}
+          />
+        )}
         {showHistoryModal && <HistoryArchiveModal onClose={() => setShowHistoryModal(false)} />}
         {showReverseJinxModal && <ReverseJinxModal onClose={() => setShowReverseJinxModal(false)} />}
         {showRotatingPoolModal && <RotatingPoolModal onClose={() => setShowRotatingPoolModal(false)} />}
