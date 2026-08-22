@@ -47,7 +47,10 @@ class StadiumAudioEngine {
     if (this.isMuted) return;
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
     try {
+      this.init();
+      this.resume();
       window.speechSynthesis.cancel();
+      window.speechSynthesis.resume();
       const utter = new SpeechSynthesisUtterance(text);
       const voices = window.speechSynthesis.getVoices();
 

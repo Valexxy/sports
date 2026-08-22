@@ -226,9 +226,12 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
           </div>
         </div>
 
-        {/* 100% Legal Live 2D Tactical Pitch & Match Momentum Simulator */}
-        <div className="mb-5">
+        {/* 100% Legal Live 2D Tactical Pitch Visualizer */}
+        <div className="mb-4 space-y-4">
           <TvBroadcastMatchViewer match={match} />
+          
+          {/* Live Play-by-Play & Naija Audio Commentary directly under 2D field */}
+          <EdgeAiCommentator match={match} />
         </div>
 
         {/* Top Pick Banner */}
@@ -271,8 +274,7 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
               onSelectOdds={onSelectOdds}
             />
 
-            {/* 3. Single Unified Live Match Commentary (Free Real Feed + AI Fallback) */}
-            <EdgeAiCommentator match={match} />
+
 
           </div>
 

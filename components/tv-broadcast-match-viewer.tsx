@@ -111,16 +111,11 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
       isFullscreen ? 'fixed inset-0 z-50 rounded-none bg-black p-4' : 'p-3 sm:p-5'
     }`}>
       
-      {/* HEADER CONTROLS */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
-        <div className="flex items-center space-x-2.5">
-          <div className="px-2.5 py-1 rounded-xl bg-crimson text-white font-black text-[10px] animate-pulse flex items-center space-x-1.5 shadow-md shadow-crimson/30">
-            <span className="w-2 h-2 rounded-full bg-white animate-ping" />
-            <span>TACTICAL RADAR 2D</span>
-          </div>
-          <span className="font-bold text-white text-xs hidden md:inline">
-            {match.league} • Official Pitch Live Action
-          </span>
+      {/* HEADER CONTROLS (CLEAN 2-TAB SWITCHER) */}
+      <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2">
+        <div className="flex items-center space-x-2">
+          <span className="w-2 h-2 rounded-full bg-crimson animate-ping" />
+          <span className="font-black text-white text-xs">2D TACTICAL PITCH</span>
         </div>
 
         {/* 2 Clean Switcher Tabs */}
@@ -302,18 +297,47 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
 
         </div>
       ) : (
-        /* MODE 2: MATCH HIGHLIGHTS VIDEO PLAYER */
-        <div className="relative w-full aspect-video rounded-3xl bg-black border-2 border-stadiumGreen/40 overflow-hidden shadow-2xl flex flex-col items-center justify-center">
-          <iframe
-            src={`https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(match.homeTeam + ' vs ' + match.awayTeam + ' match highlights ' + match.league)}&autoplay=1&mute=1&controls=1&modestbranding=1&rel=0`}
-            title={`Match Highlights: ${match.homeTeam} vs ${match.awayTeam}`}
-            className="w-full h-full border-0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-          />
-          <div className="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-xl bg-black/85 border border-white/10 text-[9px] text-stadiumGreen font-black backdrop-blur-md flex items-center space-x-1.5 shadow-lg">
-            <span className="w-2 h-2 rounded-full bg-crimson animate-ping" />
-            <span>OFFICIAL MATCH HIGHLIGHTS & GOALS REPLAY</span>
+        /* MODE 2: MATCH HIGHLIGHTS VIDEO PLAYER WITH DIRECT EXTERNAL SOURCES */
+        <div className="space-y-3">
+          <div className="relative w-full aspect-video rounded-3xl bg-black border-2 border-stadiumGreen/40 overflow-hidden shadow-2xl flex flex-col items-center justify-center">
+            <iframe
+              src={`https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(match.homeTeam + ' vs ' + match.awayTeam + ' match highlights ' + match.league)}&autoplay=1&mute=1&controls=1&modestbranding=1&rel=0`}
+              title={`Match Highlights: ${match.homeTeam} vs ${match.awayTeam}`}
+              className="w-full h-full border-0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+            <div className="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-xl bg-black/85 border border-white/10 text-[9px] text-stadiumGreen font-black backdrop-blur-md flex items-center space-x-1.5 shadow-lg">
+              <span className="w-2 h-2 rounded-full bg-crimson animate-ping" />
+              <span>OFFICIAL HIGHLIGHTS STREAM</span>
+            </div>
+          </div>
+
+          {/* DIRECT EXTERNAL HIGHLIGHT SOURCES */}
+          <div className="p-3 rounded-2xl bg-black/60 border border-white/10 flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[10px] text-gray-400 font-bold">
+              Watch direct replay on verified partner channels:
+            </span>
+            <div className="flex items-center space-x-2">
+              <a
+                href={`https://www.scorebat.com/search/?q=${encodeURIComponent(match.homeTeam + ' ' + match.awayTeam)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 rounded-xl bg-stadiumGreen text-black font-black text-[10px] flex items-center space-x-1 hover:scale-105 transition-all shadow"
+              >
+                <span>ScoreBat HD ➔</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+              <a
+                href={`https://www.youtube.com/results?search_query=${encodeURIComponent(match.homeTeam + ' vs ' + match.awayTeam + ' match highlights ' + match.league)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 rounded-xl bg-crimson text-white font-black text-[10px] flex items-center space-x-1 hover:scale-105 transition-all shadow"
+              >
+                <span>YouTube Replay ➔</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
           </div>
         </div>
       )}

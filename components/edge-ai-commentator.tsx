@@ -10,7 +10,8 @@ function extractMinuteNum(m?: string): number {
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Volume2, Radio, Loader2, RefreshCw } from 'lucide-react';
 import { speakStadiumCommentary } from '../lib/voice-engine';
-import { speakNaija, naijaMomentLine, primeNaijaVoices } from '../lib/naija-voice-engine';
+import { speakNaija, naijaMomentLine, primeNaijaVoices, allowSpeechOnUserGesture } from '../lib/naija-voice-engine';
+import { stadiumAudio } from '../lib/sound-synthesizer';
 import { getEventEffect, playEventSound, eventDedupeKey, EventEffect } from '../lib/event-effects-engine';
 import { fetchRealLiveCommentary, RealCommentaryEvent, extractEspnEventId } from '../lib/real-live-commentary';
 import { MatchData } from '../lib/sports-api';
@@ -193,21 +194,26 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
   }, [match, loadCommentary]);
 
   const handleSpeak = () => {
-    // Speak latest significant event in Naija Vibe (real data always drives it).
+    stadiumAudio.enableOnUserClick();
+    allowSpeechOnUserGesture();
+    stadiumAudio.playBookmarkSound();
+    
+    // Pick the most impactful live moment
     const target =
       events.find((e) => e.kind === 'GOAL') ||
       events.find((e) => e.kind === 'FULLTIME') ||
-      events[events.length - 1] ||
       events[0];
 
     const text = target
       ? target.kind === 'GOAL' && target.scorer
-        ? `Goal! ${target.scorer} scores for ${target.team || resolvedHome}! ${target.text}`
+        ? `Goal o! ${target.scorer} just score for ${target.team || resolvedHome}! ${target.text}`
         : target.text
-      : NAIJA_PHRASES[Math.floor(Math.random() * NAIJA_PHRASES.length)];
+      : resolvedStatus === 'LIVE'
+      ? `Omo see ball! ${resolvedHome} ${resolvedScore} ${resolvedAway}. Action dey heavy on pitch right now!`
+      : `${resolvedHome} vs ${resolvedAway}. Kickoff time is ${resolvedTime}. Game go hot!`;
 
-    speakStadiumCommentary(text);
-    speakNaija(text, 'normal');
+    stadiumAudio.speakNigerian(text);
+    speakNaija(text, 'hyped');
   };
 
   const goals = events.filter((e) => e.kind === 'GOAL');
