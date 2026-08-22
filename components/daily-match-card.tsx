@@ -1,3 +1,4 @@
+import { LockScreenMatchTracker } from '../lib/lockscreen-live-score-tracker';
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -248,13 +249,19 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
 
           {/* Action Icons */}
           <div className="flex items-center space-x-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
-            <button onClick={handleAlert}
-              className={'p-1.5 rounded-xl border transition-all ' + (isFollowed ? 'bg-stadiumGreen/20 border-stadiumGreen text-stadiumGreen' : 'bg-black/40 border-white/10 text-gray-400 hover:text-stadiumGreen')}>
-              {isFollowed ? <BellRing className="w-3.5 h-3.5" /> : <Bell className="w-3.5 h-3.5" />}
+            <button 
+              onClick={handleAlert}
+              className={'p-1.5 rounded-xl border transition-all ' + (isFollowed ? 'bg-stadiumGreen/20 border-stadiumGreen text-stadiumGreen shadow-md shadow-stadiumGreen/20' : 'bg-black/40 border-white/10 text-gray-400 hover:text-stadiumGreen')}
+              title={isFollowed ? "🔔 Match Alerts Active (Tap to unfollow)" : "🔔 Follow for Live In-Play Goal Alerts & Kickoff"}
+            >
+              {isFollowed ? <BellRing className="w-3.5 h-3.5 text-stadiumGreen" /> : <Bell className="w-3.5 h-3.5" />}
             </button>
-            <button onClick={handleBookmark}
-              className={'p-1.5 rounded-xl border transition-all ' + (bookmarked ? 'bg-gold/20 border-gold text-gold' : 'bg-black/40 border-white/10 text-gray-400 hover:text-gold')}>
-              <Star className={'w-3.5 h-3.5 ' + (bookmarked ? 'fill-current' : '')} />
+            <button 
+              onClick={handleBookmark}
+              className={'p-1.5 rounded-xl border transition-all ' + (bookmarked ? 'bg-gold/25 border-gold text-gold shadow-md shadow-gold/30 scale-105' : 'bg-black/40 border-white/10 text-gray-400 hover:text-gold')}
+              title={bookmarked ? "⭐ Pinned to Smart Phone Lock Screen Widget (Tap to unpin)" : "⭐ Pin to Smart Phone Lock Screen Widget"}
+            >
+              <Star className={'w-3.5 h-3.5 ' + (bookmarked ? 'fill-current animate-pulse' : '')} />
             </button>
           </div>
         </div>

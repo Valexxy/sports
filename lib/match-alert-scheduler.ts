@@ -1,3 +1,4 @@
+import { LockScreenMatchTracker } from './lockscreen-live-score-tracker';
 /**
  * SMART MATCH ALERT & KICKOFF SCHEDULER ENGINE
  * Automatically sends browser/phone notifications for followed matches:
@@ -55,11 +56,24 @@ export class MatchAlertScheduler {
       };
       this.saveFollowedAlerts(alerts);
 
-      // Trigger instant confirmation alert
-      phoneHardware.sendNativeNotification(
-        `🔔 Following: ${match.homeTeam} vs ${match.awayTeam}`,
-        `You'll receive 15-min kickoff reminders, live goal vibrations & settlement alerts.`
-      );
+      // Trigger status-aware instant confirmation & auto-pin live lockscreen
+      if (match.status === 'LIVE') {
+        phoneHardware.sendNativeNotification(
+          `🔴 Live Match Followed: ${match.homeTeam} vs ${match.awayTeam}`,
+          `Live in-play score (${match.homeScore ?? 0}-${match.awayScore ?? 0}) pinned to your lock screen. Real-time goal alerts active!`
+        );
+        LockScreenMatchTracker.pinMatchToLockScreen(match).catch(() => {});
+      } else if (match.status === 'FINISHED') {
+        phoneHardware.sendNativeNotification(
+          `✅ Finished Match Followed: ${match.homeTeam} vs ${match.awayTeam}`,
+          `Final result: ${match.homeScore ?? 0} - ${match.awayScore ?? 0} settled.`
+        );
+      } else {
+        phoneHardware.sendNativeNotification(
+          `🔔 Upcoming Match Followed: ${match.homeTeam} vs ${match.awayTeam}`,
+          `Kickoff at ${match.matchTime}. You will receive a reminder before kickoff.`
+        );
+      }
       phoneHardware.triggerHaptic('BANKER_LOCKED');
       // auto audio disabled
     }
