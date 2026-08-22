@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Newspaper, Clock, X, RefreshCw, ChevronDown, ChevronUp, Flame, ThumbsUp, Target, Share2, ExternalLink } from 'lucide-react';
+import { Newspaper, Clock, X, RefreshCw, ChevronDown, ChevronUp, Flame, ThumbsUp, Target, Share2, ExternalLink, Zap } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export interface SportsArticle {
@@ -12,11 +12,22 @@ export interface SportsArticle {
   pubDate: string;
   source: string;
   category: string;
+  categoryBadge: string;
   imageUrl: string;
   fullContent?: string;
 }
 
 const FALLBACK_PHOTO = 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80';
+
+const CATEGORY_TABS = [
+  { key: 'ALL', label: '⚡ All News', emoji: '⚡' },
+  { key: 'TRANSFERS', label: '🔥 Transfers', emoji: '🔥' },
+  { key: 'MATCH REPORTS', label: '🚨 Match Reports', emoji: '🚨' },
+  { key: 'INJURIES', label: '🚑 Injuries', emoji: '🚑' },
+  { key: 'TACTICS', label: '🧠 Manager & Tactics', emoji: '🧠' },
+  { key: 'NAIJA & AFCON', label: '🇳🇬 Naija & AFCON', emoji: '🇳🇬' },
+  { key: 'UCL & EUROPE', label: '⭐ UCL & Europe', emoji: '⭐' },
+];
 
 export const SportsNewsSection: React.FC = () => {
   const [articles, setArticles] = useState<SportsArticle[]>([]);
@@ -25,7 +36,8 @@ export const SportsNewsSection: React.FC = () => {
   const [activeArticle, setActiveArticle] = useState<SportsArticle | null>(null);
   const [autoSync, setAutoSync] = useState(true);
   const [isOpen, setIsOpen] = useState(true);
-  const [sourceFilter, setSourceFilter] = useState('ALL');
+  const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [selectedSource, setSelectedSource] = useState('ALL');
 
   const loadNews = async () => {
     try {
@@ -55,12 +67,13 @@ export const SportsNewsSection: React.FC = () => {
   }, [autoSync]);
 
   const sources = useMemo(() => {
-    const set = new Set<string>(articles.map(a => a.source).filter(Boolean));
+    const set = new Set<string>(articles.map((a) => a.source).filter(Boolean));
     return ['ALL', ...Array.from(set).slice(0, 5)];
   }, [articles]);
 
   const displayedArticles = articles
-    .filter(a => sourceFilter === 'ALL' || a.source === sourceFilter)
+    .filter((a) => selectedCategory === 'ALL' || a.category === selectedCategory)
+    .filter((a) => selectedSource === 'ALL' || a.source === selectedSource)
     .slice(0, visibleCount);
 
   const handleShare = async (e: React.MouseEvent, article: SportsArticle) => {
@@ -80,6 +93,25 @@ export const SportsNewsSection: React.FC = () => {
     } catch { /* ignored */ }
   };
 
+  const getCategoryPillColor = (cat: string) => {
+    switch (cat) {
+      case 'TRANSFERS':
+        return 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 border-orange-500/50 text-orange-400';
+      case 'MATCH REPORTS':
+        return 'bg-stadiumGreen/20 border-stadiumGreen/50 text-stadiumGreen';
+      case 'INJURIES':
+        return 'bg-crimson/20 border-crimson/50 text-crimson';
+      case 'NAIJA & AFCON':
+        return 'bg-emerald-500/25 border-emerald-400/60 text-emerald-300';
+      case 'UCL & EUROPE':
+        return 'bg-blue-500/20 border-blue-400/50 text-blue-300';
+      case 'TACTICS':
+        return 'bg-purple-500/20 border-purple-400/50 text-purple-300';
+      default:
+        return 'bg-gold/20 border-gold/40 text-gold';
+    }
+  };
+
   return (
     <div className="glass-panel rounded-3xl p-5 border border-white/10 space-y-4 shadow-2xl font-mono text-xs">
       
@@ -94,13 +126,13 @@ export const SportsNewsSection: React.FC = () => {
           </div>
           <div>
             <h3 className="font-black text-sm text-white flex items-center space-x-2">
-              <span>LATEST FOOTBALL NEWS & MATCH REPORTS 📰</span>
+              <span>LATEST FOOTBALL NEWS & MATCH WIRE 📰</span>
               <span className="text-[9px] px-2 py-0.5 rounded bg-stadiumGreen/20 text-stadiumGreen font-bold border border-stadiumGreen/30">
                 100% PURE FOOTBALL ✓
               </span>
             </h3>
             <span className="text-[10px] text-gray-400 font-sans">
-              Live tactical previews, official UEFA rosters, transfer wire, and injury bulletins.
+              AI-Categorized Transfers, Match Reports, Injuries, Manager Tactics, and Super Eagles Wire.
             </span>
           </div>
         </div>
@@ -139,21 +171,34 @@ export const SportsNewsSection: React.FC = () => {
       {isOpen && (
         <div className="space-y-4">
           
-          {/* Source Filter Tabs */}
+          {/* Smart Category Filter Tabs */}
           <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none">
-            {sources.map((src) => (
-              <button
-                key={src}
-                onClick={() => setSourceFilter(src)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition-all ${
-                  sourceFilter === src
-                    ? 'bg-gold text-black shadow-lg shadow-gold/20'
-                    : 'bg-panel/80 text-gray-400 hover:text-white border border-white/5'
-                }`}
-              >
-                {src === 'ALL' ? '⚡ All Sources' : src}
-              </button>
-            ))}
+            {CATEGORY_TABS.map((cat) => {
+              const count = cat.key === 'ALL'
+                ? articles.length
+                : articles.filter((a) => a.category === cat.key).length;
+
+              return (
+                <button
+                  key={cat.key}
+                  onClick={() => { setSelectedCategory(cat.key); setVisibleCount(6); }}
+                  className={`flex-shrink-0 flex items-center space-x-1.5 px-3 py-1.5 rounded-2xl border text-xs font-black transition-all ${
+                    selectedCategory === cat.key
+                      ? 'bg-stadiumGreen text-black border-stadiumGreen shadow-lg shadow-stadiumGreen/20 scale-105'
+                      : 'bg-panel/80 text-gray-400 hover:text-white border-white/10 hover:border-white/20'
+                  }`}
+                >
+                  <span>{cat.label}</span>
+                  {count > 0 && (
+                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                      selectedCategory === cat.key ? 'bg-black/30 text-black' : 'bg-white/10 text-gray-300'
+                    }`}>
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           {/* News Cards Grid */}
@@ -162,7 +207,7 @@ export const SportsNewsSection: React.FC = () => {
               <div
                 key={item.id}
                 onClick={() => setActiveArticle(item)}
-                className="rounded-2xl border border-white/10 bg-panel/70 hover:border-stadiumGreen/40 hover:bg-panel/90 transition-all duration-300 overflow-hidden flex flex-col group cursor-pointer shadow-lg hover:scale-[1.01]"
+                className="rounded-3xl border border-white/10 bg-panel/70 hover:border-stadiumGreen/50 hover:bg-panel/90 transition-all duration-300 overflow-hidden flex flex-col group cursor-pointer shadow-xl hover:scale-[1.01]"
               >
                 {/* Guaranteed Working Image Header */}
                 <div className="relative h-44 w-full overflow-hidden bg-black">
@@ -177,17 +222,17 @@ export const SportsNewsSection: React.FC = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
                   
                   <div className="absolute top-2.5 left-2.5 flex items-center space-x-1.5">
-                    <span className="text-[10px] px-2 py-0.5 rounded-lg bg-black/80 text-stadiumGreen font-black border border-stadiumGreen/40 backdrop-blur-md">
-                      {item.category}
+                    <span className={`text-[10px] px-2.5 py-0.5 rounded-xl font-black border backdrop-blur-md shadow-md ${getCategoryPillColor(item.category)}`}>
+                      {item.categoryBadge || item.category}
                     </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-lg bg-black/80 text-gold font-bold border border-white/10 backdrop-blur-md">
+                    <span className="text-[10px] px-2 py-0.5 rounded-xl bg-black/80 text-gold font-bold border border-white/10 backdrop-blur-md">
                       {item.source}
                     </span>
                   </div>
 
                   <button
                     onClick={(e) => handleShare(e, item)}
-                    className="absolute top-2.5 right-2.5 p-1.5 rounded-lg bg-black/80 text-gray-300 hover:text-gold border border-white/10 backdrop-blur-md transition-all"
+                    className="absolute top-2.5 right-2.5 p-1.5 rounded-xl bg-black/80 text-gray-300 hover:text-gold border border-white/10 backdrop-blur-md transition-all shadow"
                     title="Share article"
                   >
                     <Share2 className="w-3.5 h-3.5" />
@@ -221,13 +266,13 @@ export const SportsNewsSection: React.FC = () => {
           </div>
 
           {/* Load More Button */}
-          {articles.length > visibleCount && (
+          {articles.filter((a) => selectedCategory === 'ALL' || a.category === selectedCategory).length > visibleCount && (
             <div className="text-center pt-2">
               <button
                 onClick={() => setVisibleCount((prev) => prev + 3)}
                 className="px-6 py-2.5 rounded-2xl bg-stadiumGreen/15 hover:bg-stadiumGreen/25 border border-stadiumGreen/40 text-stadiumGreen font-bold text-xs shadow-md transition-all inline-flex items-center space-x-2 hover:scale-105"
               >
-                <span>⚡ Load 3 More News Articles ({articles.length - visibleCount} remaining)</span>
+                <span>⚡ Load 3 More Articles</span>
                 <ChevronDown className="w-4 h-4" />
               </button>
             </div>
@@ -255,8 +300,8 @@ export const SportsNewsSection: React.FC = () => {
                 onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_PHOTO; }}
               />
               <div className="absolute top-3 left-3 flex items-center space-x-1.5">
-                <span className="px-3 py-1 rounded-xl bg-black/85 text-stadiumGreen font-black text-[10px] border border-stadiumGreen/40 shadow-lg">
-                  {activeArticle.category}
+                <span className={`px-3 py-1 rounded-xl font-black text-[10px] border shadow-lg ${getCategoryPillColor(activeArticle.category)}`}>
+                  {activeArticle.categoryBadge || activeArticle.category}
                 </span>
                 <span className="px-3 py-1 rounded-xl bg-black/85 text-gold font-bold text-[10px] border border-white/10 shadow-lg">
                   {activeArticle.source}
@@ -283,7 +328,7 @@ export const SportsNewsSection: React.FC = () => {
                   href={activeArticle.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-4 py-2 rounded-xl bg-stadiumGreen text-black font-black text-xs flex items-center space-x-1.5 hover:bg-emerald-400 transition-all"
+                  className="px-4 py-2 rounded-xl bg-stadiumGreen text-black font-black text-xs flex items-center space-x-1.5 hover:bg-emerald-400 transition-all shadow"
                 >
                   <span>Read on {activeArticle.source}</span>
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -291,7 +336,7 @@ export const SportsNewsSection: React.FC = () => {
 
                 <button
                   onClick={(e) => handleShare(e, activeArticle)}
-                  className="px-4 py-2 rounded-xl bg-panel border border-white/10 text-white font-bold text-xs flex items-center space-x-1.5 hover:bg-white/10 transition-all"
+                  className="px-4 py-2 rounded-xl bg-panel border border-white/10 text-white font-bold text-xs flex items-center space-x-1.5 hover:bg-white/10 transition-all shadow"
                 >
                   <Share2 className="w-3.5 h-3.5 text-gold" />
                   <span>Share Story</span>

@@ -9,21 +9,125 @@ export interface SportsArticle {
   link: string;
   pubDate: string;
   source: string;
-  category: string;
+  category: 'TRANSFERS' | 'MATCH REPORTS' | 'INJURIES' | 'TACTICS' | 'NAIJA & AFCON' | 'UCL & EUROPE' | 'GLOBAL FOOTBALL';
+  categoryBadge: string;
   imageUrl: string;
   fullContent: string;
 }
 
 // 100% Pure Verified Legal Global Football RSS Feeds
 const FOOTBALL_RSS_FEEDS = [
-  { url: 'http://feeds.bbci.co.uk/sport/football/rss.xml', source: 'BBC Football', category: 'FOOTBALL' },
-  { url: 'https://www.skysports.com/rss/12040', source: 'Sky Sports Football', category: 'PREMIER LEAGUE' },
-  { url: 'https://www.theguardian.com/football/rss', source: 'The Guardian', category: 'EUROPEAN' },
-  { url: 'https://www.espn.com/espn/rss/soccer/news', source: 'ESPN FC', category: 'GLOBAL' },
-  { url: 'https://talksport.com/football/feed/', source: 'talkSPORT Football', category: 'BREAKING' },
+  { url: 'http://feeds.bbci.co.uk/sport/football/rss.xml', source: 'BBC Football' },
+  { url: 'https://www.skysports.com/rss/12040', source: 'Sky Sports Football' },
+  { url: 'https://www.theguardian.com/football/rss', source: 'The Guardian' },
+  { url: 'https://www.espn.com/espn/rss/soccer/news', source: 'ESPN FC' },
+  { url: 'https://talksport.com/football/feed/', source: 'talkSPORT Football' },
 ];
 
 const RSS_PROXY = 'https://api.allorigins.win/raw?url=';
+
+// Smart Football Categorization Engine
+function classifyFootballArticle(title: string, description: string): {
+  category: SportsArticle['category'];
+  categoryBadge: string;
+} {
+  const text = (title + ' ' + description).toLowerCase();
+
+  // 1. Naija & AFCON
+  if (
+    text.includes('osimhen') ||
+    text.includes('super eagles') ||
+    text.includes('nigeria') ||
+    text.includes('npfl') ||
+    text.includes('lookman') ||
+    text.includes('boniface') ||
+    text.includes('iwobi') ||
+    text.includes('chukwueze') ||
+    text.includes('enyimba') ||
+    text.includes('afcon')
+  ) {
+    return { category: 'NAIJA & AFCON', categoryBadge: '🇳🇬 NAIJA & AFCON' };
+  }
+
+  // 2. Transfers & Contract Deals
+  if (
+    text.includes('transfer') ||
+    text.includes('sign') ||
+    text.includes('signing') ||
+    text.includes('bid') ||
+    text.includes('deal') ||
+    text.includes('fee') ||
+    text.includes('contract') ||
+    text.includes('clause') ||
+    text.includes('loan') ||
+    text.includes('agree') ||
+    text.includes('medical') ||
+    text.includes('free agent') ||
+    text.includes('move to')
+  ) {
+    return { category: 'TRANSFERS', categoryBadge: '🔥 TRANSFERS' };
+  }
+
+  // 3. Injuries & Fitness Bulletins
+  if (
+    text.includes('injury') ||
+    text.includes('injured') ||
+    text.includes('surgery') ||
+    text.includes('hamstring') ||
+    text.includes('acl') ||
+    text.includes('ruled out') ||
+    text.includes('fitness') ||
+    text.includes('sidelined') ||
+    text.includes('knock')
+  ) {
+    return { category: 'INJURIES', categoryBadge: '🚑 INJURY UPDATE' };
+  }
+
+  // 4. UCL & European Cups
+  if (
+    text.includes('champions league') ||
+    text.includes('ucl') ||
+    text.includes('europa league') ||
+    text.includes('uefa') ||
+    text.includes('conference league')
+  ) {
+    return { category: 'UCL & EUROPE', categoryBadge: '⭐ UCL & EUROPE' };
+  }
+
+  // 5. Tactics & Manager Talk
+  if (
+    text.includes('manager') ||
+    text.includes('boss') ||
+    text.includes('coach') ||
+    text.includes('arteta') ||
+    text.includes('guardiola') ||
+    text.includes('ancelotti') ||
+    text.includes('slot') ||
+    text.includes('tactics') ||
+    text.includes('press conference') ||
+    text.includes('system')
+  ) {
+    return { category: 'TACTICS', categoryBadge: '🧠 TACTICS & COACH' };
+  }
+
+  // 6. Match Reports & Results
+  if (
+    text.includes('win') ||
+    text.includes('defeat') ||
+    text.includes('beat') ||
+    text.includes('draw') ||
+    text.includes('goal') ||
+    text.includes('score') ||
+    text.includes('hat-trick') ||
+    text.includes('derby') ||
+    text.includes('full-time') ||
+    text.includes('fixture')
+  ) {
+    return { category: 'MATCH REPORTS', categoryBadge: '🚨 MATCH REPORT' };
+  }
+
+  return { category: 'GLOBAL FOOTBALL', categoryBadge: '⚽ GLOBAL FOOTBALL' };
+}
 
 // Topic-Aware High-Resolution Verified Sports Photography Bank
 const FOOTBALL_TOPIC_IMAGES: { keyword: string; url: string }[] = [
@@ -150,6 +254,8 @@ export async function GET() {
             .map((p, i) => {
               const rawDesc = p.description || p.title;
               const img = resolveFootballImage(p.imageUrl, p.title);
+              const { category, categoryBadge } = classifyFootballArticle(p.title, rawDesc);
+
               return {
                 id: `${feed.source.toLowerCase().replace(/[^a-z]/g, '')}-${i}-${Date.now()}`,
                 title: p.title,
@@ -157,7 +263,8 @@ export async function GET() {
                 link: p.link || 'https://www.bbc.com/sport/football',
                 pubDate: timeAgo(p.pubDate),
                 source: feed.source,
-                category: feed.category,
+                category,
+                categoryBadge,
                 imageUrl: img,
                 fullContent: rawDesc.replace(/<[^>]+>/g, '').slice(0, 800),
               };
