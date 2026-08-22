@@ -196,7 +196,7 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
               ) : (
                 <Download className="w-3.5 h-3.5" />
               )}
-              <span className="hidden sm:inline">{isDownloading ? 'Downloading...' : 'Download App'}</span>
+              <span className="hidden sm:inline">{isDownloading ? t('Downloading...') : t('Download App')}</span>
             </button>
           )}
 
@@ -208,7 +208,7 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
               title="Star Player Radar & Lock Screen Alerts"
             >
               <span>⭐</span>
-              <span className="hidden md:inline">Star Players</span>
+              <span className="hidden md:inline">{t('Star Players')}</span>
             </button>
           )}
 

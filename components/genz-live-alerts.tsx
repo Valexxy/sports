@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../lib/translation-engine';
 import { stadiumAudio } from '../lib/sound-synthesizer';
 import { Flame, X, Volume2, ArrowUpRight, CheckCircle2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -45,7 +46,7 @@ export const GenZLiveAlerts: React.FC<GenZLiveAlertsProps> = ({
           type: 'LIVE_GOAL',
           title: '⚽ IN-PLAY GOAL EVENT',
           message: `${targetMatch.homeTeam} ${targetMatch.homeScore} - ${targetMatch.awayScore} ${targetMatch.awayTeam} (${targetMatch.matchTime}) in ${targetMatch.league}.`,
-          badge: 'LIVE MATCH ⚽',
+          badge: 'LIVE MATCH',
           badgeStyle: 'bg-crimson text-white font-black animate-pulse',
           matchTitle: `${targetMatch.homeTeam} vs ${targetMatch.awayTeam}`,
           match: targetMatch,

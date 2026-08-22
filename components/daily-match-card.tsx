@@ -120,6 +120,20 @@ function getMatchDateLabel(utcDateStr?: string): string {
   return matchDate.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
+
+function translatePick(selection: string, tFunc: (k: string) => string): string {
+  if (!selection) return '';
+  if (selection.includes('Over 1.5')) return tFunc('Over 1.5 Goals');
+  if (selection.includes('Over 2.5')) return tFunc('Over 2.5 Goals');
+  if (selection.includes('Under 2.5')) return tFunc('Under 2.5 Goals');
+  if (selection.includes('Both Teams') || selection.includes('BTTS') || selection.includes('GG')) return tFunc('Both Teams to Score (GG)');
+  if (selection.includes('or Draw')) {
+    const parts = selection.split(' or Draw');
+    return parts[0] + ' ' + tFunc('or Draw (1X)');
+  }
+  return tFunc(selection);
+}
+
 export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   match,
   onOpenInsights,
@@ -207,7 +221,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
                 <span className="text-sm flex-shrink-0">{leagueInfo.flag}</span>
               )}
               <span className="text-xs font-black text-white hover:text-stadiumGreen transition-colors truncate">
-                {leagueInfo.name} <span className="text-[9px] text-gold font-bold">Table ➔</span>
+                {leagueInfo.name} <span className="text-[9px] text-gold font-bold">{t('Table ➔')}</span>
               </span>
             </button>
 
@@ -346,7 +360,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
                 {t(p.topPick.confidenceTier)} 🔥
               </span>
               <span className="text-xs font-black text-white truncate">
-                {p.topPick.selection}
+                {translatePick(p.topPick.selection, t)}
               </span>
             </div>
             <span className="text-[9px] text-gray-400 font-sans block mt-0.5">
@@ -358,7 +372,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
             onClick={handleAddPick}
             className="px-3 py-1.5 rounded-xl bg-stadiumGreen text-black font-black text-[11px] hover:bg-emerald-400 transition-all flex items-center space-x-1 shadow-md flex-shrink-0 active:scale-95"
           >
-            <span>+ {t('Add Pick')}</span>
+            <span>{t('+ Bet Tips')}</span>
           </button>
         </div>
 

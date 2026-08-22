@@ -23,6 +23,40 @@ export const SUPPORTED_LANGUAGES: LanguageMeta[] = [
 const STORAGE_KEY = 'aurascore_language';
 
 export const COMPREHENSIVE_DICTIONARY: Record<string, Record<LanguageCode, string>> = {
+
+  // Bet Tips & Card Elements
+  '+ Bet Tips': { en: '+ Bet Tips', pidgin: '+ Bet Tips 🎯', yoruba: '+ Ìmọ̀ràn Kalokalo 🎯', igbo: '+ Ndụmọdụ Nzọ 🎯', hausa: '+ Shawarar Caca 🎯' },
+  '+ Add Pick': { en: '+ Bet Tips', pidgin: '+ Bet Tips 🎯', yoruba: '+ Ìmọ̀ràn Kalokalo 🎯', igbo: '+ Ndụmọdụ Nzọ 🎯', hausa: '+ Shawarar Caca 🎯' },
+  'Bet Tips': { en: 'Bet Tips', pidgin: 'Bet Tips', yoruba: 'Ìmọ̀ràn Kalokalo', igbo: 'Ndụmọdụ Nzọ', hausa: 'Shawarar Caca' },
+  'Table ➔': { en: 'Table ➔', pidgin: 'Table ➔', yoruba: 'Tábìlì ➔', igbo: 'Tebụl ➔', hausa: 'Tebur ➔' },
+  'win confidence': { en: 'win confidence', pidgin: 'sure confidence', yoruba: 'ìdánilójú ìṣẹ́gun', igbo: 'ntụkwasị obi mmeri', hausa: 'tabbacin nasara' },
+  'Over 1.5 Goals': { en: 'Over 1.5 Goals', pidgin: 'Over 1.5 Goals', yoruba: 'Goolu tó ju 1.5 lọ', igbo: 'Ihe karịrị goolu 1.5', hausa: 'Sama da ƙwallo 1.5' },
+  'Over 2.5 Goals': { en: 'Over 2.5 Goals', pidgin: 'Over 2.5 Goals', yoruba: 'Goolu tó ju 2.5 lọ', igbo: 'Ihe karịrị goolu 2.5', hausa: 'Sama da ƙwallo 2.5' },
+  'Under 2.5 Goals': { en: 'Under 2.5 Goals', pidgin: 'Under 2.5 Goals', yoruba: 'Goolu tí kò ju 2.5 lọ', igbo: 'Goolu na-erughị 2.5', hausa: 'Ƙasa da ƙwallo 2.5' },
+  'Both Teams to Score (GG)': { en: 'Both Teams to Score (GG)', pidgin: 'Both Teams Go Score (GG)', yoruba: 'Àwọn Ẹgbẹ́ Méjèèjì Yóò Gba Goolu', igbo: 'Otu Abụọ Ga-agba Goolu', hausa: 'Dukkan Ƙungiyoyin Za Su Ci Ƙwallo' },
+  'Home Win or Draw (1X)': { en: 'Home Win or Draw (1X)', pidgin: 'Home Win or Draw (1X)', yoruba: 'Ìṣẹ́gun Ilé tàbí Dọ́gba (1X)', igbo: 'Mmeri Ụlọ ma ọ bụ Jikọọ (1X)', hausa: 'Nasara a Gida ko Canjaras (1X)' },
+  'Away Win or Draw (X2)': { en: 'Away Win or Draw (X2)', pidgin: 'Away Win or Draw (X2)', yoruba: 'Ìṣẹ́gun Àbẹ̀wò tàbí Dọ́gba (X2)', igbo: 'Mmeri Nleta ma ọ bụ Jikọọ (X2)', hausa: 'Nasara a Waje ko Canjaras (X2)' },
+  'or Draw': { en: 'or Draw', pidgin: 'or Draw', yoruba: 'tàbí Dọ́gba', igbo: 'ma ọ bụ Jikọọ', hausa: 'ko Canjaras' },
+  'or Draw (1X)': { en: 'or Draw (1X)', pidgin: 'or Draw (1X)', yoruba: 'tàbí Dọ́gba (1X)', igbo: 'ma ọ bụ Jikọọ (1X)', hausa: 'ko Canjaras (1X)' },
+  
+  // Header & Branding
+  'Download App': { en: 'Download App', pidgin: 'Download App 📲', yoruba: 'Gba Ohun Èlò 📲', igbo: 'Budata Ngwa 📲', hausa: 'Sauke Manhaja 📲' },
+  'Downloading...': { en: 'Downloading...', pidgin: 'De Download...', yoruba: 'Ń Gbà Á...', igbo: 'Na-ebudata...', hausa: 'Ana Saukewa...' },
+  'World First Live Prediction & Stadium Atmosphere': { en: 'World First Live Prediction & Stadium Atmosphere', pidgin: 'Number 1 Live Prediction & Stadium Atmosphere for World', yoruba: 'Àkọ́kọ́ Ìsọtẹ́lẹ̀ Láyé & Afẹ́fẹ́ Pápá Eré Ní Àgbáyé', igbo: 'Amụma Ndụ nke Mbụ n’Ụwa & Ọnọdụ Ama Egwuregwu', hausa: 'Hasashen Raye na Farko a Duniya & Yanayin Filin Wasa' },
+  'Star Players': { en: 'Star Players', pidgin: 'Star Players ⭐', yoruba: 'Àwọn Gbajúmọ̀ ⭐', igbo: 'Ndị Ama Ama ⭐', hausa: 'Manyan Yan Wasa ⭐' },
+  'All Leagues (35+)': { en: 'All Leagues (35+)', pidgin: 'All Leagues (35+) 🌍', yoruba: 'Gbogbo Liigi (35+) 🌍', igbo: 'Liigi Niile (35+) 🌍', hausa: 'Duk Gasanni (35+) 🌍' },
+  'Following ⭐': { en: 'Following ⭐', pidgin: 'Following ⭐', yoruba: 'Tẹ̀lé ⭐', igbo: 'Na-eso ⭐', hausa: 'Masu Bi ⭐' },
+  'Following': { en: 'Following', pidgin: 'Following', yoruba: 'Tẹ̀lé', igbo: 'Na-eso', hausa: 'Masu Bi' },
+
+  // Live Alerts & Popups
+  'LIVE MATCH': { en: 'LIVE MATCH ⚽', pidgin: 'LIVE MATCH ⚽', yoruba: 'ERÉ LÁYÉ ⚽', igbo: 'EGWUREG职务 NDỤ ⚽', hausa: 'WASAN RAYE ⚽' },
+  'Hype 🔥': { en: 'Hype 🔥', pidgin: 'Hype 🔥', yoruba: 'Ariwo 🔥', igbo: 'Ọṅụ 🔥', hausa: 'Murna 🔥' },
+  'View Audit ↗': { en: 'View Audit ↗', pidgin: 'Check Am ↗', yoruba: 'Wo Àyẹ̀wò ↗', igbo: 'Lee Nnyocha ↗', hausa: 'Duba Sakamako ↗' },
+  '1-Click automatic instant download': { en: '1-Click automatic instant download', pidgin: '1-Click fast download', yoruba: 'Ìgbàsílẹ̀ lẹ́ẹ̀kan ṣoṣo', igbo: 'Nbudata ngwa ngwa na otu pịa', hausa: 'Saukarwa ta atomatik da dannawa 1' },
+  'Install Stadium App': { en: 'Install Stadium App', pidgin: 'Install Stadium App', yoruba: 'Fi Ohun Èlò Pápá Sí', igbo: 'Wụnye Ngwa Ama Egwuregwu', hausa: 'Sanya Manhajar Filin Wasa' },
+  'Download': { en: 'Download', pidgin: 'Download', yoruba: 'Gba Sílẹ̀', igbo: 'Budata', hausa: 'Sauke' },
+  '100% Pure Football Stadium': { en: '100% Pure Football Stadium', pidgin: '100% Pure Football Stadium', yoruba: '100% Pápá Bọ́ọ̀lù Pípé', igbo: '100% Ezigbo Ama Egwuregwu', hausa: '100% Filin Wasan Ƙwallo na Gaskiya' },
+
   // Days of Week (Sunday to Saturday)
   'Sun': { en: 'Sun', pidgin: 'Sun', yoruba: 'Àìkú', igbo: 'Ụka', hausa: 'Lah' },
   'Mon': { en: 'Mon', pidgin: 'Mon', yoruba: 'Ajé', igbo: 'Mọn', hausa: 'Lit' },
@@ -69,7 +103,6 @@ export const COMPREHENSIVE_DICTIONARY: Record<string, Record<LanguageCode, strin
   "Today's Matches": { en: "Today's Matches", pidgin: "Today Matches", yoruba: "Àwọn Eré Òní", igbo: "Egwuregwu Taa", hausa: "Wasannin Yau" },
 
   // Match Cards & Actions
-  '+ Add Pick': { en: '+ Add Pick', pidgin: '+ Add Am', yoruba: '+ Fi Kún', igbo: '+ Tinye', hausa: '+ Ƙara' },
   'Added ✓': { en: 'Added ✓', pidgin: 'Don Add ✓', yoruba: 'Ti Kún ✓', igbo: 'Etinyela ✓', hausa: 'An Ƙara ✓' },
   'Tap insights': { en: 'Tap insights', pidgin: 'Tap for gist', yoruba: 'Tẹ fún ìmọ̀', igbo: 'Kpatụ maka nkọwa', hausa: 'Danna don bayani' },
   'View Full Match Insights': { en: 'View Full Match Insights', pidgin: 'See Full Match Gist ➔', yoruba: 'Wo Ìmọ̀ Eré Pípé ➔', igbo: 'Lee Nkọwa Niile ➔', hausa: 'Duba Cikakken Bayani ➔' },

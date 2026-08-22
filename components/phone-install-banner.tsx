@@ -13,8 +13,10 @@ import {
 import confetti from 'canvas-confetti';
 import { phoneHardware } from '../lib/phone-hardware-engine';
 import { stadiumAudio } from '../lib/sound-synthesizer';
+import { useTranslation } from '../lib/translation-engine';
 
 export const PhoneHardwareBanner: React.FC = () => {
+  const { t } = useTranslation();
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -166,7 +168,7 @@ export const PhoneHardwareBanner: React.FC = () => {
               </span>
             </div>
             <p className="text-[10px] text-gray-300 font-sans truncate mt-0.5">
-              {justCompleted ? 'Installed on device successfully!' : '1-Click automatic instant download'}
+              {justCompleted ? t('Installed on device successfully!') : t('1-Click automatic instant download')}
             </p>
           </div>
         </div>
@@ -190,7 +192,7 @@ export const PhoneHardwareBanner: React.FC = () => {
             ) : (
               <>
                 <Download className="w-3.5 h-3.5" />
-                <span>Download</span>
+                <span>{t('Download')}</span>
               </>
             )}
           </button>
