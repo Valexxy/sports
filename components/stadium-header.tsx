@@ -212,10 +212,7 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
           
 
 
-          {/* Language Switcher AT THE VERY TOP */}
-          <div className="flex-shrink-0">
-            <GlobalLanguageSwitcher />
-          </div>
+
 
         </div>
 

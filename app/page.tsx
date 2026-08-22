@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { StadiumFooter } from '../components/stadium-footer';
 import { PersistentStorage } from '../lib/persistent-storage-engine';
 import { StadiumHeader } from '../components/stadium-header';
 import { DailyMatchCard } from '../components/daily-match-card';
@@ -522,6 +523,12 @@ export default function Home() {
             <SettlementLedgerSection onOpenAuditModal={() => setShowHistoryModal(true)} />
             <SportsNewsSection />
           </div>
+
+          {/* STADIUM FOOTER WITH PROMINENT LANGUAGE SWITCHER */}
+          <StadiumFooter
+            onOpenLedger={() => setShowHistoryModal(true)}
+            onOpenLegal={() => setShowLegalModal(true)}
+          />
 
         </main>
 
