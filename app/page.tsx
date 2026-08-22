@@ -227,7 +227,7 @@ export default function Home() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-void flex flex-col pb-24 selection:bg-stadiumGreen selection:text-black font-mono">
+      <div className="min-h-screen bg-void flex flex-col pb-24 selection:bg-stadiumGreen selection:text-black font-sans">
 
         <BroadcastTicker matches={matches} onSelectUpdate={handleSelectTickerUpdate} />
         <OfflineBanner />
