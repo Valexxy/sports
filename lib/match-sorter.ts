@@ -87,11 +87,18 @@ export function sortMatchesByClosestKickoff(
       return timeA - timeB;
     }
 
-    // 5. If both are FINISHED, keep recently played
+    // 5. If both are FINISHED, most recent first (by date then time)
     if (a.status === 'FINISHED' && b.status === 'FINISHED') {
+      const dateA = a.utcDate ? new Date(a.utcDate).getTime() : 0;
+      const dateB = b.utcDate ? new Date(b.utcDate).getTime() : 0;
+      
+      if (dateA !== dateB) {
+        return dateB - dateA;
+      }
+      
       const timeA = parseKickoffMinutes(a.matchTime);
       const timeB = parseKickoffMinutes(b.matchTime);
-      return timeB - timeA; // later finished matches first
+      return timeB - timeA;
     }
 
     return 0;

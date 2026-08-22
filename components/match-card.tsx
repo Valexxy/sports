@@ -1,8 +1,48 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MatchData } from '../lib/sports-api';
-import { Flame, ChevronDown, ChevronUp, ExternalLink, Sparkles, Brain, Plus, Zap, Star, Bell, ShieldCheck, Target, Activity, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { Flame, ChevronDown, ChevronUp, ExternalLink, Sparkles, Brain, Plus, Zap, Star, Bell, ShieldCheck, Target, Activity, ShieldAlert, CheckCircle2, Timer } from 'lucide-react';
+
+// Live countdown timer hook for scheduled matches
+function useCountdown(targetDate: Date | null): string {
+  const [timeLeft, setTimeLeft] = useState('');
+
+  useEffect(() => {
+    if (!targetDate) return;
+
+    const updateCountdown = () => {
+      const now = new Date().getTime();
+      const distance = targetDate.getTime() - now;
+
+      if (distance < 0) {
+        setTimeLeft('LIVE NOW');
+        return;
+      }
+
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      if (days > 0) {
+        setTimeLeft(`${days}d ${hours}h ${minutes}m`);
+      } else if (hours > 0) {
+        setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
+      } else if (minutes > 0) {
+        setTimeLeft(`${minutes}m ${seconds}s`);
+      } else {
+        setTimeLeft(`${seconds}s`);
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [targetDate]);
+
+  return timeLeft;
+}
 
 // Derives a pseudo 5-game form sequence from team win probability (no hardcoding)
 function deriveForm(winProb: number): ('W' | 'D' | 'L')[] {
@@ -77,6 +117,10 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onOpenReceipt, onOp
     : matchDate 
     ? matchDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase()
     : '';
+
+  // Live countdown for scheduled matches
+  const countdown = useCountdown(matchDate);
+  const isStartingSoon = matchDate && !isLive && !isFinished && (matchDate.getTime() - new Date().getTime() > 0) && (matchDate.getTime() - new Date().getTime() < 3600000);
 
   // Derived Goal Market Probabilities from Dixon-Coles xG
   const totalXG = p.expectedHomeGoals + p.expectedAwayGoals;
@@ -157,6 +201,12 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onOpenReceipt, onOp
               <span className="px-2.5 py-0.5 rounded-full bg-gold/20 border border-gold/30 text-gold text-[10px] font-mono font-bold">
                 ⏰ {match.matchTime}
               </span>
+              {isStartingSoon && countdown && (
+                <span className="flex items-center space-x-1 px-2 py-0.5 rounded-full bg-crimson/20 border border-crimson/40 text-crimson text-[10px] font-mono font-black animate-pulse">
+                  <Timer className="w-3 h-3" />
+                  <span>{countdown}</span>
+                </span>
+              )}
             </span>
           )}
         </div>
@@ -238,8 +288,16 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onOpenReceipt, onOp
               <span className={isFinished ? 'text-white' : 'text-stadiumGreen'}>{match.awayScore}</span>
             </div>
           ) : (
-            <div className="text-xs font-mono px-3 py-1.5 rounded-xl bg-black/60 border border-white/10 text-gray-300 font-bold group-hover:border-stadiumGreen/40 transition-all">
-              {match.matchTime}
+            <div className="flex flex-col items-center space-y-1">
+              <div className="text-xs font-mono px-3 py-1.5 rounded-xl bg-black/60 border border-white/10 text-gray-300 font-bold group-hover:border-stadiumGreen/40 transition-all">
+                {match.matchTime}
+              </div>
+              {isStartingSoon && countdown && (
+                <div className="flex items-center space-x-1 px-2 py-1 rounded-lg bg-crimson/20 border border-crimson/40 text-crimson text-[10px] font-mono font-black animate-pulse">
+                  <Timer className="w-3 h-3" />
+                  <span>Starts in {countdown}</span>
+                </div>
+              )}
             </div>
           )}
 
