@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { X, Cake, Sparkles, Heart, Trophy, Share2, Calendar, Award, Flame } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { X, Cake, Sparkles, Heart, Trophy, Share2, Calendar, Award, ChevronRight, Globe, Star, Users, Zap, Instagram, Twitter } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { stadiumAudio } from '../lib/sound-synthesizer';
+
+// ─── TYPES ────────────────────────────────────────────────────────────────────
 
 export interface BirthdayPlayer {
   id: string;
@@ -12,627 +14,836 @@ export interface BirthdayPlayer {
   country: string;
   countryFlag: string;
   birthYear: number;
-  birthMonth: number; // 1 - 12
-  birthDay: number;   // 1 - 31
+  birthMonth: number;
+  birthDay: number;
   birthDate?: string;
   age?: number;
+  sport: 'FOOTBALL' | 'BASKETBALL' | 'TENNIS' | 'ATHLETICS' | 'BOXING';
   position: string;
   photoUrl: string;
   trophies: string;
   quote: string;
   wishesCount: number;
+  stats?: { label: string; value: string }[];
+  nationality?: string;
+  height?: string;
+  marketValue?: string;
+  instagram?: string;
+  twitter?: string;
 }
 
+type SportCategory = 'ALL' | 'FOOTBALL' | 'BASKETBALL' | 'TENNIS' | 'ATHLETICS' | 'BOXING';
+type FilterTab = 'THIS_WEEK' | 'THIS_MONTH' | 'ALL';
+
+// ─── PLAYER DATABASE ─────────────────────────────────────────────────────────
+
 const STAR_BIRTHDAYS: BirthdayPlayer[] = [
+  // ⚽ FOOTBALL
   {
     id: 'bday-lewandowski',
     name: 'Robert Lewandowski',
-    club: 'FC Barcelona 🇪🇸',
+    sport: 'FOOTBALL',
+    club: 'FC Barcelona',
     country: 'Poland',
     countryFlag: '🇵🇱',
-    birthYear: 1988,
-    birthMonth: 8,
-    birthDay: 21,
-    position: 'Striker / Goal Machine',
+    birthYear: 1988, birthMonth: 8, birthDay: 21,
+    position: 'Centre Forward',
+    nationality: 'Polish',
+    height: '1.85m',
+    marketValue: '€15M',
     photoUrl: 'https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/132145.png&w=350&h=254',
-    trophies: 'UCL, 10x Bundesliga, 1x La Liga, 2x FIFA The Best',
-    quote: 'Hard work beats talent when talent doesn’t work hard.',
+    trophies: 'UCL, 10× Bundesliga, La Liga, 2× FIFA Best',
+    quote: 'Hard work beats talent when talent doesn\'t work hard.',
     wishesCount: 2840,
+    stats: [
+      { label: 'Club Goals', value: '600+' },
+      { label: 'Int\'l Goals', value: '82' },
+      { label: 'Seasons', value: '18' },
+      { label: 'Golden Boots', value: '6' },
+    ],
+    twitter: 'lewy_official',
   },
   {
     id: 'bday-henry',
     name: 'Thierry Henry',
-    club: 'Arsenal Invincibles 🏴󠁧󠁢󠁥󠁮󠁧󠁿',
+    sport: 'FOOTBALL',
+    club: 'Arsenal (Retired)',
     country: 'France',
     countryFlag: '🇫🇷',
-    birthYear: 1977,
-    birthMonth: 8,
-    birthDay: 17,
-    position: 'Striker / King of Highbury',
+    birthYear: 1977, birthMonth: 8, birthDay: 17,
+    position: 'Striker',
+    nationality: 'French',
+    height: '1.88m',
+    marketValue: 'Legend',
     photoUrl: 'https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/352.png&w=350&h=254',
-    trophies: 'World Cup, Euro, 2x Premier League, UCL',
-    quote: 'Sometimes in football you have to score goals before you can think about style.',
+    trophies: 'World Cup 1998, EURO 2000, 2× PL, UCL',
+    quote: 'Sometimes in football you have to score goals before you think of style.',
     wishesCount: 3450,
-  },
-  {
-    id: 'bday-bernardo',
-    name: 'Bernardo Silva',
-    club: 'Manchester City 🏴󠁧󠁢󠁥󠁮󠁧󠁿',
-    country: 'Portugal',
-    countryFlag: '🇵🇹',
-    birthYear: 1994,
-    birthMonth: 8,
-    birthDay: 10,
-    position: 'Attacking Midfielder',
-    photoUrl: 'https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/196602.png&w=350&h=254',
-    trophies: 'UCL, 6x Premier League, UEFA Nations League',
-    quote: 'Magician on the ball with relentless tactical pressing.',
-    wishesCount: 1980,
-  },
-  {
-    id: 'bday-kane',
-    name: 'Harry Kane',
-    club: 'Bayern Munich 🇩🇪',
-    country: 'England',
-    countryFlag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
-    birthYear: 1993,
-    birthMonth: 7,
-    birthDay: 28,
-    position: 'Striker / Golden Boot',
-    photoUrl: 'https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/156942.png&w=350&h=254',
-    trophies: 'European Golden Shoe, 3x Premier League Golden Boot',
-    quote: 'Never let setbacks define your ultimate journey.',
-    wishesCount: 1520,
+    stats: [
+      { label: 'Arsenal Goals', value: '228' },
+      { label: 'Int\'l Goals', value: '51' },
+      { label: 'PL Golden Boots', value: '4' },
+      { label: 'PFA POTY', value: '2× Winner' },
+    ],
   },
   {
     id: 'bday-haaland',
     name: 'Erling Haaland',
-    club: 'Manchester City 🏴󠁧󠁢󠁥󠁮󠁧󠁿',
+    sport: 'FOOTBALL',
+    club: 'Manchester City',
     country: 'Norway',
     countryFlag: '🇳🇴',
-    birthYear: 2000,
-    birthMonth: 7,
-    birthDay: 21,
-    position: 'Striker / The Cyborg',
+    birthYear: 2000, birthMonth: 7, birthDay: 21,
+    position: 'Centre Forward',
+    nationality: 'Norwegian',
+    height: '1.94m',
+    marketValue: '€180M',
     photoUrl: 'https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/251347.png&w=350&h=254',
-    trophies: 'UCL, 2x Premier League, Treble Winner, Golden Boot',
-    quote: 'Stay hungry, focus on the net, never stop scoring.',
+    trophies: 'UCL, 2× PL, Treble Winner, Golden Boot',
+    quote: 'Stay hungry. Focus on the net. Never stop.',
     wishesCount: 4210,
+    stats: [
+      { label: 'PL Season Record', value: '36 Goals' },
+      { label: 'UCL Goals', value: '44' },
+      { label: 'Goals/Game', value: '0.87' },
+      { label: 'Age', value: '24' },
+    ],
+    instagram: 'erling.haaland',
+  },
+  {
+    id: 'bday-kane',
+    name: 'Harry Kane',
+    sport: 'FOOTBALL',
+    club: 'Bayern Munich',
+    country: 'England',
+    countryFlag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
+    birthYear: 1993, birthMonth: 7, birthDay: 28,
+    position: 'Centre Forward',
+    nationality: 'English',
+    height: '1.88m',
+    marketValue: '€80M',
+    photoUrl: 'https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/156942.png&w=350&h=254',
+    trophies: 'European Golden Shoe, 3× PL Golden Boot, Euro 2024 Runner-up',
+    quote: 'Never let setbacks define your ultimate journey.',
+    wishesCount: 1520,
+    stats: [
+      { label: 'England Goals', value: '69' },
+      { label: 'Bundesliga Goals', value: '36 (season)' },
+      { label: 'PL Goals', value: '213' },
+      { label: 'England Caps', value: '100+' },
+    ],
   },
   {
     id: 'bday-modric',
     name: 'Luka Modrić',
-    club: 'Real Madrid 🇪🇸',
+    sport: 'FOOTBALL',
+    club: 'Real Madrid',
     country: 'Croatia',
     countryFlag: '🇭🇷',
-    birthYear: 1985,
-    birthMonth: 9,
-    birthDay: 9,
-    position: 'Midfield Maestro',
+    birthYear: 1985, birthMonth: 9, birthDay: 9,
+    position: 'Central Midfielder',
+    nationality: 'Croatian',
+    height: '1.72m',
+    marketValue: '€4M',
     photoUrl: 'https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/104327.png&w=350&h=254',
-    trophies: '6x UCL, Ballon d’Or 2018, 4x La Liga',
+    trophies: '6× UCL, Ballon d\'Or 2018, 4× La Liga',
     quote: 'Age is just a number when passion drives your feet.',
     wishesCount: 3890,
+    stats: [
+      { label: 'UCL Wins', value: '6' },
+      { label: 'La Liga Wins', value: '4' },
+      { label: 'Ballon d\'Or', value: '2018' },
+      { label: 'WC Best Player', value: '2018' },
+    ],
   },
   {
     id: 'bday-saka',
     name: 'Bukayo Saka',
-    club: 'Arsenal 🏴󠁧󠁢󠁥󠁮󠁧󠁿',
+    sport: 'FOOTBALL',
+    club: 'Arsenal',
     country: 'England',
     countryFlag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
-    birthYear: 2001,
-    birthMonth: 9,
-    birthDay: 5,
-    position: 'Right Winger / Starboy',
+    birthYear: 2001, birthMonth: 9, birthDay: 5,
+    position: 'Right Winger',
+    nationality: 'English-Nigerian',
+    height: '1.78m',
+    marketValue: '€130M',
     photoUrl: 'https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/253907.png&w=350&h=254',
-    trophies: 'FA Cup, 2x Community Shield, England Player of Year',
+    trophies: 'FA Cup, 2× Community Shield, England Player of Year',
     quote: 'God gives me strength, the fans give me wings.',
     wishesCount: 2610,
+    stats: [
+      { label: 'PL Goals (23/24)', value: '16' },
+      { label: 'Assists (23/24)', value: '9' },
+      { label: 'England Goals', value: '18' },
+      { label: 'Dribbles/Game', value: '2.4' },
+    ],
+    instagram: 'bukayosaka87',
   },
   {
-    id: 'bday-debruyne',
-    name: 'Kevin De Bruyne',
-    club: 'Manchester City 🏴󠁧󠁢󠁥󠁮󠁧󠁿',
-    country: 'Belgium',
-    countryFlag: '🇧🇪',
-    birthYear: 1991,
-    birthMonth: 6,
-    birthDay: 28,
-    position: 'Playmaker / Assist King',
-    photoUrl: 'https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/132149.png&w=350&h=254',
-    trophies: 'UCL, 6x Premier League, 2x PFA Player of Year',
-    quote: 'Passing is an art of seeing what others cannot.',
-    wishesCount: 2750,
+    id: 'bday-osimhen',
+    name: 'Victor Osimhen',
+    sport: 'FOOTBALL',
+    club: 'Galatasaray (loan)',
+    country: 'Nigeria',
+    countryFlag: '🇳🇬',
+    birthYear: 1998, birthMonth: 12, birthDay: 29,
+    position: 'Centre Forward',
+    nationality: 'Nigerian',
+    height: '1.85m',
+    marketValue: '€80M',
+    photoUrl: 'https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/247605.png&w=350&h=254',
+    trophies: 'Serie A Title 2023, Super Eagles, AFCON 2023',
+    quote: 'From the streets of Lagos to world stages. Nothing stops me.',
+    wishesCount: 3100,
+    stats: [
+      { label: 'Serie A Goals', value: '26 (22/23)' },
+      { label: 'Nigeria Goals', value: '21' },
+      { label: 'CAF POTY', value: '2023' },
+      { label: 'Market Value', value: '€80M' },
+    ],
+    instagram: 'victorosimhen9',
+  },
+  // 🏀 BASKETBALL
+  {
+    id: 'bday-lebron',
+    name: 'LeBron James',
+    sport: 'BASKETBALL',
+    club: 'LA Lakers',
+    country: 'USA',
+    countryFlag: '🇺🇸',
+    birthYear: 1984, birthMonth: 12, birthDay: 30,
+    position: 'Small Forward / GOAT',
+    nationality: 'American',
+    height: '2.06m',
+    marketValue: 'Legend',
+    photoUrl: 'https://cdn.nba.com/headshots/nba/latest/1040x760/2544.png',
+    trophies: '4× NBA Champion, 4× Finals MVP, 4× NBA MVP',
+    quote: 'Strive for greatness.',
+    wishesCount: 9800,
+    stats: [
+      { label: 'Career PPG', value: '27.1' },
+      { label: 'Career Points', value: '40,000+' },
+      { label: 'All-Star Apps', value: '20' },
+      { label: 'Championships', value: '4' },
+    ],
+    twitter: 'KingJames',
+    instagram: 'kingjames',
+  },
+  {
+    id: 'bday-curry',
+    name: 'Stephen Curry',
+    sport: 'BASKETBALL',
+    club: 'Golden State Warriors',
+    country: 'USA',
+    countryFlag: '🇺🇸',
+    birthYear: 1988, birthMonth: 3, birthDay: 14,
+    position: 'Point Guard',
+    nationality: 'American',
+    height: '1.88m',
+    marketValue: 'All-Time',
+    photoUrl: 'https://cdn.nba.com/headshots/nba/latest/1040x760/201939.png',
+    trophies: '4× NBA Champion, 2× MVP, 3× Finals',
+    quote: 'Success is not an accident, it is hard work, perseverance.',
+    wishesCount: 6540,
+    stats: [
+      { label: '3PT Record', value: '3,747 (all-time)' },
+      { label: 'Career PPG', value: '24.8' },
+      { label: 'Championships', value: '4' },
+      { label: 'Unanimous MVP', value: '2016' },
+    ],
+    twitter: 'StephenCurry30',
+  },
+  {
+    id: 'bday-giannis',
+    name: 'Giannis Antetokounmpo',
+    sport: 'BASKETBALL',
+    club: 'Milwaukee Bucks',
+    country: 'Greece',
+    countryFlag: '🇬🇷',
+    birthYear: 1994, birthMonth: 12, birthDay: 6,
+    position: 'Power Forward',
+    nationality: 'Greek-Nigerian',
+    height: '2.11m',
+    marketValue: 'Elite',
+    photoUrl: 'https://cdn.nba.com/headshots/nba/latest/1040x760/203507.png',
+    trophies: 'NBA Champion 2021, 2× MVP, Finals MVP, DPOY',
+    quote: 'You have to work hard in the dark to shine in the light.',
+    wishesCount: 5430,
+    stats: [
+      { label: 'Career PPG', value: '28.4' },
+      { label: 'Career RPG', value: '11.5' },
+      { label: 'Championships', value: '1' },
+      { label: 'All-Star Apps', value: '9' },
+    ],
+    instagram: 'giannisantetokounmpo',
+  },
+  // 🎾 TENNIS
+  {
+    id: 'bday-djokovic',
+    name: 'Novak Djokovic',
+    sport: 'TENNIS',
+    club: 'Serbia National',
+    country: 'Serbia',
+    countryFlag: '🇷🇸',
+    birthYear: 1987, birthMonth: 5, birthDay: 22,
+    position: 'World No.1 / GOAT',
+    nationality: 'Serbian',
+    height: '1.88m',
+    marketValue: 'GOAT',
+    photoUrl: 'https://www.atptour.com/-/media/alias/player-gladiator-headshot/D643',
+    trophies: '24× Grand Slams, Olympic Gold 2024, 7× Wimbledon',
+    quote: 'It\'s loving what you do that matters. Nothing else.',
+    wishesCount: 7120,
+    stats: [
+      { label: 'Grand Slams', value: '24' },
+      { label: 'Weeks at No.1', value: '428+' },
+      { label: 'Career Titles', value: '98' },
+      { label: 'Olympic Gold', value: '2024' },
+    ],
+    twitter: 'DjokerNole',
+  },
+  {
+    id: 'bday-alcaraz',
+    name: 'Carlos Alcaraz',
+    sport: 'TENNIS',
+    club: 'Spain National',
+    country: 'Spain',
+    countryFlag: '🇪🇸',
+    birthYear: 2003, birthMonth: 5, birthDay: 5,
+    position: 'World No.3 / Next Gen King',
+    nationality: 'Spanish',
+    height: '1.85m',
+    marketValue: 'Rising Star',
+    photoUrl: 'https://www.atptour.com/-/media/alias/player-gladiator-headshot/A0E2',
+    trophies: '4× Grand Slams (Wimbledon ×2, US Open, Roland Garros), 2× World No.1',
+    quote: 'I just want to be the best player in the world.',
+    wishesCount: 3890,
+    stats: [
+      { label: 'Grand Slams', value: '4' },
+      { label: 'Youngest No.1 Ever', value: '19 yrs, 4 months' },
+      { label: 'Career Titles', value: '17+' },
+      { label: 'Wimbledon Wins', value: '2' },
+    ],
+    instagram: 'carlitosalcarazz',
+  },
+  // 🏃 ATHLETICS
+  {
+    id: 'bday-bolt',
+    name: 'Usain Bolt',
+    sport: 'ATHLETICS',
+    club: 'Jamaica National',
+    country: 'Jamaica',
+    countryFlag: '🇯🇲',
+    birthYear: 1986, birthMonth: 8, birthDay: 21,
+    position: '100m / 200m World Record Holder',
+    nationality: 'Jamaican',
+    height: '1.95m',
+    marketValue: 'Legend',
+    photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Usain_Bolt_16082009_Berlin.JPG/220px-Usain_Bolt_16082009_Berlin.JPG',
+    trophies: '8× Olympic Gold, 11× World Champion, 3× World Records',
+    quote: 'I trained 4 years to run 9 seconds. Don\'t tell me you can\'t do something.',
+    wishesCount: 5670,
+    stats: [
+      { label: '100m Record', value: '9.58s (WR)' },
+      { label: '200m Record', value: '19.19s (WR)' },
+      { label: 'Olympic Golds', value: '8' },
+      { label: 'World Titles', value: '11' },
+    ],
+    instagram: 'usainbolt',
+    twitter: 'usainbolt',
+  },
+  // 🥊 BOXING
+  {
+    id: 'bday-fury',
+    name: 'Tyson Fury',
+    sport: 'BOXING',
+    club: 'WBC Heavyweight',
+    country: 'UK',
+    countryFlag: '🇬🇧',
+    birthYear: 1988, birthMonth: 8, birthDay: 12,
+    position: 'Heavyweight Champion',
+    nationality: 'British-Irish',
+    height: '2.06m',
+    marketValue: 'Champion',
+    photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Tyson_Fury_2019.jpg/220px-Tyson_Fury_2019.jpg',
+    trophies: 'WBC Heavyweight Champion, Beat Wilder ×2, Lineal Champion',
+    quote: 'I\'m a fighting man. Always will be.',
+    wishesCount: 2890,
+    stats: [
+      { label: 'Record', value: '34W-1D' },
+      { label: 'KO Rate', value: '73%' },
+      { label: 'World Titles', value: '3' },
+      { label: 'vs Wilder', value: '2-0-1' },
+    ],
+    instagram: 'tysonfury',
+    twitter: 'Tyson_Fury',
   },
 ];
 
+const SPORT_META: Record<string, { icon: string; color: string; bg: string; border: string }> = {
+  FOOTBALL: { icon: '⚽', color: 'text-stadiumGreen', bg: 'bg-stadiumGreen/15', border: 'border-stadiumGreen/40' },
+  BASKETBALL: { icon: '🏀', color: 'text-orange-400', bg: 'bg-orange-400/15', border: 'border-orange-400/40' },
+  TENNIS: { icon: '🎾', color: 'text-yellow-400', bg: 'bg-yellow-400/15', border: 'border-yellow-400/40' },
+  ATHLETICS: { icon: '🏃', color: 'text-blue-400', bg: 'bg-blue-400/15', border: 'border-blue-400/40' },
+  BOXING: { icon: '🥊', color: 'text-crimson', bg: 'bg-crimson/15', border: 'border-crimson/40' },
+};
+
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// ─── PLAYER PROFILE POPUP ────────────────────────────────────────────────────
+
+interface ProfilePopupProps {
+  player: BirthdayPlayer & { age?: number; birthDate?: string; isToday?: boolean };
+  onClose: () => void;
+  onWish: () => void;
+  wished: boolean;
+  generateShareUrl: (p: BirthdayPlayer, platform: 'WHATSAPP' | 'TWITTER' | 'TELEGRAM') => string;
+}
+
+const PlayerProfilePopup: React.FC<ProfilePopupProps> = ({ player, onClose, onWish, wished, generateShareUrl }) => {
+  const [imgError, setImgError] = useState(false);
+  const meta = SPORT_META[player.sport] || SPORT_META.FOOTBALL;
+
+  const initials = player.name.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase();
+
+  return (
+    <div
+      className="fixed inset-0 z-[70] bg-black/90 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
+      onClick={onClose}
+    >
+      <div
+        className={`w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl overflow-hidden border ${meta.border} shadow-2xl max-h-[90vh] overflow-y-auto`}
+        onClick={e => e.stopPropagation()}
+        style={{ background: 'linear-gradient(135deg, #0a0f0a 0%, #111811 100%)' }}
+      >
+        {/* Header with player photo */}
+        <div className={`relative h-52 sm:h-64 ${meta.bg} overflow-hidden flex-shrink-0`}>
+          {!imgError && player.photoUrl ? (
+            <img
+              src={player.photoUrl}
+              alt={player.name}
+              loading="eager"
+              className="w-full h-full object-cover object-top"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <div className={`w-full h-full flex items-center justify-center ${meta.bg}`}>
+              <span className="text-7xl sm:text-8xl font-black text-white/30 select-none">{initials}</span>
+            </div>
+          )}
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+
+          {/* Close */}
+          <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full bg-black/60 text-white border border-white/10 hover:bg-black/80 transition-all">
+            <X className="w-4 h-4" />
+          </button>
+
+          {/* Sport badge */}
+          <div className={`absolute top-4 left-4 px-2.5 py-1 rounded-xl ${meta.bg} ${meta.border} border text-xs font-black ${meta.color}`}>
+            {meta.icon} {player.sport}
+          </div>
+
+          {/* Name & Birthday overlay */}
+          <div className="absolute bottom-0 left-0 right-0 p-5">
+            <div className="flex items-end justify-between">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-black text-white leading-tight">{player.name}</h2>
+                <p className="text-sm text-gray-300 mt-0.5">{player.position} • {player.countryFlag} {player.country}</p>
+              </div>
+              {player.isToday && (
+                <div className="flex-shrink-0 px-3 py-1.5 rounded-2xl bg-pink-500/90 border border-pink-400/60 text-white text-xs font-black animate-pulse">
+                  🎂 TODAY!
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Details body */}
+        <div className="p-5 space-y-4">
+          {/* Age + Date */}
+          <div className="grid grid-cols-3 gap-2">
+            <div className="text-center p-3 rounded-2xl bg-white/5 border border-white/10">
+              <span className="text-white font-black text-lg block">{player.age}</span>
+              <span className="text-[10px] text-gray-400 uppercase tracking-wide">Years Old</span>
+            </div>
+            <div className="text-center p-3 rounded-2xl bg-white/5 border border-white/10">
+              <span className="text-white font-black text-lg block">{MONTH_NAMES[player.birthMonth - 1]} {player.birthDay}</span>
+              <span className="text-[10px] text-gray-400 uppercase tracking-wide">Birthday</span>
+            </div>
+            <div className="text-center p-3 rounded-2xl bg-white/5 border border-white/10">
+              <span className="text-white font-black text-lg block">{player.height || 'N/A'}</span>
+              <span className="text-[10px] text-gray-400 uppercase tracking-wide">Height</span>
+            </div>
+          </div>
+
+          {/* Club & Value */}
+          <div className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/10">
+            <div>
+              <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-0.5">Current Club</p>
+              <p className="text-white font-black text-sm">{player.club}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-0.5">Market Value</p>
+              <p className={`font-black text-sm ${meta.color}`}>{player.marketValue || 'N/A'}</p>
+            </div>
+          </div>
+
+          {/* Stats grid */}
+          {player.stats && player.stats.length > 0 && (
+            <div>
+              <p className="text-[10px] text-gray-400 uppercase tracking-wide font-bold mb-2">Career Stats</p>
+              <div className="grid grid-cols-2 gap-2">
+                {player.stats.map((s, i) => (
+                  <div key={i} className={`p-2.5 rounded-xl ${meta.bg} ${meta.border} border`}>
+                    <span className={`text-base font-black ${meta.color} block`}>{s.value}</span>
+                    <span className="text-[10px] text-gray-400">{s.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Trophies */}
+          <div className="p-3 rounded-2xl bg-gold/10 border border-gold/30">
+            <div className="flex items-center space-x-2 mb-1">
+              <Trophy className="w-4 h-4 text-gold flex-shrink-0" />
+              <p className="text-[10px] text-gold uppercase tracking-wide font-bold">Honours</p>
+            </div>
+            <p className="text-white text-sm font-semibold leading-relaxed">{player.trophies}</p>
+          </div>
+
+          {/* Quote */}
+          <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
+            <p className="text-gray-300 italic text-sm leading-relaxed">"{player.quote}"</p>
+          </div>
+
+          {/* Social links */}
+          {(player.instagram || player.twitter) && (
+            <div className="flex items-center space-x-2">
+              {player.instagram && (
+                <a href={`https://instagram.com/${player.instagram}`} target="_blank" rel="noreferrer"
+                  className="flex-1 flex items-center justify-center space-x-1.5 py-2 rounded-xl bg-pink-500/15 border border-pink-500/30 text-pink-400 text-xs font-bold hover:bg-pink-500/25 transition-all">
+                  <Instagram className="w-3.5 h-3.5" />
+                  <span>Instagram</span>
+                </a>
+              )}
+              {player.twitter && (
+                <a href={`https://twitter.com/${player.twitter}`} target="_blank" rel="noreferrer"
+                  className="flex-1 flex items-center justify-center space-x-1.5 py-2 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-400 text-xs font-bold hover:bg-blue-500/25 transition-all">
+                  <Twitter className="w-3.5 h-3.5" />
+                  <span>Twitter / X</span>
+                </a>
+              )}
+            </div>
+          )}
+
+          {/* Wish + Share */}
+          <div className="flex items-center space-x-2 pt-1">
+            <button onClick={onWish}
+              className={`flex-1 py-3 rounded-2xl font-black text-sm flex items-center justify-center space-x-2 transition-all active:scale-95 ${wished ? 'bg-pink-500/20 border border-pink-500/40 text-pink-400' : 'bg-pink-600 hover:bg-pink-500 text-white shadow-lg shadow-pink-900/30'}`}>
+              <Heart className={`w-4 h-4 ${wished ? 'fill-current' : ''}`} />
+              <span>{wished ? 'Wish Sent! 🎉' : '🎂 Send Birthday Wish'}</span>
+            </button>
+            <div className="flex space-x-1.5">
+              <a href={generateShareUrl(player, 'WHATSAPP')} target="_blank" rel="noreferrer"
+                className="p-3 rounded-2xl bg-green-600/20 border border-green-600/30 text-green-400 hover:bg-green-600/30 transition-all" title="Share on WhatsApp">
+                <Share2 className="w-4 h-4" />
+              </a>
+              <a href={generateShareUrl(player, 'TWITTER')} target="_blank" rel="noreferrer"
+                className="p-3 rounded-2xl bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 transition-all" title="Share on X">
+                <Twitter className="w-4 h-4" />
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── BIRTHDAY CARD ───────────────────────────────────────────────────────────
+
+interface BirthdayCardProps {
+  player: BirthdayPlayer & { age?: number; birthDate?: string; isToday?: boolean };
+  wished: boolean;
+  onWish: () => void;
+  onClick: () => void;
+}
+
+const BirthdayCard: React.FC<BirthdayCardProps> = React.memo(({ player, wished, onWish, onClick }) => {
+  const [imgError, setImgError] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const meta = SPORT_META[player.sport] || SPORT_META.FOOTBALL;
+  const initials = player.name.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase();
+
+  return (
+    <div
+      onClick={onClick}
+      className={`relative rounded-3xl border overflow-hidden cursor-pointer group transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-xl ${player.isToday ? 'border-pink-500/60 shadow-pink-900/20 shadow-lg' : `${meta.border}`}`}
+      style={{ background: 'linear-gradient(135deg, #0d130d 0%, #111811 100%)' }}
+    >
+      {player.isToday && (
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-pink-500 via-gold to-pink-500 animate-pulse" />
+      )}
+
+      {/* Photo */}
+      <div className={`relative h-40 sm:h-44 overflow-hidden ${meta.bg}`}>
+        {!imgLoaded && !imgError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/5 animate-pulse">
+            <span className="text-4xl font-black text-white/20">{initials}</span>
+          </div>
+        )}
+        {!imgError && player.photoUrl ? (
+          <img
+            src={player.photoUrl}
+            alt={player.name}
+            loading="lazy"
+            className={`w-full h-full object-cover object-top transition-all duration-500 group-hover:scale-105 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+            onLoad={() => setImgLoaded(true)}
+            onError={() => { setImgError(true); setImgLoaded(true); }}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <span className="text-5xl font-black text-white/20 select-none">{initials}</span>
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+
+        {/* Sport + Birthday badge */}
+        <div className="absolute top-2.5 left-2.5 flex items-center space-x-1.5">
+          <span className={`px-2 py-0.5 rounded-xl text-[10px] font-black border ${meta.bg} ${meta.border} ${meta.color}`}>
+            {meta.icon} {player.sport}
+          </span>
+        </div>
+
+        {player.isToday && (
+          <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-xl bg-pink-500/90 text-white text-[10px] font-black border border-pink-400/60 animate-pulse">
+            🎂 TODAY!
+          </div>
+        )}
+
+        {/* Name overlay */}
+        <div className="absolute bottom-2 left-3 right-3">
+          <p className="text-white font-black text-sm leading-tight truncate">{player.name}</p>
+          <p className="text-gray-300 text-[10px]">{player.countryFlag} {player.position}</p>
+        </div>
+      </div>
+
+      {/* Card body */}
+      <div className="p-3 space-y-2.5">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-gold font-black text-xs">{player.club}</p>
+            <p className="text-gray-400 text-[10px]">{player.birthDate} • Age {player.age}</p>
+          </div>
+          <span className={`text-xs font-black ${meta.color}`}>{meta.icon}</span>
+        </div>
+
+        <div className="flex items-center space-x-2" onClick={e => e.stopPropagation()}>
+          <button
+            onClick={onWish}
+            className={`flex-1 py-2 rounded-xl text-xs font-black flex items-center justify-center space-x-1.5 transition-all active:scale-95 ${wished ? 'bg-pink-500/20 border border-pink-500/40 text-pink-400' : 'bg-pink-600/90 hover:bg-pink-500 text-white'}`}>
+            <Heart className={`w-3 h-3 ${wished ? 'fill-current' : ''}`} />
+            <span>{wished ? 'Wished 🎉' : 'Wish'}</span>
+          </button>
+          <button
+            onClick={onClick}
+            className={`p-2 rounded-xl border ${meta.border} ${meta.bg} ${meta.color} text-xs transition-all hover:scale-105`}
+            title="View Full Profile">
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+});
+BirthdayCard.displayName = 'BirthdayCard';
+
+// ─── MAIN MODAL ───────────────────────────────────────────────────────────────
 
 interface BirthdayCenterProps {
   onClose: () => void;
 }
 
-type FilterTab = 'THIS_WEEK' | 'THIS_MONTH' | 'ALL';
-
 export const BirthdayCenterModal: React.FC<BirthdayCenterProps> = ({ onClose }) => {
-  const [players, setPlayers] = useState<BirthdayPlayer[]>(STAR_BIRTHDAYS);
+  const [players] = useState<BirthdayPlayer[]>(STAR_BIRTHDAYS);
   const [wishedPlayers, setWishedPlayers] = useState<Record<string, boolean>>({});
-  const [photoErrors, setPhotoErrors] = useState<Record<string, boolean>>({});
-  const [activeSharePlayer, setActiveSharePlayer] = useState<BirthdayPlayer | null>(null);
   const [filter, setFilter] = useState<FilterTab>('THIS_WEEK');
-  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [sportFilter, setSportFilter] = useState<SportCategory>('ALL');
+  const [selectedPlayer, setSelectedPlayer] = useState<(BirthdayPlayer & { age?: number; birthDate?: string; isToday?: boolean }) | null>(null);
+  const [currentDate] = useState<Date>(() => new Date());
 
-  // A) Fetch real birthdays from API endpoint with fallback & compute dynamic date on load
-  const fetchTodaysBirthdays = async () => {
-    try {
-      const res = await fetch('/api/birthdays');
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          setPlayers(data);
-        }
-      }
-    } catch (err) {
-      console.debug('Fallback to built-in Star Birthdays dataset:', err);
-    }
-  };
-
-  useEffect(() => {
-    setCurrentDate(new Date());
-    fetchTodaysBirthdays();
-  }, []);
-
-  // Compute player details dynamically (age, dynamic date tag, diff days)
   const enrichedPlayers = useMemo(() => {
     const now = currentDate;
     const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1; // 1-12
+    const currentMonth = now.getMonth() + 1;
     const currentDay = now.getDate();
-
     const todayStart = new Date(currentYear, now.getMonth(), currentDay);
 
-    return players.map((p) => {
-      const calculatedAge = currentYear - p.birthYear;
+    return players.map(p => {
+      const age = currentYear - p.birthYear;
       const bdayThisYear = new Date(currentYear, p.birthMonth - 1, p.birthDay);
-      const diffTime = bdayThisYear.getTime() - todayStart.getTime();
-      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-
-      const monthName = MONTH_NAMES[p.birthMonth - 1] || 'Aug';
-      let dateLabel = `${monthName} ${p.birthDay}`;
-      let isToday = false;
-      let isTomorrow = false;
-
-      if (diffDays === 0) {
-        dateLabel = '🎂 Today!';
-        isToday = true;
-      } else if (diffDays === 1) {
-        dateLabel = 'Tomorrow 🎂';
-        isTomorrow = true;
-      } else if (diffDays === -1) {
-        dateLabel = 'Yesterday 🌟';
-      }
-
-      // Check week proximity: within 7 days
-      const isThisWeek = Math.abs(diffDays) <= 7;
-      const isThisMonth = p.birthMonth === currentMonth;
-
+      const diffDays = Math.round((bdayThisYear.getTime() - todayStart.getTime()) / 86400000);
+      const monthName = MONTH_NAMES[p.birthMonth - 1];
+      let birthDate = `${monthName} ${p.birthDay}`;
+      if (diffDays === 0) birthDate = '🎂 Today!';
+      else if (diffDays === 1) birthDate = 'Tomorrow 🎂';
+      else if (diffDays === -1) birthDate = 'Yesterday 🌟';
       return {
         ...p,
-        age: calculatedAge,
-        birthDate: dateLabel,
+        age,
+        birthDate,
         diffDays,
-        isToday,
-        isTomorrow,
-        isThisWeek,
-        isThisMonth,
+        isToday: diffDays === 0,
+        isTomorrow: diffDays === 1,
+        isThisWeek: Math.abs(diffDays) <= 7,
+        isThisMonth: p.birthMonth === currentMonth,
       };
+    }).sort((a, b) => {
+      // Sort: today first, then by abs diffDays
+      if (a.isToday && !b.isToday) return -1;
+      if (!a.isToday && b.isToday) return 1;
+      return Math.abs(a.diffDays) - Math.abs(b.diffDays);
     });
   }, [players, currentDate]);
 
-  // Filter players according to active toggle
   const filteredPlayers = useMemo(() => {
+    let list = enrichedPlayers;
+    if (sportFilter !== 'ALL') list = list.filter(p => p.sport === sportFilter);
     if (filter === 'THIS_WEEK') {
-      const weekList = enrichedPlayers.filter((p) => p.isThisWeek);
-      return weekList.length > 0 ? weekList : enrichedPlayers.slice(0, 4);
+      const w = list.filter(p => p.isThisWeek);
+      return w.length > 0 ? w : list.slice(0, 4);
     }
     if (filter === 'THIS_MONTH') {
-      const monthList = enrichedPlayers.filter((p) => p.isThisMonth);
-      return monthList.length > 0 ? monthList : enrichedPlayers;
+      const m = list.filter(p => p.isThisMonth);
+      return m.length > 0 ? m : list;
     }
-    return enrichedPlayers;
-  }, [enrichedPlayers, filter]);
+    return list;
+  }, [enrichedPlayers, filter, sportFilter]);
 
-  // Total wishes aggregate calculation
-  const totalWishes = useMemo(() => {
-    return enrichedPlayers.reduce((acc, p) => acc + (p.wishesCount || 0), 0);
-  }, [enrichedPlayers]);
+  const totalWishes = useMemo(() => players.reduce((a, p) => a + (p.wishesCount || 0), 0), [players]);
 
-  const handleWish = (player: BirthdayPlayer & { age?: number }) => {
+  const handleWish = useCallback((player: BirthdayPlayer) => {
     if (wishedPlayers[player.id]) return;
-
-    setWishedPlayers((prev) => ({ ...prev, [player.id]: true }));
-    setPlayers((prev) =>
-      prev.map((p) => (p.id === player.id ? { ...p, wishesCount: p.wishesCount + 1 } : p))
-    );
-
-    // Audio & Confetti Celebration
+    setWishedPlayers(prev => ({ ...prev, [player.id]: true }));
     stadiumAudio.playCrowdRoar();
     if (typeof window !== 'undefined') {
-      confetti({
-        particleCount: 90,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: ['#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6'],
-      });
+      confetti({ particleCount: 90, spread: 80, origin: { y: 0.6 }, colors: ['#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6'] });
       if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
     }
-  };
+  }, [wishedPlayers]);
 
-  const getPlayerInitials = (name: string) => {
-    return name
-      .split(' ')
-      .filter(Boolean)
-      .map((part) => part[0])
-      .slice(0, 2)
-      .join('')
-      .toUpperCase();
-  };
-
-  const generateShareUrl = (player: BirthdayPlayer, platform: 'WHATSAPP' | 'TWITTER' | 'TELEGRAM') => {
+  const generateShareUrl = useCallback((player: BirthdayPlayer, platform: 'WHATSAPP' | 'TWITTER' | 'TELEGRAM') => {
     const ageText = player.age ? `${player.age} yrs` : '';
-    const text = encodeURIComponent(
-      `🎂 Happy Birthday to football superstar ${player.name} (${ageText})! Wishing the champion many more trophies! 🌟 Celebrated on AuraScore Stadium ⚡`
-    );
+    const text = encodeURIComponent(`🎂 Happy Birthday ${player.name} (${ageText})! ${player.sport} legend. Celebrated on AuraScore Stadium ⚡`);
     const url = encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : 'https://aurascore.app');
-
     if (platform === 'WHATSAPP') return `https://api.whatsapp.com/send?text=${text}%20${url}`;
     if (platform === 'TWITTER') return `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
     return `https://t.me/share/url?url=${url}&text=${text}`;
-  };
+  }, []);
 
-  const formattedTodayDate = useMemo(() => {
-    return currentDate.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  }, [currentDate]);
+  const sportCounts = useMemo(() => {
+    const counts: Record<string, number> = { ALL: enrichedPlayers.length };
+    enrichedPlayers.forEach(p => { counts[p.sport] = (counts[p.sport] || 0) + 1; });
+    return counts;
+  }, [enrichedPlayers]);
+
+  const formattedDate = currentDate.toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 md:p-6 animate-fadeIn">
-      <div className="relative w-full max-w-5xl glass-panel rounded-3xl border border-pink-500/40 p-4 sm:p-6 shadow-2xl font-mono text-xs max-h-[92vh] overflow-y-auto space-y-5">
-        
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-full bg-panel text-gray-400 hover:text-white border border-white/10 transition-all hover:scale-110 z-10"
-          aria-label="Close Birthday Lounge"
-        >
-          <X className="w-5 h-5" />
-        </button>
+    <>
+      <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+        <div className="relative w-full sm:max-w-3xl rounded-t-3xl sm:rounded-3xl overflow-hidden border border-pink-500/30 shadow-2xl max-h-[95vh] flex flex-col"
+          style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #0d100d 100%)' }}>
 
-        {/* Section Header Upgrade */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-white/10 pb-4 pr-10">
-          <div className="flex items-center space-x-3.5">
-            <div className="p-3 rounded-2xl bg-gradient-to-br from-pink-500/30 to-purple-600/30 text-pink-400 border border-pink-500/40 shadow-lg flex-shrink-0">
-              <Cake className="w-7 h-7 animate-bounce" />
-            </div>
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="font-black text-lg sm:text-xl text-white tracking-wide">
-                  🎂 Star Birthdays This Week
-                </h2>
-                <span className="px-2.5 py-0.5 rounded-full bg-pink-500/20 text-pink-300 text-[10px] font-bold border border-pink-500/30">
-                  {formattedTodayDate}
-                </span>
-              </div>
-              <p className="text-xs text-gray-400 font-sans mt-0.5">
-                Send live fan wishes, unlock birthday confetti, and flex tribute cards across social media!
-              </p>
-            </div>
-          </div>
-
-          {/* Aggregate Wishes Counter */}
-          <div className="flex items-center space-x-2 px-3.5 py-2 rounded-2xl bg-pink-950/40 border border-pink-500/30 text-pink-300 font-bold self-start md:self-auto">
-            <Heart className="w-4 h-4 text-pink-400 fill-pink-500 animate-pulse" />
-            <span className="text-xs tracking-wider">
-              {totalWishes.toLocaleString()} wishes sent
-            </span>
-          </div>
-        </div>
-
-        {/* Filter Tabs Toggle */}
-        <div className="flex items-center justify-between flex-wrap gap-2 pt-1">
-          <div className="flex items-center bg-black/60 p-1 rounded-2xl border border-white/10">
-            <button
-              onClick={() => setFilter('THIS_WEEK')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                filter === 'THIS_WEEK'
-                  ? 'bg-pink-500 text-black shadow-lg glow-pink'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              🎂 This Week
-            </button>
-            <button
-              onClick={() => setFilter('THIS_MONTH')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                filter === 'THIS_MONTH'
-                  ? 'bg-pink-500 text-black shadow-lg glow-pink'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              📅 This Month
-            </button>
-            <button
-              onClick={() => setFilter('ALL')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                filter === 'ALL'
-                  ? 'bg-pink-500 text-black shadow-lg glow-pink'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              ⭐ All Stars
-            </button>
-          </div>
-
-          <span className="text-[11px] text-gray-400 font-sans hidden sm:inline">
-            Showing {filteredPlayers.length} star {filteredPlayers.length === 1 ? 'player' : 'players'}
-          </span>
-        </div>
-
-        {/* Player Cards (Horizontally scrollable on mobile, Grid on desktop) */}
-        <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 md:pb-0 md:grid md:grid-cols-2 lg:grid-cols-3 -mx-1 px-1 scrollbar-thin scrollbar-thumb-pink-500/30">
-          {filteredPlayers.map((p) => {
-            const hasWished = wishedPlayers[p.id];
-            const hasPhotoError = photoErrors[p.id];
-            const initials = getPlayerInitials(p.name);
-
-            return (
-              <div
-                key={p.id}
-                className="min-w-[280px] sm:min-w-[310px] md:min-w-0 flex-shrink-0 snap-center glass-panel-premium rounded-3xl p-4 sm:p-5 border border-white/10 hover:border-pink-500/50 transition-all flex flex-col justify-between space-y-4 shadow-xl hover:shadow-pink-500/10 group"
-              >
-                {/* Top Section: Photo, Name, Age Badge */}
-                <div className="space-y-3">
-                  {/* Large Center Photo with Fallback Initials */}
-                  <div className="relative mx-auto w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-pink-500/40 bg-black/60 shadow-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                    {!hasPhotoError && p.photoUrl ? (
-                      <img
-                        src={p.photoUrl}
-                        alt={p.name}
-                        className="w-full h-full object-cover"
-                        onError={() => {
-                          setPhotoErrors((prev) => ({ ...prev, [p.id]: true }));
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-pink-600 via-purple-700 to-indigo-800 text-white font-black">
-                        <span className="text-2xl sm:text-3xl tracking-widest">{initials}</span>
-                        <span className="text-[9px] opacity-75 font-sans mt-0.5">LEGEND</span>
-                      </div>
-                    )}
-                    
-                    {/* Position pill overlay */}
-                    <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded-md bg-black/80 backdrop-blur-sm text-[9px] text-pink-300 font-bold border border-white/10">
-                      {p.countryFlag}
-                    </div>
-                  </div>
-
-                  {/* Name and Age Badge */}
-                  <div className="text-center space-y-1.5">
-                    <h3 className="font-black text-base sm:text-lg text-white group-hover:text-pink-300 transition-colors line-clamp-1">
-                      {p.name}
-                    </h3>
-                    
-                    <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                      <span className="px-2.5 py-0.5 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/40 text-[11px] font-bold">
-                        🎂 Turns {p.age}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-full bg-white/5 text-gray-300 border border-white/10 text-[10px] font-sans">
-                        {p.birthDate}
-                      </span>
-                    </div>
-
-                    <p className="text-[11px] text-gray-400 font-sans">
-                      {p.club} • <span className="text-gray-300">{p.position}</span>
-                    </p>
-                  </div>
-
-                  {/* Trophies Row */}
-                  <div className="p-2.5 rounded-xl bg-black/60 border border-white/5 space-y-1 text-[11px]">
-                    <div className="flex items-start space-x-1.5 text-stadiumGreen font-bold">
-                      <Trophy className="w-4 h-4 text-gold flex-shrink-0 mt-0.5" />
-                      <span className="line-clamp-2 text-gold/90">{p.trophies}</span>
-                    </div>
-                  </div>
-
-                  {/* Quote in italic */}
-                  <div className="px-1">
-                    <p className="text-gray-300 italic font-sans text-[11px] leading-relaxed line-clamp-2">
-                      "{p.quote}"
-                    </p>
-                  </div>
+          {/* Sticky Header */}
+          <div className="flex-shrink-0 p-5 border-b border-white/10 bg-black/40">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center space-x-3">
+                <div className="p-2.5 rounded-2xl bg-pink-500/20 border border-pink-500/40">
+                  <Cake className="w-5 h-5 text-pink-400" />
                 </div>
-
-                {/* Bottom Section: Wish Counter, Wish Button, Share Buttons */}
-                <div className="space-y-2.5 pt-2 border-t border-white/5">
-                  {/* Wishes count with animated heart */}
-                  <div className="flex items-center justify-between text-xs px-1">
-                    <span className="text-gray-400 font-sans text-[11px] flex items-center gap-1">
-                      <Flame className="w-3.5 h-3.5 text-pink-400" />
-                      Fan Love
-                    </span>
-                    <span className="font-black text-gold flex items-center gap-1">
-                      <Heart className={`w-3.5 h-3.5 text-pink-500 ${hasWished ? 'fill-pink-500 animate-ping' : 'fill-pink-500/40'}`} />
-                      {p.wishesCount.toLocaleString()} wishes
-                    </span>
-                  </div>
-
-                  {/* Send Birthday Wish Button */}
-                  <button
-                    onClick={() => handleWish(p)}
-                    className={`w-full py-2.5 rounded-xl font-black text-xs transition-all flex items-center justify-center space-x-2 shadow-md ${
-                      hasWished
-                        ? 'bg-pink-600/30 text-pink-300 border border-pink-500/50 cursor-default'
-                        : 'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-black font-extrabold hover:scale-[1.02] active:scale-95 shadow-pink-500/20'
-                    }`}
-                  >
-                    <Heart className={`w-4 h-4 ${hasWished ? 'fill-current text-pink-400' : 'text-black fill-black'}`} />
-                    <span>{hasWished ? 'Wished! Happy Birthday 💖' : 'Send Birthday Wish 🎉'}</span>
-                  </button>
-
-                  {/* 3 Share Buttons: WhatsApp 🟢, Twitter/X 🐦, Telegram ✈️ */}
-                  <div className="flex items-center justify-between gap-2 pt-1">
-                    <span className="text-[10px] text-gray-400 font-sans">Share:</span>
-                    <div className="flex items-center gap-1.5">
-                      {/* WhatsApp */}
-                      <a
-                        href={generateShareUrl(p, 'WHATSAPP')}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="w-8 h-8 rounded-full bg-emerald-600/90 hover:bg-emerald-500 text-white flex items-center justify-center transition-all hover:scale-110 shadow-md"
-                        title="Share on WhatsApp"
-                        aria-label="Share on WhatsApp"
-                      >
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                          <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.699c.971.53 1.764.814 2.796.815 3.181 0 5.767-2.587 5.768-5.766.001-3.181-2.586-5.768-5.768-5.801zm3.376 8.212c-.144.405-.837.774-1.17.824-.312.045-.705.074-2.136-.518-1.584-.657-2.61-2.26-2.69-2.366-.08-.106-.639-.851-.639-1.624 0-.773.405-1.153.549-1.311.144-.158.314-.198.42-.198.106 0 .211.001.304.006.098.005.23-.037.36.275.136.326.465 1.134.506 1.217.041.083.068.18.013.29-.055.11-.083.18-.163.275-.08.095-.169.213-.241.286-.08.081-.163.169-.07.33.093.161.412.68.884 1.1 1.1.607.47.785.642.92.836.136.193.136.106.314-.106.178-.212.766-.893.971-1.2.205-.307.41-.256.685-.154.275.102 1.745.823 2.045.973.3.15.5.225.575.352.075.127.075.736-.069 1.141z" />
-                        </svg>
-                      </a>
-
-                      {/* Twitter / X */}
-                      <a
-                        href={generateShareUrl(p, 'TWITTER')}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="w-8 h-8 rounded-full bg-zinc-800 hover:bg-zinc-700 text-white border border-white/10 flex items-center justify-center transition-all hover:scale-110 shadow-md"
-                        title="Share on Twitter/X"
-                        aria-label="Share on Twitter/X"
-                      >
-                        <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                        </svg>
-                      </a>
-
-                      {/* Telegram */}
-                      <a
-                        href={generateShareUrl(p, 'TELEGRAM')}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="w-8 h-8 rounded-full bg-sky-500 hover:bg-sky-400 text-white flex items-center justify-center transition-all hover:scale-110 shadow-md"
-                        title="Share on Telegram"
-                        aria-label="Share on Telegram"
-                      >
-                        <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                          <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.121l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.458c.535-.194 1.006.128.832.943z" />
-                        </svg>
-                      </a>
-
-                      {/* Card Preview Modal Button */}
-                      <button
-                        onClick={() => setActiveSharePlayer(p)}
-                        className="w-8 h-8 rounded-full bg-panel hover:bg-white/10 text-gold border border-white/10 flex items-center justify-center transition-all hover:scale-110 shadow-md"
-                        title="Generate Birthday Flex Card"
-                        aria-label="Generate Birthday Flex Card"
-                      >
-                        <Share2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Gen-Z Birthday Flex Card Modal */}
-        {activeSharePlayer && (
-          <div className="fixed inset-0 z-60 bg-black/90 backdrop-blur-lg flex items-center justify-center p-4">
-            <div className="relative w-full max-w-sm glass-panel-premium rounded-3xl border border-pink-500/60 p-5 space-y-4 shadow-2xl text-center font-mono">
-              
-              <button
-                onClick={() => setActiveSharePlayer(null)}
-                className="absolute top-3 right-3 p-1.5 rounded-full bg-panel text-gray-400 hover:text-white"
-                aria-label="Close Preview"
-              >
-                <X className="w-4 h-4" />
-              </button>
-
-              {/* Card Canvas */}
-              <div className="p-5 rounded-2xl bg-gradient-to-b from-pink-950/70 via-black to-emerald-950/70 border border-pink-500/40 space-y-3 shadow-inner">
-                <span className="text-[10px] text-gold font-black uppercase tracking-widest block">
-                  🌟 OFFICIAL STADIUM BIRTHDAY TRIBUTE 🌟
-                </span>
-
-                <div className="w-20 h-20 mx-auto rounded-full bg-void border-2 border-pink-400 p-1 shadow-lg flex items-center justify-center overflow-hidden">
-                  {!photoErrors[activeSharePlayer.id] && activeSharePlayer.photoUrl ? (
-                    <img
-                      src={activeSharePlayer.photoUrl}
-                      alt={activeSharePlayer.name}
-                      className="w-full h-full object-cover rounded-full"
-                      onError={() => {
-                        setPhotoErrors((prev) => ({ ...prev, [activeSharePlayer.id]: true }));
-                      }}
-                    />
-                  ) : (
-                    <div className="w-full h-full rounded-full flex items-center justify-center bg-gradient-to-br from-pink-600 to-purple-800 text-white font-black text-xl">
-                      {getPlayerInitials(activeSharePlayer.name)}
-                    </div>
-                  )}
-                </div>
-
                 <div>
-                  <h3 className="text-lg font-black text-white">{activeSharePlayer.name}</h3>
-                  <span className="text-xs text-pink-400 font-bold block">{activeSharePlayer.club}</span>
-                  <span className="text-[11px] text-gray-300 font-sans block mt-1">
-                    Celebrating {activeSharePlayer.age} Years of Greatness! 🎂
-                  </span>
-                </div>
-
-                <div className="p-2.5 rounded-xl bg-black/60 border border-white/10 text-[10px] text-gray-300 space-y-1">
-                  <span className="text-stadiumGreen font-bold block">Celebrated by AuraScore Stadium Fanclub</span>
-                  <span className="text-gold block">🏆 {activeSharePlayer.trophies}</span>
+                  <h2 className="font-black text-white text-base flex items-center space-x-2">
+                    <span>🎂 Birthday Stars</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-400 border border-pink-500/30">{filteredPlayers.length} players</span>
+                  </h2>
+                  <p className="text-[10px] text-gray-400">{formattedDate} • {totalWishes.toLocaleString()} wishes sent globally</p>
                 </div>
               </div>
+              <button onClick={onClose} className="p-2 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white transition-all">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-              {/* 1-Click Social Sharing Links */}
-              <div className="space-y-2 pt-1">
-                <span className="text-[10px] text-gray-400 font-bold block">SHARE TRIBUTE WITH FRIENDS:</span>
-                <div className="grid grid-cols-3 gap-2">
-                  <a
-                    href={generateShareUrl(activeSharePlayer, 'WHATSAPP')}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] transition-all flex items-center justify-center gap-1"
-                  >
-                    WhatsApp
-                  </a>
-                  <a
-                    href={generateShareUrl(activeSharePlayer, 'TWITTER')}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-black text-[11px] transition-all flex items-center justify-center gap-1 border border-white/10"
-                  >
-                    X / Twitter
-                  </a>
-                  <a
-                    href={generateShareUrl(activeSharePlayer, 'TELEGRAM')}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-black text-[11px] transition-all flex items-center justify-center gap-1"
-                  >
-                    Telegram
-                  </a>
-                </div>
-              </div>
+            {/* Sport Category Tabs */}
+            <div className="flex items-center space-x-2 mt-3 overflow-x-auto pb-1 scrollbar-hide">
+              {(['ALL', 'FOOTBALL', 'BASKETBALL', 'TENNIS', 'ATHLETICS', 'BOXING'] as SportCategory[]).map(s => {
+                const meta = SPORT_META[s] || { icon: '🌟', color: 'text-white', bg: 'bg-white/10', border: 'border-white/20' };
+                const icon = s === 'ALL' ? '🌟' : meta.icon;
+                const count = sportCounts[s] || 0;
+                return (
+                  <button key={s} onClick={() => setSportFilter(s)}
+                    className={`flex-shrink-0 flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-[11px] font-black border transition-all ${sportFilter === s ? `${meta.bg} ${meta.border} ${meta.color}` : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}>
+                    <span>{icon}</span>
+                    <span>{s === 'ALL' ? 'All' : s.charAt(0) + s.slice(1).toLowerCase()}</span>
+                    {count > 0 && <span className="text-[9px] opacity-70">({count})</span>}
+                  </button>
+                );
+              })}
+            </div>
 
+            {/* Time Filter */}
+            <div className="flex items-center space-x-2 mt-2">
+              {(['THIS_WEEK', 'THIS_MONTH', 'ALL'] as FilterTab[]).map(f => (
+                <button key={f} onClick={() => setFilter(f)}
+                  className={`flex-1 py-1.5 rounded-xl text-[10px] font-black border transition-all ${filter === f ? 'bg-pink-500/20 border-pink-500/40 text-pink-400' : 'bg-white/5 border-white/10 text-gray-400'}`}>
+                  {f === 'THIS_WEEK' ? '📅 This Week' : f === 'THIS_MONTH' ? '🗓 This Month' : '🌍 All Stars'}
+                </button>
+              ))}
             </div>
           </div>
-        )}
 
+          {/* Scrollable Card Grid */}
+          <div className="flex-1 overflow-y-auto p-4">
+            {filteredPlayers.length === 0 ? (
+              <div className="text-center py-12">
+                <span className="text-5xl">🎂</span>
+                <p className="text-gray-400 mt-3 font-bold">No birthdays in this period</p>
+                <button onClick={() => setFilter('ALL')} className="mt-3 px-4 py-2 rounded-xl bg-pink-500/20 border border-pink-500/30 text-pink-400 text-xs font-black">
+                  View All Stars
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {filteredPlayers.map(player => (
+                  <BirthdayCard
+                    key={player.id}
+                    player={player}
+                    wished={!!wishedPlayers[player.id]}
+                    onWish={() => handleWish(player)}
+                    onClick={() => setSelectedPlayer(player)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
+
+      {/* Player Profile Popup */}
+      {selectedPlayer && (
+        <PlayerProfilePopup
+          player={selectedPlayer}
+          onClose={() => setSelectedPlayer(null)}
+          onWish={() => { handleWish(selectedPlayer); }}
+          wished={!!wishedPlayers[selectedPlayer.id]}
+          generateShareUrl={generateShareUrl}
+        />
+      )}
+    </>
   );
 };
