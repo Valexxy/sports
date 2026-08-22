@@ -103,20 +103,27 @@ self.addEventListener('push', (event) => {
   event.waitUntil(self.registration.showNotification(payload.title, options));
 });
 
-// Notification click handler
+// Notification click handler with Lock Screen Auto Commentary Play
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const urlToOpen = event.notification.data?.url || '/';
+  const matchId = event.notification.data?.matchId || '';
+  const action = event.action || 'open_match';
+  const targetUrl = `/?openMatch=${encodeURIComponent(matchId)}&autoCommentary=1`;
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
         if (client.url.includes(self.origin) && 'focus' in client) {
+          client.postMessage({
+            type: 'LOCKSCREEN_AUTO_PLAY_COMMENTARY',
+            matchId: matchId,
+            action: action,
+          });
           return client.focus();
         }
       }
       if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
+        return clients.openWindow(targetUrl);
       }
     })
   );

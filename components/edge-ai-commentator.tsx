@@ -166,9 +166,9 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
           });
           if (lastSpokenKey.current !== key) {
             lastSpokenKey.current = key;
-            const moment = top.kind === 'GOAL' ? 'goal' : top.kind === 'KICKOFF' ? 'kickoff' : top.kind === 'FULLTIME' ? 'fulltime' : top.kind === 'HALFTIME' ? 'halftime' : top.kind === 'CARD' ? 'yellowcard' : 'sub';
-            const naija = naijaMomentLine(moment, top.team || resolvedHome, resolvedHome === top.team ? resolvedAway : resolvedHome, top.scorer);
-            speakNaija(top.kind === 'GOAL' && top.scorer ? `Goal! ${top.scorer}! ${top.text}` : top.text, naija.tone);
+            const moment = top.kind === 'GOAL' ? 'GOAL' : top.kind === 'KICKOFF' ? 'KICKOFF' : top.kind === 'FULLTIME' ? 'FULLTIME' : top.kind === 'HALFTIME' ? 'HALFTIME' : 'DEFAULT';
+            const naijaText = naijaMomentLine(moment, top.team || resolvedHome, resolvedHome === top.team ? resolvedAway : resolvedHome, top.minute);
+            speakNaija(naijaText, top.kind === 'GOAL' ? 'hyped' : 'normal');
           }
         }
       }

@@ -42,6 +42,7 @@ import { AuthDashboardModal } from '../components/auth-dashboard-modal';
 import { PlayerRadarModal } from '../components/player-radar-modal';
 import { ClubProfileHubModal } from '../components/club-profile-hub-modal';
 import { stadiumAudio } from '../lib/sound-synthesizer';
+import { speakNaija, allowSpeechOnUserGesture } from '../lib/naija-voice-engine';
 import { playerFollowEngine } from '../lib/player-follow-engine';
 import { SettlementLedgerSection } from '../components/settlement-ledger-section';
 import { RealtimeCaptureStatus } from '../components/realtime-capture-status';
