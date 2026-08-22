@@ -152,9 +152,7 @@ export const SportsNewsSection: React.FC = () => {
           <div>
             <h3 className="font-black text-sm text-white flex items-center space-x-2">
               <span>LATEST FOOTBALL NEWS & MATCH WIRE 📰</span>
-              <span className="text-[9px] px-2 py-0.5 rounded bg-stadiumGreen/20 text-stadiumGreen font-bold border border-stadiumGreen/30">
-                100% PURE FOOTBALL ✓
-              </span>
+              
             </h3>
             <span className="text-[10px] text-gray-400 font-sans">
               AI-Categorized Transfers, Match Reports, Injuries, Manager Tactics, and Super Eagles Wire.

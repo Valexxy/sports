@@ -57,7 +57,7 @@ export const MobileAppDock: React.FC<AppDockProps> = ({
             }`}
           >
             <Star className="w-4 h-4 text-gold fill-current" />
-            <span className="text-xs font-mono font-black">Following ⭐</span>
+            <span className="text-xs font-mono font-black">Following</span>
           </button>
 
           {/* Profile */}

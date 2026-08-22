@@ -449,7 +449,7 @@ export default function Home() {
                       : 'border-white/10 text-gray-400 bg-panel hover:text-white hover:border-white/20')}
                 >
                   <span>👑</span>
-                  <span className="truncate">{t('High Guarantees')}</span>
+                  <span className="truncate">👑 70%+ Bankers</span>
                 </button>
               </div>
             </div>
