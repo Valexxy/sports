@@ -38,9 +38,9 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
         
         {/* Brand Logo & Tagline */}
         <Link href="/" className="flex items-center space-x-2 sm:space-x-3 group flex-shrink-0">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-stadiumGreen via-cyberPurple to-gold p-0.5 shadow-lg group-hover:scale-105 transition-all glow-emerald flex items-center justify-center">
-            <div className="w-full h-full bg-void rounded-[14px] flex items-center justify-center">
-              <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-stadiumGreen animate-pulse" />
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-stadiumGreen via-cyberPurple to-gold p-0.5 shadow-lg group-hover:scale-105 transition-all glow-emerald flex items-center justify-center overflow-hidden">
+            <div className="w-full h-full bg-void rounded-[14px] flex items-center justify-center p-1">
+              <img src="/logo.svg" alt="AuraScore Cyber Football Logo" className="w-full h-full object-contain group-hover:scale-110 group-hover:rotate-6 transition-all duration-300" />
             </div>
           </div>
           <div>

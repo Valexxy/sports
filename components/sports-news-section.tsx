@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from '../lib/translation-engine';
+import { translateArticle } from '../lib/news-translator';
 import { Newspaper, Clock, X, RefreshCw, ChevronDown, ChevronUp, Flame, ThumbsUp, Target, Share2, ExternalLink, Zap } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -30,6 +32,8 @@ const CATEGORY_TABS = [
 ];
 
 export const SportsNewsSection: React.FC = () => {
+  const { lang, t } = useTranslation();
+  const [translatedMap, setTranslatedMap] = useState<Record<string, { title: string; description: string }>>({});
   const [articles, setArticles] = useState<SportsArticle[]>([]);
   const [loading, setLoading] = useState(true);
   const [visibleCount, setVisibleCount] = useState(6);
@@ -59,6 +63,31 @@ export const SportsNewsSection: React.FC = () => {
     loadNews();
   }, []);
 
+  // Neural Digital Translation Effect for News Articles across Nigerian & International Languages
+  useEffect(() => {
+    if (lang === 'en' || articles.length === 0) return;
+    let isMounted = true;
+
+    async function translateAllArticles() {
+      const updates: Record<string, { title: string; description: string }> = {};
+      const batch = articles.slice(0, 15);
+      await Promise.all(
+        batch.map(async (art) => {
+          const res = await translateArticle(art, lang);
+          updates[art.id] = res;
+        })
+      );
+      if (isMounted) {
+        setTranslatedMap((prev) => ({ ...prev, ...updates }));
+      }
+    }
+
+    translateAllArticles();
+    return () => {
+      isMounted = false;
+    };
+  }, [lang, articles]);
+
   // Background High-Frequency Auto-Sync (Every 25s)
   useEffect(() => {
     if (!autoSync) return;
@@ -80,7 +109,7 @@ export const SportsNewsSection: React.FC = () => {
     e.stopPropagation();
     const shareData = {
       title: article.title,
-      text: `${article.title} — via AuraScore Stadium`,
+      text: `${(lang !== 'en' && translatedMap[article.id]?.title) ? translatedMap[article.id].title : article.title} — via AuraScore Stadium`,
       url: article.link,
     };
     try {
@@ -188,7 +217,7 @@ export const SportsNewsSection: React.FC = () => {
                       : 'bg-panel/80 text-gray-400 hover:text-white border-white/10 hover:border-white/20'
                   }`}
                 >
-                  <span>{cat.label}</span>
+                  <span>{t(cat.label)}</span>
                   {count > 0 && (
                     <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
                       selectedCategory === cat.key ? 'bg-black/30 text-black' : 'bg-white/10 text-gray-300'
@@ -256,7 +285,7 @@ export const SportsNewsSection: React.FC = () => {
                       <span>{item.pubDate}</span>
                     </span>
                     <span className="text-stadiumGreen font-bold group-hover:underline flex items-center space-x-1">
-                      <span>Read Story</span>
+                      <span>{t("Read Story")}</span>
                       <span>➔</span>
                     </span>
                   </div>
@@ -295,7 +324,7 @@ export const SportsNewsSection: React.FC = () => {
             <div className="relative h-56 w-full rounded-2xl overflow-hidden border border-white/10 bg-black">
               <img
                 src={activeArticle.imageUrl || FALLBACK_PHOTO}
-                alt={activeArticle.title}
+                alt={(lang !== 'en' && translatedMap[activeArticle.id]?.title) ? translatedMap[activeArticle.id].title : activeArticle.title}
                 className="w-full h-full object-cover"
                 onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_PHOTO; }}
               />
