@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { MatchData } from '../lib/sports-api';
-import { Bell, BellRing, Star, Eye, Plus, Zap, CheckCircle2, XCircle, Calendar, AlertCircle } from 'lucide-react';
+import { Bell, BellRing, Star, Eye, Plus, Zap, CheckCircle2, XCircle, Calendar, AlertCircle, Clock } from 'lucide-react';
 
 export interface DailyMatchCardProps {
   match: MatchData;
@@ -59,7 +59,7 @@ function evaluatePickOutcome(
 }
 
 /**
- * Clean Single Date Formatter (No Duplicate Time)
+ * Clean Date Formatter differentiating past, today, and future dates
  */
 function getMatchDateLabel(utcDateStr?: string): string {
   const now = new Date();
@@ -152,30 +152,37 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
 
       <div className="p-4 sm:p-5 space-y-3.5">
 
-        {/* Row 1: League + Clean Status Badge + Actions */}
+        {/* Row 1: League + Smart Status & Date Badge + Actions */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2 min-w-0">
             <span className="text-lg flex-shrink-0">{match.leagueFlag || '⚽'}</span>
             <span className="text-xs font-black text-white truncate">{match.league}</span>
+            
+            {/* LIVE Badge with Date */}
             {isLive && (
-              <span className="flex-shrink-0 flex items-center space-x-1 px-2 py-0.5 rounded-full bg-crimson text-white text-[10px] font-black animate-pulse">
-                <span className="w-1.5 h-1.5 rounded-full bg-white inline-block" />
-                <span>LIVE</span>
+              <span className="flex-shrink-0 flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-crimson/20 border border-crimson/50 text-crimson text-[10px] font-black animate-pulse">
+                <span className="w-1.5 h-1.5 rounded-full bg-crimson inline-block animate-ping" />
+                <span>LIVE • {dateLabel}</span>
               </span>
             )}
+
+            {/* PLAYED / FINISHED Badge with Date */}
             {isFinished && (
-              <span className={'flex-shrink-0 flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-black border ' + (outcome?.won ? 'bg-stadiumGreen/20 border-stadiumGreen/50 text-stadiumGreen' : 'bg-crimson/20 border-crimson/40 text-crimson')}>
+              <span className={'flex-shrink-0 flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-black border ' + (outcome?.won ? 'bg-stadiumGreen/20 border-stadiumGreen/50 text-stadiumGreen' : 'bg-crimson/20 border-crimson/40 text-crimson')}>
                 {outcome?.won ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                <span>{outcome?.won ? 'FT • WON' : 'FT • LOST'}</span>
+                <span>{outcome?.won ? 'FT • WON' : 'FT • LOST'} • {dateLabel}</span>
               </span>
             )}
+
+            {/* UPCOMING Badge with Date */}
             {isUpcoming && (
-              <span className="flex-shrink-0 flex items-center space-x-1 px-2 py-0.5 rounded-full bg-gold/15 border border-gold/30 text-gold text-[10px] font-black">
+              <span className="flex-shrink-0 flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-gold/15 border border-gold/30 text-gold text-[10px] font-black">
                 <Calendar className="w-3 h-3" />
                 <span>{dateLabel}</span>
               </span>
             )}
           </div>
+
           <div className="flex items-center space-x-1.5 flex-shrink-0" onClick={e => e.stopPropagation()}>
             <button onClick={handleAlert}
               className={'p-2 rounded-xl border transition-all ' + (isFollowed ? 'bg-stadiumGreen/20 border-stadiumGreen text-stadiumGreen' : 'bg-black/40 border-white/10 text-gray-400 hover:text-stadiumGreen')}
@@ -190,7 +197,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
           </div>
         </div>
 
-        {/* Row 2: Teams + Clean Center Display (Kickoff Time OR Live/FT Score) */}
+        {/* Row 2: Teams + Scenario-Specific Center Display (Kickoff Time / In-Play Time / Ended Time) */}
         <div className="grid grid-cols-3 items-center text-center gap-2">
           {/* Home */}
           <div className="flex flex-col items-center space-y-1.5">
@@ -203,17 +210,35 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
             <span className="text-[10px] text-stadiumGreen font-mono">xG {(p.expectedHomeGoals || 1.4).toFixed(1)}</span>
           </div>
 
-          {/* Center: Score OR Kickoff Time (No Redundancy) */}
+          {/* Center Display tailored per scenario */}
           <div className="flex flex-col items-center space-y-1">
-            {isLive || isFinished ? (
-              <div className={'text-3xl sm:text-4xl font-black font-mono px-3 py-2 rounded-2xl border shadow-inner ' + (isLive ? 'text-crimson bg-black/70 border-crimson/30' : outcome?.won ? 'text-stadiumGreen bg-black/80 border-stadiumGreen/40' : 'text-white bg-black/60 border-white/10')}>
-                {match.homeScore}<span className="text-gray-500 text-2xl mx-1">:</span>{match.awayScore}
-              </div>
+            {isLive ? (
+              <>
+                <div className="text-3xl sm:text-4xl font-black font-mono px-3 py-2 rounded-2xl border shadow-inner text-crimson bg-black/80 border-crimson/40">
+                  {match.homeScore}<span className="text-gray-500 text-2xl mx-1">:</span>{match.awayScore}
+                </div>
+                <span className="text-[10px] text-crimson font-mono font-bold flex items-center space-x-1">
+                  <Clock className="w-3 h-3 animate-spin" />
+                  <span>Kickoff: {match.matchTime}</span>
+                </span>
+              </>
+            ) : isFinished ? (
+              <>
+                <div className={'text-3xl sm:text-4xl font-black font-mono px-3 py-2 rounded-2xl border shadow-inner ' + (outcome?.won ? 'text-stadiumGreen bg-black/80 border-stadiumGreen/40' : 'text-white bg-black/60 border-white/10')}>
+                  {match.homeScore}<span className="text-gray-500 text-2xl mx-1">:</span>{match.awayScore}
+                </div>
+                <span className="text-[10px] text-gray-400 font-mono flex items-center space-x-1">
+                  <Clock className="w-3 h-3" />
+                  <span>Played at {match.matchTime}</span>
+                </span>
+              </>
             ) : (
               <div className="px-3.5 py-2 rounded-2xl bg-gold/15 border border-gold/30 shadow-md text-center">
                 <span className="text-xl sm:text-2xl font-black text-gold font-mono tracking-wider block">{match.matchTime}</span>
+                <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider block mt-0.5">Kickoff Time</span>
               </div>
             )}
+            
             {match.venue && <span className="text-[9px] text-gray-400 font-mono text-center leading-tight max-w-[95px] truncate">{'🏟 ' + match.venue}</span>}
             <span className="text-[10px] text-stadiumGreen font-mono flex items-center space-x-0.5">
               <Zap className="w-3 h-3" />
