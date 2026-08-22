@@ -95,7 +95,7 @@ export const CollapsibleStadiumHub: React.FC<CollapsibleHubProps> = ({
   ];
 
   return (
-    <section className="font-mono text-xs space-y-3">
+    <section className="font-mono text-xs space-y-3 hidden sm:block">
       {/* Collapsible Header Banner */}
       <div 
         onClick={() => setIsExpanded(!isExpanded)}
