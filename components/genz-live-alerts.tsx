@@ -20,12 +20,12 @@ export interface GenZAlertPayload {
 
 interface GenZLiveAlertsProps {
   matches?: MatchData[];
-  onOpenMatchAudit?: (match: MatchData) => void;
+  onOpenMatch?: (match: MatchData) => void;
 }
 
 export const GenZLiveAlerts: React.FC<GenZLiveAlertsProps> = ({ 
   matches = [],
-  onOpenMatchAudit,
+  onOpenMatch,
 }) => {
   const [activeAlert, setActiveAlert] = useState<GenZAlertPayload | null>(null);
 
@@ -86,9 +86,9 @@ export const GenZLiveAlerts: React.FC<GenZLiveAlertsProps> = ({
     return () => clearTimeout(t);
   }, [activeAlert]);
 
-  const handleOpenAudit = () => {
-    if (activeAlert && onOpenMatchAudit) {
-      onOpenMatchAudit(activeAlert.match);
+  const handleOpenAlertMatch = () => {
+    if (activeAlert && onOpenMatch) {
+      onOpenMatch(activeAlert.match);
       setActiveAlert(null);
     }
   };
@@ -97,7 +97,7 @@ export const GenZLiveAlerts: React.FC<GenZLiveAlertsProps> = ({
 
   return (
     <div 
-      onClick={handleOpenAudit}
+      onClick={handleOpenAlertMatch}
       className="fixed bottom-20 right-3 sm:right-6 z-50 w-[92vw] sm:w-96 glass-panel-premium rounded-2xl p-3.5 border border-stadiumGreen/60 shadow-2xl space-y-2 font-mono text-xs animate-slideUp cursor-pointer hover:scale-[1.02] transition-all"
     >
       {/* Top Header */}
