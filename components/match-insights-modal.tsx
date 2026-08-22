@@ -348,38 +348,6 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
               </div>
             </div>
 
-            {/* 6. Verified Real-Time Sports News & Fan Sentiment */}
-            <div className="p-4 rounded-3xl bg-panel border border-white/10 space-y-2.5">
-              <div className="flex justify-between items-center border-b border-white/10 pb-2">
-                <div className="flex items-center space-x-1.5">
-                  <Newspaper className="w-4 h-4 text-gold" />
-                  <span className="font-extrabold text-white text-xs">AUTHENTIC MATCH WIRE</span>
-                </div>
-                <span className="text-[10px] text-stadiumGreen font-bold">Real-Time RSS Feed</span>
-              </div>
-
-              <div className="space-y-2">
-                {verifiedNewsHype.map((n, idx) => (
-                  <a
-                    key={idx}
-                    href={n.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="p-2.5 rounded-2xl bg-black/60 border border-white/5 hover:border-stadiumGreen/40 block transition-all group"
-                  >
-                    <div className="flex items-center justify-between text-[10px] mb-1">
-                      <span className={`font-bold ${n.color}`}>{n.sourceBadge}</span>
-                      <span className="text-gray-500">{n.time}</span>
-                    </div>
-                    <span className="text-white font-bold text-xs group-hover:text-stadiumGreen block font-sans">
-                      {n.title}
-                    </span>
-                    <p className="text-[10px] text-gray-400 font-sans mt-0.5 line-clamp-1">{n.summary}</p>
-                  </a>
-                ))}
-              </div>
-            </div>
-
           </div>
 
         </div>

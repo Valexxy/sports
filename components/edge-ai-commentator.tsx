@@ -245,16 +245,23 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
         </div>
       </div>
 
-      {/* Latest goal banner */}
+      {/* Latest goal banner with exact stated minute */}
       {latestGoal && (
-        <div className="p-3 rounded-2xl bg-gradient-to-r from-crimson/20 via-gold/10 to-transparent border border-crimson/40 space-y-1 animate-fadeIn">
-          <div className="flex items-center space-x-2">
-            <span className="text-xl">⚽</span>
-            <div>
-              <p className="font-black text-white text-sm">
-                GOAL! {latestGoal.scorer || latestGoal.team || 'Someone'} scores!
-              </p>
-              <p className="text-[10px] text-gray-300 font-sans line-clamp-2">{latestGoal.text}</p>
+        <div className="p-3 rounded-2xl bg-gradient-to-r from-crimson/25 via-gold/10 to-panel border border-crimson/50 space-y-1.5 animate-fadeIn shadow-lg shadow-crimson/20">
+          <div className="flex items-center space-x-2.5">
+            <span className="text-2xl animate-bounce">⚽</span>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center space-x-2">
+                {latestGoal.minute && (
+                  <span className="px-2 py-0.5 rounded-lg bg-crimson text-white font-mono text-[11px] font-black shadow-md animate-pulse">
+                    {latestGoal.minute.includes("'") ? latestGoal.minute : `${latestGoal.minute}'`}
+                  </span>
+                )}
+                <p className="font-black text-white text-sm truncate">
+                  GOAL! {latestGoal.scorer || latestGoal.team || 'Player'} scores!
+                </p>
+              </div>
+              <p className="text-[11px] text-gray-300 font-sans mt-1 line-clamp-2">{latestGoal.text}</p>
             </div>
           </div>
         </div>
