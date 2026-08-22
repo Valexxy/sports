@@ -23,6 +23,39 @@ export const SUPPORTED_LANGUAGES: LanguageMeta[] = [
 const STORAGE_KEY = 'aurascore_language';
 
 export const COMPREHENSIVE_DICTIONARY: Record<string, Record<LanguageCode, string>> = {
+  // Modals, Popups & Insights Translations
+  'STADIUM LIVE MATCH CENTER': { en: 'STADIUM LIVE MATCH CENTER', pidgin: 'STADIUM LIVE MATCH CENTER', yoruba: 'IBÙDÓ ERÉ LÁYÉ', igbo: 'EBE EGWUREGWO NDỤ', hausa: 'CIKIYAR WASAN RAYE' },
+  'EXACT CORRECT SCORE PROBABILITIES': { en: 'EXACT CORRECT SCORE PROBABILITIES', pidgin: 'CORRECT SCORE PROBABILITIES', yoruba: 'ÀWỌN ÀṢEYỌRÍ GOOLU TÍ Ń BỌ̀', igbo: 'ATỤLỤ NA EZIOGE GOOLU', hausa: 'HASASHEN CIKAKKEN SAKAMAKO' },
+  '5-GAME FORM STREAKS & HEAD-TO-HEAD': { en: '5-GAME FORM STREAKS & HEAD-TO-HEAD', pidgin: 'LAST 5 GAMES FORM & H2H', yoruba: 'ÀṢEYỌRÍ ERÉ 5 TẸ́LẸ̀ & DOJU-KỌ-DOJU', igbo: 'ỤDỊ EGWUREGWO 5 GARA AGA & ISIALA', hausa: 'WASANNI 5 DA SUKA GABATA & GABAR JUNA' },
+  'VERIFIED RECENT RUN': { en: 'VERIFIED RECENT RUN', pidgin: 'VERIFIED RECENT RUN', yoruba: 'ÌRÌN ÀÌPẸ́ TÍ A YẸ̀WÒ', igbo: 'EZIOGE NDỊ ỌHỤRỤ', hausa: 'SAKAMAKON KWANAN NAN' },
+  'POISSON MODEL': { en: 'POISSON MODEL', pidgin: 'POISSON MATH MODEL', yoruba: 'ÀWỌN ÌṢIRÒ POISSON', igbo: 'ỤDỊ MGBASO POISSON', hausa: 'TSARIN LISSAFI NA POISSON' },
+  'HOME FORM': { en: 'HOME FORM', pidgin: 'HOME FORM', yoruba: 'ERÉ ILÉ', igbo: 'ỤDỊ ỤLỌ', hausa: 'YANAYIN GIDA' },
+  'AWAY FORM': { en: 'AWAY FORM', pidgin: 'AWAY FORM', yoruba: 'ERÉ ÀBẸ̀WÒ', igbo: 'ỤDỊ NLETA', hausa: 'YANAYIN WAJE' },
+  'Pin to Lock Screen (Live Google Style)': { en: 'Pin to Lock Screen (Live Google Style)', pidgin: 'Pin to Phone Lock Screen 📌', yoruba: 'Fi Sí Ojú Ìbòjú Fóònù 📌', igbo: 'Kụba na Ihuenyo Mkpọchi 📌', hausa: 'Manna a Allon Kulle 📌' },
+  '2D TACTICAL PITCH': { en: '2D TACTICAL PITCH', pidgin: '2D TACTICAL PITCH ⚽', yoruba: 'PÁPÁ ÈTÒ ERÉ 2D ⚽', igbo: 'AMA EGWUREGWU USORO 2D ⚽', hausa: 'FILIN DABARUN WASA NA 2D ⚽' },
+  '⚽ 2D Tactical Pitch': { en: '⚽ 2D Tactical Pitch', pidgin: '⚽ 2D Tactical Pitch', yoruba: '⚽ Pápá Ètò Eré 2D', igbo: '⚽ Ama Usoro 2D', hausa: '⚽ Filin Dabaru 2D' },
+  '🎬 Match Highlights': { en: '🎬 Match Highlights', pidgin: '🎬 Match Highlights & Goals', yoruba: '🎬 Àkópọ̀ Eré & Àwọn Goolu', igbo: '🎬 Mmemme Ndị Pụrụ Iche', hausa: '🎬 Takaitaccen Wasa & Ƙwallaye' },
+  'VERIFIED TOP MATCH PICK': { en: 'VERIFIED TOP MATCH PICK', pidgin: 'VERIFIED NUMBER 1 PICK 🔥', yoruba: 'ÌSỌTẸ́LẸ̀ ERÉ GÚNGÙN TÍ A YẸ̀WÒ', igbo: 'EZIGBO NHỌRỌ EGWUREGWU', hausa: 'BABBAN HASASHEN WASA MAI INGANCI' },
+  'Winning Chance': { en: 'Winning Chance', pidgin: 'Sure Chance', yoruba: 'Ànfààní Ìṣẹ́gun', igbo: 'Ohere Mmeri', hausa: 'Damar Nasara' },
+  'Recommended Stake': { en: 'Recommended Stake', pidgin: 'Recommended Stake', yoruba: 'Iye Kalokalo Tó Yẹ', igbo: 'Ego Nzọ Akwadoro', hausa: 'Adadin Caca da Aka Shawarta' },
+  'Goal Power': { en: 'Goal Power', pidgin: 'Goal Power (xG)', yoruba: 'Agbára Goolu (xG)', igbo: 'Ike Goolu (xG)', hausa: 'Ƙarfin Ci Ƙwallo (xG)' },
+  'Listen Live Audio Commentary': { en: 'Listen Live Audio Commentary', pidgin: 'Listen Naija Live Audio 🔊', yoruba: 'Gbọ́ Ìròyìn Eré Láyé 🔊', igbo: 'Ge Ozi Ọdịyo Ndụ 🔊', hausa: 'Saurari Sharhin Wasa Kai Tsaye 🔊' },
+  'HISTORICAL ACCURACY HEATMAP & LEDGER': { en: 'HISTORICAL ACCURACY HEATMAP & LEDGER', pidgin: 'HISTORICAL ACCURACY HEATMAP & LEDGER 📜', yoruba: 'ÀKỌSÍLẸ̀ & ÀWÒRÁN ÌPÈNÍYÀ ERÉ TẸ́LẸ̀ 📜', igbo: 'AKWỤKWỌ NDEKỌ NNYOCHA EGWUREGWU 📜', hausa: 'TEBURIN TANTANCE SAKAMAKON WASANNI 📜' },
+  'Audited Win Rate': { en: 'Audited Win Rate', pidgin: 'Audited Win Rate', yoruba: 'Ìwọ̀n Ìṣẹ́gun Tí A Yẹ̀wÒ', igbo: 'Ọnụego Mmeri Enyochara', hausa: 'Yawan Nasarar da Aka Tantance' },
+  'Confidence Accuracy': { en: 'Confidence Accuracy', pidgin: 'Sure Accuracy', yoruba: 'Ìṣedéédé Ìdánilójú', igbo: 'Eziokwu Ntụkwasị Obi', hausa: 'Ingancin Tabbaci' },
+  'Victory Confetti': { en: 'Victory Confetti', pidgin: 'Celebrate Wins 🎉', yoruba: 'Ayẹyẹ Ìṣẹ́gun 🎉', igbo: 'Mmemme Mmeri 🎉', hausa: 'Bikin Nasara 🎉' },
+  'Celebrate Wins 🎉': { en: 'Celebrate Wins 🎉', pidgin: 'Celebrate Wins 🎉', yoruba: 'Ṣe Ayẹyẹ Ìṣẹ́gun 🎉', igbo: 'Mmemme Mmeri 🎉', hausa: 'Gudanar da Biki 🎉' },
+  'Close Heatmap ➔': { en: 'Close Heatmap ➔', pidgin: 'Close ➔', yoruba: 'Pa Dé ➔', igbo: 'Mechie ➔', hausa: 'Rufe ➔' },
+  'Select Language': { en: 'Select Language', pidgin: 'Select Language / Asụsụ', yoruba: 'Yan Èdè', igbo: 'Họrọ Asụsụ', hausa: 'Zaɓi Harshe' },
+  'Audited Ledger': { en: 'Audited Ledger', pidgin: 'Audited Ledger 📜', yoruba: 'Àkọsílẹ̀ Ìyẹ̀wò 📜', igbo: 'Akwụkwọ Ndekọ 📜', hausa: 'Teburin Bincike 📜' },
+  'Legal & Compliance': { en: 'Legal & Compliance', pidgin: 'Legal & Terms', yoruba: 'Òfin & Ìbámu', igbo: 'Iwu & Nkwado', hausa: "Doka & Ka'idodi" },
+  'All Leagues': { en: 'All Leagues', pidgin: 'All Leagues', yoruba: 'Gbogbo Liigi', igbo: 'Liigi Niile', hausa: 'Duk Gasanni' },
+  'High Guarantees': { en: 'High Guarantees', pidgin: 'Sure Bankers', yoruba: 'Ìdánilójú Gíga', igbo: 'Eziokwu Nwere Nkwa', hausa: 'Tabbaci Mai Yawa' },
+  'Search team, league or fixture...': { en: 'Search team, league or fixture...', pidgin: 'Search club, league or match...', yoruba: 'Wá ẹgbẹ́, liigi tàbí eré...', igbo: 'Chọọ otu, liigi ma ọ bụ egwuregwu...', hausa: 'Nemi kungiya, gasa ko wasa...' },
+  'WON': { en: 'WON ✅', pidgin: 'WON ✅', yoruba: 'WỌLÉ ✅', igbo: 'MERIRI ✅', hausa: 'AN CI ✅' },
+  'LOST': { en: 'LOST ❌', pidgin: 'LOST ❌', yoruba: 'BỌ́ ❌', igbo: 'KỌRỌ ❌', hausa: 'AN RASA ❌' },
+  'Close': { en: 'Close', pidgin: 'Close', yoruba: 'Pa Dé', igbo: 'Mechie', hausa: 'Rufe' },
+
 
   // Bet Tips & Card Elements
   '+ Bet Tips': { en: '+ Bet Tips', pidgin: '+ Bet Tips 🎯', yoruba: '+ Ìmọ̀ràn Kalokalo 🎯', igbo: '+ Ndụmọdụ Nzọ 🎯', hausa: '+ Shawarar Caca 🎯' },
