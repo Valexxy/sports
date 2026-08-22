@@ -231,6 +231,7 @@ export default function Home() {
 
         <BroadcastTicker matches={matches} onSelectUpdate={handleSelectTickerUpdate} />
         <OfflineBanner />
+        <PhoneHardwareBanner />
         <GenZLiveAlerts matches={matches} onOpenMatchAudit={() => setShowHistoryModal(true)} />
 
 

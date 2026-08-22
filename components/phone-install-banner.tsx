@@ -2,234 +2,223 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Bell, 
-  Smartphone, 
   Download, 
+  Smartphone, 
+  Share, 
+  PlusSquare, 
   Check, 
-  Sparkles, 
+  X, 
+  ExternalLink, 
   Zap, 
-  Eye, 
-  EyeOff, 
-  Vibrate, 
-  Volume2,
-  X,
-  ChevronDown,
-  ChevronUp
+  ShieldCheck, 
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
+import confetti from 'canvas-confetti';
 import { phoneHardware } from '../lib/phone-hardware-engine';
 import { stadiumAudio } from '../lib/sound-synthesizer';
 
 export const PhoneHardwareBanner: React.FC = () => {
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [wakeLockActive, setWakeLockActive] = useState(false);
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isInAppBrowser, setIsInAppBrowser] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      if ('Notification' in window && Notification.permission === 'granted') {
-        setNotificationsEnabled(true);
-      }
+    if (typeof window === 'undefined') return;
 
-      // Check if installed as standalone PWA
-      if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
-        setIsInstalled(true);
-      }
-
-      // Capture beforeinstallprompt event
-      const handler = (e: Event) => {
-        e.preventDefault();
-        setInstallPrompt(e);
-      };
-      window.addEventListener('beforeinstallprompt', handler);
-
-      return () => window.removeEventListener('beforeinstallprompt', handler);
+    // Check if already installed
+    if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
+      setIsInstalled(true);
+      return;
     }
+
+    // Check if user dismissed banner recently
+    const isDismissed = localStorage.getItem('aurascore_pwa_dismissed');
+    if (isDismissed === 'true') {
+      setDismissed(true);
+    }
+
+    // Detect iOS
+    const ua = window.navigator.userAgent.toLowerCase();
+    const isIpadOrIphone = /iphone|ipad|ipod/.test(ua);
+    setIsIOS(isIpadOrIphone);
+
+    // Detect in-app browsers (WhatsApp, Instagram, Telegram, Twitter, FB)
+    const inApp = /fban|fbav|instagram|twitter|whatsapp|telegram|line|snapchat/.test(ua);
+    setIsInAppBrowser(inApp);
+
+    // Listen for Android/Chrome beforeinstallprompt
+    const handleBeforeInstall = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+    };
   }, []);
 
-  const handleEnableNotifications = async () => {
-    const granted = await phoneHardware.requestNotificationPermission();
-    if (granted) {
-      setNotificationsEnabled(true);
-      phoneHardware.triggerHaptic('GOAL_SCORED');
-      stadiumAudio.playCrowdRoar();
-    }
-  };
-
-  const handleToggleWakeLock = async () => {
-    if (wakeLockActive) {
-      phoneHardware.releaseStadiumWakeLock();
-      setWakeLockActive(false);
-    } else {
-      const active = await phoneHardware.enableStadiumWakeLock();
-      if (active) {
-        setWakeLockActive(true);
-        phoneHardware.triggerHaptic('BANKER_LOCKED');
-      }
-    }
-  };
-
-  const handleTestHaptic = () => {
-    phoneHardware.triggerHaptic('GOAL_SCORED');
+  const handleInstallClick = async () => {
+    phoneHardware.triggerHaptic('SELECTION');
     stadiumAudio.playCrowdRoar();
-    phoneHardware.sendNativeNotification(
-      '⚽ GOAL! Stadium Haptic Test',
-      'Phone vibration motor & background alert executed successfully!'
-    );
-  };
 
-  const handleInstallApp = async () => {
     if (installPrompt) {
+      // Native Android/Chrome prompt
       installPrompt.prompt();
       const choice = await installPrompt.userChoice;
       if (choice.outcome === 'accepted') {
         setIsInstalled(true);
+        confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
         setInstallPrompt(null);
       }
     } else {
-      alert('📲 To install on iOS/Safari: Tap Share ➔ "Add to Home Screen". On Chrome/Android: Tap 3 dots ➔ "Install app".');
+      // Show visual instruction guide (iOS or unsupported browsers)
+      setShowModal(true);
     }
   };
 
-  if (dismissed) return null;
+  const handleDismiss = () => {
+    setDismissed(true);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('aurascore_pwa_dismissed', 'true');
+    }
+  };
+
+  if (isInstalled || dismissed) return null;
 
   return (
-    <div className="glass-panel-premium rounded-3xl p-4 sm:p-5 border border-stadiumGreen/40 shadow-2xl font-mono text-xs space-y-3 animate-fadeIn">
-      
-      {/* Header with Collapsible Toggle */}
-      <div 
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between cursor-pointer select-none border-b border-white/10 pb-2.5"
-      >
-        <div className="flex items-center space-x-2.5">
-          <div className="p-2 rounded-xl bg-stadiumGreen text-black font-black">
-            <Smartphone className="w-4 h-4" />
-          </div>
-          <div>
-            <h4 className="font-black text-white text-xs sm:text-sm flex items-center space-x-2">
-              <span>PHONE HARDWARE & BACKGROUND ENGINE 📱</span>
-              <span className="px-2 py-0.5 rounded bg-stadiumGreen/20 text-stadiumGreen text-[9px] font-black border border-stadiumGreen/30">
-                ACTIVE
-              </span>
-            </h4>
-            <span className="text-[10px] text-gray-400 font-sans hidden sm:block">
-              Wakes your phone with native lock-screen push alerts & haptic goal vibrations when the phone is asleep.
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <div className="flex items-center space-x-1 text-gray-400 text-xs font-bold">
-            <span className="hidden sm:inline">{isOpen ? 'Collapse' : 'Expand'}</span>
-            {isOpen ? <ChevronUp className="w-4 h-4 text-stadiumGreen" /> : <ChevronDown className="w-4 h-4 text-gold" />}
+    <>
+      {/* Sleek Floating Install Notification Banner */}
+      <div className="fixed top-14 left-3 right-3 sm:top-16 sm:left-auto sm:right-6 sm:w-96 z-40 animate-slideDown font-mono text-xs">
+        <div className="glass-panel-premium rounded-2xl p-3 border-2 border-stadiumGreen/60 shadow-2xl bg-black/95 flex items-center justify-between gap-2.5 glow-emerald">
+          
+          <div className="flex items-center space-x-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-stadiumGreen via-gold to-cyberPurple p-0.5 flex-shrink-0 shadow-lg">
+              <div className="w-full h-full bg-void rounded-[10px] flex items-center justify-center p-0.5">
+                <img src="/logo.svg" alt="AuraScore" className="w-full h-full object-contain" />
+              </div>
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center space-x-1.5">
+                <span className="font-black text-white text-xs truncate">Install AuraScore</span>
+                <span className="px-1.5 py-0.2 rounded bg-stadiumGreen text-black font-black text-[9px]">1-TAP</span>
+              </div>
+              <p className="text-[10px] text-gray-300 font-sans truncate">
+                Sub-second live scores & push notifications
+              </p>
+            </div>
           </div>
 
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setDismissed(true);
-            }}
-            className="p-1 text-gray-400 hover:text-white rounded-full bg-panel border border-white/10"
-            title="Dismiss"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
+          <div className="flex items-center space-x-1.5 flex-shrink-0">
+            <button
+              onClick={handleInstallClick}
+              className="px-3 py-1.5 rounded-xl bg-stadiumGreen hover:bg-emerald-400 text-black font-black text-xs flex items-center space-x-1 shadow-lg active:scale-95 transition-all"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Install</span>
+            </button>
+            <button
+              onClick={handleDismiss}
+              className="p-1 rounded-lg text-gray-400 hover:text-white transition-colors"
+              title="Dismiss"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
         </div>
       </div>
 
-      {/* 4 Hardware Feature Quick Toggles (Collapsible) */}
-      {isOpen && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 animate-fadeIn">
-          
-          {/* 1. Background Push Notifications */}
-          <button
-            onClick={handleEnableNotifications}
-            className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between space-y-1.5 ${
-              notificationsEnabled
-                ? 'bg-stadiumGreen/15 border-stadiumGreen text-white'
-                : 'bg-panel/80 hover:bg-white/5 border-white/10 text-gray-300'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <Bell className={`w-4 h-4 ${notificationsEnabled ? 'text-stadiumGreen fill-current' : 'text-gold'}`} />
-              <span className={`text-[9px] font-black px-1.5 py-0.2 rounded ${
-                notificationsEnabled ? 'bg-stadiumGreen text-black' : 'bg-white/10 text-gray-400'
-              }`}>
-                {notificationsEnabled ? 'ENABLED ✓' : 'ENABLE'}
-              </span>
+      {/* Visual Step-by-Step Install Guide Modal (For iOS, Safari, or WhatsApp/Telegram Browsers) */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 animate-fadeIn font-mono text-xs">
+          <div className="relative w-full max-w-md glass-panel-premium rounded-3xl border-2 border-stadiumGreen p-6 shadow-2xl space-y-4">
+            
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center space-x-2">
+                <div className="p-2 rounded-xl bg-stadiumGreen text-black font-black">
+                  <Smartphone className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-black text-white text-sm">INSTALL APP ON YOUR DEVICE</h3>
+                  <span className="text-[10px] text-stadiumGreen font-black">NO APP STORE REQUIRED • 100% FREE</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowModal(false)}
+                className="p-1.5 rounded-full bg-panel text-gray-400 hover:text-white border border-white/10"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
-            <div>
-              <span className="font-black text-[11px] block">Lock-Screen Push</span>
-              <span className="text-[9px] text-gray-400 font-sans">Alerts when phone asleep</span>
-            </div>
-          </button>
 
-          {/* 2. Hardware Haptic Vibrations */}
-          <button
-            onClick={handleTestHaptic}
-            className="p-3 rounded-2xl bg-panel/80 hover:bg-white/5 border border-white/10 text-left transition-all flex flex-col justify-between space-y-1.5 text-gray-300"
-          >
-            <div className="flex items-center justify-between">
-              <Vibrate className="w-4 h-4 text-cyberPurple" />
-              <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-cyberPurple/20 text-cyberPurple">
-                TEST 📳
-              </span>
-            </div>
-            <div>
-              <span className="font-black text-[11px] block text-white">Stadium Haptics</span>
-              <span className="text-[9px] text-gray-400 font-sans">Goal celebration motor</span>
-            </div>
-          </button>
+            {isInAppBrowser ? (
+              <div className="space-y-3 p-3 rounded-2xl bg-gold/10 border border-gold/40 text-gold text-xs">
+                <p className="font-bold">⚠️ You are inside an in-app browser (WhatsApp / Telegram / Instagram).</p>
+                <p className="text-gray-300 font-sans text-[11px]">
+                  1. Tap the <strong>three dots (⋮ or ⋯)</strong> or Share button at the top/bottom corner.
+                </p>
+                <p className="text-gray-300 font-sans text-[11px]">
+                  2. Select <strong>&quot;Open in Chrome&quot;</strong> or <strong>&quot;Open in Safari&quot;</strong>.
+                </p>
+                <p className="text-gray-300 font-sans text-[11px]">
+                  3. Then tap <strong>Install App</strong> for 1-tap home screen access!
+                </p>
+              </div>
+            ) : isIOS ? (
+              <div className="space-y-3">
+                <div className="p-3 rounded-2xl bg-panel border border-white/10 space-y-2">
+                  <div className="flex items-start space-x-2.5">
+                    <div className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400 font-black">1</div>
+                    <p className="text-gray-200 font-sans text-xs pt-0.5">
+                      Tap the <strong>Share</strong> icon (<Share className="w-3.5 h-3.5 inline text-blue-400" />) at the bottom of Safari.
+                    </p>
+                  </div>
+                  <div className="flex items-start space-x-2.5">
+                    <div className="p-1.5 rounded-lg bg-stadiumGreen/20 text-stadiumGreen font-black">2</div>
+                    <p className="text-gray-200 font-sans text-xs pt-0.5">
+                      Scroll down and tap <strong>&quot;Add to Home Screen&quot;</strong> (<PlusSquare className="w-3.5 h-3.5 inline text-stadiumGreen" />).
+                    </p>
+                  </div>
+                  <div className="flex items-start space-x-2.5">
+                    <div className="p-1.5 rounded-lg bg-gold/20 text-gold font-black">3</div>
+                    <p className="text-gray-200 font-sans text-xs pt-0.5">
+                      Tap <strong>&quot;Add&quot;</strong> in the top right. AuraScore is now your native app!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="p-3 rounded-2xl bg-panel border border-white/10 space-y-2">
+                  <p className="text-gray-300 font-sans text-xs">
+                    1. Tap the browser menu (<span className="font-bold text-white">⋮</span>) at the top right of Chrome.
+                  </p>
+                  <p className="text-gray-300 font-sans text-xs">
+                    2. Select <strong>&quot;Install app&quot;</strong> or <strong>&quot;Add to Home screen&quot;</strong>.
+                  </p>
+                  <p className="text-gray-300 font-sans text-xs">
+                    3. Tap <strong>Install</strong> to launch instantly anytime!
+                  </p>
+                </div>
+              </div>
+            )}
 
-          {/* 3. Screen Wake Lock (Keep Awake) */}
-          <button
-            onClick={handleToggleWakeLock}
-            className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between space-y-1.5 ${
-              wakeLockActive
-                ? 'bg-gold/15 border-gold text-white'
-                : 'bg-panel/80 hover:bg-white/5 border-white/10 text-gray-300'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              {wakeLockActive ? <Eye className="w-4 h-4 text-gold" /> : <EyeOff className="w-4 h-4 text-gray-400" />}
-              <span className={`text-[9px] font-black px-1.5 py-0.2 rounded ${
-                wakeLockActive ? 'bg-gold text-black' : 'bg-white/10 text-gray-400'
-              }`}>
-                {wakeLockActive ? 'AWAKE ☀️' : 'OFF'}
-              </span>
-            </div>
-            <div>
-              <span className="font-black text-[11px] block">Stadium WakeLock</span>
-              <span className="text-[9px] text-gray-400 font-sans">Keeps screen alive in-play</span>
-            </div>
-          </button>
+            <button
+              onClick={() => setShowModal(false)}
+              className="w-full py-2.5 rounded-2xl bg-stadiumGreen text-black font-black text-xs hover:bg-emerald-400 transition-all shadow-lg glow-emerald"
+            >
+              Got it! 🚀
+            </button>
 
-          {/* 4. Native PWA Install to Home Screen */}
-          <button
-            onClick={handleInstallApp}
-            className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between space-y-1.5 ${
-              isInstalled
-                ? 'bg-stadiumGreen/20 border-stadiumGreen/50 text-white'
-                : 'bg-stadiumGreen/20 hover:bg-stadiumGreen/30 border-stadiumGreen/40 text-stadiumGreen'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <Download className="w-4 h-4 text-stadiumGreen" />
-              <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-stadiumGreen text-black">
-                {isInstalled ? 'INSTALLED ✓' : 'INSTALL 📲'}
-              </span>
-            </div>
-            <div>
-              <span className="font-black text-[11px] block text-white">Standalone App</span>
-              <span className="text-[9px] text-gray-400 font-sans">1-tap homescreen launch</span>
-            </div>
-          </button>
-
+          </div>
         </div>
       )}
-
-    </div>
+    </>
   );
 };
