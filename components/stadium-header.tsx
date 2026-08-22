@@ -9,11 +9,13 @@ import {
   Sparkles, 
   Share2,
   Download,
-  Check
+  CheckCircle2
 } from 'lucide-react';
 import { useTranslation } from '../lib/translation-engine';
 import { GlobalLanguageSwitcher } from './global-language-switcher';
 import confetti from 'canvas-confetti';
+import { phoneHardware } from '../lib/phone-hardware-engine';
+import { stadiumAudio } from '../lib/sound-synthesizer';
 
 interface StadiumHeaderProps {
   onOpenReceipt: () => void;
@@ -35,6 +37,7 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
 }) => {
   const { t } = useTranslation();
   const [isInstalled, setIsInstalled] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -46,20 +49,61 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
     }
   }, []);
 
-  const handleInstallClick = () => {
+  const handleAutomaticDownload = () => {
+    phoneHardware.triggerHaptic('SELECTION');
+    stadiumAudio.playCrowdRoar();
+    setIsDownloading(true);
+
     const promptEvent = (window as any).__pwaInstallPrompt;
     if (promptEvent) {
-      promptEvent.prompt();
-      promptEvent.userChoice.then((choice: any) => {
-        if (choice.outcome === 'accepted') {
-          setIsInstalled(true);
-          localStorage.setItem('aurascore_installed', 'true');
-          confetti({ particleCount: 50, spread: 60, origin: { y: 0.3 } });
-        }
-      });
-    } else {
-      alert('📲 Tap your browser menu (⋮ or Share icon ⬆️) and select "Add to Home Screen" to install!');
+      try {
+        promptEvent.prompt();
+      } catch {
+        /* noop */
+      }
     }
+
+    try {
+      const appLauncherContent = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>AuraScore Stadium 2.0</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#05070B">
+  <link rel="manifest" href="${window.location.origin}/manifest.json">
+  <meta http-equiv="refresh" content="0; url=${window.location.origin}/">
+</head>
+<body style="background:#05070B;color:#00FFA3;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;text-align:center;">
+  <div>
+    <h2>⚡ Launching AuraScore Stadium App...</h2>
+  </div>
+  <script>window.location.href = "${window.location.origin}/";</script>
+</body>
+</html>`;
+
+      const blob = new Blob([appLauncherContent], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'AuraScore-Stadium-App.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      /* noop */
+    }
+
+    setTimeout(() => {
+      setIsDownloading(false);
+      setIsInstalled(true);
+      localStorage.setItem('aurascore_installed', 'true');
+      confetti({ particleCount: 60, spread: 70, origin: { y: 0.2 } });
+      stadiumAudio.playSuccessSound();
+    }, 600);
   };
 
   return (
@@ -131,15 +175,20 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
             </button>
           )}
 
-          {/* Dedicated Install App Pill (Shows if not installed yet) */}
+          {/* Automatic Download Button (Shows if not downloaded yet) */}
           {!isInstalled && (
             <button
-              onClick={handleInstallClick}
+              onClick={handleAutomaticDownload}
+              disabled={isDownloading}
               className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-2xl bg-gradient-to-r from-stadiumGreen to-emerald-400 text-black font-black text-xs flex items-center space-x-1 shadow-lg glow-emerald hover:scale-105 active:scale-95 transition-all"
-              title="Install App on your phone"
+              title="Download AuraScore App"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Install App</span>
+              {isDownloading ? (
+                <span className="w-3.5 h-3.5 rounded-full border-2 border-black border-t-transparent animate-spin" />
+              ) : (
+                <Download className="w-3.5 h-3.5" />
+              )}
+              <span className="hidden sm:inline">{isDownloading ? 'Downloading...' : 'Download App'}</span>
             </button>
           )}
 
