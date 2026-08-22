@@ -23,9 +23,9 @@ export const GlobalLanguageSwitcher: React.FC = () => {
         className="flex items-center space-x-1 sm:space-x-1.5 rounded-2xl bg-black/80 hover:bg-black border border-stadiumGreen/40 hover:border-stadiumGreen px-2 py-1.5 sm:px-3 sm:py-2 text-xs font-black text-white shadow-xl backdrop-blur-md transition-all hover:scale-105 active:scale-95"
         title="Select Language / Asụsụ / Ede / Harshe"
       >
-        <Globe className="w-3.5 h-3.5 text-stadiumGreen" />
+        <Globe className="w-4 h-4 text-stadiumGreen" />
         <span className="text-sm">{meta.flag}</span>
-        <span className="hidden sm:inline text-[11px] text-stadiumGreen uppercase font-black">{meta.name}</span>
+        <span className="text-[10px] text-stadiumGreen uppercase font-black">{meta.code.toUpperCase()}</span>
       </button>
 
       {open && (

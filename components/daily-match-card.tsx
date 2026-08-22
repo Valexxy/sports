@@ -171,6 +171,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
     : 'border-gold/40 bg-gradient-to-br from-gold/10 via-panel/95 to-panel shadow-lg shadow-gold/10 ring-1 ring-gold/20 hover:border-gold/60';
 
   const handleBookmark = (e: React.MouseEvent) => {
+    stadiumAudio.playBookmarkSound();
     e.stopPropagation();
     setBookmarked(b => !b);
     stadiumAudio.playBookmarkSound();

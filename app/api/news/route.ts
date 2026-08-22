@@ -31,7 +31,7 @@ const FOOTBALL_RSS_FEEDS = [
   { url: 'https://talksport.com/football/feed/', source: 'talkSPORT Football' },
 ];
 
-const RSS_PROXY = 'https://api.allorigins.win/raw?url=';
+const RSS_PROXY = '';
 
 // High-Resolution 1080p Sports Photography Bank
 const FOOTBALL_TOPIC_IMAGES: { keyword: string; url: string }[] = [
@@ -263,7 +263,7 @@ export async function GET() {
 
     const rssPromises = FOOTBALL_RSS_FEEDS.map(async (feed) => {
       try {
-        const res = await fetch(`${RSS_PROXY}${encodeURIComponent(feed.url)}`, { signal: controller.signal });
+        const res = await fetch(feed.url, { signal: controller.signal });
         if (!res.ok) return [];
         const xml = await res.text();
         const parsed = parseRss(xml);

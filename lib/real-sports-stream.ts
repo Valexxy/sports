@@ -1,3 +1,26 @@
+
+export function normalizeTeamKey(name: string): string {
+  if (!name) return '';
+  let n = name.toLowerCase().trim();
+  // Strip common suffixes & punctuation
+  n = n.replace(/\b(fc|cf|sc|rc|ac|athletic|club|hotspur|town|city|united|wanderers|albion|rovers|international)\b/g, '');
+  n = n.replace(/[^a-z0-9]/g, '');
+  
+  // Specific team aliases
+  if (n.includes('spurs') || n.includes('tottenham')) return 'tottenham';
+  if (n.includes('mancity') || n.includes('manchestercity')) return 'mancity';
+  if (n.includes('manutd') || n.includes('manchesterunited')) return 'manutd';
+  if (n.includes('psg') || n.includes('parissaintgermain') || n.includes('paris')) return 'psg';
+  if (n.includes('lens') || n.includes('rclens')) return 'lens';
+  if (n.includes('athletic') || n.includes('bilbao')) return 'bilbao';
+  if (n.includes('inter') || n.includes('internazionale')) return 'inter';
+  if (n.includes('milan') && !n.includes('inter')) return 'milan';
+  if (n.includes('sevilla')) return 'sevilla';
+  if (n.includes('brentford')) return 'brentford';
+  if (n.includes('auxerre')) return 'auxerre';
+  return n;
+}
+
 /**
  * UNIFIED REAL SPORTS STREAMING ENGINE
  * Aggregates all live, scheduled, and finished matches across 12+ competitions.
@@ -435,17 +458,27 @@ export async function getRealLiveAndPlayedMatches(): Promise<MatchData[]> {
       }
 
       // De-duplicate by normalized team name
-      const seen = new Set<string>();
-      const uniqueMatches: MatchData[] = [];
+      const seen = new Map<string, MatchData>();
 
       for (const m of combined) {
-        const key = `${m.homeTeam.toLowerCase().replace(/[^a-z0-9]/g, '')}_${m.awayTeam.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          uniqueMatches.push(m);
+        // Skip cancelled or postponed matches
+        if ((m.status as string) === 'CANCELLED' || (m.status as string) === 'POSTPONED' || (m as any).isCancelled) continue;
+
+        const key = `${normalizeTeamKey(m.homeTeam)}_${normalizeTeamKey(m.awayTeam)}`;
+        const existing = seen.get(key);
+        if (!existing) {
+          seen.set(key, m);
+        } else {
+          // If the new one is LIVE or richer, replace
+          if (m.status === 'LIVE' && existing.status !== 'LIVE') {
+            seen.set(key, m);
+          } else if (m.id.startsWith('espn-') && !existing.id.startsWith('espn-')) {
+            seen.set(key, m);
+          }
         }
       }
 
+      const uniqueMatches = Array.from(seen.values());
       return uniqueMatches.sort((a, b) => {
         const order = (status: string) => (status === 'LIVE' ? 0 : status === 'SCHEDULED' ? 1 : 2);
         return order(a.status) - order(b.status);

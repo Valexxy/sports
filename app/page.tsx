@@ -39,6 +39,7 @@ import { GlobalLeagueBrowser } from '../components/global-league-browser';
 import { AuthDashboardModal } from '../components/auth-dashboard-modal';
 import { PlayerRadarModal } from '../components/player-radar-modal';
 import { ClubProfileHubModal } from '../components/club-profile-hub-modal';
+import { stadiumAudio } from '../lib/sound-synthesizer';
 import { playerFollowEngine } from '../lib/player-follow-engine';
 import { SettlementLedgerSection } from '../components/settlement-ledger-section';
 import { RealtimeCaptureStatus } from '../components/realtime-capture-status';
@@ -61,7 +62,7 @@ export default function Home() {
   const [loadingMatches, setLoadingMatches] = useState(true);
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState<FilterType>('ALL');
+  const [activeFilter, setActiveFilter] = useState<FilterType>('LIVE');
   const [selectedDateStr, setSelectedDateStr] = useState<string>(() => new Date().toISOString().split('T')[0]);
   const [selectedDateLabel, setSelectedDateLabel] = useState<string>('Today');
   const [isViewingToday, setIsViewingToday] = useState<boolean>(true);
@@ -237,10 +238,10 @@ export default function Home() {
     const base = matches.filter(m => {
       // Filter by Date (Match utcDate ISO YYYY-MM-DD vs selectedDateStr)
       if (selectedDateStr) {
-        const matchDate = m.utcDate ? m.utcDate.slice(0, 10) : new Date().toISOString().split('T')[0];
-        // Allow Live matches to show on Today
+        // Accurate date matching
+        const matchDate = m.utcDate ? new Date(m.utcDate).toLocaleDateString('en-CA') : new Date().toISOString().split('T')[0];
         if (isViewingToday && m.status === 'LIVE') {
-          // keep live
+          // Keep live matches on today
         } else if (matchDate !== selectedDateStr) {
           return false;
         }
@@ -264,7 +265,6 @@ export default function Home() {
 
   type PillDef = { key: FilterType; emoji: string; label: string; count: number; activeClass: string };
   const filterPills: PillDef[] = [
-    { key: 'ALL',      emoji: '⚽', label: t('All Matches'), count: sportMatches.length, activeClass: 'bg-white/20 border-white text-white' },
     { key: 'LIVE',     emoji: '🔴', label: t('Live'),     count: liveCount,     activeClass: 'bg-crimson/20 border-crimson/50 text-crimson' },
     { key: 'UPCOMING', emoji: '🟡', label: t('Upcoming'), count: upcomingCount, activeClass: 'bg-gold/20 border-gold/50 text-gold' },
     { key: 'PLAYED',   emoji: '✅', label: t('Played'),   count: playedCount,   activeClass: 'bg-stadiumGreen/20 border-stadiumGreen/50 text-stadiumGreen' },
@@ -366,44 +366,66 @@ export default function Home() {
             </div>
 
             {/* Filter pills with counts */}
-            <div className="flex flex-wrap items-center gap-2 pb-1">
-              {filterPills.map(pill => (
-                <button key={pill.key} onClick={() => { setActiveFilter(pill.key); setVisibleCount(12); }}
-                  className={'flex-shrink-0 flex items-center space-x-1.5 px-3 py-2 rounded-2xl border text-xs font-black transition-all ' +
-                    (activeFilter === pill.key ? pill.activeClass + ' scale-105 shadow-md' : 'border-white/10 text-gray-400 bg-panel hover:text-white hover:border-white/20')}
+            <div className="space-y-2">
+              {/* Line 1: Clean Status Filters (Single Pulsating Dot) */}
+              <div className="grid grid-cols-4 gap-2">
+                {filterPills.map(pill => (
+                  <button
+                    key={pill.key}
+                    onClick={() => {
+                      setActiveFilter(pill.key);
+                      setVisibleCount(12);
+                      stadiumAudio.playTabClickSound();
+                    }}
+                    className={'flex items-center justify-center space-x-1.5 py-2.5 px-2 rounded-2xl border text-xs font-black transition-all ' +
+                      (activeFilter === pill.key ? pill.activeClass + ' scale-105 shadow-md' : 'border-white/10 text-gray-400 bg-panel hover:text-white hover:border-white/20')}
+                  >
+                    {pill.key === 'LIVE' ? (
+                      <span className="w-2 h-2 rounded-full bg-crimson animate-ping flex-shrink-0" />
+                    ) : pill.key === 'UPCOMING' ? (
+                      <span className="w-2 h-2 rounded-full bg-gold flex-shrink-0" />
+                    ) : pill.key === 'PLAYED' ? (
+                      <span className="w-2 h-2 rounded-full bg-stadiumGreen flex-shrink-0" />
+                    ) : (
+                      <span className="text-xs">⭐</span>
+                    )}
+                    <span className="truncate">{pill.label}</span>
+                    {pill.count > 0 && (
+                      <span className={'px-1.5 py-0.2 rounded-full text-[9px] font-black ' + (activeFilter === pill.key ? 'bg-black/40 text-white' : 'bg-white/10 text-gray-300')}>
+                        {pill.count}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {/* Line 2: 35+ Leagues & High Guarantees (No-Scroll Balanced Grid) */}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => {
+                    setShowLeagueBrowser(true);
+                    stadiumAudio.playTabClickSound();
+                  }}
+                  className="py-2.5 px-3 rounded-2xl border border-stadiumGreen/40 bg-stadiumGreen/15 hover:bg-stadiumGreen/25 text-stadiumGreen text-xs font-black transition-all flex items-center justify-center space-x-2 shadow-md hover:scale-[1.02]"
                 >
-                  <span className="text-sm">{pill.emoji}</span>
-                  <span>{pill.label}</span>
-                  {pill.count > 0 && (
-                    <span className={'px-1.5 py-0.5 rounded-full text-[10px] font-black ' + (activeFilter === pill.key ? 'bg-black/30' : 'bg-white/10 text-white')}>
-                      {pill.count}
-                    </span>
-                  )}
+                  <span>🌍</span>
+                  <span>{t('All Leagues (35+)')}</span>
                 </button>
-              ))}
 
-              {/* Global 35+ Leagues & Countries Browser */}
-              <button
-                onClick={() => setShowLeagueBrowser(true)}
-                className="flex-shrink-0 flex items-center space-x-1.5 px-3 py-2 rounded-2xl border border-stadiumGreen/40 bg-stadiumGreen/15 hover:bg-stadiumGreen/25 text-stadiumGreen text-xs font-black transition-all hover:scale-105 shadow-md"
-                title="Browse all 35+ World Leagues & Countries"
-              >
-                <span>🌍</span>
-                <span>All Leagues (35+)</span>
-              </button>
-
-              {/* High Guarantees Only (70%+ probability) */}
-              <button
-                onClick={() => setHighGuaranteesOnly(!highGuaranteesOnly)}
-                className={'flex-shrink-0 flex items-center space-x-1.5 px-3 py-2 rounded-2xl border text-xs font-black transition-all ' +
-                  (highGuaranteesOnly
-                    ? 'bg-stadiumGreen/20 border-stadiumGreen text-stadiumGreen scale-105 shadow-md shadow-stadiumGreen/20'
-                    : 'border-white/10 text-gray-400 bg-panel hover:text-white hover:border-white/20')}
-                title="Show only matches with >= 70% win probability or Ultra-Banker rating"
-              >
-                <span>👑</span>
-                <span>High Guarantees (70%+)</span>
-              </button>
+                <button
+                  onClick={() => {
+                    setHighGuaranteesOnly(!highGuaranteesOnly);
+                    stadiumAudio.playTabClickSound();
+                  }}
+                  className={'py-2.5 px-3 rounded-2xl border text-xs font-black transition-all flex items-center justify-center space-x-2 shadow-md hover:scale-[1.02] ' +
+                    (highGuaranteesOnly
+                      ? 'bg-stadiumGreen/25 border-stadiumGreen text-stadiumGreen shadow-stadiumGreen/20'
+                      : 'border-white/10 text-gray-400 bg-panel hover:text-white hover:border-white/20')}
+                >
+                  <span>👑</span>
+                  <span>{t('High Guarantees (70%+)')}</span>
+                </button>
+              </div>
             </div>
 
             {/* 100% Pure Football Guarantee Banner */}
