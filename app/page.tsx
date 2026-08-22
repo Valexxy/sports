@@ -38,6 +38,7 @@ import { LeagueStandingsModal } from '../components/league-standings-modal';
 import { GlobalLeagueBrowser } from '../components/global-league-browser';
 import { AuthDashboardModal } from '../components/auth-dashboard-modal';
 import { PlayerRadarModal } from '../components/player-radar-modal';
+import { ClubProfileHubModal } from '../components/club-profile-hub-modal';
 import { playerFollowEngine } from '../lib/player-follow-engine';
 import { SettlementLedgerSection } from '../components/settlement-ledger-section';
 import { RealtimeCaptureStatus } from '../components/realtime-capture-status';
@@ -96,6 +97,7 @@ export default function Home() {
   const [showGrassrootsModal, setShowGrassrootsModal] = useState(false);
   const [showStandingsModal, setShowStandingsModal] = useState(false);
   const [selectedLeagueForTable, setSelectedLeagueForTable] = useState<string | null>(null);
+  const [selectedClubForProfile, setSelectedClubForProfile] = useState<string | null>(null);
   const [showNewsModal, setShowNewsModal] = useState(false);
   const [showTelemetryModal, setShowTelemetryModal] = useState(false);
   const [showHardwareModal, setShowHardwareModal] = useState(false);
@@ -435,7 +437,7 @@ export default function Home() {
                         setSelectedLeagueForTable(league);
                         setShowStandingsModal(true);
                       }}
-                      onOpenTeam={() => setShowTeamsModal(true)}
+                      onOpenTeam={(teamName) => setSelectedClubForProfile(teamName)}
                     />
                   ))}
                 </div>
@@ -499,6 +501,13 @@ export default function Home() {
           onOpenGrassroots={() => setShowGrassrootsModal(true)}
         />
 
+        {selectedClubForProfile && (
+          <ClubProfileHubModal
+            isOpen={!!selectedClubForProfile}
+            teamName={selectedClubForProfile}
+            onClose={() => setSelectedClubForProfile(null)}
+          />
+        )}
         {showStandingsModal && (
           <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-5">
             <div className="w-full sm:max-w-4xl max-h-[92vh] overflow-y-auto glass-panel-premium rounded-t-3xl sm:rounded-3xl p-4 sm:p-6 border border-stadiumGreen/40 space-y-4">
