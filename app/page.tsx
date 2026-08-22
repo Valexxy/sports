@@ -232,10 +232,7 @@ export default function Home() {
         <OfflineBanner />
         <GenZLiveAlerts matches={matches} onOpenMatchAudit={() => setShowHistoryModal(true)} />
 
-        {/* Floating global language switcher */}
-        <div className="fixed top-2 right-2 sm:top-16 sm:right-4 z-50">
-          <GlobalLanguageSwitcher />
-        </div>
+
 
         <StadiumHeader
           onOpenReceipt={() => matches.length > 0 && setSelectedMatchForReceipt(matches[0])}

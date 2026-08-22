@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 
 import { useTranslation } from '../lib/translation-engine';
+import { GlobalLanguageSwitcher } from './global-language-switcher';
 
 interface StadiumHeaderProps {
   onOpenReceipt: () => void;
@@ -41,7 +42,7 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
     if (isMuted) {
       setIsMuted(false);
       stadiumAudio.isMuted = false;
-      stadiumAudio.playCrowdRoar();
+      stadiumAudio.playNigerianAudioCommentary();
       setSoundPlaying(true);
       setTimeout(() => setSoundPlaying(false), 800);
     } else {
@@ -104,7 +105,12 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
           </button>
         </nav>
 
-        {/* Right Action Icons: Suites Menu, Avatar, Viral Flex, Sound Button */}
+        {/* Language Switcher in Header */}
+          <div className="hidden sm:block">
+            <GlobalLanguageSwitcher />
+          </div>
+
+          {/* Right Action Icons: Suites Menu, Avatar, Viral Flex, Sound Button */}
         <div className="flex items-center space-x-1.5 sm:space-x-2">
           
           {/* Mobile Suites Menu Button */}
