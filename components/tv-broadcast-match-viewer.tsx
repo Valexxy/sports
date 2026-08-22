@@ -5,7 +5,6 @@ import { MatchData } from '../lib/sports-api';
 import { 
   Tv, 
   Play, 
-  Pause, 
   Volume2, 
   VolumeX, 
   Maximize2, 
@@ -18,7 +17,6 @@ import {
   Activity, 
   Sparkles,
   ExternalLink,
-  Layers,
   Video
 } from 'lucide-react';
 import { stadiumAudio } from '../lib/sound-synthesizer';
@@ -30,25 +28,25 @@ interface TvBroadcastMatchViewerProps {
   onClose?: () => void;
 }
 
-type TvCamMode = 'MAIN_BROADCAST' | 'TACTICAL_360' | 'VIDEO_STREAM';
+type ViewerMode = 'TACTICAL_2D' | 'HIGHLIGHTS_PLAYER';
 
 export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ match }) => {
   const { t } = useTranslation();
-  const [camMode, setCamMode] = useState<TvCamMode>('MAIN_BROADCAST');
+  const [viewMode, setViewMode] = useState<ViewerMode>('TACTICAL_2D');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isAudioCommentaryPlaying, setIsAudioCommentaryPlaying] = useState(false);
   const [liveSeconds, setLiveSeconds] = useState(24);
   const [activeLowerThird, setActiveLowerThird] = useState<{ title: string; subtitle: string; icon: string } | null>({
-    title: 'KEY MATCH STAT',
-    subtitle: '78% pass accuracy in final third • 8 shots on target',
-    icon: '📊',
+    title: 'TERRITORY CONTROL',
+    subtitle: `${match.homeTeam} maintaining 62% possession in final third.`,
+    icon: '⚡',
   });
 
-  // Real-time ball coordinates on pitch (0-100% X, 0-100% Y)
+  // Real-time ball coordinates on pitch
   const [ballPos, setBallPos] = useState({ x: 52, y: 48 });
   const [actionPhase, setActionPhase] = useState('ATTACKING BUILDUP');
 
-  // Dynamic Lower Third TV Broadcast Banner cycle
+  // Dynamic Lower Third TV Banner
   useEffect(() => {
     const banners = [
       { title: '⚡ LIVE PRESSURE INDEX', subtitle: `${match.homeTeam} maintaining 64% territory control.`, icon: '⚡' },
@@ -60,11 +58,10 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
     const interval = setInterval(() => {
       idx = (idx + 1) % banners.length;
       setActiveLowerThird(banners[idx]);
-    }, 5500);
+    }, 6000);
     return () => clearInterval(interval);
   }, [match]);
 
-  // Live match second ticker
   useEffect(() => {
     const interval = setInterval(() => {
       setLiveSeconds((prev) => (prev + 1) % 60);
@@ -72,22 +69,22 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
     return () => clearInterval(interval);
   }, []);
 
-  // Broadcast pitch tracking loop
+  // Smooth ball motion across tactical pitch
   useEffect(() => {
     const interval = setInterval(() => {
       const isHome = Math.random() > 0.45;
-      const newX = isHome ? Math.floor(52 + Math.random() * 42) : Math.floor(6 + Math.random() * 44);
-      const newY = Math.floor(18 + Math.random() * 64);
+      const newX = isHome ? Math.floor(52 + Math.random() * 40) : Math.floor(8 + Math.random() * 40);
+      const newY = Math.floor(20 + Math.random() * 60);
       setBallPos({ x: newX, y: newY });
 
       if (newX > 82 || newX < 18) {
-        setActionPhase('🎯 SHOT ON GOAL / DANGER IN BOX');
-      } else if (newX > 66 || newX < 34) {
+        setActionPhase('🎯 SHOT ON TARGET / DANGER IN BOX');
+      } else if (newX > 64 || newX < 36) {
         setActionPhase('⚡ PENETRATING ATTACK');
       } else {
         setActionPhase('MIDFIELD POSSESSION');
       }
-    }, 2200);
+    }, 2400);
     return () => clearInterval(interval);
   }, [match]);
 
@@ -96,7 +93,7 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
     if (!isAudioCommentaryPlaying) {
       setIsAudioCommentaryPlaying(true);
       stadiumAudio.enableOnUserClick();
-      stadiumAudio.speakNigerian(`Live match commentary: ${match.homeTeam} ${match.homeScore ?? 0}, ${match.awayTeam} ${match.awayScore ?? 0}. Current action: ${actionPhase}`);
+      stadiumAudio.speakNigerian(`Live match commentary: ${match.homeTeam} ${match.homeScore ?? 0}, ${match.awayTeam} ${match.awayScore ?? 0}. Action: ${actionPhase}`);
     } else {
       setIsAudioCommentaryPlaying(false);
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -114,41 +111,51 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
       isFullscreen ? 'fixed inset-0 z-50 rounded-none bg-black p-4' : 'p-3 sm:p-5'
     }`}>
       
-      {/* TV CHANNEL BAR & CAMERA CONTROLS */}
+      {/* HEADER CONTROLS */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
         <div className="flex items-center space-x-2.5">
           <div className="px-2.5 py-1 rounded-xl bg-crimson text-white font-black text-[10px] animate-pulse flex items-center space-x-1.5 shadow-md shadow-crimson/30">
             <span className="w-2 h-2 rounded-full bg-white animate-ping" />
-            <span>LIVE TV BROADCAST 4K</span>
+            <span>TACTICAL RADAR 2D</span>
           </div>
           <span className="font-bold text-white text-xs hidden md:inline">
-            {match.league} • Official Stadium Feed
+            {match.league} • Official Pitch Live Action
           </span>
         </div>
 
-        {/* Camera Selector Tabs */}
-        <div className="flex items-center space-x-1.5 overflow-x-auto pb-0.5 scrollbar-none self-stretch sm:self-auto">
-          {[
-            { key: 'MAIN_BROADCAST', label: '📺 Main TV Cam', icon: Tv },
-            { key: 'TACTICAL_360', label: '🎥 Tactical 3D', icon: Camera },
-            { key: 'VIDEO_STREAM', label: '🎬 90-Min Live Stream', icon: Video },
-          ].map((c) => (
-            <button
-              key={c.key}
-              onClick={() => {
-                setCamMode(c.key as any);
-                phoneHardware.triggerHaptic('SELECTION');
-                stadiumAudio.playTabClickSound();
-              }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center space-x-1 flex-shrink-0 ${
-                camMode === c.key
-                  ? 'bg-stadiumGreen text-black shadow-md shadow-stadiumGreen/20'
-                  : 'bg-black/50 text-gray-400 hover:text-white border border-white/10'
-              }`}
-            >
-              <span>{c.label}</span>
-            </button>
-          ))}
+        {/* 2 Clean Switcher Tabs */}
+        <div className="flex items-center space-x-1.5 self-stretch sm:self-auto">
+          <button
+            onClick={() => {
+              setViewMode('TACTICAL_2D');
+              phoneHardware.triggerHaptic('SELECTION');
+              stadiumAudio.playTabClickSound();
+            }}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all flex items-center space-x-1.5 ${
+              viewMode === 'TACTICAL_2D'
+                ? 'bg-stadiumGreen text-black shadow-md shadow-stadiumGreen/20'
+                : 'bg-black/50 text-gray-400 hover:text-white border border-white/10'
+            }`}
+          >
+            <Camera className="w-3.5 h-3.5" />
+            <span>⚽ 2D Tactical Pitch</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setViewMode('HIGHLIGHTS_PLAYER');
+              phoneHardware.triggerHaptic('SELECTION');
+              stadiumAudio.playTabClickSound();
+            }}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all flex items-center space-x-1.5 ${
+              viewMode === 'HIGHLIGHTS_PLAYER'
+                ? 'bg-stadiumGreen text-black shadow-md shadow-stadiumGreen/20'
+                : 'bg-black/50 text-gray-400 hover:text-white border border-white/10'
+            }`}
+          >
+            <Video className="w-3.5 h-3.5" />
+            <span>🎬 Match Highlights</span>
+          </button>
 
           {/* Audio Commentary Button */}
           <button
@@ -158,7 +165,7 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
                 ? 'bg-gold text-black border-gold shadow-md'
                 : 'bg-white/5 border-white/10 text-stadiumGreen hover:bg-stadiumGreen/20'
             }`}
-            title="Listen Live TV Audio Commentary"
+            title="Listen Live Audio Commentary"
           >
             {isAudioCommentaryPlaying ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
           </button>
@@ -167,79 +174,70 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
           <button
             onClick={() => setIsFullscreen(!isFullscreen)}
             className="p-1.5 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 text-white transition-all flex-shrink-0"
-            title="Toggle TV Fullscreen"
+            title="Toggle Fullscreen"
           >
             {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
           </button>
         </div>
       </div>
 
-      {/* MAIN TV SCREEN (16:9 BROADCAST ASPECT RATIO) */}
-      {camMode !== 'VIDEO_STREAM' ? (
+      {/* MODE 1: CLEAN TACTICAL 2D PITCH (16:9 PROPORTION) */}
+      {viewMode === 'TACTICAL_2D' ? (
         <div className="relative w-full aspect-video rounded-3xl bg-gradient-to-b from-[#0b331c] via-[#072414] to-[#0b331c] border-2 border-stadiumGreen/40 overflow-hidden shadow-2xl select-none">
           
-          {/* Realistic High-Res Grass Texture Lines */}
-          <div className="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:24px_24px] opacity-15" />
-
-          {/* Pitch Markings */}
-          <div className="absolute inset-3 border-2 border-white/40 rounded-2xl pointer-events-none" />
-          <div className="absolute left-1/2 top-3 bottom-3 w-0.5 bg-white/40 -translate-x-1/2" />
-          <div className="absolute left-1/2 top-1/2 w-28 h-28 rounded-full border-2 border-white/40 -translate-x-1/2 -translate-y-1/2" />
-          <div className="absolute left-1/2 top-1/2 w-2.5 h-2.5 rounded-full bg-white -translate-x-1/2 -translate-y-1/2" />
+          {/* Crisp Pitch Markings */}
+          <div className="absolute inset-3 border border-white/30 rounded-2xl pointer-events-none" />
+          <div className="absolute left-1/2 top-3 bottom-3 w-0.5 bg-white/30 -translate-x-1/2" />
+          <div className="absolute left-1/2 top-1/2 w-24 h-24 rounded-full border border-white/30 -translate-x-1/2 -translate-y-1/2" />
+          <div className="absolute left-1/2 top-1/2 w-2 h-2 rounded-full bg-white/70 -translate-x-1/2 -translate-y-1/2" />
 
           {/* Penalty Boxes */}
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 w-32 h-52 border-2 border-white/40 border-l-0 rounded-r-2xl" />
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 w-32 h-52 border-2 border-white/40 border-r-0 rounded-l-2xl" />
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 w-28 h-44 border border-white/30 border-l-0 rounded-r-xl" />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 w-28 h-44 border border-white/30 border-r-0 rounded-l-xl" />
 
-          {/* OFFICIAL TV SCOREBUG (TOP LEFT OVERLAY) */}
-          <div className="absolute top-4 left-4 z-30 flex items-center shadow-2xl rounded-2xl overflow-hidden border border-white/20 bg-black/90 backdrop-blur-md">
-            <div className="px-2.5 py-1.5 bg-stadiumGreen text-black font-black text-xs flex items-center space-x-1">
+          {/* Clean TV Scorebug (Top Left) */}
+          <div className="absolute top-3 left-3 z-30 flex items-center shadow-xl rounded-xl overflow-hidden border border-white/20 bg-black/90 backdrop-blur-md">
+            <div className="px-2.5 py-1 bg-stadiumGreen text-black font-black text-xs flex items-center space-x-1">
               <span>{homeAbbr}</span>
               <span className="text-sm font-extrabold">{match.homeScore ?? 0}</span>
             </div>
             
-            <div className="px-2.5 py-1.5 bg-crimson text-white font-black text-xs flex items-center space-x-1">
+            <div className="px-2.5 py-1 bg-crimson text-white font-black text-xs flex items-center space-x-1">
               <span className="text-sm font-extrabold">{match.awayScore ?? 0}</span>
               <span>{awayAbbr}</span>
             </div>
 
-            <div className="px-3 py-1.5 bg-black text-gold font-mono font-black text-xs flex items-center space-x-1 border-l border-white/10">
+            <div className="px-2.5 py-1 bg-black text-gold font-mono font-black text-xs flex items-center space-x-1 border-l border-white/10">
               <span className="text-white">{minuteDisplay}</span>
               <span className="text-[9px] text-gray-400">:{liveSeconds < 10 ? `0${liveSeconds}` : liveSeconds}</span>
             </div>
           </div>
 
-          {/* TV CHANNEL WATERMARK (TOP RIGHT OVERLAY) */}
-          <div className="absolute top-4 right-4 z-30 flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-black/80 border border-white/10 text-[9px] text-white font-bold backdrop-blur-md">
-            <span className="w-1.5 h-1.5 rounded-full bg-stadiumGreen animate-ping" />
-            <span>AURASCORE HD 1</span>
-          </div>
-
-          {/* LIVE ACTION STATUS BUG (CENTER TOP) */}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 px-3 py-1 rounded-full bg-black/75 border border-stadiumGreen/40 text-stadiumGreen font-black text-[10px] backdrop-blur-md">
+          {/* Live Action Bug (Center Top) */}
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 px-3 py-1 rounded-full bg-black/80 border border-stadiumGreen/40 text-stadiumGreen font-black text-[10px] backdrop-blur-md">
             <span>{actionPhase}</span>
           </div>
 
           {/* Home Players */}
           {[
             { x: 12, y: 50, label: 'GK' },
-            { x: 28, y: 25, label: 'LB' },
-            { x: 26, y: 45, label: 'CB' },
-            { x: 26, y: 55, label: 'CB' },
-            { x: 28, y: 75, label: 'RB' },
-            { x: 44, y: 35, label: 'CM' },
-            { x: 42, y: 50, label: 'DM' },
-            { x: 44, y: 65, label: 'CM' },
-            { x: 62, y: 25, label: 'LW' },
-            { x: 66, y: 50, label: 'ST' },
-            { x: 62, y: 75, label: 'RW' },
+            { x: 26, y: 25, label: 'LB' },
+            { x: 24, y: 45, label: 'CB' },
+            { x: 24, y: 55, label: 'CB' },
+            { x: 26, y: 75, label: 'RB' },
+            { x: 42, y: 35, label: 'CM' },
+            { x: 40, y: 50, label: 'DM' },
+            { x: 42, y: 65, label: 'CM' },
+            { x: 60, y: 25, label: 'LW' },
+            { x: 64, y: 50, label: 'ST' },
+            { x: 60, y: 75, label: 'RW' },
           ].map((p, i) => (
             <div
               key={`h-${i}`}
               style={{ left: `${p.x}%`, top: `${p.y}%` }}
               className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none"
             >
-              <div className="w-6 h-6 rounded-full bg-stadiumGreen text-black font-black text-[9px] flex items-center justify-center shadow-xl border border-white/40">
+              <div className="w-5 h-5 rounded-full bg-stadiumGreen text-black font-black text-[8px] flex items-center justify-center shadow-lg border border-white/40">
                 {p.label}
               </div>
             </div>
@@ -254,41 +252,39 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
             { x: 74, y: 75, label: 'LB' },
             { x: 58, y: 35, label: 'DM' },
             { x: 58, y: 65, label: 'DM' },
-            { x: 48, y: 25, label: 'RW' },
-            { x: 46, y: 50, label: 'AM' },
-            { x: 48, y: 75, label: 'LW' },
-            { x: 38, y: 50, label: 'ST' },
+            { x: 46, y: 25, label: 'RW' },
+            { x: 44, y: 50, label: 'AM' },
+            { x: 46, y: 75, label: 'LW' },
+            { x: 36, y: 50, label: 'ST' },
           ].map((p, i) => (
             <div
               key={`a-${i}`}
               style={{ left: `${p.x}%`, top: `${p.y}%` }}
               className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none"
             >
-              <div className="w-6 h-6 rounded-full bg-crimson text-white font-black text-[9px] flex items-center justify-center shadow-xl border border-white/40">
+              <div className="w-5 h-5 rounded-full bg-crimson text-white font-black text-[8px] flex items-center justify-center shadow-lg border border-white/40">
                 {p.label}
               </div>
             </div>
           ))}
 
-          {/* Real-Time Animated Match Ball */}
+          {/* Real-Time Ball Marker */}
           <div
             style={{ left: `${ballPos.x}%`, top: `${ballPos.y}%` }}
             className="absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-700 ease-out z-20"
           >
-            <div className="w-5 h-5 rounded-full bg-white text-black text-xs flex items-center justify-center shadow-2xl ring-4 ring-gold/70 animate-bounce">
+            <div className="w-4 h-4 rounded-full bg-white text-black text-[10px] flex items-center justify-center shadow-2xl ring-2 ring-gold animate-bounce">
               ⚽
             </div>
           </div>
 
-          {/* TV BROADCAST LOWER-THIRD BANNER (BOTTOM OVERLAY) */}
+          {/* Lower Third Banner */}
           {activeLowerThird && (
-            <div className="absolute bottom-4 left-4 right-4 sm:left-6 sm:right-6 z-30 p-3 rounded-2xl bg-black/90 backdrop-blur-xl border border-stadiumGreen/40 shadow-2xl flex items-center justify-between gap-3 animate-slideUp">
-              <div className="flex items-center space-x-3 min-w-0">
-                <div className="w-8 h-8 rounded-xl bg-stadiumGreen/20 border border-stadiumGreen text-stadiumGreen flex items-center justify-center text-base flex-shrink-0">
-                  {activeLowerThird.icon}
-                </div>
+            <div className="absolute bottom-3 left-3 right-3 sm:left-6 sm:right-6 z-30 p-2.5 rounded-xl bg-black/90 backdrop-blur-md border border-stadiumGreen/30 shadow-xl flex items-center justify-between gap-3 animate-slideUp">
+              <div className="flex items-center space-x-2.5 min-w-0">
+                <span className="text-base">{activeLowerThird.icon}</span>
                 <div className="min-w-0">
-                  <span className="font-black text-gold text-[10px] uppercase block tracking-wider">
+                  <span className="font-black text-gold text-[9px] uppercase block tracking-wider">
                     {activeLowerThird.title}
                   </span>
                   <span className="font-bold text-white text-xs truncate block font-sans">
@@ -297,8 +293,8 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
                 </div>
               </div>
 
-              <div className="hidden sm:flex items-center space-x-2 text-[10px] text-gray-400 font-sans flex-shrink-0">
-                <span>OPTA STATS LIVE</span>
+              <div className="hidden sm:flex items-center space-x-1 text-[9px] text-gray-400 font-sans flex-shrink-0">
+                <span>OPTA LIVE</span>
                 <span className="w-1.5 h-1.5 rounded-full bg-stadiumGreen animate-ping" />
               </div>
             </div>
@@ -306,36 +302,36 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
 
         </div>
       ) : (
-        /* DIRECT IN-BROWSER 90-MINUTE MATCH STREAM PLAYER */
+        /* MODE 2: MATCH HIGHLIGHTS VIDEO PLAYER */
         <div className="relative w-full aspect-video rounded-3xl bg-black border-2 border-stadiumGreen/40 overflow-hidden shadow-2xl flex flex-col items-center justify-center">
           <iframe
-            src={`https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(match.homeTeam + ' vs ' + match.awayTeam + ' full match live highlights ' + match.league)}&autoplay=1&mute=1&controls=1&modestbranding=1&rel=0`}
-            title={`Live Match Stream: ${match.homeTeam} vs ${match.awayTeam}`}
+            src={`https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(match.homeTeam + ' vs ' + match.awayTeam + ' match highlights ' + match.league)}&autoplay=1&mute=1&controls=1&modestbranding=1&rel=0`}
+            title={`Match Highlights: ${match.homeTeam} vs ${match.awayTeam}`}
             className="w-full h-full border-0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
           />
-          <div className="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-xl bg-black/80 border border-white/10 text-[9px] text-stadiumGreen font-black backdrop-blur-md flex items-center space-x-1.5 shadow-lg">
+          <div className="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-xl bg-black/85 border border-white/10 text-[9px] text-stadiumGreen font-black backdrop-blur-md flex items-center space-x-1.5 shadow-lg">
             <span className="w-2 h-2 rounded-full bg-crimson animate-ping" />
-            <span>100% FREE IN-BROWSER LIVE STREAM • 1080P HD</span>
+            <span>OFFICIAL MATCH HIGHLIGHTS & GOALS REPLAY</span>
           </div>
         </div>
       )}
 
-      {/* MATCH MOMENTUM & POSSESSION BAR */}
-      <div className="p-3 rounded-2xl bg-black/60 border border-white/10 flex items-center justify-between gap-3">
-        <div className="flex items-center space-x-2">
+      {/* POSSESSION BAR */}
+      <div className="p-2.5 rounded-2xl bg-black/60 border border-white/10 flex items-center justify-between gap-2">
+        <div className="flex items-center space-x-1.5">
           <span className="font-black text-stadiumGreen text-xs">{match.homeTeam}</span>
-          <span className="px-2 py-0.5 rounded bg-white/10 text-white font-bold text-[10px]">58% POSSESSION</span>
+          <span className="px-1.5 py-0.2 rounded bg-white/10 text-white font-bold text-[9px]">58%</span>
         </div>
 
-        <div className="flex-1 max-w-xs h-2 bg-black/80 rounded-full overflow-hidden flex mx-2">
+        <div className="flex-1 max-w-xs h-1.5 bg-black/80 rounded-full overflow-hidden flex mx-2">
           <div style={{ width: '58%' }} className="bg-stadiumGreen h-full" />
           <div style={{ width: '42%' }} className="bg-crimson h-full" />
         </div>
 
-        <div className="flex items-center space-x-2">
-          <span className="px-2 py-0.5 rounded bg-white/10 text-white font-bold text-[10px]">42% POSSESSION</span>
+        <div className="flex items-center space-x-1.5">
+          <span className="px-1.5 py-0.2 rounded bg-white/10 text-white font-bold text-[9px]">42%</span>
           <span className="font-black text-crimson text-xs">{match.awayTeam}</span>
         </div>
       </div>
