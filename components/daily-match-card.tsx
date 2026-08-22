@@ -221,7 +221,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
                 <span className="text-sm flex-shrink-0">{leagueInfo.flag}</span>
               )}
               <span className="text-xs font-black text-white hover:text-stadiumGreen transition-colors truncate">
-                {leagueInfo.name} <span className="text-[9px] text-gold font-bold">{t('Table ➔')}</span>
+                {leagueInfo.name}
               </span>
             </button>
 

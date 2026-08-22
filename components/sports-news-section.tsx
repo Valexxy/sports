@@ -336,16 +336,16 @@ export const SportsNewsSection: React.FC = () => {
 
             <div className="space-y-3">
               <div className="flex items-center justify-between text-gray-400 text-[10px]">
-                <span>Published: {activeArticle.pubDate}</span>
+                <span>{t('Played at')} {activeArticle.pubDate}</span>
                 <span className="text-stadiumGreen font-bold">100% Legal RSS Ingest ✓</span>
               </div>
 
               <h2 className="text-base sm:text-lg font-black text-white leading-snug">
-                {activeArticle.title}
+                {(lang !== 'en' && translatedMap[activeArticle.id]?.title) ? translatedMap[activeArticle.id].title : activeArticle.title}
               </h2>
 
               <p className="text-gray-300 font-sans text-xs sm:text-sm leading-relaxed whitespace-pre-line border-t border-b border-white/10 py-3">
-                {activeArticle.fullContent || activeArticle.description}
+                {(lang !== 'en' && translatedMap[activeArticle.id]?.description) ? translatedMap[activeArticle.id].description : (activeArticle.fullContent || activeArticle.description)}
               </p>
 
               <div className="flex items-center justify-between pt-2">
@@ -355,7 +355,7 @@ export const SportsNewsSection: React.FC = () => {
                   rel="noopener noreferrer"
                   className="px-4 py-2 rounded-xl bg-stadiumGreen text-black font-black text-xs flex items-center space-x-1.5 hover:bg-emerald-400 transition-all shadow"
                 >
-                  <span>Read on {activeArticle.source}</span>
+                  <span>{t('Read Story')} ({activeArticle.source})</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
 
@@ -364,7 +364,7 @@ export const SportsNewsSection: React.FC = () => {
                   className="px-4 py-2 rounded-xl bg-panel border border-white/10 text-white font-bold text-xs flex items-center space-x-1.5 hover:bg-white/10 transition-all shadow"
                 >
                   <Share2 className="w-3.5 h-3.5 text-gold" />
-                  <span>Share Story</span>
+                  <span>{t('Share Story')}</span>
                 </button>
               </div>
             </div>
