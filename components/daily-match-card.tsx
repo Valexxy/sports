@@ -285,29 +285,33 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
           </button>
 
           {/* Center: Live Score / Time */}
-          <div className="flex flex-col items-center justify-center px-2 flex-shrink-0 min-w-[60px] text-center">
+          <div className="flex flex-col items-center justify-center px-1.5 flex-shrink-0 min-w-[76px] text-center">
             {isLive ? (
               <>
-                <span className="font-mono font-black text-sm sm:text-base text-crimson animate-pulse">
-                  {match.homeScore ?? 0} - {match.awayScore ?? 0}
-                </span>
-                <span className="text-[9px] font-mono text-stadiumGreen font-black">
+                <div className="font-mono font-black text-sm sm:text-base text-crimson animate-pulse whitespace-nowrap flex items-center space-x-1">
+                  <span>{match.homeScore ?? 0}</span>
+                  <span className="text-gray-500">-</span>
+                  <span>{match.awayScore ?? 0}</span>
+                </div>
+                <span className="text-[9px] font-mono text-stadiumGreen font-black mt-0.5 whitespace-nowrap">
                   {match.matchTime || "64'"}
                 </span>
               </>
             ) : isFinished ? (
               <>
-                <span className="font-mono font-black text-xs sm:text-sm text-white">
-                  {match.homeScore ?? 0} - {match.awayScore ?? 0}
-                </span>
-                <span className="text-[8px] font-mono text-gray-400 font-bold">FT</span>
+                <div className="font-mono font-black text-xs sm:text-sm text-white whitespace-nowrap flex items-center space-x-1">
+                  <span>{match.homeScore ?? 0}</span>
+                  <span className="text-gray-500">-</span>
+                  <span>{match.awayScore ?? 0}</span>
+                </div>
+                <span className="text-[8px] font-mono text-gray-400 font-bold mt-0.5">FT</span>
               </>
             ) : (
               <>
-                <span className="font-mono font-black text-xs text-gold">
+                <span className="font-mono font-black text-xs text-gold whitespace-nowrap">
                   {match.matchTime || '19:00'}
                 </span>
-                <span className="text-[8px] text-gray-400 font-bold truncate">
+                <span className="text-[8px] text-gray-400 font-bold truncate mt-0.5">
                   {liveCountdown || 'Soon'}
                 </span>
               </>

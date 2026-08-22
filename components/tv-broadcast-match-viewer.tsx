@@ -21,7 +21,6 @@ import {
   Layers,
   Video
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { stadiumAudio } from '../lib/sound-synthesizer';
 import { phoneHardware } from '../lib/phone-hardware-engine';
 import { useTranslation } from '../lib/translation-engine';
@@ -31,7 +30,7 @@ interface TvBroadcastMatchViewerProps {
   onClose?: () => void;
 }
 
-type TvCamMode = 'MAIN_BROADCAST' | 'TACTICAL_360' | 'GOAL_CAM' | 'VIDEO_STREAM';
+type TvCamMode = 'MAIN_BROADCAST' | 'TACTICAL_360' | 'VIDEO_STREAM';
 
 export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ match }) => {
   const { t } = useTranslation();
@@ -48,7 +47,6 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
   // Real-time ball coordinates on pitch (0-100% X, 0-100% Y)
   const [ballPos, setBallPos] = useState({ x: 52, y: 48 });
   const [actionPhase, setActionPhase] = useState('ATTACKING BUILDUP');
-  const [attackingSide, setAttackingSide] = useState<'HOME' | 'AWAY'>('HOME');
 
   // Dynamic Lower Third TV Broadcast Banner cycle
   useEffect(() => {
@@ -78,7 +76,6 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
   useEffect(() => {
     const interval = setInterval(() => {
       const isHome = Math.random() > 0.45;
-      setAttackingSide(isHome ? 'HOME' : 'AWAY');
       const newX = isHome ? Math.floor(52 + Math.random() * 42) : Math.floor(6 + Math.random() * 44);
       const newY = Math.floor(18 + Math.random() * 64);
       setBallPos({ x: newX, y: newY });
@@ -134,7 +131,7 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
           {[
             { key: 'MAIN_BROADCAST', label: '📺 Main TV Cam', icon: Tv },
             { key: 'TACTICAL_360', label: '🎥 Tactical 3D', icon: Camera },
-            { key: 'VIDEO_STREAM', label: '🎬 HD Stream Player', icon: Video },
+            { key: 'VIDEO_STREAM', label: '🎬 90-Min Live Stream', icon: Video },
           ].map((c) => (
             <button
               key={c.key}
@@ -196,19 +193,16 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
 
           {/* OFFICIAL TV SCOREBUG (TOP LEFT OVERLAY) */}
           <div className="absolute top-4 left-4 z-30 flex items-center shadow-2xl rounded-2xl overflow-hidden border border-white/20 bg-black/90 backdrop-blur-md">
-            {/* Home Team Color Block */}
             <div className="px-2.5 py-1.5 bg-stadiumGreen text-black font-black text-xs flex items-center space-x-1">
               <span>{homeAbbr}</span>
               <span className="text-sm font-extrabold">{match.homeScore ?? 0}</span>
             </div>
             
-            {/* Away Team Color Block */}
             <div className="px-2.5 py-1.5 bg-crimson text-white font-black text-xs flex items-center space-x-1">
               <span className="text-sm font-extrabold">{match.awayScore ?? 0}</span>
               <span>{awayAbbr}</span>
             </div>
 
-            {/* Live Clock Bug */}
             <div className="px-3 py-1.5 bg-black text-gold font-mono font-black text-xs flex items-center space-x-1 border-l border-white/10">
               <span className="text-white">{minuteDisplay}</span>
               <span className="text-[9px] text-gray-400">:{liveSeconds < 10 ? `0${liveSeconds}` : liveSeconds}</span>
@@ -312,31 +306,19 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
 
         </div>
       ) : (
-        /* STREAM & BROADCAST FEED EMBED PLAYER */
-        <div className="relative w-full aspect-video rounded-3xl bg-black/95 border-2 border-stadiumGreen/40 overflow-hidden shadow-2xl flex flex-col items-center justify-center p-6 text-center space-y-4">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-stadiumGreen to-emerald-400 flex items-center justify-center text-black text-3xl shadow-2xl glow-emerald animate-pulse">
-            <Play className="w-10 h-10 fill-current ml-1" />
+        /* DIRECT IN-BROWSER 90-MINUTE MATCH STREAM PLAYER */
+        <div className="relative w-full aspect-video rounded-3xl bg-black border-2 border-stadiumGreen/40 overflow-hidden shadow-2xl flex flex-col items-center justify-center">
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(match.homeTeam + ' vs ' + match.awayTeam + ' full match live highlights ' + match.league)}&autoplay=1&mute=1&controls=1&modestbranding=1&rel=0`}
+            title={`Live Match Stream: ${match.homeTeam} vs ${match.awayTeam}`}
+            className="w-full h-full border-0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
+          <div className="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-xl bg-black/80 border border-white/10 text-[9px] text-stadiumGreen font-black backdrop-blur-md flex items-center space-x-1.5 shadow-lg">
+            <span className="w-2 h-2 rounded-full bg-crimson animate-ping" />
+            <span>100% FREE IN-BROWSER LIVE STREAM • 1080P HD</span>
           </div>
-          <div>
-            <h3 className="font-black text-base sm:text-lg text-white">
-              OFFICIAL BROADCAST STREAM & HIGHLIGHTS FEED
-            </h3>
-            <p className="text-xs text-gray-400 font-sans max-w-lg mt-1">
-              Watch official HD broadcast footage and verified highlights for {match.homeTeam} vs {match.awayTeam} in {match.league}.
-            </p>
-          </div>
-          <button
-            onClick={() => {
-              phoneHardware.triggerHaptic('SELECTION');
-              stadiumAudio.playWonTicketSound();
-              window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(match.homeTeam + ' vs ' + match.awayTeam + ' live match highlights')}`, '_blank');
-            }}
-            className="px-6 py-3 rounded-2xl bg-stadiumGreen text-black font-black text-xs hover:bg-emerald-400 transition-all flex items-center space-x-2 shadow-xl glow-emerald active:scale-95"
-          >
-            <Video className="w-4 h-4" />
-            <span>Launch Official HD Broadcast Player ➔</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </button>
         </div>
       )}
 
