@@ -14,7 +14,7 @@
 import { MatchData } from './sports-api';
 import { SmartSettlementEngine, SettledMatchRecord } from './smart-settlement-engine';
 import { getRedisCache, setRedisCache } from './upstash-redis-engine';
-import { supabaseAdmin } from './supabase-client';
+import { getAdminClient } from './supabase-client';
 
 export interface ArchivedMatch {
   id: string;
@@ -152,9 +152,10 @@ export async function buildDynamicArchive(): Promise<ArchivedMatch[]> {
       await setRedisCache(ARCHIVE_CACHE_KEY, archive, ARCHIVE_CACHE_TTL);
     } catch { /* noop */ }
     try {
-      const { data: existing } = await supabaseAdmin.from('settlement_ledger').select('id').limit(1);
+      const admin = getAdminClient();
+      const { data: existing } = await admin.from('settlement_ledger').select('id').limit(1);
       if (!existing || existing.length === 0) {
-        await supabaseAdmin.from('settlement_ledger').insert(
+        await admin.from('settlement_ledger').insert(
           archive.filter((a) => a.state === 'PLAYED').map((a) => ({
             id: a.id,
             date: a.date,

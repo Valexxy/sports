@@ -1,7 +1,7 @@
 -- ==============================================================================
--- AURASCORE STADIUM 2.0 - SUPABASE POSTGRESQL PRODUCTION DATABASE SCHEMA
--- Project Reference: wpspjtsrvvmlceizdzci
--- Execute this script in your Supabase Dashboard: SQL Editor -> New Query -> Run
+-- AURASCORE STADIUM 2.0 - PRODUCTION-GRADE SUPABASE POSTGRESQL SCHEMA
+-- Optimized for 1,000,000+ visitors per minute
+-- Execute in Supabase Dashboard: SQL Editor -> New Query -> Run
 -- ==============================================================================
 
 -- 1. MATCHES & LIVE FIXTURES TABLE
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS public.matches (
     home_score INTEGER DEFAULT 0,
     away_score INTEGER DEFAULT 0,
     minute INTEGER DEFAULT 0,
-    status TEXT NOT NULL DEFAULT 'SCHEDULED', -- 'SCHEDULED', 'LIVE', 'FINISHED'
+    status TEXT NOT NULL DEFAULT 'SCHEDULED',
     kickoff_time TEXT,
     home_xg NUMERIC(4, 2) DEFAULT 0.00,
     away_xg NUMERIC(4, 2) DEFAULT 0.00,
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS public.settlement_ledger (
     pick_selection TEXT NOT NULL,
     pick_market TEXT NOT NULL,
     pick_odds NUMERIC(4, 2) NOT NULL,
-    result TEXT NOT NULL, -- 'WON', 'LOST'
+    result TEXT NOT NULL,
     settlement_hash TEXT NOT NULL,
     settlement_note TEXT,
     tipster_name TEXT DEFAULT '@CyberStriker_99',
@@ -98,13 +98,79 @@ CREATE TABLE IF NOT EXISTS public.tipster_leaderboard (
     avatar TEXT NOT NULL
 );
 
--- ENABLE ROW LEVEL SECURITY (RLS) FOR PUBLIC ACCESS
+-- 7. LIVE COMMENTARY CACHE (for realtime per-match commentary)
+CREATE TABLE IF NOT EXISTS public.live_commentary (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    match_id TEXT NOT NULL,
+    minute TEXT,
+    text TEXT NOT NULL,
+    kind TEXT DEFAULT 'INFO',
+    team TEXT,
+    scorer TEXT,
+    sequence INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 8. PUSH SUBSCRIPTIONS (for web push notifications)
+CREATE TABLE IF NOT EXISTS public.push_subscriptions (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    endpoint TEXT NOT NULL UNIQUE,
+    keys_p256dh TEXT NOT NULL,
+    keys_auth TEXT NOT NULL,
+    user_agent TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 9. PRIVACY ANALYTICS (no cookies, no GA - just aggregate counts)
+CREATE TABLE IF NOT EXISTS public.privacy_analytics (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    event_type TEXT NOT NULL,
+    page_path TEXT,
+    country TEXT,
+    referrer TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- ==============================================================================
+-- PRODUCTION INDEXES (for 1M+ visitors/minute query performance)
+-- ==============================================================================
+
+CREATE INDEX IF NOT EXISTS idx_matches_status ON public.matches(status);
+CREATE INDEX IF NOT EXISTS idx_matches_league ON public.matches(league);
+CREATE INDEX IF NOT EXISTS idx_matches_kickoff ON public.matches(kickoff_time);
+CREATE INDEX IF NOT EXISTS idx_matches_status_league ON public.matches(status, league);
+
+CREATE INDEX IF NOT EXISTS idx_ledger_date ON public.settlement_ledger(match_date DESC);
+CREATE INDEX IF NOT EXISTS idx_ledger_league ON public.settlement_ledger(league);
+CREATE INDEX IF NOT EXISTS idx_ledger_result ON public.settlement_ledger(result);
+
+CREATE INDEX IF NOT EXISTS idx_comments_match ON public.fan_comments(match_id);
+CREATE INDEX IF NOT EXISTS idx_comments_created ON public.fan_comments(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_comments_match_created ON public.fan_comments(match_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_profiles_handle ON public.user_profiles(digital_handle);
+
+CREATE INDEX IF NOT EXISTS idx_commentary_match ON public.live_commentary(match_id);
+CREATE INDEX IF NOT EXISTS idx_commentary_match_seq ON public.live_commentary(match_id, sequence);
+
+CREATE INDEX IF NOT EXISTS idx_push_endpoint ON public.push_subscriptions(endpoint);
+
+CREATE INDEX IF NOT EXISTS idx_analytics_type ON public.privacy_analytics(event_type);
+CREATE INDEX IF NOT EXISTS idx_analytics_created ON public.privacy_analytics(created_at DESC);
+
+-- ==============================================================================
+-- ROW LEVEL SECURITY (RLS)
+-- ==============================================================================
+
 ALTER TABLE public.matches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.settlement_ledger ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.fan_comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.star_birthdays ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tipster_leaderboard ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.live_commentary ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.privacy_analytics ENABLE ROW LEVEL SECURITY;
 
 -- CREATE OPEN READ & INSERT POLICIES FOR WEB APP
 CREATE POLICY "Allow public read on matches" ON public.matches FOR SELECT USING (true);
@@ -113,7 +179,36 @@ CREATE POLICY "Allow public read & insert on fan_comments" ON public.fan_comment
 CREATE POLICY "Allow public read & write on user_profiles" ON public.user_profiles FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow public read & write on star_birthdays" ON public.star_birthdays FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow public read on tipster_leaderboard" ON public.tipster_leaderboard FOR SELECT USING (true);
+CREATE POLICY "Allow public read on live_commentary" ON public.live_commentary FOR SELECT USING (true);
+CREATE POLICY "Allow public insert on push_subscriptions" ON public.push_subscriptions FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public insert on privacy_analytics" ON public.privacy_analytics FOR INSERT WITH CHECK (true);
 
--- ENABLE REALTIME REPLICATION FOR LIVE CHAT & SCORES
+-- ==============================================================================
+-- REALTIME REPLICATION FOR LIVE CHAT, SCORES & COMMENTARY
+-- ==============================================================================
+
 ALTER PUBLICATION supabase_realtime ADD TABLE public.matches;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.fan_comments;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.live_commentary;
+
+-- ==============================================================================
+-- UPDATED_AT TRIGGERS (auto-update timestamps)
+-- ==============================================================================
+
+CREATE OR REPLACE FUNCTION public.handle_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = timezone('utc'::text, now());
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER IF NOT EXISTS matches_updated_at
+    BEFORE UPDATE ON public.matches
+    FOR EACH ROW
+    EXECUTE FUNCTION public.handle_updated_at();
+
+CREATE TRIGGER IF NOT EXISTS user_profiles_updated_at
+    BEFORE UPDATE ON public.user_profiles
+    FOR EACH ROW
+    EXECUTE FUNCTION public.handle_updated_at();

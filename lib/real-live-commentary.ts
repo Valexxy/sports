@@ -1,5 +1,5 @@
 /**
-em * 100% FREE REAL LIVE MATCH COMMENTARY ENGINE (ESPN PUBLIC API)
+ * 100% FREE REAL LIVE MATCH COMMENTARY ENGINE (ESPN PUBLIC API)
  * Pulls genuine per-minute play-by-play commentary from ESPN's public scoreboard/summary API.
  * No API key. Confirmed live: returns full match feed (goals, scorers, cards, subs, corners, fouls).
  */
