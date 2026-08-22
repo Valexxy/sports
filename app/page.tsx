@@ -29,6 +29,7 @@ import { SportsNewsSection } from '../components/sports-news-section';
 import { BetSlipDrawer, BetItem } from '../components/bet-slip-drawer';
 import { MobileAppDock } from '../components/mobile-app-dock';
 import { StadiumSuitesMenu } from '../components/stadium-suites-menu';
+import { CollapsibleStadiumHub } from '../components/collapsible-stadium-hub';
 import { EffectsModal } from '../components/effects-modal';
 import { VcFundingModal } from '../components/vc-funding-modal';
 import { fetchLiveMatches, MatchData } from '../lib/sports-api';
@@ -248,6 +249,17 @@ export default function Home() {
         <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 py-4 space-y-4">
 
           <GoogleDateNavigator onSelectDate={(dateStr, label, isToday) => { setSelectedDateStr(dateStr); setSelectedDateLabel(label); setIsViewingToday(isToday); setActiveFilter('ALL'); setSearchQuery(''); setVisibleCount(12); }} />
+
+          {/* COLLAPSIBLE STADIUM HUB & NAIJA LIVE SUITES */}
+          <CollapsibleStadiumHub
+            onOpenGrassroots={() => setShowGrassrootsModal(true)}
+            onOpenBanter={() => setShowBanterModal(true)}
+            onOpenBirthdays={() => setShowBirthdaysModal(true)}
+            onOpenLeaderboard={() => setShowLeaderboardModal(true)}
+            onOpenLedger={() => setShowTrackRecord(true)}
+            onOpenBankroll={() => setShowBankroll(true)}
+            onOpenReceipt={() => matches.length > 0 && setSelectedMatchForReceipt(matches[0])}
+          />
 
           {/* DAILY MATCHES SECTION */}
           <div className="space-y-3">
@@ -523,9 +535,6 @@ export default function Home() {
             </div>
           </div>
         </footer>
-
-        {/* Permanent Floating Language Switcher */}
-        <GlobalLanguageSwitcher floating />
 
       </div>
     </ErrorBoundary>
