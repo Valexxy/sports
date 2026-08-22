@@ -231,8 +231,22 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
           <div>
             <span className="font-black text-white text-xs block">🎙️ LIVE COMMENTARY — NAIJA VIBE</span>
             <span className="text-[9px] text-stadiumGreen flex items-center space-x-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-stadiumGreen animate-ping"></span>
-              <span>{resolvedHome} vs {resolvedAway} • {resolvedLeague}</span>
+              {resolvedStatus === 'LIVE' ? (
+                <>
+                  <span className="w-1.5 h-1.5 rounded-full bg-crimson animate-ping"></span>
+                  <span className="text-crimson font-black">LIVE IN-PLAY ({resolvedTime}) • {resolvedLeague}</span>
+                </>
+              ) : resolvedStatus === 'FINISHED' ? (
+                <>
+                  <span className="w-1.5 h-1.5 rounded-full bg-stadiumGreen"></span>
+                  <span className="text-gray-300 font-bold">FULL TIME (RESULT SETTLED) • {resolvedLeague}</span>
+                </>
+              ) : (
+                <>
+                  <span className="w-1.5 h-1.5 rounded-full bg-gold"></span>
+                  <span className="text-gold font-bold">KICKOFF AT {resolvedTime} • {resolvedLeague}</span>
+                </>
+              )}
             </span>
           </div>
         </div>
@@ -316,9 +330,11 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
       ) : error && events.length === 0 ? (
         <div className="p-5 text-center space-y-2">
           <p className="text-gray-400 text-[11px]">
-            {match
-              ? `No live feed for ${resolvedHome} vs ${resolvedAway} yet. Check back closer to kickoff.`
-              : 'Select a match to see live commentary.'}
+            {resolvedStatus === 'SCHEDULED'
+              ? `Match scheduled to kickoff at ${resolvedTime}. Live commentary will begin when the referee blows the whistle.`
+              : resolvedStatus === 'FINISHED'
+              ? `Match has concluded at full time. Final score: ${resolvedScore}.`
+              : `Live in-play commentary active for ${resolvedHome} vs ${resolvedAway}.`}
           </p>
           <button
             onClick={handleSpeak}

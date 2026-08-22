@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { LockScreenMatchTracker } from '../lib/lockscreen-live-score-tracker';
 import { MatchData } from '../lib/sports-api';
 import { EdgeAiCommentator } from './edge-ai-commentator';
 import { MatchAnalyticsHub } from './match-analytics-hub';
@@ -186,6 +187,20 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={async () => {
+                const pinned = await LockScreenMatchTracker.pinMatchToLockScreen(match);
+                if (pinned) {
+                  confetti({ particleCount: 50, spread: 60, origin: { y: 0.5 } });
+                }
+              }}
+              className="px-3.5 py-2 rounded-xl text-xs font-mono font-black bg-gradient-to-r from-gold/20 to-stadiumGreen/20 hover:from-gold/30 hover:to-stadiumGreen/30 text-white border border-gold/40 flex items-center space-x-1.5 transition-all shadow-md active:scale-95"
+              title="Pin Live Score to Phone Lock Screen"
+            >
+              <span>📌</span>
+              <span>Pin to Lock Screen (Live Google Style)</span>
+            </button>
+
             <button
               onClick={handleToggleFollow}
               className={`px-3.5 py-2 rounded-xl text-xs font-mono font-black flex items-center space-x-2 transition-all shadow-md ${

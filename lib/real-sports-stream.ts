@@ -457,21 +457,28 @@ export async function getRealLiveAndPlayedMatches(): Promise<MatchData[]> {
         }
       }
 
-      // De-duplicate by normalized team name
+      // De-duplicate by normalized team name (strictly prioritize playing/live matches)
       const seen = new Map<string, MatchData>();
 
       for (const m of combined) {
-        // Skip cancelled or postponed matches
         if ((m.status as string) === 'CANCELLED' || (m.status as string) === 'POSTPONED' || (m as any).isCancelled) continue;
 
         const key = `${normalizeTeamKey(m.homeTeam)}_${normalizeTeamKey(m.awayTeam)}`;
         const existing = seen.get(key);
+
         if (!existing) {
           seen.set(key, m);
         } else {
-          // If the new one is LIVE or richer, replace
+          // If ONE is LIVE and the other is NOT live, strictly keep the LIVE one and turn off the non-playing one!
           if (m.status === 'LIVE' && existing.status !== 'LIVE') {
             seen.set(key, m);
+          } else if (existing.status === 'LIVE' && m.status !== 'LIVE') {
+            // Keep existing live, discard non-live
+          } else if (m.status === 'LIVE' && existing.status === 'LIVE') {
+            // If both are live, keep the one with active in-play match time (e.g. 48')
+            if (m.matchTime && m.matchTime.includes("'") && (!existing.matchTime || !existing.matchTime.includes("'"))) {
+              seen.set(key, m);
+            }
           } else if (m.id.startsWith('espn-') && !existing.id.startsWith('espn-')) {
             seen.set(key, m);
           }

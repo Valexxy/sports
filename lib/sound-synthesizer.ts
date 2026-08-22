@@ -51,10 +51,11 @@ class StadiumAudioEngine {
       const utter = new SpeechSynthesisUtterance(text);
       const voices = window.speechSynthesis.getVoices();
 
+      // Prioritize authentic Nigerian voice profile
       const ngVoice =
-        voices.find((v) => v.lang === 'en-NG' || v.lang === 'en_NG' || v.name.toLowerCase().includes('nigeria')) ||
-        voices.find((v) => v.lang === 'en-GB' && v.name.toLowerCase().includes('male')) ||
-        voices.find((v) => v.lang === 'en-GB') ||
+        voices.find((v) => v.lang.toLowerCase().includes('ng') || v.name.toLowerCase().includes('nigeria')) ||
+        voices.find((v) => v.lang.toLowerCase().includes('en-za') || v.name.toLowerCase().includes('africa')) ||
+        voices.find((v) => v.lang.toLowerCase().includes('en-gb')) ||
         voices[0];
 
       if (ngVoice) utter.voice = ngVoice;
