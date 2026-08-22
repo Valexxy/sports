@@ -366,7 +366,7 @@ export default function Home() {
             </div>
 
             {/* Filter pills with counts */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+            <div className="flex flex-wrap items-center gap-2 pb-1">
               {filterPills.map(pill => (
                 <button key={pill.key} onClick={() => { setActiveFilter(pill.key); setVisibleCount(12); }}
                   className={'flex-shrink-0 flex items-center space-x-1.5 px-3 py-2 rounded-2xl border text-xs font-black transition-all ' +

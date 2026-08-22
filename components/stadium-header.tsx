@@ -144,18 +144,10 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
           </Link>
 
           <button
-            onClick={onOpenSuitesMenu}
-            className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-stadiumGreen/20 to-gold/20 hover:from-stadiumGreen/30 hover:to-gold/30 text-white font-bold transition-all flex items-center space-x-1.5 border border-stadiumGreen/30"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-gold animate-pulse" />
-            <span>{t('Stadium Hub ⚡')}</span>
-          </button>
-
-          <button
             onClick={onOpenLeaderboard}
             className="px-3 py-1.5 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 font-bold transition-all flex items-center space-x-1"
           >
-            <Trophy className="w-3 h-3 text-gold" />
+            <Trophy className="w-3.5 h-3.5 text-gold" />
             <span>{t('Leaderboard')}</span>
           </button>
 
@@ -163,8 +155,16 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
             onClick={onOpenBirthdays}
             className="px-3 py-1.5 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 font-bold transition-all flex items-center space-x-1"
           >
-            <Cake className="w-3 h-3 text-pink-400" />
+            <Cake className="w-3.5 h-3.5 text-pink-400" />
             <span>{t('Birthdays')}</span>
+          </button>
+
+          <button
+            onClick={onOpenSuitesMenu}
+            className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold transition-all flex items-center space-x-1 border border-white/10"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-gold" />
+            <span>{t('Hub')} ⚡</span>
           </button>
         </nav>
 
