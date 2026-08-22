@@ -132,6 +132,20 @@ CREATE TABLE IF NOT EXISTS public.privacy_analytics (
 );
 
 -- ==============================================================================
+-- ADD MISSING COLUMNS TO EXISTING TABLES (for upgrades from older schema)
+-- ==============================================================================
+
+ALTER TABLE public.matches ADD COLUMN IF NOT EXISTS kickoff_time TEXT;
+ALTER TABLE public.matches ADD COLUMN IF NOT EXISTS home_xg NUMERIC(4, 2) DEFAULT 0.00;
+ALTER TABLE public.matches ADD COLUMN IF NOT EXISTS away_xg NUMERIC(4, 2) DEFAULT 0.00;
+ALTER TABLE public.matches ADD COLUMN IF NOT EXISTS top_pick_selection TEXT;
+ALTER TABLE public.matches ADD COLUMN IF NOT EXISTS top_pick_market TEXT;
+ALTER TABLE public.matches ADD COLUMN IF NOT EXISTS top_pick_odds NUMERIC(4, 2);
+ALTER TABLE public.matches ADD COLUMN IF NOT EXISTS top_pick_probability NUMERIC(4, 1);
+ALTER TABLE public.matches ADD COLUMN IF NOT EXISTS top_pick_tier TEXT DEFAULT 'HIGH-STRENGTH';
+ALTER TABLE public.matches ADD COLUMN IF NOT EXISTS league_flag TEXT DEFAULT '⚽';
+
+-- ==============================================================================
 -- PRODUCTION INDEXES (for 1M+ visitors/minute query performance)
 -- ==============================================================================
 
