@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from '../lib/translation-engine';
-import { translateArticle } from '../lib/news-translator';
+import { batchTranslateArticles } from '../lib/news-translator';
 import { Newspaper, Clock, X, RefreshCw, ChevronDown, ChevronUp, Flame, ThumbsUp, Target, Share2, ExternalLink, Zap } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -65,24 +65,20 @@ export const SportsNewsSection: React.FC = () => {
 
   // Neural Digital Translation Effect for News Articles across Nigerian & International Languages
   useEffect(() => {
-    if (lang === 'en' || articles.length === 0) return;
+    if (lang === 'en' || articles.length === 0) {
+      setTranslatedMap({});
+      return;
+    }
     let isMounted = true;
 
-    async function translateAllArticles() {
-      const updates: Record<string, { title: string; description: string }> = {};
-      const batch = articles.slice(0, 15);
-      await Promise.all(
-        batch.map(async (art) => {
-          const res = await translateArticle(art, lang);
-          updates[art.id] = res;
-        })
-      );
+    async function runBatchTranslation() {
+      const res = await batchTranslateArticles(articles, lang);
       if (isMounted) {
-        setTranslatedMap((prev) => ({ ...prev, ...updates }));
+        setTranslatedMap(res);
       }
     }
 
-    translateAllArticles();
+    runBatchTranslation();
     return () => {
       isMounted = false;
     };

@@ -252,7 +252,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
             {isLive && (
               <span className="flex-shrink-0 flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-crimson/30 border border-crimson/70 text-crimson text-[10px] font-black animate-pulse shadow-md shadow-crimson/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-crimson inline-block animate-ping" />
-                <span>LIVE</span>
+                <span>{t("Live")}</span>
               </span>
             )}
 
@@ -260,7 +260,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
             {isFinished && (
               <span className={'flex-shrink-0 flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-black border ' + (outcome?.won ? 'bg-stadiumGreen/25 border-stadiumGreen text-stadiumGreen shadow-md shadow-stadiumGreen/25' : 'bg-crimson/25 border-crimson text-crimson shadow-md shadow-crimson/20')}>
                 {outcome?.won ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                <span>{outcome?.won ? 'FT • WON' : 'FT • LOST'}</span>
+                <span>{outcome?.won ? t('FT • WON') : t('FT • LOST')}</span>
               </span>
             )}
 
@@ -369,9 +369,9 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
         {/* Row 3: Win probability bar */}
         <div className="space-y-1">
           <div className="flex justify-between text-[10px] font-mono">
-            <span className="text-stadiumGreen font-bold">{homeW}% Home</span>
-            <span className="text-gold">{drawW}% Draw</span>
-            <span className="text-cyberPurple font-bold">{awayW}% Away</span>
+            <span className="text-stadiumGreen font-bold">{homeW}% {t("Home")}</span>
+            <span className="text-gold">{drawW}% {t("Draw")}</span>
+            <span className="text-cyberPurple font-bold">{awayW}% {t("Away")}</span>
           </div>
           <div className="h-2.5 w-full rounded-full bg-gray-900 overflow-hidden flex">
             <div style={{ width: homeW + '%' }} className="h-full bg-stadiumGreen transition-all duration-500" />
@@ -403,7 +403,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-1.5 mb-0.5">
                 <span className="text-base">👑</span>
-                <span className="text-[10px] font-black uppercase tracking-wider opacity-80">{p.topPick.confidenceTier}</span>
+                <span className="text-[10px] font-black uppercase tracking-wider opacity-80">{t(p.topPick.confidenceTier)}</span>
               </div>
               <p className="font-black text-sm text-white truncate">{p.topPick.selection}</p>
               <div className="flex items-center space-x-2 mt-1">

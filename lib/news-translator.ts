@@ -2,7 +2,6 @@
 
 import { LanguageCode } from './translation-engine';
 
-// In-memory translation cache for instantaneous retrieval
 const MEMORY_CACHE = new Map<string, string>();
 
 const PIDGIN_REPLACEMENTS: Record<string, string> = {
@@ -32,88 +31,92 @@ function translateToPidgin(text: string): string {
   return res;
 }
 
-const LANG_CODE_MAP: Record<LanguageCode, string> = {
-  en: 'en',
-  pidgin: 'pcm',
-  yoruba: 'yo',
-  igbo: 'ig',
-  hausa: 'ha',
-};
-
-/**
- * Translate a string into the target language using neural digital translation + local caching
- */
-export async function translateText(text: string, targetLang: LanguageCode): Promise<string> {
-  if (!text || targetLang === 'en') return text;
-
-  const cacheKey = `${targetLang}:${text}`;
-  if (MEMORY_CACHE.has(cacheKey)) {
-    return MEMORY_CACHE.get(cacheKey)!;
+export async function batchTranslateArticles(
+  articles: Array<{ id: string; title: string; description: string }>,
+  targetLang: LanguageCode
+): Promise<Record<string, { title: string; description: string }>> {
+  const result: Record<string, { title: string; description: string }> = {};
+  if (targetLang === 'en' || !articles || articles.length === 0) {
+    articles.forEach((a) => {
+      result[a.id] = { title: a.title, description: a.description };
+    });
+    return result;
   }
 
-  // Check localStorage if available
-  if (typeof window !== 'undefined') {
-    try {
-      const stored = localStorage.getItem(`trans_${cacheKey}`);
-      if (stored) {
-        MEMORY_CACHE.set(cacheKey, stored);
-        return stored;
-      }
-    } catch { /* noop */ }
-  }
-
-  // Special Pidgin handling
+  // Handle Pidgin locally for fast authentic Nigerian slang
   if (targetLang === 'pidgin') {
-    const pidginResult = translateToPidgin(text);
-    MEMORY_CACHE.set(cacheKey, pidginResult);
-    return pidginResult;
+    articles.forEach((a) => {
+      result[a.id] = {
+        title: translateToPidgin(a.title),
+        description: translateToPidgin(a.description),
+      };
+    });
+    return result;
   }
 
-  const gtxLang = LANG_CODE_MAP[targetLang] || 'en';
+  // Check cache first
+  const missingTexts: string[] = [];
+  const missingMap: Array<{ id: string; field: 'title' | 'description'; index: number }> = [];
 
-  try {
-    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${gtxLang}&dt=t&q=${encodeURIComponent(text)}`;
-    const res = await fetch(url);
-    if (res.ok) {
-      const json = await res.json();
-      if (Array.isArray(json) && json[0]) {
-        const translated = json[0].map((item: any) => item[0]).join('');
-        if (translated) {
-          MEMORY_CACHE.set(cacheKey, translated);
-          if (typeof window !== 'undefined') {
-            try {
-              localStorage.setItem(`trans_${cacheKey}`, translated);
-            } catch { /* noop */ }
-          }
-          return translated;
+  articles.forEach((a) => {
+    const titleKey = `${targetLang}:${a.title}`;
+    const descKey = `${targetLang}:${a.description}`;
+
+    const cachedTitle = MEMORY_CACHE.get(titleKey);
+    const cachedDesc = MEMORY_CACHE.get(descKey);
+
+    let title = cachedTitle || a.title;
+    let description = cachedDesc || a.description;
+
+    if (!cachedTitle) {
+      missingMap.push({ id: a.id, field: 'title', index: missingTexts.length });
+      missingTexts.push(a.title);
+    }
+    if (!cachedDesc) {
+      missingMap.push({ id: a.id, field: 'description', index: missingTexts.length });
+      missingTexts.push(a.description);
+    }
+
+    result[a.id] = { title, description };
+  });
+
+  if (missingTexts.length > 0) {
+    try {
+      const res = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ texts: missingTexts, targetLang }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.translated && Array.isArray(data.translated)) {
+          missingMap.forEach((mapping) => {
+            const translatedVal = data.translated[mapping.index];
+            if (translatedVal) {
+              const original = mapping.field === 'title' ? articles.find((a) => a.id === mapping.id)?.title : articles.find((a) => a.id === mapping.id)?.description;
+              if (original) {
+                MEMORY_CACHE.set(`${targetLang}:${original}`, translatedVal);
+              }
+              if (result[mapping.id]) {
+                result[mapping.id][mapping.field] = translatedVal;
+              }
+            }
+          });
         }
       }
+    } catch (err) {
+      console.warn('Batch translation API error:', err);
     }
-  } catch (err) {
-    console.warn('Digital translation error, using fallback:', err);
   }
 
-  return text;
+  return result;
 }
 
-/**
- * Batch translate multiple fields in articles
- */
 export async function translateArticle(
-  article: { title: string; description: string; categoryBadge?: string },
+  article: { title: string; description: string },
   targetLang: LanguageCode
 ): Promise<{ title: string; description: string }> {
-  if (targetLang === 'en') {
-    return { title: article.title, description: article.description };
-  }
-
-  const [tTitle, tDesc] = await Promise.all([
-    translateText(article.title, targetLang),
-    translateText(article.description, targetLang),
-  ]);
-
-  return {
-    title: tTitle,
-    description: tDesc,
-  };
+  const map = await batchTranslateArticles([ { id: 'single', title: article.title, description: article.description } ], targetLang);
+  return map['single'] || article;
 }
