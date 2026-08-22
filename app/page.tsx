@@ -52,6 +52,9 @@ export default function Home() {
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('ALL');
+  const [selectedDateStr, setSelectedDateStr] = useState<string>(() => new Date().toISOString().split('T')[0]);
+  const [selectedDateLabel, setSelectedDateLabel] = useState<string>('Today');
+  const [isViewingToday, setIsViewingToday] = useState<boolean>(true);
   const [selectedSport, setSelectedSport] = useState<'SOCCER' | 'BASKETBALL' | 'TENNIS'>('SOCCER');
   const [visibleCount, setVisibleCount] = useState(12);
   const [activeDockTab, setActiveDockTab] = useState('MATCHES');
@@ -184,7 +187,17 @@ export default function Home() {
 
   const filteredMatches = React.useMemo(() => {
     const base = matches.filter(m => {
-      if (m.sport !== selectedSport) return false;
+      // Filter by Date (Match utcDate ISO YYYY-MM-DD vs selectedDateStr)
+      if (selectedDateStr) {
+        const matchDate = m.utcDate ? m.utcDate.slice(0, 10) : new Date().toISOString().split('T')[0];
+        // Allow Live matches to show on Today
+        if (isViewingToday && m.status === 'LIVE') {
+          // keep live
+        } else if (matchDate !== selectedDateStr) {
+          return false;
+        }
+      }
+
       const q = searchQuery.toLowerCase();
       if (q && !m.homeTeam.toLowerCase().includes(q) && !m.awayTeam.toLowerCase().includes(q) && !m.league.toLowerCase().includes(q)) return false;
       if (activeFilter === 'LIVE') return m.status === 'LIVE';
@@ -194,7 +207,7 @@ export default function Home() {
       return true; // ALL
     });
     return sortMatchesByClosestKickoff(base, activeFilter);
-  }, [matches, selectedSport, searchQuery, activeFilter, highGuaranteesOnly]);
+  }, [matches, selectedDateStr, isViewingToday, searchQuery, activeFilter, highGuaranteesOnly]);
 
   const displayedMatches = filteredMatches.slice(0, visibleCount);
 
@@ -233,7 +246,7 @@ export default function Home() {
 
         <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 py-4 space-y-4">
 
-          <GoogleDateNavigator onSelectDate={(filter) => { setActiveFilter(filter as FilterType); setSearchQuery(''); }} />
+          <GoogleDateNavigator onSelectDate={(dateStr, label, isToday) => { setSelectedDateStr(dateStr); setSelectedDateLabel(label); setIsViewingToday(isToday); setActiveFilter('ALL'); setSearchQuery(''); setVisibleCount(12); }} />
 
           {/* DAILY MATCHES SECTION */}
           <div className="space-y-3">
@@ -245,14 +258,14 @@ export default function Home() {
                 <div>
                   <h2 className="text-base font-black text-white flex items-center space-x-2">
                     <Calendar className="w-4 h-4 text-stadiumGreen" />
-                    <span>Today's Matches</span>
+                    <span>{isViewingToday ? "Today's Matches" : `${selectedDateLabel} Matches`}</span>
                     {liveCount > 0 && (
                       <span className="px-2 py-0.5 rounded-full bg-crimson text-white text-[10px] font-black animate-pulse">
                         {liveCount} LIVE
                       </span>
                     )}
                   </h2>
-                  <p className="text-[11px] text-gray-400">{todayLabel} &bull; {filteredMatches.length} fixtures</p>
+                  <p className="text-[11px] text-gray-400">{isViewingToday ? todayLabel : selectedDateStr} &bull; {filteredMatches.length} fixtures</p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">

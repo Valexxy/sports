@@ -108,6 +108,7 @@ async function fetchFootballDataMatches(): Promise<MatchData[]> {
         sport: meta.sport,
         venue: m.venue || 'Official League Stadium',
         referee: m.referees?.[0]?.name || 'Official Match Referee',
+        utcDate: m.utcDate || new Date().toISOString(),
         stadiumTension: isLive ? 94 : isFinished ? 10 : Math.round(dcOutput.topPick.probability),
         prediction: {
           topPick: {
@@ -240,6 +241,7 @@ async function fetchSingleEspnLeague(ep: typeof ESPN_LEAGUES[0]): Promise<MatchD
         sport: ep.sport,
         venue: comp.venue?.fullName || `${homeTeam} Stadium`,
         referee: 'Official League Referee',
+        utcDate: ev.date || comp.date || new Date().toISOString(),
         stadiumTension: isLive ? 95 : isFinished ? 12 : Math.round(dcOutput.topPick.probability),
         prediction: {
           topPick: {
