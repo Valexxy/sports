@@ -12,27 +12,28 @@ interface SettlementLedgerSectionProps {
 export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = ({ onOpenAuditModal }) => {
   const [archive, setArchive] = useState<ArchivedMatch[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const [filter, setFilter] = useState<'ALL' | 'WON' | 'LOST'>('ALL');
   const [selectedDate, setSelectedDate] = useState<string>('ALL');
 
-  // Load the live-computed settlement ledger (real scores only).
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        const res = await fetch('/api/settlement', { cache: 'no-store' });
-        const data = await res.json();
-        if (active && data?.success && Array.isArray(data.archive)) {
-          setArchive(data.archive);
-        }
-      } catch {
-        /* network error — empty archive */
-      } finally {
-        if (active) setLoading(false);
+  const fetchSettlement = async () => {
+    try {
+      const res = await fetch('/api/settlement', { cache: 'no-store' });
+      const data = await res.json();
+      if (data?.success && Array.isArray(data.archive)) {
+        setArchive(data.archive);
       }
-    })();
-    return () => { active = false; };
+    } catch {
+      /* network error — empty archive */
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSettlement();
+    const interval = setInterval(fetchSettlement, 30000); // 30s auto-refresh
+    return () => clearInterval(interval);
   }, []);
 
   const wonCount = archive.filter((m) => m.prediction.result === 'WON').length;

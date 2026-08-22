@@ -18,10 +18,10 @@ export interface SportsArticle {
 export const SportsNewsSection: React.FC = () => {
   const [articles, setArticles] = useState<SportsArticle[]>([]);
   const [loading, setLoading] = useState(true);
-  const [visibleCount, setVisibleCount] = useState(3);
+  const [visibleCount, setVisibleCount] = useState(6);
   const [activeArticle, setActiveArticle] = useState<SportsArticle | null>(null);
   const [autoSync, setAutoSync] = useState(true);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const [reactions, setReactions] = useState<Record<string, { flame: number; target: number; clap: number }>>({});
 
   const loadNews = async () => {

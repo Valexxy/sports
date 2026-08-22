@@ -381,7 +381,6 @@ export default function Home() {
               <button onClick={() => setShowSuitesMenu(true)} className="text-[10px] text-stadiumGreen font-bold hover:underline">Open Full Menu</button>
             </div>
             <ViralFeaturesGrid matches={matches} onSelectMatch={(m) => setSelectedMatchForInsights(m)} />
-            <StadiumUserWeatherPanel venueName={matches[0]?.venue} />
             <SettlementLedgerSection onOpenAuditModal={() => setShowHistoryModal(true)} />
             <SportsNewsSection />
           </div>

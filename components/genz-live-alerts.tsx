@@ -79,6 +79,13 @@ export const GenZLiveAlerts: React.FC<GenZLiveAlertsProps> = ({
     stadiumAudio.playCrowdRoar();
   };
 
+  // Auto-dismiss after 7 seconds
+  useEffect(() => {
+    if (!activeAlert) return;
+    const t = setTimeout(() => setActiveAlert(null), 7000);
+    return () => clearTimeout(t);
+  }, [activeAlert]);
+
   const handleOpenAudit = () => {
     if (activeAlert && onOpenMatchAudit) {
       onOpenMatchAudit(activeAlert.match);
@@ -91,15 +98,15 @@ export const GenZLiveAlerts: React.FC<GenZLiveAlertsProps> = ({
   return (
     <div 
       onClick={handleOpenAudit}
-      className="fixed top-14 left-1/2 -translate-x-1/2 z-50 w-[92vw] max-w-lg glass-panel-premium rounded-3xl p-4 border border-stadiumGreen/60 shadow-2xl space-y-2.5 font-mono text-xs animate-fadeIn cursor-pointer hover:scale-[1.02] transition-all"
+      className="fixed bottom-20 right-3 sm:right-6 z-50 w-[92vw] sm:w-96 glass-panel-premium rounded-2xl p-3.5 border border-stadiumGreen/60 shadow-2xl space-y-2 font-mono text-xs animate-slideUp cursor-pointer hover:scale-[1.02] transition-all"
     >
       {/* Top Header */}
-      <div className="flex items-center justify-between border-b border-white/10 pb-2">
-        <div className="flex items-center space-x-2">
-          <span className={`px-2.5 py-0.5 rounded-full text-[10px] uppercase font-mono ${activeAlert.badgeStyle}`}>
+      <div className="flex items-center justify-between border-b border-white/10 pb-1.5">
+        <div className="flex items-center space-x-2 min-w-0">
+          <span className={`px-2 py-0.5 rounded-full text-[9px] uppercase font-mono flex-shrink-0 ${activeAlert.badgeStyle}`}>
             {activeAlert.badge}
           </span>
-          <span className="font-extrabold text-white text-xs">{activeAlert.matchTitle}</span>
+          <span className="font-black text-white text-xs truncate">{activeAlert.matchTitle}</span>
         </div>
 
         <button 
@@ -107,44 +114,43 @@ export const GenZLiveAlerts: React.FC<GenZLiveAlertsProps> = ({
             e.stopPropagation();
             setActiveAlert(null);
           }} 
-          className="p-1 text-gray-400 hover:text-white transition-all rounded-full bg-panel border border-white/10"
+          className="p-1 text-gray-400 hover:text-white transition-all rounded-full bg-panel border border-white/10 flex-shrink-0"
         >
-          <X className="w-4 h-4" />
+          <X className="w-3.5 h-3.5" />
         </button>
       </div>
 
       {/* Message Body */}
-      <p className="text-gray-200 font-sans text-xs leading-relaxed font-medium">
+      <p className="text-gray-200 font-sans text-xs leading-snug line-clamp-2">
         {activeAlert.message}
       </p>
 
       {/* Interactive Actions */}
-      <div className="flex items-center space-x-2 pt-1">
-        <button
-          onClick={handleReactHype}
-          className="py-2 px-3 rounded-xl bg-stadiumGreen/20 hover:bg-stadiumGreen/30 border border-stadiumGreen/40 text-stadiumGreen font-black text-[11px] flex items-center justify-center space-x-1 transition-all"
-        >
-          <Flame className="w-3.5 h-3.5" />
-          <span>React Hype 🔥</span>
-        </button>
-
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            stadiumAudio.playCrowdRoar();
-          }}
-          className="p-2 rounded-xl bg-gold/20 hover:bg-gold/30 border border-gold/40 text-gold font-bold transition-all"
-          title="Play Crowd Cheer 🔊"
-        >
-          <Volume2 className="w-4 h-4" />
-        </button>
-
-        <div className="flex-1 text-right">
-          <span className="text-[10px] text-stadiumGreen font-bold flex items-center justify-end space-x-1">
-            <span>View Settlement Audit</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
-          </span>
+      <div className="flex items-center justify-between pt-1">
+        <div className="flex items-center space-x-1.5">
+          <button
+            onClick={handleReactHype}
+            className="py-1 px-2.5 rounded-xl bg-stadiumGreen/20 hover:bg-stadiumGreen/30 border border-stadiumGreen/40 text-stadiumGreen font-black text-[10px] flex items-center space-x-1 transition-all"
+          >
+            <Flame className="w-3 h-3 fill-current" />
+            <span>Hype 🔥</span>
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              stadiumAudio.playCrowdRoar();
+            }}
+            className="p-1.5 rounded-xl bg-gold/20 hover:bg-gold/30 border border-gold/40 text-gold font-bold transition-all"
+            title="Cheer 🔊"
+          >
+            <Volume2 className="w-3 h-3" />
+          </button>
         </div>
+
+        <span className="text-[10px] text-stadiumGreen font-bold flex items-center space-x-0.5 hover:underline">
+          <span>View Audit</span>
+          <ArrowUpRight className="w-3 h-3" />
+        </span>
       </div>
 
     </div>
