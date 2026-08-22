@@ -1,0 +1,192 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { 
+  User, 
+  Star, 
+  X, 
+  Search, 
+  Shield, 
+  Zap, 
+  Bell, 
+  Trophy, 
+  Flame, 
+  Smartphone,
+  CheckCircle2
+} from 'lucide-react';
+import confetti from 'canvas-confetti';
+import { FEATURED_PLAYERS_CATALOG, FollowedPlayer, playerFollowEngine } from '../lib/player-follow-engine';
+import { stadiumAudio } from '../lib/sound-synthesizer';
+import { phoneHardware } from '../lib/phone-hardware-engine';
+import { useTranslation } from '../lib/translation-engine';
+
+interface PlayerRadarModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const PlayerRadarModal: React.FC<PlayerRadarModalProps> = ({ isOpen, onClose }) => {
+  const { t } = useTranslation();
+  const [search, setSearch] = useState('');
+  const [followedList, setFollowedList] = useState<string[]>([]);
+  const [testSent, setTestSent] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setFollowedList(playerFollowEngine.getFollowedPlayers());
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const filteredPlayers = FEATURED_PLAYERS_CATALOG.filter((p) =>
+    p.name.toLowerCase().includes(search.toLowerCase()) ||
+    p.club.toLowerCase().includes(search.toLowerCase()) ||
+    p.country.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleToggle = (player: FollowedPlayer) => {
+    phoneHardware.triggerHaptic('SELECTION');
+    const isNow = playerFollowEngine.toggleFollowPlayer(player.name);
+    setFollowedList(playerFollowEngine.getFollowedPlayers());
+    if (isNow) {
+      stadiumAudio.playBookmarkSound();
+      confetti({ particleCount: 50, spread: 60, origin: { y: 0.5 } });
+    } else {
+      stadiumAudio.playRemovePickSound();
+    }
+  };
+
+  const handleTestLockScreen = async () => {
+    phoneHardware.triggerHaptic('SELECTION');
+    stadiumAudio.playWonTicketSound();
+    setTestSent(true);
+    await playerFollowEngine.sendLockScreenAlert(
+      '⚽ GOAL ALERT: Victor Osimhen Scored! (64\')',
+      'Galatasaray 2 - 1 Fenerbahçe. Victor Osimhen scored a diving header! Tap to view live stadium radar.'
+    );
+    confetti({ particleCount: 60, spread: 70, origin: { y: 0.5 } });
+    setTimeout(() => setTestSent(false), 3000);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-2xl flex items-center justify-center p-2 sm:p-5 animate-fadeIn font-mono text-xs">
+      <div className="relative w-full max-w-4xl h-[92vh] glass-panel-premium rounded-3xl border-2 border-stadiumGreen/60 p-4 sm:p-6 shadow-2xl flex flex-col space-y-4">
+        
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/10 pb-4 flex-shrink-0">
+          <div className="flex items-center space-x-3">
+            <div className="p-2.5 rounded-2xl bg-gradient-to-tr from-gold via-stadiumGreen to-cyberPurple text-black font-black shadow-lg">
+              <Star className="w-6 h-6 text-black fill-current" />
+            </div>
+            <div>
+              <div className="flex items-center space-x-2">
+                <h1 className="font-black text-base sm:text-xl text-white tracking-wider">
+                  STAR PLAYER RADAR & NOTIFICATIONS ⭐
+                </h1>
+                <span className="px-2.5 py-0.5 rounded-full bg-stadiumGreen text-black font-black text-[10px]">
+                  LOCK-SCREEN ALERTS
+                </span>
+              </div>
+              <p className="text-xs text-gray-400 font-sans mt-0.5">
+                Follow your favorite world & Nigerian superstars. Get native lock screen alerts for starting lineups & live goals!
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-2 self-stretch sm:self-auto justify-between sm:justify-end">
+            <button
+              onClick={handleTestLockScreen}
+              className="px-3.5 py-2 rounded-2xl bg-gold/20 hover:bg-gold text-gold hover:text-black border border-gold/40 font-black text-xs transition-all flex items-center space-x-1.5 shadow-md"
+              title="Test Phone Lock Screen Notification"
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span>{testSent ? 'Alert Dispatched ✓' : 'Test Lock Screen Alert 📱'}</span>
+            </button>
+
+            <button
+              onClick={onClose}
+              className="p-2 rounded-2xl bg-panel text-gray-400 hover:text-white border border-white/10 hover:border-stadiumGreen transition-all flex-shrink-0"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Search Bar */}
+        <div className="relative flex-shrink-0">
+          <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search star players (Haaland, Osimhen, Saka, Salah, Lookman, Vinicius...)"
+            className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-black/70 border border-white/10 text-xs text-white placeholder-gray-500 focus:border-stadiumGreen focus:outline-none"
+          />
+        </div>
+
+        {/* Players Grid */}
+        <div className="flex-1 overflow-y-auto rounded-2xl border border-white/10 bg-black/60 p-3 sm:p-4 scrollbar-thin">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {filteredPlayers.map((player) => {
+              const isFollowed = followedList.includes(player.name);
+
+              return (
+                <div
+                  key={player.id}
+                  className="glass-panel rounded-2xl p-3.5 border border-white/10 hover:border-stadiumGreen transition-all flex items-center justify-between gap-3 group"
+                >
+                  <div className="flex items-center space-x-3 min-w-0">
+                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-panel via-black to-panel border border-white/10 flex items-center justify-center font-black text-sm text-gold flex-shrink-0 group-hover:border-stadiumGreen">
+                      {player.rating}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center space-x-1.5">
+                        <span className="font-black text-white text-xs truncate group-hover:text-stadiumGreen transition-colors">
+                          {player.name}
+                        </span>
+                        <span className="px-1.5 py-0.2 rounded bg-white/10 text-gray-300 font-black text-[8px]">
+                          {player.position}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-gray-400 font-sans block mt-0.5 truncate">
+                        {player.club} • {player.country}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => handleToggle(player)}
+                    className={`px-3 py-1.5 rounded-xl border font-black text-xs transition-all flex items-center space-x-1 flex-shrink-0 ${
+                      isFollowed
+                        ? 'bg-gold text-black border-gold shadow-md'
+                        : 'bg-white/5 border-white/10 text-gray-300 hover:text-gold hover:border-gold/50'
+                    }`}
+                  >
+                    <Star className={`w-3.5 h-3.5 ${isFollowed ? 'fill-current' : ''}`} />
+                    <span>{isFollowed ? 'Following' : 'Follow'}</span>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Footer info */}
+        <div className="flex items-center justify-between text-[10px] text-gray-400 border-t border-white/10 pt-2 flex-shrink-0">
+          <div className="flex items-center space-x-2">
+            <span className="w-2 h-2 rounded-full bg-stadiumGreen inline-block animate-ping" />
+            <span>Lock screen notifications wake your device automatically when your followed players score</span>
+          </div>
+          <button
+            onClick={onClose}
+            className="px-4 py-1.5 rounded-xl bg-stadiumGreen text-black font-black text-xs hover:bg-emerald-400 transition-all"
+          >
+            Done ➔
+          </button>
+        </div>
+
+      </div>
+    </div>
+  );
+};

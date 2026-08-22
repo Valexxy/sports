@@ -37,6 +37,8 @@ import { PhoneHardwareBanner } from '../components/phone-install-banner';
 import { LeagueStandingsModal } from '../components/league-standings-modal';
 import { GlobalLeagueBrowser } from '../components/global-league-browser';
 import { AuthDashboardModal } from '../components/auth-dashboard-modal';
+import { PlayerRadarModal } from '../components/player-radar-modal';
+import { playerFollowEngine } from '../lib/player-follow-engine';
 import { SettlementLedgerSection } from '../components/settlement-ledger-section';
 import { RealtimeCaptureStatus } from '../components/realtime-capture-status';
 import { MatchAlertScheduler } from '../lib/match-alert-scheduler';
@@ -69,6 +71,8 @@ export default function Home() {
   const [followedMatchIds, setFollowedMatchIds] = useState<string[]>([]);
   const [followedLeagues, setFollowedLeagues] = useState<string[]>([]);
   const [showLeagueBrowser, setShowLeagueBrowser] = useState(false);
+  const [showPlayersModal, setShowPlayersModal] = useState(false);
+  const [followedPlayers, setFollowedPlayers] = useState<string[]>([]);
   const [currentTheme, setCurrentTheme] = useState<'dark' | 'light'>('dark');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [savedMatches, setSavedMatches] = useState<MatchData[]>([]);
@@ -278,6 +282,7 @@ export default function Home() {
 
         <StadiumHeader
           currentTheme={currentTheme}
+          onOpenPlayers={() => setShowPlayersModal(true)}
           onToggleTheme={handleToggleTheme}
           onOpenReceipt={() => matches.length > 0 && setSelectedMatchForReceipt(matches[0])}
           onOpenLedger={() => setShowTrackRecord(true)}
@@ -573,6 +578,15 @@ export default function Home() {
             initialLeague={selectedLeagueForTable || 'PREMIER_LEAGUE'}
             onClose={() => setShowStandingsModal(false)}
             onSelectTeam={() => setShowTeamsModal(true)}
+          />
+        )}
+        {showPlayersModal && (
+          <PlayerRadarModal
+            isOpen={showPlayersModal}
+            onClose={() => {
+              setShowPlayersModal(false);
+              setFollowedPlayers(playerFollowEngine.getFollowedPlayers());
+            }}
           />
         )}
         {showLeagueBrowser && (

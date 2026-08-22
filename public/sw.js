@@ -1,13 +1,12 @@
-// AuraScore Stadium 2.0 - Service Worker (PWA + Push + Offline + Background Sync)
-const CACHE_NAME = 'aurascore-stadium-v3';
+// AuraScore Stadium 2.0 - Service Worker (PWA + Native Lock Screen Notifications + Offline)
+const CACHE_NAME = 'aurascore-stadium-v4';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
+  '/logo.svg',
+  '/favicon.svg',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
-  '/icons/icon-maskable-192.png',
-  '/icons/icon-maskable-512.png',
-  '/icons/apple-touch-icon.png',
   '/icons/badge-96.png',
 ];
 
@@ -19,7 +18,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Activate: clean old caches and claim clients
+// Activate: clean old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -35,7 +34,7 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(event.request.url);
 
-  // Never cache API calls — always try network, then fall back to cached copy.
+  // Never cache API calls — always try network first
   if (url.pathname.includes('/api/')) {
     event.respondWith(
       fetch(event.request)
@@ -49,7 +48,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets: cache-first then network fallback.
+  // Static assets: cache-first then network fallback
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const fetchPromise = fetch(event.request)
@@ -66,14 +65,14 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Push notification (wakes phone when asleep)
+// NATIVE LOCK SCREEN PUSH NOTIFICATIONS (Wakes phone when locked)
 self.addEventListener('push', (event) => {
   let payload = {
-    title: '⚽ AuraScore Goal Alert!',
-    body: 'Live in-play event detected in your followed match.',
-    icon: '/icons/icon-192.png',
-    badge: '/icons/badge-96.png',
-    tag: 'live-match-alert',
+    title: '⚽ AuraScore Live Match Alert',
+    body: 'Live in-play event detected in your followed player/match.',
+    icon: '/logo.svg',
+    badge: '/favicon.svg',
+    tag: 'live-match-lockscreen-alert',
     data: { url: '/' },
   };
 
@@ -88,53 +87,37 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: payload.body,
-    icon: payload.icon || '/icons/icon-192.png',
-    badge: payload.badge || '/icons/badge-96.png',
-    vibrate: [200, 100, 200, 100, 400],
+    icon: payload.icon || '/logo.svg',
+    badge: payload.badge || '/favicon.svg',
+    vibrate: [300, 100, 300, 100, 500],
     data: payload.data || { url: '/' },
-    tag: payload.tag || 'live-match-alert',
+    tag: payload.tag || 'live-match-lockscreen-alert',
     renotify: true,
-    requireInteraction: false,
+    requireInteraction: true, // REMAINS ON LOCK SCREEN UNTIL USER TAPS
+    actions: [
+      { action: 'open_match', title: '⚽ View Live Match' },
+      { action: 'listen_commentary', title: '🎙️ Listen Audio' },
+    ],
   };
 
   event.waitUntil(self.registration.showNotification(payload.title, options));
 });
 
-// Notification click
+// Notification click handler
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const targetUrl = (event.notification.data && event.notification.data.url) || '/';
+  const urlToOpen = event.notification.data?.url || '/';
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
-        if (client.url.includes(targetUrl) && 'focus' in client) return client.focus();
+        if (client.url.includes(self.origin) && 'focus' in client) {
+          return client.focus();
+        }
       }
-      if (clients.openWindow) return clients.openWindow(targetUrl);
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
     })
   );
-});
-
-// Background Sync (re-sync cached data when back online)
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'aurascore-resync') {
-    event.waitUntil(
-      fetch('/api/matches')
-        .then((res) => res.json())
-        .then((data) => {
-          return caches.open(CACHE_NAME).then((cache) => {
-            return cache.put('/api/matches', new Response(JSON.stringify(data), {
-              headers: { 'Content-Type': 'application/json' },
-            }));
-          });
-        })
-        .catch(() => {})
-    );
-  }
-});
-
-// Message handling (client can ask SW to skip waiting, etc.)
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
 });
