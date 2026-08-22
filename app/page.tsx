@@ -219,9 +219,9 @@ export default function Home() {
 
   type PillDef = { key: FilterType; emoji: string; label: string; count: number; activeClass: string };
   const filterPills: PillDef[] = [
-    { key: 'LIVE',     emoji: '🔴', label: 'Live',     count: liveCount,     activeClass: 'bg-crimson/20 border-crimson/50 text-crimson' },
-    { key: 'UPCOMING', emoji: '🟡', label: 'Upcoming', count: upcomingCount, activeClass: 'bg-gold/20 border-gold/50 text-gold' },
-    { key: 'PLAYED',   emoji: '✅', label: 'Played',   count: playedCount,   activeClass: 'bg-stadiumGreen/20 border-stadiumGreen/50 text-stadiumGreen' },
+    { key: 'LIVE',     emoji: '🔴', label: t('Live'),     count: liveCount,     activeClass: 'bg-crimson/20 border-crimson/50 text-crimson' },
+    { key: 'UPCOMING', emoji: '🟡', label: t('Upcoming'), count: upcomingCount, activeClass: 'bg-gold/20 border-gold/50 text-gold' },
+    { key: 'PLAYED',   emoji: '✅', label: t('Played'),   count: playedCount,   activeClass: 'bg-stadiumGreen/20 border-stadiumGreen/50 text-stadiumGreen' },
   ];
 
   return (
@@ -526,6 +526,9 @@ export default function Home() {
             </div>
           </div>
         </footer>
+
+        {/* Permanent Floating Language Switcher */}
+        <GlobalLanguageSwitcher floating />
 
       </div>
     </ErrorBoundary>

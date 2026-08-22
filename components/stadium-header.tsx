@@ -13,6 +13,8 @@ import {
   Share2
 } from 'lucide-react';
 
+import { useTranslation } from '../lib/translation-engine';
+
 interface StadiumHeaderProps {
   onOpenReceipt: () => void;
   onOpenLedger: () => void;
@@ -31,6 +33,7 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
   onOpenLeaderboard,
   onOpenSuitesMenu,
 }) => {
+  const { t } = useTranslation();
   const [isMuted, setIsMuted] = useState(false);
   const [soundPlaying, setSoundPlaying] = useState(false);
 
@@ -73,7 +76,7 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
             href="/"
             className="px-3 py-1.5 rounded-xl bg-stadiumGreen text-black font-black text-xs transition-all shadow-md"
           >
-            Live Matches ⚡
+            {t('Live Matches ⚡')}
           </Link>
 
           <button
@@ -81,7 +84,7 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
             className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-stadiumGreen/20 to-gold/20 hover:from-stadiumGreen/30 hover:to-gold/30 text-white font-bold transition-all flex items-center space-x-1.5 border border-stadiumGreen/30"
           >
             <Sparkles className="w-3.5 h-3.5 text-gold animate-pulse" />
-            <span>Stadium Hub ⚡</span>
+            <span>{t('Stadium Hub ⚡')}</span>
           </button>
 
           <button
@@ -89,7 +92,7 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
             className="px-3 py-1.5 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 font-bold transition-all flex items-center space-x-1"
           >
             <Trophy className="w-3 h-3 text-gold" />
-            <span>Leaderboard</span>
+            <span>{t('Leaderboard')}</span>
           </button>
 
           <button
@@ -97,7 +100,7 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
             className="px-3 py-1.5 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 font-bold transition-all flex items-center space-x-1"
           >
             <Cake className="w-3 h-3 text-pink-400" />
-            <span>Birthdays</span>
+            <span>{t('Birthdays')}</span>
           </button>
         </nav>
 
@@ -112,7 +115,7 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
               title="Open Stadium Suites Menu"
             >
               <Sparkles className="w-3.5 h-3.5 text-gold" />
-              <span>Hub</span>
+              <span>{t('Hub')}</span>
             </button>
           )}
 
@@ -136,7 +139,7 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
             title="Generate Gen-Z Social Flex Slip"
           >
             <Share2 className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Flex Slip 🔥</span>
+            <span className="hidden sm:inline">{t('Flex Slip 🔥')}</span>
           </button>
 
           {/* Interactive Stadium Crowd Audio Synthesizer */}

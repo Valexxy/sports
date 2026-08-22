@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { MatchData } from '../lib/sports-api';
 import { getLeagueInfo } from '../lib/league-badges';
 import { Bell, BellRing, Star, Eye, Plus, Zap, CheckCircle2, XCircle, Calendar, AlertCircle, Clock, Timer, Flame } from 'lucide-react';
+import { useTranslation } from '../lib/translation-engine';
 
 export interface DailyMatchCardProps {
   match: MatchData;
@@ -161,6 +162,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   followedMatchIds = [],
   onToggleFollow,
 }) => {
+  const { t } = useTranslation();
   const [bookmarked, setBookmarked] = useState(false);
   const isLive = match.status === 'LIVE';
   const isFinished = match.status === 'FINISHED';
@@ -318,7 +320,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
                 </div>
                 <span className="text-[10px] text-gray-400 font-mono flex items-center space-x-1">
                   <Clock className="w-3 h-3 text-gold" />
-                  <span>Played at {match.matchTime}</span>
+                  <span>{t('Played at')} {match.matchTime}</span>
                 </span>
               </>
             ) : (
@@ -348,7 +350,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
             {match.venue && <span className="text-[9px] text-gray-400 font-mono text-center leading-tight max-w-[95px] truncate">{'🏟 ' + match.venue}</span>}
             <span className="text-[10px] text-stadiumGreen font-mono flex items-center space-x-0.5">
               <Zap className="w-3 h-3" />
-              <span>Tap insights</span>
+              <span>{t('Tap insights')}</span>
             </span>
           </div>
 
@@ -416,7 +418,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
               <button onClick={handleAddPick}
                 className="px-3 py-1.5 rounded-xl bg-stadiumGreen text-black font-black text-xs flex items-center space-x-1 hover:bg-emerald-400 transition-all active:scale-95 shadow-md">
                 <Plus className="w-3.5 h-3.5" />
-                <span>Add Pick</span>
+                <span>{t('Add Pick')}</span>
               </button>
             </div>
           </div>
@@ -426,7 +428,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
         <div className="px-3 py-2 rounded-xl bg-black/40 border border-white/5 text-[9px] text-gray-300 flex items-start space-x-1.5 leading-snug">
           <AlertCircle className="w-3 h-3 text-gold flex-shrink-0 mt-0.5" />
           <span className="line-clamp-2">
-            <strong className="text-gold font-mono">Prediction Reason: </strong>
+            <strong className="text-gold font-mono">{t('Prediction Reason:')} </strong>
             {shiftReason}
           </span>
         </div>
@@ -436,7 +438,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
           onClick={() => onOpenInsights(match)}
           className="w-full py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-stadiumGreen/40 text-white font-black text-xs flex items-center justify-center space-x-2 transition-all">
           <Eye className="w-4 h-4 text-stadiumGreen" />
-          <span>View Full Match Insights</span>
+          <span>{t('View Full Match Insights')}</span>
         </button>
       </div>
     </div>

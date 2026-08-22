@@ -2,12 +2,14 @@
 
 import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { useTranslation } from '../lib/translation-engine';
 
 interface GoogleDateNavigatorProps {
   onSelectDate: (dateStr: string, label: string, isToday: boolean) => void;
 }
 
 export const GoogleDateNavigator: React.FC<GoogleDateNavigatorProps> = ({ onSelectDate }) => {
+  const { t } = useTranslation();
   const [selectedKey, setSelectedKey] = useState<string>('TODAY');
 
   const days = useMemo(() => {
@@ -67,8 +69,8 @@ export const GoogleDateNavigator: React.FC<GoogleDateNavigatorProps> = ({ onSele
                 : 'bg-black/40 text-gray-400 hover:text-white border border-white/5'
             }`}
           >
-            <span>{item.label}</span>
-            <span className="text-[9px] opacity-80 font-normal mt-0.5">{item.subLabel}</span>
+            <span>{item.label === '⚡ Today' ? `⚡ ${t('Today')}` : t(item.label)}</span>
+            <span className="text-[9px] opacity-80 font-normal mt-0.5">{t(item.subLabel)}</span>
           </button>
         ))}
       </div>
