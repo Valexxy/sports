@@ -1,4 +1,5 @@
 import './globals.css';
+import { LanguageProvider } from '../lib/translation-engine';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -111,7 +112,7 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-void text-white min-h-screen antialiased selection:bg-stadiumGreen selection:text-black">
-        {children}
+        <LanguageProvider>{children}</LanguageProvider>
         <script
           dangerouslySetInnerHTML={{
             __html: `

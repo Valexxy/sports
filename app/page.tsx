@@ -44,9 +44,12 @@ import { StadiumUserWeatherPanel } from '../components/stadium-user-weather-pane
 import { registerPushClient, pushClientId } from '../lib/push-client';
 import { cacheOffline } from '../lib/offline-manager';
 
+import { useTranslation } from '../lib/translation-engine';
+
 type FilterType = 'LIVE' | 'UPCOMING' | 'PLAYED' | 'ALL';
 
 export default function Home() {
+  const { t } = useTranslation();
   const [matches, setMatches] = useState<MatchData[]>([]);
   const [loadingMatches, setLoadingMatches] = useState(true);
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
@@ -184,6 +187,7 @@ export default function Home() {
   const liveCount = sportMatches.filter(m => m.status === 'LIVE').length;
   const upcomingCount = sportMatches.filter(m => m.status === 'SCHEDULED').length;
   const playedCount = sportMatches.filter(m => m.status === 'FINISHED').length;
+  const highGuaranteesCount = sportMatches.filter(m => (m.prediction?.topPick?.probability || 0) >= 70 || m.prediction?.topPick?.confidenceTier === 'ULTRA-BANKER').length;
 
   const filteredMatches = React.useMemo(() => {
     const base = matches.filter(m => {
@@ -203,7 +207,7 @@ export default function Home() {
       if (activeFilter === 'LIVE') return m.status === 'LIVE';
       if (activeFilter === 'UPCOMING') return m.status === 'SCHEDULED';
       if (activeFilter === 'PLAYED') return m.status === 'FINISHED';
-      if (highGuaranteesOnly && (m.prediction?.topPick?.probability || 0) < 68) return false;
+      if (highGuaranteesOnly && (m.prediction?.topPick?.probability || 0) < 70 && m.prediction?.topPick?.confidenceTier !== 'ULTRA-BANKER') return false;
       return true; // ALL
     });
     return sortMatchesByClosestKickoff(base, activeFilter);
@@ -258,7 +262,7 @@ export default function Home() {
                 <div>
                   <h2 className="text-base font-black text-white flex items-center space-x-2">
                     <Calendar className="w-4 h-4 text-stadiumGreen" />
-                    <span>{isViewingToday ? "Today's Matches" : `${selectedDateLabel} Matches`}</span>
+                    <span>{isViewingToday ? t("Today's Matches") : `${selectedDateLabel} Matches`}</span>
                     {liveCount > 0 && (
                       <span className="px-2 py-0.5 rounded-full bg-crimson text-white text-[10px] font-black animate-pulse">
                         {liveCount} LIVE
@@ -292,7 +296,7 @@ export default function Home() {
             <div className="relative">
               <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search team, league or fixture..."
+                placeholder={t('Search team, league or fixture...')}
                 className="w-full pl-10 pr-10 py-3 rounded-2xl bg-black/60 border border-white/10 text-sm text-white placeholder-gray-500 focus:border-stadiumGreen focus:outline-none font-mono" />
               {searchQuery && (
                 <button onClick={() => setSearchQuery('')}
@@ -336,7 +340,7 @@ export default function Home() {
             {/* 100% Pure Football Guarantee Banner */}
             <div className="flex items-center space-x-2">
               <span className="px-3 py-1.5 rounded-xl bg-stadiumGreen/20 border border-stadiumGreen/40 text-stadiumGreen font-black text-xs flex items-center space-x-1.5 shadow-md">
-                <span>⚽ 100% Pure Football Stadium</span>
+                <span>{t('100% Pure Football Stadium')}</span>
                 <span className="w-2 h-2 rounded-full bg-stadiumGreen animate-ping" />
               </span>
             </div>

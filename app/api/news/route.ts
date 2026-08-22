@@ -15,25 +15,64 @@ export interface SportsArticle {
   fullContent: string;
 }
 
-// 100% Pure Verified Legal Global Football RSS Feeds
+// Official Free ESPN Football News Feeds (Full Articles + HD 1080p Photography)
+const ESPN_NEWS_FEEDS = [
+  { url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/news', source: 'ESPN Premier League' },
+  { url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/news', source: 'ESPN La Liga' },
+  { url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/news', source: 'ESPN Champions League' },
+  { url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1/news', source: 'ESPN Serie A' },
+  { url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/news', source: 'ESPN Bundesliga' },
+];
+
 const FOOTBALL_RSS_FEEDS = [
   { url: 'http://feeds.bbci.co.uk/sport/football/rss.xml', source: 'BBC Football' },
   { url: 'https://www.skysports.com/rss/12040', source: 'Sky Sports Football' },
   { url: 'https://www.theguardian.com/football/rss', source: 'The Guardian' },
-  { url: 'https://www.espn.com/espn/rss/soccer/news', source: 'ESPN FC' },
   { url: 'https://talksport.com/football/feed/', source: 'talkSPORT Football' },
 ];
 
 const RSS_PROXY = 'https://api.allorigins.win/raw?url=';
 
-// Smart Football Categorization Engine
+// High-Resolution 1080p Sports Photography Bank
+const FOOTBALL_TOPIC_IMAGES: { keyword: string; url: string }[] = [
+  { keyword: 'arsenal', url: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1200&q=90' },
+  { keyword: 'chelsea', url: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&q=90' },
+  { keyword: 'liverpool', url: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1200&q=90' },
+  { keyword: 'man city', url: 'https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=1200&q=90' },
+  { keyword: 'manchester', url: 'https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=1200&q=90' },
+  { keyword: 'madrid', url: 'https://images.unsplash.com/photo-1511886929837-354d827aae26?auto=format&fit=crop&w=1200&q=90' },
+  { keyword: 'barcelona', url: 'https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?auto=format&fit=crop&w=1200&q=90' },
+  { keyword: 'osimhen', url: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=1200&q=90' },
+  { keyword: 'haaland', url: 'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?auto=format&fit=crop&w=1200&q=90' },
+  { keyword: 'mbappe', url: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=1200&q=90' },
+  { keyword: 'champions league', url: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&q=90' },
+  { keyword: 'premier league', url: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1200&q=90' },
+  { keyword: 'stadium', url: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&q=90' },
+  { keyword: 'goal', url: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=1200&q=90' },
+];
+
+const DEFAULT_FOOTBALL_IMAGE = 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&q=90';
+
+function resolveHdFootballImage(rawUrl: string, title: string): string {
+  if (rawUrl && rawUrl.startsWith('http') && !rawUrl.includes('placeholder')) {
+    if (rawUrl.includes('espncdn.com') && rawUrl.includes('&w=')) {
+      return rawUrl.replace(/&w=\d+/, '&w=1200').replace(/&h=\d+/, '&h=675');
+    }
+    return rawUrl;
+  }
+  const t = title.toLowerCase();
+  for (const item of FOOTBALL_TOPIC_IMAGES) {
+    if (t.includes(item.keyword)) return item.url;
+  }
+  return DEFAULT_FOOTBALL_IMAGE;
+}
+
 function classifyFootballArticle(title: string, description: string): {
   category: SportsArticle['category'];
   categoryBadge: string;
 } {
   const text = (title + ' ' + description).toLowerCase();
 
-  // 1. Naija & AFCON
   if (
     text.includes('osimhen') ||
     text.includes('super eagles') ||
@@ -49,7 +88,6 @@ function classifyFootballArticle(title: string, description: string): {
     return { category: 'NAIJA & AFCON', categoryBadge: '🇳🇬 NAIJA & AFCON' };
   }
 
-  // 2. Transfers & Contract Deals
   if (
     text.includes('transfer') ||
     text.includes('sign') ||
@@ -68,7 +106,6 @@ function classifyFootballArticle(title: string, description: string): {
     return { category: 'TRANSFERS', categoryBadge: '🔥 TRANSFERS' };
   }
 
-  // 3. Injuries & Fitness Bulletins
   if (
     text.includes('injury') ||
     text.includes('injured') ||
@@ -83,7 +120,6 @@ function classifyFootballArticle(title: string, description: string): {
     return { category: 'INJURIES', categoryBadge: '🚑 INJURY UPDATE' };
   }
 
-  // 4. UCL & European Cups
   if (
     text.includes('champions league') ||
     text.includes('ucl') ||
@@ -94,7 +130,6 @@ function classifyFootballArticle(title: string, description: string): {
     return { category: 'UCL & EUROPE', categoryBadge: '⭐ UCL & EUROPE' };
   }
 
-  // 5. Tactics & Manager Talk
   if (
     text.includes('manager') ||
     text.includes('boss') ||
@@ -110,7 +145,6 @@ function classifyFootballArticle(title: string, description: string): {
     return { category: 'TACTICS', categoryBadge: '🧠 TACTICS & COACH' };
   }
 
-  // 6. Match Reports & Results
   if (
     text.includes('win') ||
     text.includes('defeat') ||
@@ -129,45 +163,16 @@ function classifyFootballArticle(title: string, description: string): {
   return { category: 'GLOBAL FOOTBALL', categoryBadge: '⚽ GLOBAL FOOTBALL' };
 }
 
-// Topic-Aware High-Resolution Verified Sports Photography Bank
-const FOOTBALL_TOPIC_IMAGES: { keyword: string; url: string }[] = [
-  { keyword: 'arsenal', url: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=80' },
-  { keyword: 'chelsea', url: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80' },
-  { keyword: 'liverpool', url: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=800&q=80' },
-  { keyword: 'man city', url: 'https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=800&q=80' },
-  { keyword: 'manchester', url: 'https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=800&q=80' },
-  { keyword: 'madrid', url: 'https://images.unsplash.com/photo-1511886929837-354d827aae26?auto=format&fit=crop&w=800&q=80' },
-  { keyword: 'barcelona', url: 'https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?auto=format&fit=crop&w=800&q=80' },
-  { keyword: 'osimhen', url: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=800&q=80' },
-  { keyword: 'haaland', url: 'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?auto=format&fit=crop&w=800&q=80' },
-  { keyword: 'mbappe', url: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=800&q=80' },
-  { keyword: 'champions league', url: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80' },
-  { keyword: 'premier league', url: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=800&q=80' },
-  { keyword: 'stadium', url: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80' },
-  { keyword: 'goal', url: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=800&q=80' },
-];
-
-const DEFAULT_FOOTBALL_IMAGE = 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80';
-
-function resolveFootballImage(rawUrl: string, title: string): string {
-  if (rawUrl && rawUrl.startsWith('http') && !rawUrl.includes('placeholder')) {
-    return rawUrl;
-  }
-  const t = title.toLowerCase();
-  for (const item of FOOTBALL_TOPIC_IMAGES) {
-    if (t.includes(item.keyword)) return item.url;
-  }
-  return DEFAULT_FOOTBALL_IMAGE;
-}
-
-// Strict filter to exclude non-football sports
-function isPureFootball(title: string, desc: string): boolean {
-  const text = (title + ' ' + desc).toLowerCase();
-  const nonFootballTerms = ['formula 1', 'grand prix', 'f1', 'cricket', 'root', 'tennis', 'djokovic', 'alcaraz', 'golf', 'mcilroy', 'rugby', 'nba', 'nfl', 'boxing', 'joshua', 'ufc'];
-  for (const term of nonFootballTerms) {
-    if (text.includes(term)) return false;
-  }
-  return true;
+function timeAgo(dateStr: string): string {
+  if (!dateStr) return 'Just now';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return 'Just now';
+  const diff = Math.max(0, Date.now() - d.getTime());
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
 }
 
 function parseRss(xml: string): { title: string; link: string; description: string; pubDate: string; imageUrl: string }[] {
@@ -182,16 +187,12 @@ function parseRss(xml: string): { title: string; link: string; description: stri
   const extractImage = (block: string): string => {
     const thumbMatch = block.match(/<media:thumbnail[^>]+url=["']([^"']+)["']/i);
     if (thumbMatch) return thumbMatch[1];
-
     const encMatch = block.match(/<enclosure[^>]+url=["']([^"']+)["']/i);
     if (encMatch) return encMatch[1];
-
     const contentMatch = block.match(/<media:content[^>]+url=["']([^"']+)["']/i);
     if (contentMatch) return contentMatch[1];
-
     const imgMatch = block.match(/<img[^>]+src=["']([^"']+)["']/i);
     if (imgMatch) return imgMatch[1];
-
     return '';
   };
 
@@ -209,19 +210,6 @@ function parseRss(xml: string): { title: string; link: string; description: stri
   return items;
 }
 
-function timeAgo(dateStr: string): string {
-  if (!dateStr) return 'Just now';
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return 'Just now';
-  const diff = Math.max(0, Date.now() - d.getTime());
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
-}
-
-// In-memory cache with 30s TTL
 let cachedNews: { articles: SportsArticle[]; timestamp: number } | null = null;
 
 export async function GET() {
@@ -240,50 +228,91 @@ export async function GET() {
   const timeout = setTimeout(() => controller.abort(), 6000);
 
   try {
-    const results = await Promise.allSettled(
-      FOOTBALL_RSS_FEEDS.map(async (feed) => {
-        try {
-          const res = await fetch(`${RSS_PROXY}${encodeURIComponent(feed.url)}`, { signal: controller.signal });
-          if (!res.ok) return [];
-          const xml = await res.text();
-          const parsed = parseRss(xml);
+    const espnPromises = ESPN_NEWS_FEEDS.map(async (feed) => {
+      try {
+        const res = await fetch(feed.url, { signal: controller.signal, next: { revalidate: 30 } });
+        if (!res.ok) return [];
+        const data = await res.json();
+        if (!data.articles || !Array.isArray(data.articles)) return [];
 
-          return parsed
-            .filter((p) => p.title && p.title.length > 5 && isPureFootball(p.title, p.description))
-            .slice(0, 8)
-            .map((p, i) => {
-              const rawDesc = p.description || p.title;
-              const img = resolveFootballImage(p.imageUrl, p.title);
-              const { category, categoryBadge } = classifyFootballArticle(p.title, rawDesc);
+        return data.articles.slice(0, 6).map((art: any, i: number) => {
+          const title = art.headline || art.title || '';
+          const desc = art.description || art.story || '';
+          const fullStory = art.story || desc || title;
+          const rawImg = art.images?.[0]?.url || '';
+          const img = resolveHdFootballImage(rawImg, title);
+          const { category, categoryBadge } = classifyFootballArticle(title, fullStory);
 
-              return {
-                id: `${feed.source.toLowerCase().replace(/[^a-z]/g, '')}-${i}-${Date.now()}`,
-                title: p.title,
-                description: rawDesc.replace(/<[^>]+>/g, '').slice(0, 220),
-                link: p.link || 'https://www.bbc.com/sport/football',
-                pubDate: timeAgo(p.pubDate),
-                source: feed.source,
-                category,
-                categoryBadge,
-                imageUrl: img,
-                fullContent: rawDesc.replace(/<[^>]+>/g, '').slice(0, 800),
-              };
-            });
-        } catch (e) {
-          return [];
-        }
-      })
-    );
+          return {
+            id: `espn-${feed.source.toLowerCase().replace(/[^a-z]/g, '')}-${i}-${Date.now()}`,
+            title,
+            description: desc.length > 250 ? desc.slice(0, 250) + '...' : desc,
+            link: art.links?.web?.href || 'https://www.espn.com/soccer/',
+            pubDate: timeAgo(art.published),
+            source: feed.source,
+            category,
+            categoryBadge,
+            imageUrl: img,
+            fullContent: fullStory,
+          };
+        });
+      } catch {
+        return [];
+      }
+    });
+
+    const rssPromises = FOOTBALL_RSS_FEEDS.map(async (feed) => {
+      try {
+        const res = await fetch(`${RSS_PROXY}${encodeURIComponent(feed.url)}`, { signal: controller.signal });
+        if (!res.ok) return [];
+        const xml = await res.text();
+        const parsed = parseRss(xml);
+
+        return parsed
+          .filter((p) => p.title && p.title.length > 5)
+          .slice(0, 5)
+          .map((p, i) => {
+            const rawDesc = p.description || p.title;
+            const img = resolveHdFootballImage(p.imageUrl, p.title);
+            const { category, categoryBadge } = classifyFootballArticle(p.title, rawDesc);
+
+            return {
+              id: `${feed.source.toLowerCase().replace(/[^a-z]/g, '')}-${i}-${Date.now()}`,
+              title: p.title,
+              description: rawDesc.replace(/<[^>]+>/g, '').slice(0, 220),
+              link: p.link || 'https://www.bbc.com/sport/football',
+              pubDate: timeAgo(p.pubDate),
+              source: feed.source,
+              category,
+              categoryBadge,
+              imageUrl: img,
+              fullContent: rawDesc.replace(/<[^>]+>/g, '').slice(0, 800),
+            };
+          });
+      } catch {
+        return [];
+      }
+    });
+
+    const [espnResults, rssResults] = await Promise.all([
+      Promise.allSettled(espnPromises),
+      Promise.allSettled(rssPromises),
+    ]);
 
     clearTimeout(timeout);
 
-    results.forEach((r) => {
+    espnResults.forEach((r) => {
       if (r.status === 'fulfilled' && Array.isArray(r.value)) {
         allArticles.push(...r.value);
       }
     });
 
-    // Deduplicate by title
+    rssResults.forEach((r) => {
+      if (r.status === 'fulfilled' && Array.isArray(r.value)) {
+        allArticles.push(...r.value);
+      }
+    });
+
     const uniqueMap = new Map<string, SportsArticle>();
     allArticles.forEach((a) => {
       if (!uniqueMap.has(a.title)) uniqueMap.set(a.title, a);
@@ -297,7 +326,7 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       count: finalArticles.length,
-      source: 'live_football_rss',
+      source: 'live_espn_and_rss_hd',
       articles: finalArticles,
     });
   } catch (err: any) {
