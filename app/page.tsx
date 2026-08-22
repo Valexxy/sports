@@ -380,6 +380,7 @@ export default function Home() {
                         setSelectedLeagueForTable(league);
                         setShowStandingsModal(true);
                       }}
+                      onOpenTeam={() => setShowTeamsModal(true)}
                     />
                   ))}
                 </div>
@@ -512,6 +513,7 @@ export default function Home() {
             isOpen={showStandingsModal}
             initialLeague={selectedLeagueForTable || 'PREMIER_LEAGUE'}
             onClose={() => setShowStandingsModal(false)}
+            onSelectTeam={() => setShowTeamsModal(true)}
           />
         )}
         {showHistoryModal && <HistoryArchiveModal onClose={() => setShowHistoryModal(false)} />}
