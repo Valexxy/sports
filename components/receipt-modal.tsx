@@ -1,51 +1,50 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { MatchData } from '../lib/sports-api';
-import { X, Share2, Trophy, CheckCircle2, Copy } from 'lucide-react';
+import { X, Share2, Trophy, CheckCircle2, Copy, Check, MessageCircle, Twitter, Sparkles, Flame } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { stadiumAudio } from '../lib/sound-synthesizer';
 
 interface ReceiptModalProps {
   match: MatchData | null;
   onClose: () => void;
 }
 
+const GENZ_SLOGANS = [
+  '🍗 Full Time We Feast',
+  '🚫 Cut 1 No Dey This Slip',
+  '👑 Banker of the Century',
+  '🔥 100% Cashout Energy',
+  '⚡ Pure Juju Prediction',
+];
+
 export const ReceiptModal: React.FC<ReceiptModalProps> = ({ match, onClose }) => {
+  const [selectedSlogan, setSelectedSlogan] = useState(GENZ_SLOGANS[0]);
+  const [copied, setCopied] = useState(false);
+
   if (!match) return null;
 
   const p = match.prediction;
+  const shareMsg = '🔥 GEN-Z MATCH SLIP: ' + match.homeTeam + ' vs ' + match.awayTeam +
+    '\n\n🎯 Pick: ' + p.topPick.selection + ' @ ' + p.topPick.odds + ' (' + p.topPick.probability + '% confidence)' +
+    '\n💬 ' + selectedSlogan +
+    '\n\n⚡ Staked by @CyberStriker_99 on AuraScore Stadium\n' +
+    (typeof window !== 'undefined' ? window.location.origin : 'https://aurascore.app');
 
-  const triggerShare = async () => {
-    confetti({
-      particleCount: 100,
-      spread: 80,
-      origin: { y: 0.6 }
-    });
+  const shareUrl = encodeURIComponent(shareMsg);
 
-    if (typeof window !== 'undefined' && 'vibrate' in navigator) {
-      navigator.vibrate([100, 50, 200]);
-    }
-
-    const shareText = `🔥 Match Pick: ${match.homeTeam} vs ${match.awayTeam} | ${p.topPick.selection} @ ${p.topPick.odds} (${p.topPick.probability}% Win Probability)!`;
-
-    // Native Web Share API (Phone Share Sheet)
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `AuraScore Prediction: ${match.homeTeam} vs ${match.awayTeam}`,
-          text: shareText,
-          url: window.location.href,
-        });
-      } catch (e) {}
-    } else {
-      navigator.clipboard.writeText(shareText);
-      alert('Prediction Receipt Copied to Clipboard! Share on WhatsApp, IG, or TikTok!');
-    }
+  const handleCopy = () => {
+    navigator.clipboard.writeText(shareMsg);
+    setCopied(true);
+    stadiumAudio.playSuccessSound();
+    confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
-      <div className="relative w-full max-w-md glass-panel rounded-3xl border border-stadiumGreen/50 p-6 shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-fadeIn font-mono text-xs">
+      <div className="relative w-full max-w-md glass-panel-premium rounded-3xl border-2 border-stadiumGreen/50 p-5 shadow-2xl space-y-4">
         
         {/* Close Button */}
         <button
@@ -55,79 +54,104 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ match, onClose }) =>
           <X className="w-5 h-5" />
         </button>
 
-        {/* Viral Card Graphic Container */}
-        <div id="receipt-card" className="bg-gradient-to-b from-panel via-black to-panel border border-stadiumGreen/40 rounded-2xl p-5 shadow-2xl text-center relative overflow-hidden">
-          
-          {/* Top Brand Tag */}
-          <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
+        {/* Title */}
+        <div className="flex items-center space-x-2">
+          <Flame className="w-4 h-4 text-stadiumGreen animate-pulse" />
+          <span className="font-black text-white text-xs uppercase tracking-wider">GEN-Z VIRAL FLEX SLIP 🔥</span>
+        </div>
+
+        {/* Slogan Picker */}
+        <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 scrollbar-hide">
+          {GENZ_SLOGANS.map((slogan, i) => (
+            <button
+              key={i}
+              onClick={() => setSelectedSlogan(slogan)}
+              className={'flex-shrink-0 px-2.5 py-1 rounded-xl text-[10px] font-bold border transition-all ' +
+                (selectedSlogan === slogan
+                  ? 'bg-stadiumGreen text-black border-stadiumGreen font-black shadow-md'
+                  : 'bg-black/40 text-gray-400 border-white/10 hover:text-white')}
+            >
+              {slogan}
+            </button>
+          ))}
+        </div>
+
+        {/* The Viral Flex Ticket */}
+        <div
+          id="receipt-card"
+          className="relative rounded-2xl overflow-hidden border border-stadiumGreen/40 p-4 space-y-3 shadow-2xl"
+          style={{ background: 'linear-gradient(135deg, #091209 0%, #0d1a0d 50%, #070e07 100%)' }}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-white/10 pb-2">
             <div className="flex items-center space-x-1.5">
-              <span className="text-xl">⚡</span>
-              <span className="font-extrabold text-sm tracking-wider text-white">AURASCORE<span className="text-stadiumGreen"> STADIUM</span></span>
+              <span className="text-base">⚡</span>
+              <span className="font-black text-stadiumGreen text-xs">AURASCORE STADIUM</span>
             </div>
-            <span className="text-[10px] font-mono uppercase bg-stadiumGreen/20 text-stadiumGreen px-2 py-0.5 rounded border border-stadiumGreen/40 font-bold">
-              VERIFIED TICKET 👑
+            <span className="px-2 py-0.5 rounded-full bg-stadiumGreen/20 text-stadiumGreen font-black text-[9px] border border-stadiumGreen/30">
+              OFFICIAL FLEX SLIP ✓
             </span>
           </div>
 
-          {/* Match Banner */}
-          <div className="my-4">
-            <span className="text-xs font-mono text-gray-400 uppercase tracking-widest block mb-1">{match.league}</span>
-            <h2 className="text-xl font-black text-white flex items-center justify-center space-x-2">
-              <span>{match.homeTeam}</span>
-              <span className="text-stadiumGreen font-mono text-base">VS</span>
-              <span>{match.awayTeam}</span>
-            </h2>
+          {/* Fixture */}
+          <div className="text-center py-1">
+            <span className="text-[10px] text-gray-400 font-bold uppercase">{match.league}</span>
+            <h3 className="text-base sm:text-lg font-black text-white mt-0.5">
+              {match.homeTeam} <span className="text-stadiumGreen">VS</span> {match.awayTeam}
+            </h3>
+            <span className="text-[10px] text-gold font-bold">{match.matchTime} • {match.venue || 'Stadium'}</span>
           </div>
 
-          {/* Win Confidence Meter */}
-          <div className="my-5 p-4 rounded-xl bg-stadiumGreen/10 border border-stadiumGreen/40 text-center">
-            <span className="text-xs font-mono text-stadiumGreen uppercase tracking-wider block font-bold">MATHEMATICAL WIN PROBABILITY</span>
-            <div className="text-4xl font-black text-stadiumGreen my-1 font-mono">{p.topPick.probability}%</div>
-            <span className="text-xs font-extrabold text-gold uppercase tracking-wide font-mono">{p.topPick.confidenceTier}</span>
-          </div>
-
-          {/* Selection & Rationale */}
-          <div className="space-y-2 text-left bg-panel/80 p-3.5 rounded-xl border border-white/5 text-xs font-mono">
-            <div className="flex justify-between border-b border-white/5 pb-1">
-              <span className="text-gray-400">PICK:</span>
-              <strong className="text-white">{p.topPick.selection}</strong>
-            </div>
-            <div className="flex justify-between border-b border-white/5 pb-1">
-              <span className="text-gray-400">ODDS:</span>
-              <strong className="text-gold">@{p.topPick.odds}</strong>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400">RECOMMENDED STAKE:</span>
-              <strong className="text-stadiumGreen">{p.topPick.kellyStake}% Bankroll</strong>
-            </div>
-          </div>
-
-          {/* User Flex Footer */}
-          <div className="mt-5 pt-3 border-t border-white/10 flex items-center justify-between text-left">
+          {/* Pick Highlight */}
+          <div className="p-3 rounded-xl bg-stadiumGreen/10 border border-stadiumGreen/30 flex items-center justify-between">
             <div>
-              <span className="text-[10px] font-mono text-gray-500 block">ANALYST</span>
-              <span className="text-xs font-extrabold text-white flex items-center space-x-1">
-                <Trophy className="w-3.5 h-3.5 text-gold" />
-                <span>@AuraMaster</span>
-              </span>
+              <span className="text-[9px] text-gray-400 uppercase font-bold block">Selected Banker Pick</span>
+              <span className="text-sm font-black text-white">{p.topPick.selection}</span>
             </div>
-
-            <div className="flex items-center space-x-1 text-[10px] font-mono text-stadiumGreen bg-stadiumGreen/10 px-2 py-1 rounded border border-stadiumGreen/30">
-              <CheckCircle2 className="w-3 h-3" />
-              <span>LOCKED BEFORE KICKOFF</span>
+            <div className="text-right">
+              <span className="text-lg font-black text-stadiumGreen">@ {p.topPick.odds}</span>
+              <span className="text-[9px] text-gold block font-bold">{p.topPick.probability}% Win Prob</span>
             </div>
           </div>
 
+          {/* Meme Stamp */}
+          <div className="p-2 rounded-xl bg-black/60 border border-white/10 text-center">
+            <span className="text-xs font-black text-white italic">{selectedSlogan}</span>
+          </div>
+
+          {/* Footer Staked By */}
+          <div className="flex items-center justify-between text-[9px] text-gray-400 pt-1 border-t border-white/5">
+            <span>Staked by <strong className="text-stadiumGreen">@CyberStriker_99</strong></span>
+            <span>🇳🇬 Verified Gen-Z Ticket</span>
+          </div>
         </div>
 
-        {/* Action Button */}
-        <div className="mt-5">
-          <button
-            onClick={triggerShare}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-stadiumGreen via-emerald-400 to-gold text-black font-black text-sm shadow-xl shadow-stadiumGreen/30 hover:scale-105 transition-all flex items-center justify-center space-x-2"
+        {/* 1-Tap Share Actions */}
+        <div className="grid grid-cols-3 gap-2 pt-1">
+          <a
+            href={'https://api.whatsapp.com/send?text=' + shareUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] flex items-center justify-center space-x-1.5 transition-all shadow-md active:scale-95"
           >
-            <Share2 className="w-4 h-4" />
-            <span>SHARE TO WHATSAPP / IG / TIKTOK</span>
+            <MessageCircle className="w-3.5 h-3.5" />
+            <span>WhatsApp</span>
+          </a>
+          <a
+            href={'https://twitter.com/intent/tweet?text=' + shareUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="py-2.5 px-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-black text-[11px] flex items-center justify-center space-x-1.5 transition-all shadow-md active:scale-95"
+          >
+            <Twitter className="w-3.5 h-3.5" />
+            <span>Twitter / X</span>
+          </a>
+          <button
+            onClick={handleCopy}
+            className="py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-black text-[11px] flex items-center justify-center space-x-1.5 transition-all border border-white/10 active:scale-95"
+          >
+            {copied ? <Check className="w-3.5 h-3.5 text-stadiumGreen" /> : <Copy className="w-3.5 h-3.5" />}
+            <span>{copied ? 'Copied!' : 'Copy Slip'}</span>
           </button>
         </div>
 

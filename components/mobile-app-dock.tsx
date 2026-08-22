@@ -78,13 +78,13 @@ export const MobileAppDock: React.FC<AppDockProps> = ({
             <span className="text-[9px] font-mono font-black mt-0.5 tracking-tighter">SLIP</span>
           </button>
 
-          {/* Suites & Tools Menu */}
+          {/* Stadium Hub Menu */}
           <button
             onClick={() => handleTabClick('SUITES', onOpenSuitesMenu)}
             className="relative flex flex-col items-center py-1.5 px-3 rounded-2xl text-stadiumGreen hover:text-white transition-all"
           >
             <Sparkles className="w-4 h-4 text-gold animate-pulse" />
-            <span className="text-[10px] font-mono font-bold mt-0.5">Suites</span>
+            <span className="text-[10px] font-mono font-bold mt-0.5">Hub ⚡</span>
           </button>
 
           {/* User Profile */}

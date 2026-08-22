@@ -8,19 +8,12 @@ import {
   ShieldCheck, 
   Cake, 
   Zap, 
-  Activity, 
-  Smartphone, 
   Globe, 
   Newspaper, 
-  TrendingUp, 
   Share2, 
-  ShieldAlert, 
-  Radio, 
-  MapPin, 
-  ExternalLink,
-  ChevronRight
+  ChevronRight,
+  Flame
 } from 'lucide-react';
-import Link from 'next/link';
 
 interface StadiumSuitesMenuProps {
   isOpen: boolean;
@@ -28,18 +21,11 @@ interface StadiumSuitesMenuProps {
   onOpenBirthdays: () => void;
   onOpenLeaderboard: () => void;
   onOpenLedger: () => void;
-  onOpenBankroll: () => void;
-  onOpenReverseJinx: () => void;
-  onOpenFlexSlip: () => void;
-  onOpenTelemetry: () => void;
-  onOpenHardware: () => void;
   onOpenStandings: () => void;
   onOpenClubs: () => void;
   onOpenNews: () => void;
-  onOpenRotatingPool: () => void;
-  onOpenVisitor: () => void;
-  onOpenEffects: () => void;
-  onOpenVcFunding: () => void;
+  onOpenBanter?: () => void;
+  onOpenGrassroots?: () => void;
 }
 
 export const StadiumSuitesMenu: React.FC<StadiumSuitesMenuProps> = ({
@@ -48,23 +34,16 @@ export const StadiumSuitesMenu: React.FC<StadiumSuitesMenuProps> = ({
   onOpenBirthdays,
   onOpenLeaderboard,
   onOpenLedger,
-  onOpenBankroll,
-  onOpenReverseJinx,
-  onOpenFlexSlip,
-  onOpenTelemetry,
-  onOpenHardware,
   onOpenStandings,
   onOpenClubs,
   onOpenNews,
-  onOpenRotatingPool,
-  onOpenVisitor,
-  onOpenEffects,
-  onOpenVcFunding,
+  onOpenBanter,
+  onOpenGrassroots,
 }) => {
   if (!isOpen) return null;
 
-  const handleAction = (action: () => void) => {
-    action();
+  const handleAction = (action?: () => void) => {
+    if (action) action();
     onClose();
   };
 
@@ -80,10 +59,10 @@ export const StadiumSuitesMenu: React.FC<StadiumSuitesMenuProps> = ({
             </div>
             <div>
               <h2 className="font-black text-sm sm:text-base text-white tracking-wider">
-                STADIUM SUITES & TOOLS MENU
+                STADIUM HUB & NAIJA GEN-Z SUITES ⚡🇳🇬
               </h2>
               <span className="text-[10px] text-gray-400 font-sans">
-                Organized hubs & auxiliary features (Zero prediction clutter)
+                Curated Nigerian fan suites, live match audits and banter
               </span>
             </div>
           </div>
@@ -99,7 +78,7 @@ export const StadiumSuitesMenu: React.FC<StadiumSuitesMenuProps> = ({
         {/* CATEGORY 1: MATCH INTELLIGENCE & AUDITS */}
         <div className="space-y-2.5">
           <span className="text-[10px] font-black text-stadiumGreen uppercase tracking-wider block">
-            1. MATCH INTELLIGENCE & AUDITS 🏟️
+            1. MATCH INTELLIGENCE & OFFICIAL AUDITS 🏟️
           </span>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             
@@ -129,7 +108,7 @@ export const StadiumSuitesMenu: React.FC<StadiumSuitesMenuProps> = ({
                   <span className="font-black text-white text-xs block group-hover:text-gold">
                     Official League Standings
                   </span>
-                  <span className="text-[9px] text-gray-400 font-sans">PL, La Liga, Serie A, Bund.</span>
+                  <span className="text-[9px] text-gray-400 font-sans">PL, La Liga, Serie A, NPFL</span>
                 </div>
               </div>
               <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-gold group-hover:translate-x-1 transition-all" />
@@ -145,7 +124,7 @@ export const StadiumSuitesMenu: React.FC<StadiumSuitesMenuProps> = ({
                   <span className="font-black text-white text-xs block group-hover:text-stadiumGreen">
                     Global Club Explorer
                   </span>
-                  <span className="text-[9px] text-gray-400 font-sans">12+ Leagues, stadium capacities</span>
+                  <span className="text-[9px] text-gray-400 font-sans">12+ Leagues & venues</span>
                 </div>
               </div>
               <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-stadiumGreen group-hover:translate-x-1 transition-all" />
@@ -170,24 +149,56 @@ export const StadiumSuitesMenu: React.FC<StadiumSuitesMenuProps> = ({
           </div>
         </div>
 
-        {/* CATEGORY 2: VIRAL SOCIAL & FAN SUITES */}
+        {/* CATEGORY 2: NAIJA VIRAL SOCIAL & FAN SUITES */}
         <div className="space-y-2.5">
           <span className="text-[10px] font-black text-gold uppercase tracking-wider block">
-            2. VIRAL SOCIAL & FAN SUITES ⚡
+            2. NAIJA VIRAL SOCIAL & FAN SUITES ⚡
           </span>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            
+
+            <button
+              onClick={() => handleAction(onOpenBanter)}
+              className="p-3 rounded-2xl bg-crimson/10 hover:bg-crimson/20 border border-crimson/40 text-left transition-all flex items-center justify-between group"
+            >
+              <div className="flex items-center space-x-3">
+                <span className="text-xl">🎙️</span>
+                <div>
+                  <span className="font-black text-white text-xs block group-hover:text-crimson">
+                    Naija Roast & Banter Lounge 🔥
+                  </span>
+                  <span className="text-[9px] text-crimson font-sans font-bold">Hilarious Nigerian club burns</span>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-crimson group-hover:translate-x-1 transition-all" />
+            </button>
+
+            <button
+              onClick={() => handleAction(onOpenGrassroots)}
+              className="p-3 rounded-2xl bg-stadiumGreen/10 hover:bg-stadiumGreen/20 border border-stadiumGreen/40 text-left transition-all flex items-center justify-between group"
+            >
+              <div className="flex items-center space-x-3">
+                <span className="text-xl">🇳🇬</span>
+                <div>
+                  <span className="font-black text-white text-xs block group-hover:text-stadiumGreen">
+                    Grassroots Scouting & NPFL
+                  </span>
+                  <span className="text-[9px] text-stadiumGreen font-sans font-bold">Discover Nigerian wonderkids</span>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-stadiumGreen group-hover:translate-x-1 transition-all" />
+            </button>
+
             <button
               onClick={() => handleAction(onOpenBirthdays)}
-              className="p-3 rounded-2xl bg-panel hover:bg-white/5 border border-white/10 hover:border-pink-400/50 text-left transition-all flex items-center justify-between group"
+              className="p-3 rounded-2xl bg-panel hover:bg-white/5 border border-white/10 hover:border-pink-500/50 text-left transition-all flex items-center justify-between group"
             >
               <div className="flex items-center space-x-3">
                 <span className="text-xl">🎂</span>
                 <div>
                   <span className="font-black text-white text-xs block group-hover:text-pink-400">
-                    Star Birthdays & Records
+                    Star Birthdays & Viral Cards
                   </span>
-                  <span className="text-[9px] text-gray-400 font-sans">Player photos & voting XP</span>
+                  <span className="text-[9px] text-gray-400 font-sans">Player photos & custom wishes</span>
                 </div>
               </div>
               <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-pink-400 group-hover:translate-x-1 transition-all" />
@@ -209,166 +220,7 @@ export const StadiumSuitesMenu: React.FC<StadiumSuitesMenuProps> = ({
               <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-gold group-hover:translate-x-1 transition-all" />
             </button>
 
-            <button
-              onClick={() => handleAction(onOpenReverseJinx)}
-              className="p-3 rounded-2xl bg-panel hover:bg-white/5 border border-white/10 hover:border-purple-400/50 text-left transition-all flex items-center justify-between group"
-            >
-              <div className="flex items-center space-x-3">
-                <span className="text-xl">🔮</span>
-                <div>
-                  <span className="font-black text-white text-xs block group-hover:text-purple-400">
-                    Reverse Jinx (Emotional Hedge)
-                  </span>
-                  <span className="text-[9px] text-gray-400 font-sans">Win-win hedged bet generator</span>
-                </div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-purple-400 group-hover:translate-x-1 transition-all" />
-            </button>
-
-            <button
-              onClick={() => handleAction(onOpenFlexSlip)}
-              className="p-3 rounded-2xl bg-panel hover:bg-white/5 border border-white/10 hover:border-stadiumGreen/50 text-left transition-all flex items-center justify-between group"
-            >
-              <div className="flex items-center space-x-3">
-                <span className="text-xl">📲</span>
-                <div>
-                  <span className="font-black text-white text-xs block group-hover:text-stadiumGreen">
-                    Social Clout Flex Slip
-                  </span>
-                  <span className="text-[9px] text-gray-400 font-sans">Share slips on WhatsApp & TikTok</span>
-                </div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-stadiumGreen group-hover:translate-x-1 transition-all" />
-            </button>
-
           </div>
-        </div>
-
-        {/* CATEGORY 3: ADVANCED HARDWARE & OPTIMIZATION ENGINES */}
-        <div className="space-y-2.5">
-          <span className="text-[10px] font-black text-cyan-400 uppercase tracking-wider block">
-            3. HARDWARE & ADVANCED ENGINES 📱
-          </span>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            
-            <button
-              onClick={() => handleAction(onOpenBankroll)}
-              className="p-3 rounded-2xl bg-panel hover:bg-white/5 border border-white/10 hover:border-stadiumGreen/50 text-left transition-all flex items-center justify-between group"
-            >
-              <div className="flex items-center space-x-3">
-                <span className="text-xl">💰</span>
-                <div>
-                  <span className="font-black text-white text-xs block group-hover:text-stadiumGreen">
-                    Kelly Bankroll Optimizer
-                  </span>
-                  <span className="text-[9px] text-gray-400 font-sans">Smart staking math</span>
-                </div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-stadiumGreen group-hover:translate-x-1 transition-all" />
-            </button>
-
-            <Link
-              href="/arbitrage"
-              onClick={onClose}
-              className="p-3 rounded-2xl bg-panel hover:bg-white/5 border border-white/10 hover:border-gold/50 text-left transition-all flex items-center justify-between group"
-            >
-              <div className="flex items-center space-x-3">
-                <span className="text-xl">📈</span>
-                <div>
-                  <span className="font-black text-white text-xs block group-hover:text-gold">
-                    Arbitrage Price Disparity
-                  </span>
-                  <span className="text-[9px] text-gray-400 font-sans">Multi-bookmaker radar</span>
-                </div>
-              </div>
-              <ExternalLink className="w-4 h-4 text-gray-500 group-hover:text-gold group-hover:translate-x-1 transition-all" />
-            </Link>
-
-            <button
-              onClick={() => handleAction(onOpenTelemetry)}
-              className="p-3 rounded-2xl bg-panel hover:bg-white/5 border border-white/10 hover:border-cyan-400/50 text-left transition-all flex items-center justify-between group"
-            >
-              <div className="flex items-center space-x-3">
-                <span className="text-xl">📶</span>
-                <div>
-                  <span className="font-black text-white text-xs block group-hover:text-cyan-400">
-                    Live Telemetry & Sensors
-                  </span>
-                  <span className="text-[9px] text-gray-400 font-sans">FPS, 4G/5G, Latency</span>
-                </div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all" />
-            </button>
-
-            <button
-              onClick={() => handleAction(onOpenHardware)}
-              className="p-3 rounded-2xl bg-panel hover:bg-white/5 border border-white/10 hover:border-stadiumGreen/50 text-left transition-all flex items-center justify-between group"
-            >
-              <div className="flex items-center space-x-3">
-                <span className="text-xl">📳</span>
-                <div>
-                  <span className="font-black text-white text-xs block group-hover:text-stadiumGreen">
-                    Phone Hardware & Push
-                  </span>
-                  <span className="text-[9px] text-gray-400 font-sans">Lock-screen alerts, PWA</span>
-                </div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-stadiumGreen group-hover:translate-x-1 transition-all" />
-            </button>
-
-            <button
-              onClick={() => handleAction(onOpenEffects)}
-              className="p-3 rounded-2xl bg-panel hover:bg-white/5 border border-white/10 hover:border-cyberPurple/50 text-left transition-all flex items-center justify-between group"
-            >
-              <div className="flex items-center space-x-3">
-                <span className="text-xl">✨</span>
-                <div>
-                  <span className="font-black text-white text-xs block group-hover:text-cyberPurple">
-                    Effects & Event FX Engine
-                  </span>
-                  <span className="text-[9px] text-gray-400 font-sans">Goal popups, confetti, haptics, SFX</span>
-                </div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-cyberPurple group-hover:translate-x-1 transition-all" />
-            </button>
-
-          </div>
-        </div>
-
-        {/* CATEGORY 4: BUSINESS & GROWTH */}
-        <div className="space-y-2.5">
-          <span className="text-[10px] font-black text-gold uppercase tracking-wider block">
-            4. BUSINESS & GROWTH 🚀
-          </span>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-
-            <button
-              onClick={() => handleAction(onOpenVcFunding)}
-              className="p-3 rounded-2xl bg-panel hover:bg-white/5 border border-white/10 hover:border-gold/50 text-left transition-all flex items-center justify-between group"
-            >
-              <div className="flex items-center space-x-3">
-                <span className="text-xl">🚀</span>
-                <div>
-                  <span className="font-black text-white text-xs block group-hover:text-gold">
-                    Investor Pitch Deck
-                  </span>
-                  <span className="text-[9px] text-gray-400 font-sans">VC metrics & zero-cost roadmap</span>
-                </div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-gold group-hover:translate-x-1 transition-all" />
-            </button>
-
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="pt-3 border-t border-white/10 text-center">
-          <button
-            onClick={onClose}
-            className="w-full py-3 rounded-2xl bg-stadiumGreen text-black font-black text-xs hover:bg-emerald-400 transition-all shadow-lg glow-emerald"
-          >
-            Return to Live Match Predictions ⚽
-          </button>
         </div>
 
       </div>

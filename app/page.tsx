@@ -12,6 +12,8 @@ import { UserProfileModal } from '../components/user-profile-modal';
 import { PredictionHistoryModal } from '../components/prediction-history-modal';
 import { TeamExplorerModal } from '../components/team-explorer-modal';
 import { BirthdayCenterModal } from '../components/birthday-center-modal';
+import { NaijaBanterLoungeModal } from '../components/naija-banter-lounge-modal';
+import { GrassrootsScoutingModal } from '../components/grassroots-scouting-modal';
 import { TipsterLeaderboardModal } from '../components/tipster-leaderboard-modal';
 import { LegalModal } from '../components/legal-modal';
 import { HistoryArchiveModal } from '../components/history-archive-modal';
@@ -72,6 +74,8 @@ export default function Home() {
   const [showReverseJinxModal, setShowReverseJinxModal] = useState(false);
   const [showRotatingPoolModal, setShowRotatingPoolModal] = useState(false);
   const [showSuitesMenu, setShowSuitesMenu] = useState(false);
+  const [showBanterModal, setShowBanterModal] = useState(false);
+  const [showGrassrootsModal, setShowGrassrootsModal] = useState(false);
   const [showStandingsModal, setShowStandingsModal] = useState(false);
   const [showNewsModal, setShowNewsModal] = useState(false);
   const [showTelemetryModal, setShowTelemetryModal] = useState(false);
@@ -265,8 +269,8 @@ export default function Home() {
                 <button onClick={() => setShowSuitesMenu(true)}
                   className="px-3 py-2 rounded-xl bg-gradient-to-r from-stadiumGreen/20 to-gold/20 border border-stadiumGreen/40 text-stadiumGreen font-black text-xs flex items-center space-x-1.5 hover:scale-105 transition-all">
                   <Sparkles className="w-3.5 h-3.5 text-gold animate-pulse" />
-                  <span className="hidden sm:inline">Suites</span>
-                  <span className="sm:hidden">Menu</span>
+                  <span className="hidden sm:inline">Stadium Hub ⚡</span>
+                  <span className="sm:hidden">Hub ⚡</span>
                 </button>
               </div>
             </div>
@@ -397,22 +401,17 @@ export default function Home() {
           onOpenLedger={() => setShowTrackRecord(true)}
           onOpenSuitesMenu={() => setShowSuitesMenu(true)} />
 
-        <StadiumSuitesMenu isOpen={showSuitesMenu} onClose={() => setShowSuitesMenu(false)}
+        <StadiumSuitesMenu
+          isOpen={showSuitesMenu}
+          onClose={() => setShowSuitesMenu(false)}
           onOpenBirthdays={() => setShowBirthdaysModal(true)}
           onOpenLeaderboard={() => setShowLeaderboardModal(true)}
           onOpenLedger={() => setShowHistoryModal(true)}
-          onOpenBankroll={() => setShowBankroll(true)}
-          onOpenReverseJinx={() => setShowReverseJinxModal(true)}
-          onOpenFlexSlip={() => setShowCloutCardModal(true)}
-          onOpenTelemetry={() => setShowTelemetryModal(true)}
-          onOpenHardware={() => setShowHardwareModal(true)}
           onOpenStandings={() => setShowStandingsModal(true)}
           onOpenClubs={() => setShowTeamsModal(true)}
           onOpenNews={() => setShowNewsModal(true)}
-          onOpenRotatingPool={() => setShowRotatingPoolModal(true)}
-          onOpenVisitor={() => setShowVisitorModal(true)}
-          onOpenEffects={() => setShowEffectsModal(true)}
-          onOpenVcFunding={() => setShowVcFundingModal(true)}
+          onOpenBanter={() => setShowBanterModal(true)}
+          onOpenGrassroots={() => setShowGrassrootsModal(true)}
         />
 
         {showStandingsModal && (
@@ -475,6 +474,8 @@ export default function Home() {
         {showProfile && <UserProfileModal onClose={() => setShowProfile(false)} />}
         {showTeamsModal && <TeamExplorerModal onClose={() => setShowTeamsModal(false)} />}
         {showBirthdaysModal && <BirthdayCenterModal onClose={() => setShowBirthdaysModal(false)} />}
+        {showBanterModal && <NaijaBanterLoungeModal onClose={() => setShowBanterModal(false)} />}
+        {showGrassrootsModal && <GrassrootsScoutingModal onClose={() => setShowGrassrootsModal(false)} />}
         {showLeaderboardModal && <TipsterLeaderboardModal onClose={() => setShowLeaderboardModal(false)} />}
         {showLegalModal && <LegalModal onClose={() => setShowLegalModal(false)} />}
         {showHistoryModal && <HistoryArchiveModal onClose={() => setShowHistoryModal(false)} />}
