@@ -50,8 +50,7 @@ export const GenZLiveAlerts: React.FC<GenZLiveAlertsProps> = ({
           matchTitle: `${targetMatch.homeTeam} vs ${targetMatch.awayTeam}`,
           match: targetMatch,
         });
-        stadiumAudio.playCrowdRoar();
-      } else if (targetMatch.status === 'FINISHED') {
+        } else if (targetMatch.status === 'FINISHED') {
         setActiveAlert({
           id: `alert-${targetMatch.id}`,
           type: 'RESULT_SETTLED',

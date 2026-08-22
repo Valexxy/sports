@@ -49,7 +49,7 @@ class PhoneHardwareEngine {
     // 2. Inbuilt Online Restored Alert
     window.addEventListener('online', () => {
       this.triggerHaptic('ONLINE_RESTORED');
-      stadiumAudio.playCrowdRoar();
+      // auto audio disabled
       this.sendNativeNotification(
         '⚡ AuraScore Online Connected',
         'Live match odds, scores and telemetry synchronized from global edge servers.',
@@ -81,7 +81,7 @@ class PhoneHardwareEngine {
           const speed = Math.abs((current.x || 0) + (current.y || 0) + (current.z || 0) - lastX - lastY - lastZ) / diffTime * 10000;
           if (speed > 800) {
             this.triggerHaptic('MATCH_SETTLED_WON');
-            stadiumAudio.playCrowdRoar();
+            // auto audio disabled
           }
           lastX = current.x || 0;
           lastY = current.y || 0;

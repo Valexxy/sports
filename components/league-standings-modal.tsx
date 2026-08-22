@@ -95,8 +95,7 @@ export const LeagueStandingsModal: React.FC<LeagueStandingsModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       loadStandings(selectedLeague);
-      stadiumAudio.playDataSwoosh();
-    }
+      }
   }, [selectedLeague, isOpen]);
 
   if (!isOpen) return null;

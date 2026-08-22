@@ -8,6 +8,15 @@ class StadiumAudioEngine {
   private audioCtx: AudioContext | null = null;
   public isMuted: boolean = false;
 
+  public hasUserInteracted: boolean = false;
+
+  public enableOnUserClick() {
+    this.hasUserInteracted = true;
+    this.init();
+    this.resume();
+  }
+
+
   private init() {
     if (typeof window !== 'undefined' && !this.audioCtx) {
       const Ctx = window.AudioContext || (window as any).webkitAudioContext;

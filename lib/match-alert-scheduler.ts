@@ -61,7 +61,7 @@ export class MatchAlertScheduler {
         `You'll receive 15-min kickoff reminders, live goal vibrations & settlement alerts.`
       );
       phoneHardware.triggerHaptic('BANKER_LOCKED');
-      stadiumAudio.playWhistle();
+      // auto audio disabled
     }
   }
 
@@ -92,7 +92,7 @@ export class MatchAlertScheduler {
         const body = `${m.homeTeam} ${m.homeScore} - ${m.awayScore} ${m.awayTeam} (${m.matchTime})`;
         phoneHardware.sendNativeNotification(title, body);
         phoneHardware.triggerHaptic('GOAL_SCORED');
-        stadiumAudio.playCrowdRoar();
+        // auto audio disabled
         if (onAlertTriggered) onAlertTriggered(title, body);
         alertConfig.lastKnownHomeScore = m.homeScore;
         changed = true;
@@ -103,7 +103,7 @@ export class MatchAlertScheduler {
         const body = `${m.homeTeam} ${m.homeScore} - ${m.awayScore} ${m.awayTeam} (${m.matchTime})`;
         phoneHardware.sendNativeNotification(title, body);
         phoneHardware.triggerHaptic('GOAL_SCORED');
-        stadiumAudio.playCrowdRoar();
+        // auto audio disabled
         if (onAlertTriggered) onAlertTriggered(title, body);
         alertConfig.lastKnownAwayScore = m.awayScore;
         changed = true;
@@ -115,7 +115,7 @@ export class MatchAlertScheduler {
         const body = `The match has officially started! Live 2D pitch tracking active.`;
         phoneHardware.sendNativeNotification(title, body);
         phoneHardware.triggerHaptic('BANKER_LOCKED');
-        stadiumAudio.playWhistle();
+        // auto audio disabled
         if (onAlertTriggered) onAlertTriggered(title, body);
         alertConfig.alertKickoffSent = true;
         changed = true;
