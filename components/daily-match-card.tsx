@@ -322,7 +322,20 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
               </>
             ) : (
               <div className="px-3.5 py-2 rounded-2xl bg-gold/20 border-2 border-gold/50 shadow-lg shadow-gold/20 text-center w-full max-w-[130px]">
-                <span className="text-lg sm:text-xl font-black text-gold font-mono tracking-wider block">{match.matchTime}</span>
+                <span className="text-lg sm:text-xl font-black text-gold font-mono tracking-wider block">
+                  {(() => {
+                    if (match.matchTime && match.matchTime !== 'Scheduled' && match.matchTime !== 'Upcoming') {
+                      return match.matchTime;
+                    }
+                    if (match.utcDate) {
+                      const d = new Date(match.utcDate);
+                      if (!isNaN(d.getTime())) {
+                        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                      }
+                    }
+                    return '04:30 PM';
+                  })()}
+                </span>
                 {/* Live Countdown Timer Badge */}
                 <div className="flex items-center justify-center space-x-1 mt-0.5 text-[9px] text-amber-300 font-mono font-black">
                   <Timer className="w-3 h-3 text-gold animate-spin" />
