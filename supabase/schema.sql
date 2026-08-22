@@ -186,24 +186,55 @@ ALTER TABLE public.live_commentary ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.privacy_analytics ENABLE ROW LEVEL SECURITY;
 
--- CREATE OPEN READ & INSERT POLICIES FOR WEB APP
-CREATE POLICY "Allow public read on matches" ON public.matches FOR SELECT USING (true);
-CREATE POLICY "Allow public read on settlement_ledger" ON public.settlement_ledger FOR SELECT USING (true);
-CREATE POLICY "Allow public read & insert on fan_comments" ON public.fan_comments FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public read & write on user_profiles" ON public.user_profiles FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public read & write on star_birthdays" ON public.star_birthdays FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public read on tipster_leaderboard" ON public.tipster_leaderboard FOR SELECT USING (true);
-CREATE POLICY "Allow public read on live_commentary" ON public.live_commentary FOR SELECT USING (true);
-CREATE POLICY "Allow public insert on push_subscriptions" ON public.push_subscriptions FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public insert on privacy_analytics" ON public.privacy_analytics FOR INSERT WITH CHECK (true);
+-- CREATE OPEN READ & INSERT POLICIES FOR WEB APP (idempotent)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow public read on matches') THEN
+    CREATE POLICY "Allow public read on matches" ON public.matches FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow public read on settlement_ledger') THEN
+    CREATE POLICY "Allow public read on settlement_ledger" ON public.settlement_ledger FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow public read & insert on fan_comments') THEN
+    CREATE POLICY "Allow public read & insert on fan_comments" ON public.fan_comments FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow public read & write on user_profiles') THEN
+    CREATE POLICY "Allow public read & write on user_profiles" ON public.user_profiles FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow public read & write on star_birthdays') THEN
+    CREATE POLICY "Allow public read & write on star_birthdays" ON public.star_birthdays FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow public read on tipster_leaderboard') THEN
+    CREATE POLICY "Allow public read on tipster_leaderboard" ON public.tipster_leaderboard FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow public read on live_commentary') THEN
+    CREATE POLICY "Allow public read on live_commentary" ON public.live_commentary FOR SELECT USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow public insert on push_subscriptions') THEN
+    CREATE POLICY "Allow public insert on push_subscriptions" ON public.push_subscriptions FOR INSERT WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow public insert on privacy_analytics') THEN
+    CREATE POLICY "Allow public insert on privacy_analytics" ON public.privacy_analytics FOR INSERT WITH CHECK (true);
+  END IF;
+END $$;
 
 -- ==============================================================================
 -- REALTIME REPLICATION FOR LIVE CHAT, SCORES & COMMENTARY
 -- ==============================================================================
 
-ALTER PUBLICATION supabase_realtime ADD TABLE public.matches;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.fan_comments;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.live_commentary;
+-- Add tables to realtime publication (idempotent - skip if already added)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'matches') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.matches;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'fan_comments') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.fan_comments;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'live_commentary') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.live_commentary;
+  END IF;
+END $$;
 
 -- ==============================================================================
 -- UPDATED_AT TRIGGERS (auto-update timestamps)
