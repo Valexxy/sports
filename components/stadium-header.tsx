@@ -1,16 +1,19 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   Zap, 
   Trophy, 
   Cake, 
   Sparkles, 
-  Share2
+  Share2,
+  Download,
+  Check
 } from 'lucide-react';
 import { useTranslation } from '../lib/translation-engine';
 import { GlobalLanguageSwitcher } from './global-language-switcher';
+import confetti from 'canvas-confetti';
 
 interface StadiumHeaderProps {
   onOpenReceipt: () => void;
@@ -31,6 +34,33 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
   onOpenSuitesMenu,
 }) => {
   const { t } = useTranslation();
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('aurascore_installed');
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+      if (stored === 'true' || isStandalone) {
+        setIsInstalled(true);
+      }
+    }
+  }, []);
+
+  const handleInstallClick = () => {
+    const promptEvent = (window as any).__pwaInstallPrompt;
+    if (promptEvent) {
+      promptEvent.prompt();
+      promptEvent.userChoice.then((choice: any) => {
+        if (choice.outcome === 'accepted') {
+          setIsInstalled(true);
+          localStorage.setItem('aurascore_installed', 'true');
+          confetti({ particleCount: 50, spread: 60, origin: { y: 0.3 } });
+        }
+      });
+    } else {
+      alert('📲 Tap your browser menu (⋮ or Share icon ⬆️) and select "Add to Home Screen" to install!');
+    }
+  };
 
   return (
     <header className="sticky top-0 z-40 bg-void/95 backdrop-blur-xl border-b border-white/10 shadow-2xl">
@@ -86,7 +116,7 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
           </button>
         </nav>
 
-        {/* Right Action Icons: Hub Button (Mobile), Avatar, Flex Slip (Desktop), Language Switcher */}
+        {/* Right Action Icons */}
         <div className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0">
           
           {/* Mobile Stadium Hub Button */}
@@ -101,6 +131,18 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
             </button>
           )}
 
+          {/* Dedicated Install App Pill (Shows if not installed yet) */}
+          {!isInstalled && (
+            <button
+              onClick={handleInstallClick}
+              className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-2xl bg-gradient-to-r from-stadiumGreen to-emerald-400 text-black font-black text-xs flex items-center space-x-1 shadow-lg glow-emerald hover:scale-105 active:scale-95 transition-all"
+              title="Install App on your phone"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Install App</span>
+            </button>
+          )}
+
           {/* Digital Avatar & Handle */}
           <button
             onClick={onOpenProfile}
@@ -112,16 +154,6 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
             </div>
             <span className="hidden md:inline font-bold text-xs text-white">CyberStriker_99</span>
             <span className="text-[9px] px-1.5 py-0.5 rounded bg-gold/20 text-gold font-bold">3.8k</span>
-          </button>
-
-          {/* Viral Flex Card Button (Desktop Only) */}
-          <button
-            onClick={onOpenReceipt}
-            className="hidden sm:flex px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-2xl bg-stadiumGreen hover:bg-emerald-400 text-black font-black text-xs items-center space-x-1.5 shadow-lg glow-emerald transition-all hover:scale-105 active:scale-95"
-            title="Generate Social Flex Slip"
-          >
-            <Share2 className="w-3.5 h-3.5" />
-            <span>{t('Flex Slip 🔥')}</span>
           </button>
 
           {/* Language Switcher AT THE VERY TOP */}
