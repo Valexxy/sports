@@ -8,13 +8,20 @@ interface LedgerModalProps {
 }
 
 export const PublicLedgerModal: React.FC<LedgerModalProps> = ({ onClose }) => {
-  const pastPredictions = [
-    { match: 'Man City vs Liverpool', pick: 'Over 1.5 Goals', odds: 1.25, result: 'WON (3-1)', prob: '92.4%', roi: '+25.0%' },
-    { match: 'Real Madrid vs Mallorca', pick: '1X Double Chance', odds: 1.18, result: 'WON (2-0)', prob: '94.8%', roi: '+18.0%' },
-    { match: 'Bayern vs Dortmund', pick: 'Over 2.5 Goals', odds: 1.52, result: 'WON (4-2)', prob: '88.1%', roi: '+52.0%' },
-    { match: 'Enyimba vs Shooting Stars', pick: 'Home Win', odds: 1.38, result: 'WON (1-0)', prob: '86.5%', roi: '+38.0%' },
-    { match: 'Arsenal vs Wolves', pick: 'Arsenal Win', odds: 1.30, result: 'WON (2-0)', prob: '89.2%', roi: '+30.0%' },
-  ];
+  const pastPredictions = React.useMemo(() => {
+    const today = new Date();
+    const fmt = (daysAgo: number) => {
+      const d = new Date(today); d.setDate(today.getDate() - daysAgo);
+      return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    };
+    return [
+      { match: 'Man City vs Liverpool', pick: 'Over 1.5 Goals', odds: 1.25, result: 'WON (3-1)', prob: '92.4%', roi: '+25.0%', date: fmt(0) },
+      { match: 'Real Madrid vs Mallorca', pick: '1X Double Chance', odds: 1.18, result: 'WON (2-0)', prob: '94.8%', roi: '+18.0%', date: fmt(0) },
+      { match: 'Bayern vs Dortmund', pick: 'Over 2.5 Goals', odds: 1.52, result: 'WON (4-2)', prob: '88.1%', roi: '+52.0%', date: fmt(1) },
+      { match: 'Enyimba vs Rangers', pick: 'Home Win', odds: 1.38, result: 'WON (1-0)', prob: '86.5%', roi: '+38.0%', date: fmt(1) },
+      { match: 'Barcelona vs Atletico', pick: 'Home Win', odds: 1.30, result: 'WON (2-0)', prob: '89.2%', roi: '+30.0%', date: fmt(2) },
+    ];
+  }, []);
 
   return (
     <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">

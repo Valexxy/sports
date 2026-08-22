@@ -56,7 +56,7 @@ export const SportsNewsSection: React.FC = () => {
 
   const handleReact = (articleId: string, type: 'flame' | 'target' | 'clap') => {
     setReactions((prev) => {
-      const current = prev[articleId] || { flame: 12, target: 8, clap: 24 };
+      const current = prev[articleId] || { flame: 0, target: 0, clap: 0 };
       return {
         ...prev,
         [articleId]: {

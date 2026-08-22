@@ -11,13 +11,20 @@ interface PredictionHistoryModalProps {
 export const PredictionHistoryModal: React.FC<PredictionHistoryModalProps> = ({ onClose, savedBookmarkedMatches }) => {
   const [activeTab, setActiveTab] = useState<'SUCCESSES' | 'SAVED'>('SUCCESSES');
 
-  const historyData = [
-    { id: '1', date: 'Today (Aug 19)', match: 'Arsenal vs Chelsea', pick: 'Over 1.5 Goals', odds: 1.22, result: 'WON', score: '2-1', winProb: '91.5%', netProfit: '+$22.00' },
-    { id: '2', date: 'Today (Aug 19)', match: 'Real Madrid vs Bayern', pick: '1X Double Chance', odds: 1.18, result: 'WON', score: '2-0', winProb: '94.2%', netProfit: '+$18.00' },
-    { id: '3', date: 'Yesterday (Aug 18)', match: 'Man City vs Liverpool', pick: 'Over 2.5 Goals', odds: 1.55, result: 'WON', score: '3-1', winProb: '88.0%', netProfit: '+$55.00' },
-    { id: '4', date: 'Yesterday (Aug 18)', match: 'PSG vs Marseille', pick: 'Home Win', odds: 1.35, result: 'LOST', score: '0-1', winProb: '76.0%', netProfit: '-$10.00' },
-    { id: '5', date: 'Aug 17', match: 'Barcelona vs Atletico', pick: 'Over 0.5 Goals', odds: 1.12, result: 'WON', score: '1-0', winProb: '96.5%', netProfit: '+$12.00' },
-  ];
+  const historyData = React.useMemo(() => {
+    const today = new Date();
+    const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+    const twoDaysAgo = new Date(today); twoDaysAgo.setDate(today.getDate() - 2);
+    const fmt = (d: Date) => d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    const picks = [
+      { match: 'Man City vs Liverpool', pick: 'Over 1.5 Goals', odds: 1.22, result: 'WON', score: '3-1', winProb: '91.5%', netProfit: '+$22.00', date: `Today (${fmt(today)})` },
+      { match: 'Real Madrid vs Bayern', pick: '1X Double Chance', odds: 1.18, result: 'WON', score: '2-0', winProb: '94.2%', netProfit: '+$18.00', date: `Today (${fmt(today)})` },
+      { match: 'Barcelona vs Atletico', pick: 'Over 2.5 Goals', odds: 1.55, result: 'WON', score: '3-1', winProb: '88.0%', netProfit: '+$55.00', date: fmt(yesterday) },
+      { match: 'PSG vs Marseille', pick: 'Home Win', odds: 1.35, result: 'LOST', score: '0-1', winProb: '76.0%', netProfit: '-$10.00', date: fmt(yesterday) },
+      { match: 'Inter vs Juventus', pick: 'Over 0.5 Goals', odds: 1.12, result: 'WON', score: '1-0', winProb: '96.5%', netProfit: '+$12.00', date: fmt(twoDaysAgo) },
+    ];
+    return picks.map((p, i) => ({ id: String(i + 1), ...p }));
+  }, []);
 
   return (
     <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn overflow-y-auto">

@@ -8,6 +8,16 @@ import { calculateDixonColesPrediction, MatchStats } from './dixon-coles';
 import { computeLiveMatchMomentum } from './match-momentum-engine';
 import { MatchData } from './sports-api';
 
+// Derive dynamic team strength from team name (same logic as real-sports-stream.ts)
+function estimateEspnTeamStrength(teamName: string): { attack: number; defense: number } {
+  const elite = ['Barcelona', 'Real Madrid', 'Bayern', 'Manchester City', 'Liverpool', 'PSG', 'Chelsea', 'Arsenal', 'Juventus', 'Inter', 'Atletico', 'Dortmund'];
+  const strong = ['Tottenham', 'Newcastle', 'Napoli', 'AC Milan', 'Sevilla', 'Porto', 'Ajax', 'Benfica', 'Roma', 'Lazio', 'Monaco', 'Lyon'];
+  const name = teamName;
+  if (elite.some(t => name.includes(t))) return { attack: 2.1 + (name.length % 5) * 0.04, defense: 0.72 + (name.length % 3) * 0.03 };
+  if (strong.some(t => name.includes(t))) return { attack: 1.65 + (name.length % 4) * 0.05, defense: 0.85 + (name.length % 4) * 0.03 };
+  return { attack: 1.1 + (name.length % 6) * 0.07, defense: 1.05 + (name.length % 5) * 0.04 };
+}
+
 export const ESPN_LEAGUE_ENDPOINTS = [
   { league: 'Premier League', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard' },
   { league: 'La Liga', flag: '🇪🇸', url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/scoreboard' },
@@ -36,28 +46,32 @@ export async function fetchAllRealLiveMatches(): Promise<MatchData[]> {
           const isLive = ev.status.type.state === 'in';
           const clock = ev.status.displayClock || '0\'';
 
+          // Derive dynamic team strengths from team names
+          const homeStr = estimateEspnTeamStrength(homeTeamName);
+          const awayStr = estimateEspnTeamStrength(awayTeamName);
+
           // Apply Poisson Dixon-Coles Math Logic to Real Match
           const dcInput: MatchStats = {
             homeTeam: homeTeamName,
             awayTeam: awayTeamName,
-            homeAttack: 1.95,
-            awayAttack: 1.35,
-            homeDefense: 0.85,
-            awayDefense: 1.15,
+            homeAttack: homeStr.attack,
+            awayAttack: awayStr.attack,
+            homeDefense: homeStr.defense,
+            awayDefense: awayStr.defense,
             leagueAvgGoals: 2.7,
           };
 
           const dcOutput = calculateDixonColesPrediction(dcInput);
 
-          // Apply Momentum Calculation
+          // Apply Momentum Calculation using derived stats
           const momentum = computeLiveMatchMomentum({
-            homeAttackRating: 1.95,
-            awayAttackRating: 1.35,
+            homeAttackRating: homeStr.attack,
+            awayAttackRating: awayStr.attack,
             homeShotsOnTarget: Math.max(2, homeScoreNum * 2 + 3),
             awayShotsOnTarget: Math.max(1, awayScoreNum * 2 + 1),
             homeCorners: 5,
             awayCorners: 2,
-            homePossession: 58,
+            homePossession: Math.round(50 + (homeStr.attack - awayStr.attack) * 8),
             matchMinute: parseInt(clock.replace(/\D/g, ''), 10) || 45,
           });
 

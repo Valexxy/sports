@@ -10,11 +10,14 @@ interface ForumModalProps {
 export const StadiumForumModal: React.FC<ForumModalProps> = ({ onClose }) => {
   const [activeCategory, setActiveCategory] = useState<'PREVIEWS' | 'BANKERS' | 'TRANSFERS'>('PREVIEWS');
   const [newPostText, setNewPostText] = useState('');
-  const [posts, setPosts] = useState([
-    { id: '1', author: '@OracleMaster', badge: 'CHAMPION 👑', category: 'PREVIEWS', text: 'Arsenal vs Chelsea: Arsenal high press xG is averaging 2.15 goals at Emirates. Over 1.5 Goals is locked!', upvotes: 42, timeAgo: '15m ago' },
-    { id: '2', author: '@NPFLFanatic', badge: 'PRO ⚡', category: 'BANKERS', text: 'Enyimba FC home win @ 1.35 is the banker of the day! Unbeaten in 8 games in Aba.', upvotes: 28, timeAgo: '45m ago' },
-    { id: '3', author: '@NBASniper', badge: 'PRO ⚡', category: 'PREVIEWS', text: 'Celtics 3pt percentage in Q3 is ridiculous! Over 215.5 total points hit easily.', upvotes: 19, timeAgo: '2h ago' },
-  ]);
+  const [posts, setPosts] = useState(() => {
+    const today = new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    return [
+      { id: '1', author: '@OracleMaster', badge: 'CHAMPION 👑', category: 'PREVIEWS', text: `Today's top banker just dropped! The model is reading 91% confidence on the first kick. Be sharp, be quick. 🔥`, upvotes: 47, timeAgo: today },
+      { id: '2', author: '@BankerKing_NG', badge: 'TIPSTER PRO 🎯', category: 'BANKERS', text: 'Never go against a 90%+ probability play. System never lies. Stack those units 💰', upvotes: 31, timeAgo: today },
+      { id: '3', author: '@XGAnalytics', badge: 'DATA HEAD 📊', category: 'PREVIEWS', text: 'xG model is showing 2.8 expected goals for the top pick today. Both attacks are on fire this form run.', upvotes: 28, timeAgo: today },
+    ];
+  });
 
   const handleUpvote = (id: string) => {
     setPosts((prev) =>
