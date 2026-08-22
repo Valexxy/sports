@@ -273,11 +273,11 @@ export default function Home() {
 
   type PillDef = { key: FilterType; emoji: string; label: string; count: number; activeClass: string };
   const filterPills: PillDef[] = [
-    { key: 'LIVE',     emoji: '🔴', label: t('Live Matches'),     count: liveCount,     activeClass: 'bg-crimson/25 border-crimson text-crimson font-black' },
-    { key: 'UPCOMING', emoji: '🟡', label: t('Upcoming Matches'), count: upcomingCount, activeClass: 'bg-gold/25 border-gold text-gold font-black' },
-    { key: 'PLAYED',   emoji: '✅', label: t('Played (Finished)'),   count: playedCount,   activeClass: 'bg-stadiumGreen/25 border-stadiumGreen text-stadiumGreen font-black' },
-    { key: 'FOLLOWING', emoji: '⭐', label: t('Following (Pinned)'), count: sportMatches.filter(m => followedMatchIds.includes(m.id) || followedLeagues.some(l => m.league.toLowerCase().includes(l.toLowerCase()))).length, activeClass: 'bg-gold text-black border-gold font-black' },
+    { key: 'LIVE',     emoji: '🔴', label: t('Live'),     count: liveCount,     activeClass: 'bg-crimson/25 border-crimson text-crimson font-black shadow-lg shadow-crimson/20' },
+    { key: 'UPCOMING', emoji: '🟡', label: t('Upcoming'), count: upcomingCount, activeClass: 'bg-gold/25 border-gold text-gold font-black shadow-lg shadow-gold/20' },
+    { key: 'PLAYED',   emoji: '✅', label: t('Played'),   count: playedCount,   activeClass: 'bg-stadiumGreen/25 border-stadiumGreen text-stadiumGreen font-black shadow-lg shadow-stadiumGreen/20' },
   ];
+  const followingCount = sportMatches.filter(m => followedMatchIds.includes(m.id) || followedLeagues.some(l => m.league.toLowerCase().includes(l.toLowerCase()))).length;
 
   return (
     <ErrorBoundary>
@@ -374,8 +374,8 @@ export default function Home() {
 
             {/* Filter pills with counts */}
             <div className="space-y-2">
-              {/* Line 1: Clean Status Filters (Single Pulsating Dot) */}
-              <div className="grid grid-cols-4 gap-2">
+              {/* Line 1: ONLY 3 Complete Match Statuses (Live, Upcoming, Played) */}
+              <div className="grid grid-cols-3 gap-2">
                 {filterPills.map(pill => (
                   <button
                     key={pill.key}
@@ -384,21 +384,19 @@ export default function Home() {
                       setVisibleCount(12);
                       stadiumAudio.playTabClickSound();
                     }}
-                    className={'flex items-center justify-center space-x-1.5 py-2.5 px-2 rounded-2xl border text-xs font-black transition-all ' +
+                    className={'flex items-center justify-center space-x-2 py-3 px-3 rounded-2xl border text-xs font-black transition-all ' +
                       (activeFilter === pill.key ? pill.activeClass + ' scale-105 shadow-md' : 'border-white/10 text-gray-400 bg-panel hover:text-white hover:border-white/20')}
                   >
                     {pill.key === 'LIVE' ? (
-                      <span className="w-2 h-2 rounded-full bg-crimson animate-ping flex-shrink-0" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-crimson animate-ping flex-shrink-0" />
                     ) : pill.key === 'UPCOMING' ? (
-                      <span className="w-2 h-2 rounded-full bg-gold flex-shrink-0" />
-                    ) : pill.key === 'PLAYED' ? (
-                      <span className="w-2 h-2 rounded-full bg-stadiumGreen flex-shrink-0" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-gold flex-shrink-0" />
                     ) : (
-                      <span className="text-xs">⭐</span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-stadiumGreen flex-shrink-0" />
                     )}
-                    <span className="truncate">{pill.label}</span>
+                    <span className="font-extrabold">{pill.label}</span>
                     {pill.count > 0 && (
-                      <span className={'px-1.5 py-0.2 rounded-full text-[9px] font-black ' + (activeFilter === pill.key ? 'bg-black/40 text-white' : 'bg-white/10 text-gray-300')}>
+                      <span className={'px-2 py-0.5 rounded-full text-[10px] font-mono font-black ' + (activeFilter === pill.key ? 'bg-black/50 text-white' : 'bg-white/10 text-gray-300')}>
                         {pill.count}
                       </span>
                     )}
@@ -406,17 +404,37 @@ export default function Home() {
                 ))}
               </div>
 
-              {/* Line 2: 35+ Leagues & High Guarantees (No-Scroll Balanced Grid) */}
-              <div className="grid grid-cols-2 gap-2">
+              {/* Line 2: Following (Pinned), 35+ Leagues & High Guarantees (Clean 3-Button Balanced Grid) */}
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  onClick={() => {
+                    setActiveFilter('FOLLOWING');
+                    setVisibleCount(12);
+                    stadiumAudio.playTabClickSound();
+                  }}
+                  className={'py-2.5 px-2 rounded-2xl border text-xs font-black transition-all flex items-center justify-center space-x-1.5 shadow-md hover:scale-[1.02] ' +
+                    (activeFilter === 'FOLLOWING'
+                      ? 'bg-gold text-black border-gold font-black shadow-gold/30'
+                      : 'border-white/10 text-gray-400 bg-panel hover:text-gold hover:border-gold/30')}
+                >
+                  <span className="text-sm">⭐</span>
+                  <span className="truncate">{t('Following')}</span>
+                  {followingCount > 0 && (
+                    <span className={'px-1.5 py-0.2 rounded-full text-[9px] font-black ' + (activeFilter === 'FOLLOWING' ? 'bg-black/40 text-white' : 'bg-white/10 text-gold')}>
+                      {followingCount}
+                    </span>
+                  )}
+                </button>
+
                 <button
                   onClick={() => {
                     setShowLeagueBrowser(true);
                     stadiumAudio.playTabClickSound();
                   }}
-                  className="py-2.5 px-3 rounded-2xl border border-stadiumGreen/40 bg-stadiumGreen/15 hover:bg-stadiumGreen/25 text-stadiumGreen text-xs font-black transition-all flex items-center justify-center space-x-2 shadow-md hover:scale-[1.02]"
+                  className="py-2.5 px-2 rounded-2xl border border-stadiumGreen/40 bg-stadiumGreen/15 hover:bg-stadiumGreen/25 text-stadiumGreen text-xs font-black transition-all flex items-center justify-center space-x-1.5 shadow-md hover:scale-[1.02]"
                 >
                   <span>🌍</span>
-                  <span>{t('All Leagues (35+)')}</span>
+                  <span className="truncate">{t('All Leagues')}</span>
                 </button>
 
                 <button
@@ -424,13 +442,13 @@ export default function Home() {
                     setHighGuaranteesOnly(!highGuaranteesOnly);
                     stadiumAudio.playTabClickSound();
                   }}
-                  className={'py-2.5 px-3 rounded-2xl border text-xs font-black transition-all flex items-center justify-center space-x-2 shadow-md hover:scale-[1.02] ' +
+                  className={'py-2.5 px-2 rounded-2xl border text-xs font-black transition-all flex items-center justify-center space-x-1.5 shadow-md hover:scale-[1.02] ' +
                     (highGuaranteesOnly
                       ? 'bg-stadiumGreen/25 border-stadiumGreen text-stadiumGreen shadow-stadiumGreen/20'
                       : 'border-white/10 text-gray-400 bg-panel hover:text-white hover:border-white/20')}
                 >
                   <span>👑</span>
-                  <span>{t('High Guarantees (70%+)')}</span>
+                  <span className="truncate">{t('High Guarantees')}</span>
                 </button>
               </div>
             </div>
