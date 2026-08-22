@@ -16,12 +16,19 @@ export interface DailyMatchCardProps {
 /**
  * Evaluates whether the predicted topPick WON or LOST against final score
  */
+/**
+ * Evaluates whether the predicted topPick WON or LOST against final score
+ */
 function evaluatePickOutcome(
   selection: string,
+  homeTeam: string,
+  awayTeam: string,
   homeScore: number,
   awayScore: number
 ): { won: boolean; label: string; scoreSummary: string } {
-  const sel = selection.toLowerCase();
+  const sel = selection.toLowerCase().trim();
+  const hTeam = (homeTeam || '').toLowerCase().trim();
+  const aTeam = (awayTeam || '').toLowerCase().trim();
   const totalGoals = homeScore + awayScore;
   const isHomeWin = homeScore > awayScore;
   const isDraw = homeScore === awayScore;
@@ -29,24 +36,54 @@ function evaluatePickOutcome(
 
   let won = false;
 
-  if (sel.includes('over 1.5')) {
+  // 1. Double Chance Markets
+  if (sel.includes('1x') || sel.includes('or draw (1x)')) {
+    won = isHomeWin || isDraw;
+  } else if (sel.includes('x2') || sel.includes('or draw (x2)')) {
+    won = isAwayWin || isDraw;
+  } else if (sel.includes('12') || sel.includes('1 or 2')) {
+    won = homeScore !== awayScore;
+  }
+  // 2. Goal Totals (Over / Under)
+  else if (sel.includes('over 0.5')) {
+    won = totalGoals >= 1;
+  } else if (sel.includes('over 1.5')) {
     won = totalGoals >= 2;
   } else if (sel.includes('over 2.5')) {
     won = totalGoals >= 3;
+  } else if (sel.includes('over 3.5')) {
+    won = totalGoals >= 4;
+  } else if (sel.includes('under 1.5')) {
+    won = totalGoals <= 1;
   } else if (sel.includes('under 2.5')) {
     won = totalGoals <= 2;
   } else if (sel.includes('under 3.5')) {
     won = totalGoals <= 3;
-  } else if (sel.includes('1x') || sel.includes('or draw (1x)')) {
-    won = isHomeWin || isDraw;
-  } else if (sel.includes('x2') || sel.includes('or draw (x2)')) {
-    won = isAwayWin || isDraw;
-  } else if (sel.includes('draw')) {
+  } else if (sel.includes('under 4.5')) {
+    won = totalGoals <= 4;
+  }
+  // 3. Draw Market
+  else if (sel === 'draw' || sel.includes('draw (settled)') || sel === 'x') {
     won = isDraw;
-  } else if (sel.includes('gg') || sel.includes('both teams')) {
+  }
+  // 4. BTTS / GG Markets
+  else if (sel.includes('gg') || sel.includes('btts') || sel.includes('both teams')) {
     won = homeScore > 0 && awayScore > 0;
+  }
+  // 5. Away Team Win (e.g. Portsmouth, Real Madrid, Arsenal)
+  else if (aTeam && sel.includes(aTeam)) {
+    won = isAwayWin;
+  }
+  // 6. Home Team Win (e.g. Lincoln City, Arsenal, Hull City)
+  else if (hTeam && sel.includes(hTeam)) {
+    won = isHomeWin;
+  }
+  // 7. General match outcome fallback
+  else if (sel.includes('home') || sel === '1') {
+    won = isHomeWin;
+  } else if (sel.includes('away') || sel === '2') {
+    won = isAwayWin;
   } else {
-    // Team name pick
     won = isHomeWin;
   }
 
@@ -95,7 +132,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   const dateLabel = getMatchDateLabel(match.utcDate);
 
   // Evaluate final settlement if finished
-  const outcome = isFinished ? evaluatePickOutcome(p.topPick.selection, match.homeScore, match.awayScore) : null;
+  const outcome = isFinished ? evaluatePickOutcome(p.topPick.selection, match.homeTeam, match.awayTeam, match.homeScore, match.awayScore) : null;
 
   // Multi-factor prediction shift reason
   const shiftReason = p.topPick.rationale || (
