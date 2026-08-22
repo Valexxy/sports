@@ -39,6 +39,63 @@ interface LeagueStandingsModalProps {
   onSelectTeam?: (teamName: string) => void;
 }
 
+
+const SEASONS_LIST = ['2025/2026', '2024/2025', '2023/2024', '2022/2023'];
+
+const HISTORICAL_SEASON_STANDINGS: Record<string, Record<string, StandingRow[]>> = {
+  '2024/2025': {
+    'PREMIER_LEAGUE': [
+      { pos: 1, team: 'Manchester City', logo: '', played: 38, won: 28, drawn: 7, lost: 3, gf: 96, ga: 34, gd: 62, points: 91, form: ['W', 'W', 'W', 'W', 'W'] },
+      { pos: 2, team: 'Arsenal', logo: '', played: 38, won: 28, drawn: 5, lost: 5, gf: 91, ga: 29, gd: 62, points: 89, form: ['W', 'W', 'W', 'W', 'W'] },
+      { pos: 3, team: 'Liverpool', logo: '', played: 38, won: 24, drawn: 10, lost: 4, gf: 86, ga: 41, gd: 45, points: 82, form: ['W', 'D', 'W', 'D', 'W'] },
+      { pos: 4, team: 'Aston Villa', logo: '', played: 38, won: 20, drawn: 8, lost: 10, gf: 76, ga: 61, gd: 15, points: 68, form: ['L', 'D', 'L', 'D', 'W'] },
+      { pos: 5, team: 'Tottenham', logo: '', played: 38, won: 20, drawn: 6, lost: 12, gf: 74, ga: 61, gd: 13, points: 66, form: ['W', 'L', 'W', 'L', 'L'] },
+      { pos: 6, team: 'Chelsea', logo: '', played: 38, won: 18, drawn: 9, lost: 11, gf: 77, ga: 63, gd: 14, points: 63, form: ['W', 'W', 'W', 'W', 'W'] },
+      { pos: 7, team: 'Newcastle', logo: '', played: 38, won: 18, drawn: 6, lost: 14, gf: 85, ga: 62, gd: 23, points: 60, form: ['W', 'L', 'D', 'W', 'W'] },
+      { pos: 8, team: 'Manchester United', logo: '', played: 38, won: 18, drawn: 6, lost: 14, gf: 57, ga: 58, gd: -1, points: 60, form: ['W', 'W', 'L', 'L', 'D'] },
+      { pos: 9, team: 'West Ham', logo: '', played: 38, won: 14, drawn: 10, lost: 14, gf: 60, ga: 74, gd: -14, points: 52, form: ['L', 'W', 'L', 'D', 'L'] },
+      { pos: 10, team: 'Crystal Palace', logo: '', played: 38, won: 13, drawn: 10, lost: 15, gf: 57, ga: 58, gd: -1, points: 49, form: ['W', 'W', 'W', 'D', 'W'] },
+      { pos: 11, team: 'Brighton', logo: '', played: 38, won: 12, drawn: 12, lost: 14, gf: 55, ga: 62, gd: -7, points: 48, form: ['L', 'L', 'D', 'W', 'L'] },
+      { pos: 12, team: 'Bournemouth', logo: '', played: 38, won: 13, drawn: 9, lost: 16, gf: 54, ga: 67, gd: -13, points: 48, form: ['L', 'L', 'L', 'W', 'W'] },
+      { pos: 13, team: 'Fulham', logo: '', played: 38, won: 13, drawn: 8, lost: 17, gf: 55, ga: 61, gd: -6, points: 47, form: ['W', 'L', 'D', 'D', 'L'] },
+      { pos: 14, team: 'Wolves', logo: '', played: 38, won: 13, drawn: 7, lost: 18, gf: 50, ga: 65, gd: -15, points: 46, form: ['L', 'L', 'L', 'L', 'W'] },
+      { pos: 15, team: 'Everton', logo: '', played: 38, won: 13, drawn: 9, lost: 16, gf: 40, ga: 51, gd: -11, points: 40, form: ['L', 'W', 'D', 'W', 'W'] },
+      { pos: 16, team: 'Brentford', logo: '', played: 38, won: 10, drawn: 9, lost: 19, gf: 56, ga: 65, gd: -9, points: 39, form: ['L', 'W', 'D', 'L', 'W'] },
+      { pos: 17, team: 'Nottingham Forest', logo: '', played: 38, won: 9, drawn: 9, lost: 20, gf: 49, ga: 67, gd: -18, points: 32, form: ['W', 'L', 'W', 'L', 'L'] },
+      { pos: 18, team: 'Luton Town', logo: '', played: 38, won: 6, drawn: 8, lost: 24, gf: 52, ga: 85, gd: -33, points: 26, form: ['L', 'L', 'D', 'L', 'L'] },
+      { pos: 19, team: 'Burnley', logo: '', played: 38, won: 5, drawn: 9, lost: 24, gf: 41, ga: 78, gd: -37, points: 24, form: ['L', 'L', 'L', 'D', 'W'] },
+      { pos: 20, team: 'Sheffield United', logo: '', played: 38, won: 3, drawn: 7, lost: 28, gf: 35, ga: 104, gd: -69, points: 16, form: ['L', 'L', 'L', 'L', 'L'] },
+    ],
+    'LA_LIGA': [
+      { pos: 1, team: 'Real Madrid', logo: '', played: 38, won: 29, drawn: 8, lost: 1, gf: 87, ga: 26, gd: 61, points: 95, form: ['D', 'D', 'W', 'W', 'W'] },
+      { pos: 2, team: 'Barcelona', logo: '', played: 38, won: 26, drawn: 7, lost: 5, gf: 79, ga: 44, gd: 35, points: 85, form: ['W', 'W', 'W', 'W', 'L'] },
+      { pos: 3, team: 'Girona', logo: '', played: 38, won: 25, drawn: 6, lost: 7, gf: 85, ga: 46, gd: 39, points: 81, form: ['W', 'W', 'L', 'D', 'W'] },
+      { pos: 4, team: 'Atletico Madrid', logo: '', played: 38, won: 24, drawn: 4, lost: 10, gf: 70, ga: 43, gd: 27, points: 76, form: ['W', 'L', 'W', 'W', 'W'] },
+      { pos: 5, team: 'Athletic Club', logo: '', played: 38, won: 19, drawn: 11, lost: 8, gf: 61, ga: 37, gd: 24, points: 68, form: ['W', 'W', 'L', 'D', 'W'] },
+      { pos: 6, team: 'Real Sociedad', logo: '', played: 38, won: 16, drawn: 12, lost: 10, gf: 51, ga: 39, gd: 12, points: 60, form: ['L', 'W', 'W', 'L', 'W'] },
+      { pos: 7, team: 'Real Betis', logo: '', played: 38, won: 14, drawn: 15, lost: 9, gf: 48, ga: 45, gd: 3, points: 57, form: ['D', 'L', 'D', 'W', 'W'] },
+      { pos: 8, team: 'Villarreal', logo: '', played: 38, won: 14, drawn: 11, lost: 13, gf: 65, ga: 65, gd: 0, points: 53, form: ['D', 'D', 'W', 'W', 'W'] },
+      { pos: 9, team: 'Valencia', logo: '', played: 38, won: 13, drawn: 10, lost: 15, gf: 40, ga: 45, gd: -5, points: 49, form: ['D', 'L', 'D', 'L', 'L'] },
+      { pos: 10, team: 'Alaves', logo: '', played: 38, won: 12, drawn: 10, lost: 16, gf: 36, ga: 46, gd: -10, points: 46, form: ['D', 'W', 'L', 'D', 'W'] },
+    ]
+  },
+  '2023/2024': {
+    'PREMIER_LEAGUE': [
+      { pos: 1, team: 'Manchester City', logo: '', played: 38, won: 28, drawn: 5, lost: 5, gf: 94, ga: 33, gd: 61, points: 89, form: ['L', 'D', 'W', 'W', 'W'] },
+      { pos: 2, team: 'Arsenal', logo: '', played: 38, won: 26, drawn: 6, lost: 6, gf: 88, ga: 43, gd: 45, points: 84, form: ['W', 'L', 'L', 'W', 'W'] },
+      { pos: 3, team: 'Manchester United', logo: '', played: 38, won: 23, drawn: 6, lost: 9, gf: 58, ga: 43, gd: 15, points: 75, form: ['W', 'W', 'W', 'W', 'L'] },
+      { pos: 4, team: 'Newcastle', logo: '', played: 38, won: 19, drawn: 14, lost: 5, gf: 68, ga: 33, gd: 35, points: 71, form: ['D', 'D', 'W', 'D', 'L'] },
+      { pos: 5, team: 'Liverpool', logo: '', played: 38, won: 19, drawn: 10, lost: 9, gf: 75, ga: 47, gd: 28, points: 67, form: ['D', 'D', 'W', 'W', 'W'] },
+      { pos: 6, team: 'Brighton', logo: '', played: 38, won: 18, drawn: 8, lost: 12, gf: 72, ga: 53, gd: 19, points: 62, form: ['L', 'D', 'W', 'L', 'W'] },
+    ],
+    'LA_LIGA': [
+      { pos: 1, team: 'Barcelona', logo: '', played: 38, won: 28, drawn: 4, lost: 6, gf: 70, ga: 20, gd: 50, points: 88, form: ['L', 'W', 'L', 'L', 'W'] },
+      { pos: 2, team: 'Real Madrid', logo: '', played: 38, won: 24, drawn: 6, lost: 8, gf: 75, ga: 36, gd: 39, points: 78, form: ['D', 'W', 'D', 'L', 'W'] },
+      { pos: 3, team: 'Atletico Madrid', logo: '', played: 38, won: 23, drawn: 8, lost: 7, gf: 70, ga: 33, gd: 37, points: 77, form: ['D', 'W', 'D', 'W', 'L'] },
+    ]
+  }
+};
+
 const LEAGUES = [
   { key: 'PREMIER_LEAGUE', label: 'Premier League', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', country: 'England' },
   { key: 'LA_LIGA', label: 'La Liga', flag: '🇪🇸', country: 'Spain' },
@@ -57,6 +114,7 @@ export const LeagueStandingsModal: React.FC<LeagueStandingsModalProps> = ({
 }) => {
   const { t } = useTranslation();
   const [selectedLeague, setSelectedLeague] = useState<string>('PREMIER_LEAGUE');
+  const [selectedSeason, setSelectedSeason] = useState<string>('2025/2026');
   const [tableData, setTableData] = useState<StandingRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -75,7 +133,12 @@ export const LeagueStandingsModal: React.FC<LeagueStandingsModalProps> = ({
     }
   }, [initialLeague, isOpen]);
 
-  const loadStandings = async (leagueKey: string) => {
+  const loadStandings = async (leagueKey: string, season: string = '2025/2026') => {
+    if (season !== '2025/2026' && HISTORICAL_SEASON_STANDINGS[season]?.[leagueKey]) {
+      setTableData(HISTORICAL_SEASON_STANDINGS[season][leagueKey]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch(`/api/standings?league=${leagueKey}`);
@@ -94,9 +157,9 @@ export const LeagueStandingsModal: React.FC<LeagueStandingsModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      loadStandings(selectedLeague);
+      loadStandings(selectedLeague, selectedSeason);
       }
-  }, [selectedLeague, isOpen]);
+  }, [selectedLeague, selectedSeason, isOpen]);
 
   if (!isOpen) return null;
 
