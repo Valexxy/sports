@@ -6,7 +6,7 @@ import { EdgeAiCommentator } from './edge-ai-commentator';
 import { MatchAnalyticsHub } from './match-analytics-hub';
 import { getCountrySpecificBookmakers, CountryBookmaker } from '../lib/country-bookmakers';
 import { getSmartVisitorDetails, SmartVisitorData } from '../lib/smart-visitor-engine';
-import { Live2DPitchVisualizer } from './live-2d-pitch-visualizer';
+import { LiveStadiumMatchViewer } from './live-stadium-match-viewer';
 import { MatchAlertScheduler } from '../lib/match-alert-scheduler';
 import { X, Send, MessageSquare, Flame, Trophy, ExternalLink, Zap, Activity, Radio, Sun, Heart, Plus, ShieldCheck, Newspaper, ThumbsUp, Bell, BellRing, Volume2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -212,7 +212,7 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
 
         {/* 100% Legal Live 2D Tactical Pitch & Match Momentum Simulator */}
         <div className="mb-5">
-          <Live2DPitchVisualizer match={match} />
+          <LiveStadiumMatchViewer match={match} />
         </div>
 
         {/* Top Pick Banner */}
