@@ -1,25 +1,20 @@
 /**
  * DYNAMIC DAILY MATCHES & HISTORICAL SETTLEMENT ENGINE
- * 100% real data — zero hardcoding.
+ * 100% pure football — zero hardcoding.
  *
- * This engine derives the settlement archive directly from the real sports
- * stream (ESPN + Football-Data), settles every finished match using the
- * SmartSettlementEngine (real scores), and persists the audit trail to
- * Upstash Redis (fast edge cache) with a Supabase ledger fallback.
- *
- * All WON/LOST outcomes shown in the UI are computed from actual final
- * scores — never mocked.
+ * This engine derives the settlement archive directly from authentic finished
+ * football fixtures (ESPN + Football-Data), settles every finished match using the
+ * SmartSettlementEngine (real scores), and persists the audit trail.
  */
 
 import { MatchData } from './sports-api';
 import { SmartSettlementEngine, SettledMatchRecord } from './smart-settlement-engine';
 import { getRedisCache, setRedisCache } from './upstash-redis-engine';
-import { getAdminClient } from './supabase-client';
 
 export interface ArchivedMatch {
   id: string;
   date: string; // YYYY-MM-DD
-  state: 'UPCOMING' | 'LIVE' | 'PLAYED';
+  state: 'PLAYED';
   homeTeam: string;
   awayTeam: string;
   homeLogo: string;
@@ -43,12 +38,12 @@ export interface ArchivedMatch {
   settlementNote?: string;
 }
 
-const ARCHIVE_CACHE_KEY = 'aurascore:settlement-archive';
-const ARCHIVE_CACHE_TTL = 600; // 10 min
+const ARCHIVE_CACHE_KEY = 'aurascore:settlement-archive:pure-football-v2';
+const ARCHIVE_CACHE_TTL = 300; // 5 min
 
 /** Deterministic settlement hash so the ledger reads immutable/verifiable. */
 function deriveSettlementHash(match: MatchData): string {
-  const payload = `${match.id}|${match.homeTeam}|${match.awayTeam}|${match.homeScore}|${match.awayScore}|${match.prediction.topPick.selection}`;
+  const payload = `${match.id}|${match.homeTeam}|${match.awayTeam}|${match.homeScore}|${match.awayScore}|${match.prediction?.topPick?.selection}`;
   let hash = 0;
   for (let i = 0; i < payload.length; i++) {
     hash = (hash << 5) - hash + payload.charCodeAt(i);
@@ -59,7 +54,6 @@ function deriveSettlementHash(match: MatchData): string {
 }
 
 function tipsterFor(match: MatchData): { name: string; badge: string } {
-  // Deterministic rotation across the in-house tipster roster.
   const pool = [
     { name: '@CyberStriker_99', badge: 'PRO ⚡' },
     { name: '@BankerGod_NG', badge: 'CROWN 👑' },
@@ -73,7 +67,7 @@ function tipsterFor(match: MatchData): { name: string; badge: string } {
   return pool[idx % pool.length];
 }
 
-/** Convert a real MatchData into the ArchivedMatch ledger shape, settling it live. */
+/** Convert a real finished MatchData into the ArchivedMatch ledger shape */
 function toArchivedMatch(match: MatchData): ArchivedMatch {
   const homeScore = match.homeScore ?? 0;
   const awayScore = match.awayScore ?? 0;
@@ -81,102 +75,76 @@ function toArchivedMatch(match: MatchData): ArchivedMatch {
   const selection = pick?.selection ?? `${match.homeTeam} Win or Draw (1X)`;
   const market = pick?.market ?? 'Double Chance';
   const odds = pick?.odds ?? 1.25;
-  const probability = pick?.probability ?? 0.85;
+  const probability = pick?.probability ?? 85;
 
-  let result: 'WON' | 'LOST' | 'PENDING' = 'PENDING';
-  let settledRecord: SettledMatchRecord | null = null;
-  if (match.status === 'FINISHED') {
-    settledRecord = SmartSettlementEngine.settleMatch(match);
-    result = settledRecord.settlementStatus === 'WON' ? 'WON' : settledRecord.settlementStatus === 'LOST' ? 'LOST' : 'PENDING';
-  }
+  const settledRecord: SettledMatchRecord = SmartSettlementEngine.settleMatch(match);
+  const result: 'WON' | 'LOST' = settledRecord.settlementStatus === 'WON' ? 'WON' : 'LOST';
 
   const tipster = tipsterFor(match);
   const date = match.utcDate ? match.utcDate.slice(0, 10) : new Date().toISOString().slice(0, 10);
 
   const accuracyHeatmapScore =
     result === 'WON'
-      ? Math.round(Math.min(99, 70 + probability * 30 + homeScore))
-      : result === 'LOST'
-      ? Math.round(Math.max(10, 45 - probability * 30))
-      : 0;
+      ? Math.round(Math.min(99, 70 + (probability / 100) * 30 + homeScore))
+      : Math.round(Math.max(10, 45 - (probability / 100) * 30));
 
   return {
     id: match.id,
     date,
-    state: match.status === 'FINISHED' ? 'PLAYED' : match.status === 'LIVE' ? 'LIVE' : 'UPCOMING',
+    state: 'PLAYED',
     homeTeam: match.homeTeam,
     awayTeam: match.awayTeam,
     homeLogo: match.homeLogo || '⚽',
     awayLogo: match.awayLogo || '⚽',
     homeScore,
     awayScore,
-    kickoffTime: match.status === 'FINISHED' ? 'FT' : match.matchTime || '',
+    kickoffTime: 'FT',
     league: match.league,
     leagueFlag: match.leagueFlag || '🏆',
     prediction: {
       selection,
       market,
       odds,
-      probabilityPercent: Math.round(probability * 100),
+      probabilityPercent: Math.round(probability),
       result,
       tipsterName: tipster.name,
       tipsterBadge: tipster.badge,
     },
     accuracyHeatmapScore,
-    settlementHash: result !== 'PENDING' ? deriveSettlementHash(match) : undefined,
-    settlementNote: settledRecord
-      ? `Official FT ${settledRecord.score}. ${settledRecord.refereeVerification}`
-      : result === 'PENDING'
-      ? 'Awaiting final whistle — auto-settled by cron on FT.'
-      : undefined,
+    settlementHash: deriveSettlementHash(match),
+    settlementNote: `Official FT ${settledRecord.score}. ${settledRecord.refereeVerification}`,
   };
 }
 
 /**
- * Build the full settlement archive from the live real sports stream.
- * Never returns mocked rows — finished matches only appear once real
- * scores are available, and every outcome is computed from those scores.
+ * Build the pure football settlement archive from finished matches only.
+ * Guaranteed 100% football, zero upcoming/pending placeholder rows, zero NBA/Tennis.
  */
 export async function buildDynamicArchive(): Promise<ArchivedMatch[]> {
   try {
     const { getRealLiveAndPlayedMatches } = await import('./real-sports-stream');
-    const matches = await getRealLiveAndPlayedMatches();
-    if (!matches || matches.length === 0) return [];
-    const archive = matches
-      .map(toArchivedMatch)
-      .sort((a, b) => (a.date < b.date ? 1 : -1))
-      .slice(0, 40);
+    const allMatches = await getRealLiveAndPlayedMatches();
+    if (!allMatches || allMatches.length === 0) return [];
 
-    // Persist for cross-edge consistency (best-effort).
+    // ONLY FINISHED FOOTBALL MATCHES (100% Pure Football, Real FT Scores)
+    const finishedFootballMatches = allMatches.filter(
+      (m) => (m.sport === 'SOCCER' || !m.sport || m.sport === undefined) && m.status === 'FINISHED'
+    );
+
+    if (finishedFootballMatches.length === 0) return [];
+
+    const archive = finishedFootballMatches
+      .map(toArchivedMatch)
+      .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
+      .slice(0, 50);
+
+    // Persist for cross-edge consistency
     try {
       await setRedisCache(ARCHIVE_CACHE_KEY, archive, ARCHIVE_CACHE_TTL);
-    } catch { /* noop */ }
-    try {
-      const admin = getAdminClient();
-      const { data: existing } = await admin.from('settlement_ledger').select('id').limit(1);
-      if (!existing || existing.length === 0) {
-        await admin.from('settlement_ledger').insert(
-          archive.filter((a) => a.state === 'PLAYED').map((a) => ({
-            id: a.id,
-            date: a.date,
-            home_team: a.homeTeam,
-            away_team: a.awayTeam,
-            home_score: a.homeScore,
-            away_score: a.awayScore,
-            league: a.league,
-            selection: a.prediction.selection,
-            market: a.prediction.market,
-            odds: a.prediction.odds,
-            result: a.prediction.result,
-            settlement_hash: a.settlementHash ?? null,
-          }))
-        );
-      }
     } catch { /* noop */ }
 
     return archive;
   } catch {
-    // Only fall back to the cache if it exists — NEVER to fabricated data.
     const cached = await getRedisCache<ArchivedMatch[]>(ARCHIVE_CACHE_KEY);
     return cached ?? [];
   }
@@ -184,7 +152,7 @@ export async function buildDynamicArchive(): Promise<ArchivedMatch[]> {
 
 export async function getMatchesByState(state: 'UPCOMING' | 'LIVE' | 'PLAYED'): Promise<ArchivedMatch[]> {
   const all = await buildDynamicArchive();
-  return all.filter((m) => m.state === state);
+  return all;
 }
 
 export async function queryHistoricalPredictions(): Promise<ArchivedMatch[]> {
@@ -194,13 +162,9 @@ export async function queryHistoricalPredictions(): Promise<ArchivedMatch[]> {
 /** Async-safe ledger stats for headers/banners. */
 export async function getLedgerStats(): Promise<{ won: number; lost: number; total: number; winRate: number }> {
   const all = await buildDynamicArchive();
-  const settled = all.filter((m) => m.prediction.result !== 'PENDING');
-  const won = settled.filter((m) => m.prediction.result === 'WON').length;
-  const lost = settled.filter((m) => m.prediction.result === 'LOST').length;
-  return {
-    won,
-    lost,
-    total: all.length,
-    winRate: settled.length > 0 ? Math.round((won / settled.length) * 100) : 0,
-  };
+  const won = all.filter((m) => m.prediction.result === 'WON').length;
+  const lost = all.filter((m) => m.prediction.result === 'LOST').length;
+  const total = all.length;
+  const winRate = total > 0 ? Math.round((won / total) * 100) : 0;
+  return { won, lost, total, winRate };
 }
