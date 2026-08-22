@@ -59,32 +59,19 @@ function evaluatePickOutcome(
 }
 
 /**
- * Smart Date Formatter differentiating past, today, and future dates
+ * Clean Single Date Formatter (No Duplicate Time)
  */
-function formatSmartMatchDate(utcDateStr?: string, matchTimeStr: string = '19:00', status: string = 'SCHEDULED'): string {
+function getMatchDateLabel(utcDateStr?: string): string {
   const now = new Date();
   const matchDate = utcDateStr ? new Date(utcDateStr) : now;
-
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const matchDayStart = new Date(matchDate.getFullYear(), matchDate.getMonth(), matchDate.getDate());
-
   const diffDays = Math.round((matchDayStart.getTime() - todayStart.getTime()) / 86400000);
-  const dayName = matchDate.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
 
-  if (status === 'LIVE') {
-    return '🔴 LIVE Now • ' + matchTimeStr;
-  }
-
-  if (status === 'FINISHED') {
-    if (diffDays === 0) return '📅 Today, ' + matchDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' • FT';
-    if (diffDays === -1) return '📅 Yesterday, ' + matchDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' • FT';
-    return '📅 ' + dayName + ' • FT';
-  }
-
-  // Scheduled / Upcoming
-  if (diffDays === 0) return '📅 Today, ' + matchDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' • ' + matchTimeStr;
-  if (diffDays === 1) return '📅 Tomorrow, ' + matchDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' • ' + matchTimeStr;
-  return '📅 ' + dayName + ' • ' + matchTimeStr;
+  if (diffDays === 0) return 'Today, ' + matchDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  if (diffDays === 1) return 'Tomorrow, ' + matchDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  if (diffDays === -1) return 'Yesterday, ' + matchDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  return matchDate.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
 export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
@@ -105,7 +92,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   const drawW = Math.round(p.drawProb * 100);
   const awayW = Math.round(p.awayWinProb * 100);
 
-  const smartDateDisplay = formatSmartMatchDate(match.utcDate, match.matchTime, match.status);
+  const dateLabel = getMatchDateLabel(match.utcDate);
 
   // Evaluate final settlement if finished
   const outcome = isFinished ? evaluatePickOutcome(p.topPick.selection, match.homeScore, match.awayScore) : null;
@@ -165,7 +152,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
 
       <div className="p-4 sm:p-5 space-y-3.5">
 
-        {/* Row 1: League + Smart Date/Time + Status Badge + Actions */}
+        {/* Row 1: League + Clean Status Badge + Actions */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2 min-w-0">
             <span className="text-lg flex-shrink-0">{match.leagueFlag || '⚽'}</span>
@@ -183,9 +170,9 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
               </span>
             )}
             {isUpcoming && (
-              <span className="flex-shrink-0 flex items-center space-x-1 px-2 py-0.5 rounded-full bg-gold/20 border border-gold/30 text-gold text-[10px] font-black">
+              <span className="flex-shrink-0 flex items-center space-x-1 px-2 py-0.5 rounded-full bg-gold/15 border border-gold/30 text-gold text-[10px] font-black">
                 <Calendar className="w-3 h-3" />
-                <span>{smartDateDisplay}</span>
+                <span>{dateLabel}</span>
               </span>
             )}
           </div>
@@ -203,8 +190,9 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
           </div>
         </div>
 
-        {/* Row 2: Teams + Score + Smart Date Box */}
+        {/* Row 2: Teams + Clean Center Display (Kickoff Time OR Live/FT Score) */}
         <div className="grid grid-cols-3 items-center text-center gap-2">
+          {/* Home */}
           <div className="flex flex-col items-center space-y-1.5">
             {match.homeLogo && match.homeLogo.startsWith('http') ? (
               <img src={match.homeLogo} alt={match.homeTeam} className="w-12 h-12 sm:w-14 sm:h-14 object-contain drop-shadow group-hover:scale-105 transition-all" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -215,24 +203,25 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
             <span className="text-[10px] text-stadiumGreen font-mono">xG {(p.expectedHomeGoals || 1.4).toFixed(1)}</span>
           </div>
 
+          {/* Center: Score OR Kickoff Time (No Redundancy) */}
           <div className="flex flex-col items-center space-y-1">
             {isLive || isFinished ? (
               <div className={'text-3xl sm:text-4xl font-black font-mono px-3 py-2 rounded-2xl border shadow-inner ' + (isLive ? 'text-crimson bg-black/70 border-crimson/30' : outcome?.won ? 'text-stadiumGreen bg-black/80 border-stadiumGreen/40' : 'text-white bg-black/60 border-white/10')}>
                 {match.homeScore}<span className="text-gray-500 text-2xl mx-1">:</span>{match.awayScore}
               </div>
             ) : (
-              <div className="flex flex-col items-center p-2 rounded-2xl bg-gold/10 border border-gold/20">
-                <span className="text-[9px] text-gray-400 font-bold uppercase">{match.matchTime}</span>
-                <span className="text-xs font-black text-gold font-mono">Upcoming</span>
+              <div className="px-3.5 py-2 rounded-2xl bg-gold/15 border border-gold/30 shadow-md text-center">
+                <span className="text-xl sm:text-2xl font-black text-gold font-mono tracking-wider block">{match.matchTime}</span>
               </div>
             )}
-            <span className="text-[9px] text-gray-400 font-mono text-center leading-tight">{smartDateDisplay}</span>
+            {match.venue && <span className="text-[9px] text-gray-400 font-mono text-center leading-tight max-w-[95px] truncate">{'🏟 ' + match.venue}</span>}
             <span className="text-[10px] text-stadiumGreen font-mono flex items-center space-x-0.5">
               <Zap className="w-3 h-3" />
               <span>Tap insights</span>
             </span>
           </div>
 
+          {/* Away */}
           <div className="flex flex-col items-center space-y-1.5">
             {match.awayLogo && match.awayLogo.startsWith('http') ? (
               <img src={match.awayLogo} alt={match.awayTeam} className="w-12 h-12 sm:w-14 sm:h-14 object-contain drop-shadow group-hover:scale-105 transition-all" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
