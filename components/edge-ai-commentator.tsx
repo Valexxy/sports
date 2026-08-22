@@ -1,4 +1,11 @@
+
 'use client';
+
+function extractMinuteNum(m?: string): number {
+  if (!m) return 0;
+  const match = m.match(/(\d+)/);
+  return match ? parseInt(match[1], 10) : 0;
+}
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Volume2, Radio, Loader2, RefreshCw } from 'lucide-react';
@@ -122,7 +129,8 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
         seenEventKeys.current.add(key);
         return true;
       });
-      setEvents(data);
+      const sortedData = [...data].sort((a, b) => extractMinuteNum(b.minute) - extractMinuteNum(a.minute));
+      setEvents(sortedData);
       if (data.length === 0) setError(true);
 
       // Trigger the biggest new event (goal > red card > kickoff > sub > info).
@@ -203,7 +211,8 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
   };
 
   const goals = events.filter((e) => e.kind === 'GOAL');
-  const latestGoal = goals[goals.length - 1];
+  const sortedGoals = [...goals].sort((a, b) => extractMinuteNum(b.minute) - extractMinuteNum(a.minute));
+  const latestGoal = sortedGoals[0];
 
   // Score summary extracted from latest goal text / match state
   const scoreLine =
