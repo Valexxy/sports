@@ -97,6 +97,52 @@ export const GlobalLeagueBrowser: React.FC<GlobalLeagueBrowserProps> = ({
           </button>
         </div>
 
+        
+        {/* 🔥 HOTTEST LEAGUES ROW */}
+        <div className="space-y-1.5 flex-shrink-0">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center space-x-1.5">
+              <Flame className="w-4 h-4 text-crimson animate-pulse" />
+              <span className="text-xs font-black text-white uppercase tracking-wider">HOTTEST LEAGUES TODAY</span>
+              <span className="px-1.5 py-0.2 rounded bg-crimson text-white font-black text-[9px]">TRENDING</span>
+            </div>
+            <span className="text-[10px] text-gray-400 font-sans">High Volume & Derbies</span>
+          </div>
+
+          <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none">
+            {[
+              { id: 'premier-league', name: 'Premier League', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', badge: 'HIGH ACTION' },
+              { id: 'la-liga', name: 'La Liga', flag: '🇪🇸', badge: 'EL CLÁSICO' },
+              { id: 'uefa-cl', name: 'Champions League', flag: '⭐', badge: 'ELITE' },
+              { id: 'npfl', name: 'NPFL Radar 🇳🇬', flag: '🇳🇬', badge: 'HOT NAIJA' },
+              { id: 'saudi-pro-league', name: 'Saudi Pro League', flag: '🇸🇦', badge: 'SUPERSTARS' },
+              { id: 'serie-a', name: 'Serie A', flag: '🇮🇹', badge: 'TACTICAL' },
+              { id: 'bundesliga', name: 'Bundesliga', flag: '🇩🇪', badge: 'GOALS' },
+            ].map((hot) => (
+              <button
+                key={hot.id}
+                onClick={() => {
+                  phoneHardware.triggerHaptic('SELECTION');
+                  stadiumAudio.playTabClickSound();
+                  onSelectLeague(hot.name);
+                  onClose();
+                }}
+                className="p-2.5 rounded-2xl bg-gradient-to-r from-black/80 via-panel to-black/80 border border-stadiumGreen/40 hover:border-stadiumGreen hover:scale-105 transition-all text-left flex-shrink-0 flex items-center space-x-2.5 shadow-md group"
+              >
+                <span className="text-xl">{hot.flag}</span>
+                <div>
+                  <span className="font-black text-white text-xs group-hover:text-stadiumGreen transition-colors block whitespace-nowrap">
+                    {hot.name}
+                  </span>
+                  <span className="text-[8px] text-gold font-black uppercase block">
+                    {hot.badge}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Search & Region Filter Bar */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 flex-shrink-0">
           <div className="relative flex-1">

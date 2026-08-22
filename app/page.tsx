@@ -36,6 +36,7 @@ import { fetchLiveMatches, MatchData } from '../lib/sports-api';
 import { PhoneHardwareBanner } from '../components/phone-install-banner';
 import { LeagueStandingsModal } from '../components/league-standings-modal';
 import { GlobalLeagueBrowser } from '../components/global-league-browser';
+import { AuthDashboardModal } from '../components/auth-dashboard-modal';
 import { SettlementLedgerSection } from '../components/settlement-ledger-section';
 import { RealtimeCaptureStatus } from '../components/realtime-capture-status';
 import { MatchAlertScheduler } from '../lib/match-alert-scheduler';
@@ -68,6 +69,8 @@ export default function Home() {
   const [followedMatchIds, setFollowedMatchIds] = useState<string[]>([]);
   const [followedLeagues, setFollowedLeagues] = useState<string[]>([]);
   const [showLeagueBrowser, setShowLeagueBrowser] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState<'dark' | 'light'>('dark');
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [savedMatches, setSavedMatches] = useState<MatchData[]>([]);
   const [betSlipItems, setBetSlipItems] = useState<BetItem[]>([]);
   const [selectedMatchForReceipt, setSelectedMatchForReceipt] = useState<MatchData | null>(null);
@@ -136,6 +139,24 @@ export default function Home() {
   }, [matches.length]);
 
   
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('aurascore_theme') as 'dark' | 'light';
+      if (savedTheme) setCurrentTheme(savedTheme);
+    }
+  }, []);
+
+  const handleToggleTheme = () => {
+    setCurrentTheme((prev) => {
+      const nextTheme = prev === 'dark' ? 'light' : 'dark';
+      try {
+        localStorage.setItem('aurascore_theme', nextTheme);
+      } catch {}
+      return nextTheme;
+    });
+  };
+
   const handleToggleFollowLeague = (leagueId: string) => {
     setFollowedLeagues((prev) => {
       const updated = prev.includes(leagueId) ? prev.filter((id) => id !== leagueId) : [...prev, leagueId];
@@ -246,7 +267,7 @@ export default function Home() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-void flex flex-col pb-24 selection:bg-stadiumGreen selection:text-black font-sans">
+      <div className={`min-h-screen bg-void flex flex-col pb-24 selection:bg-stadiumGreen selection:text-black font-sans ${currentTheme === "light" ? "theme-light" : ""}`}>
 
         <BroadcastTicker matches={matches} onSelectUpdate={handleSelectTickerUpdate} />
         <OfflineBanner />
@@ -256,6 +277,8 @@ export default function Home() {
 
 
         <StadiumHeader
+          currentTheme={currentTheme}
+          onToggleTheme={handleToggleTheme}
           onOpenReceipt={() => matches.length > 0 && setSelectedMatchForReceipt(matches[0])}
           onOpenLedger={() => setShowTrackRecord(true)}
           onOpenBankroll={() => setShowBankroll(true)}
@@ -528,7 +551,16 @@ export default function Home() {
         {showBankroll && <BankrollCalculatorModal onClose={() => setShowBankroll(false)} />}
         {showLedger && <PublicLedgerModal onClose={() => setShowLedger(false)} />}
         {showTrackRecord && <PredictionHistoryModal onClose={() => setShowTrackRecord(false)} savedBookmarkedMatches={savedMatches} />}
-        {showProfile && <UserProfileModal onClose={() => setShowProfile(false)} />}
+        {showProfile && (
+          <AuthDashboardModal
+            isOpen={showProfile}
+            onClose={() => setShowProfile(false)}
+            followedMatchIds={followedMatchIds}
+            followedLeagues={followedLeagues}
+            currentTheme={currentTheme}
+            onToggleTheme={handleToggleTheme}
+          />
+        )}
         {showTeamsModal && <TeamExplorerModal onClose={() => setShowTeamsModal(false)} />}
         {showBirthdaysModal && <BirthdayCenterModal onClose={() => setShowBirthdaysModal(false)} />}
         {showBanterModal && <NaijaBanterLoungeModal onClose={() => setShowBanterModal(false)} />}

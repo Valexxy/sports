@@ -88,3 +88,34 @@
   animation-iteration-count: infinite;
   will-change: transform;
 }
+
+/* Light Theme Override Styles */
+.theme-light {
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
+}
+
+.theme-light .glass-panel-premium,
+.theme-light .glass-panel {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
+  color: #0F172A !important;
+}
+
+.theme-light .bg-void {
+  background-color: #F8FAFC !important;
+}
+
+.theme-light .bg-panel {
+  background-color: #FFFFFF !important;
+}
+
+.theme-light .text-white {
+  color: #0F172A !important;
+}
+
+.theme-light .text-gray-300,
+.theme-light .text-gray-400 {
+  color: #475569 !important;
+}

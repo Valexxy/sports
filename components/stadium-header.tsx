@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { 
   Zap, 
   Trophy, 
+  Sun, 
+  Moon, 
   Cake, 
   Sparkles, 
   Share2,
@@ -18,6 +20,8 @@ import { phoneHardware } from '../lib/phone-hardware-engine';
 import { stadiumAudio } from '../lib/sound-synthesizer';
 
 interface StadiumHeaderProps {
+  currentTheme?: 'dark' | 'light';
+  onToggleTheme?: () => void;
   onOpenReceipt: () => void;
   onOpenLedger: () => void;
   onOpenBankroll?: () => void;
@@ -29,6 +33,8 @@ interface StadiumHeaderProps {
 }
 
 export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
+  currentTheme = 'dark',
+  onToggleTheme,
   onOpenReceipt,
   onOpenProfile,
   onOpenBirthdays,
@@ -204,6 +210,22 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
             <span className="hidden md:inline font-bold text-xs text-white">CyberStriker_99</span>
             <span className="text-[9px] px-1.5 py-0.5 rounded bg-gold/20 text-gold font-bold">3.8k</span>
           </button>
+
+          
+          {/* Light / Dark Mode Toggle */}
+          {onToggleTheme && (
+            <button
+              onClick={onToggleTheme}
+              className="p-2 rounded-2xl bg-panel border border-white/10 hover:border-gold/50 text-gold transition-all active:scale-95"
+              title={currentTheme === 'dark' ? 'Switch to Daylight Light Mode ☀️' : 'Switch to Cyber Obsidian Dark Mode 🌙'}
+            >
+              {currentTheme === 'dark' ? (
+                <Moon className="w-3.5 h-3.5 text-gold" />
+              ) : (
+                <Sun className="w-3.5 h-3.5 text-amber-500" />
+              )}
+            </button>
+          )}
 
           {/* Language Switcher AT THE VERY TOP */}
           <div className="flex-shrink-0">
