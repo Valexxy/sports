@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Home, Sparkles, User } from 'lucide-react';
+import { Home, Star, User } from 'lucide-react';
 import { phoneHardware } from '../lib/phone-hardware-engine';
 import { stadiumAudio } from '../lib/sound-synthesizer';
 
@@ -18,11 +18,10 @@ export const MobileAppDock: React.FC<AppDockProps> = ({
   activeTab,
   onSelectTab,
   onOpenProfile,
-  onOpenSuitesMenu,
 }) => {
   const handleTabClick = (tab: string, action?: () => void) => {
     phoneHardware.triggerHaptic('SELECTION');
-    stadiumAudio.playCrowdRoar();
+    stadiumAudio.playTabClickSound();
     if (action) {
       action();
     } else {
@@ -48,13 +47,17 @@ export const MobileAppDock: React.FC<AppDockProps> = ({
             <span className="text-xs font-mono font-black">Matches</span>
           </button>
 
-          {/* Stadium Hub ⚡ (All suites: Scouting, Roasts, Birthdays, Leaderboard, Slip) */}
+          {/* Following Hub Tab (Single Unified Following & Pinned Matches) */}
           <button
-            onClick={() => handleTabClick('SUITES', onOpenSuitesMenu)}
-            className="flex items-center space-x-1.5 py-2 px-4 rounded-2xl bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/40 font-black text-xs hover:text-white transition-all shadow-md active:scale-95"
+            onClick={() => handleTabClick('FOLLOWING')}
+            className={`flex items-center space-x-1.5 py-2 px-4 rounded-2xl transition-all duration-300 ${
+              activeTab === 'FOLLOWING'
+                ? 'bg-gold text-black font-black shadow-lg shadow-gold/30'
+                : 'bg-gold/15 text-gold border border-gold/40 font-black text-xs hover:text-white'
+            }`}
           >
-            <Sparkles className="w-4 h-4 text-gold animate-pulse" />
-            <span>Hub ⚡</span>
+            <Star className="w-4 h-4 text-gold fill-current" />
+            <span className="text-xs font-mono font-black">Following ⭐</span>
           </button>
 
           {/* Profile */}

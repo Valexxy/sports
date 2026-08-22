@@ -87,7 +87,14 @@ async function fetchFootballDataMatches(): Promise<MatchData[]> {
       const awayScore = m.score?.fullTime?.away ?? (m.score?.halfTime?.away ?? 0);
 
       const isLive = m.status === 'IN_PLAY' || m.status === 'PAUSED';
-      const isFinished = m.status === 'FINISHED';
+      let isFinished = m.status === 'FINISHED';
+      if (!isLive && !isFinished && m.utcDate) {
+        const matchTime = new Date(m.utcDate).getTime();
+        // If scheduled time was more than 2 hours ago and no live feed, match has concluded
+        if (!isNaN(matchTime) && matchTime < Date.now() - 2 * 3600 * 1000) {
+          isFinished = true;
+        }
+      }
       const status: 'LIVE' | 'SCHEDULED' | 'FINISHED' = isLive ? 'LIVE' : isFinished ? 'FINISHED' : 'SCHEDULED';
 
       let matchTime = 'Upcoming';

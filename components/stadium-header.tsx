@@ -159,29 +159,13 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
             <span>{t('Birthdays')}</span>
           </button>
 
-          <button
-            onClick={onOpenSuitesMenu}
-            className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold transition-all flex items-center space-x-1 border border-white/10"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-gold" />
-            <span>{t('Hub')} ⚡</span>
-          </button>
+
         </nav>
 
         {/* Right Action Icons */}
         <div className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0">
           
-          {/* Mobile Stadium Hub Button */}
-          {onOpenSuitesMenu && (
-            <button
-              onClick={onOpenSuitesMenu}
-              className="lg:hidden px-2.5 py-1.5 rounded-2xl bg-stadiumGreen/20 border border-stadiumGreen/50 text-stadiumGreen font-black text-xs flex items-center space-x-1 shadow-md active:scale-95"
-              title="Open Stadium Hub"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-gold" />
-              <span>{t('Hub')} ⚡</span>
-            </button>
-          )}
+
 
           {/* Automatic Download Button (Shows if not downloaded yet) */}
           {!isInstalled && (

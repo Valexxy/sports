@@ -70,6 +70,14 @@ export default function Home() {
   const [selectedSport, setSelectedSport] = useState<'SOCCER' | 'BASKETBALL' | 'TENNIS'>('SOCCER');
   const [visibleCount, setVisibleCount] = useState(12);
   const [activeDockTab, setActiveDockTab] = useState('MATCHES');
+  const handleSelectDockTab = (tab: string) => {
+    setActiveDockTab(tab);
+    if (tab === 'FOLLOWING') {
+      setActiveFilter('FOLLOWING');
+    } else if (tab === 'MATCHES') {
+      setActiveFilter('LIVE');
+    }
+  };
   const [showBetSlipDrawer, setShowBetSlipDrawer] = useState(false);
   const [followedMatchIds, setFollowedMatchIds] = useState<string[]>(() => {
     if (typeof window !== 'undefined') return PersistentStorage.getFollowedMatches();
@@ -239,7 +247,18 @@ export default function Home() {
       const q = searchQuery.toLowerCase();
       if (q && !m.homeTeam.toLowerCase().includes(q) && !m.awayTeam.toLowerCase().includes(q) && !m.league.toLowerCase().includes(q)) return false;
       if (activeFilter === 'LIVE') return m.status === 'LIVE';
-      if (activeFilter === 'UPCOMING') return m.status === 'SCHEDULED';
+      if (activeFilter === 'UPCOMING') {
+        if (m.status !== 'SCHEDULED') return false;
+        // Verify kickoff is not in the past
+        if (m.utcDate) {
+          const matchKickoff = new Date(m.utcDate).getTime();
+          // If kickoff was more than 30 mins ago, it has already started/concluded
+          if (!isNaN(matchKickoff) && matchKickoff < Date.now() - 30 * 60 * 1000) {
+            return false;
+          }
+        }
+        return true;
+      }
       if (activeFilter === 'PLAYED') return m.status === 'FINISHED';
       if (activeFilter === 'FOLLOWING') return followedMatchIds.includes(m.id) || followedLeagues.some(l => m.league.toLowerCase().includes(l.toLowerCase()));
       if (highGuaranteesOnly && (m.prediction?.topPick?.probability || 0) < 70 && m.prediction?.topPick?.confidenceTier !== 'ULTRA-BANKER') return false;
@@ -254,10 +273,10 @@ export default function Home() {
 
   type PillDef = { key: FilterType; emoji: string; label: string; count: number; activeClass: string };
   const filterPills: PillDef[] = [
-    { key: 'LIVE',     emoji: '🔴', label: t('Live'),     count: liveCount,     activeClass: 'bg-crimson/20 border-crimson/50 text-crimson' },
-    { key: 'UPCOMING', emoji: '🟡', label: t('Upcoming'), count: upcomingCount, activeClass: 'bg-gold/20 border-gold/50 text-gold' },
-    { key: 'PLAYED',   emoji: '✅', label: t('Played'),   count: playedCount,   activeClass: 'bg-stadiumGreen/20 border-stadiumGreen/50 text-stadiumGreen' },
-    { key: 'FOLLOWING', emoji: '⭐', label: t('Following'), count: sportMatches.filter(m => followedMatchIds.includes(m.id) || followedLeagues.some(l => m.league.toLowerCase().includes(l.toLowerCase()))).length, activeClass: 'bg-gold text-black border-gold font-black' },
+    { key: 'LIVE',     emoji: '🔴', label: t('Live Matches'),     count: liveCount,     activeClass: 'bg-crimson/25 border-crimson text-crimson font-black' },
+    { key: 'UPCOMING', emoji: '🟡', label: t('Upcoming Matches'), count: upcomingCount, activeClass: 'bg-gold/25 border-gold text-gold font-black' },
+    { key: 'PLAYED',   emoji: '✅', label: t('Played (Finished)'),   count: playedCount,   activeClass: 'bg-stadiumGreen/25 border-stadiumGreen text-stadiumGreen font-black' },
+    { key: 'FOLLOWING', emoji: '⭐', label: t('Following (Pinned)'), count: sportMatches.filter(m => followedMatchIds.includes(m.id) || followedLeagues.some(l => m.league.toLowerCase().includes(l.toLowerCase()))).length, activeClass: 'bg-gold text-black border-gold font-black' },
   ];
 
   return (
