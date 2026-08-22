@@ -42,7 +42,7 @@ export function parseKickoffMinutes(timeStr: string): number {
  */
 export function sortMatchesByClosestKickoff(
   matches: MatchData[],
-  activeFilter: 'ALL' | 'LIVE' | 'UPCOMING' | 'PLAYED' | 'ALL' = 'ALL'
+  activeFilter: 'ALL' | 'LIVE' | 'UPCOMING' | 'PLAYED' | 'FOLLOWING' | string = 'ALL'
 ): MatchData[] {
   const WAT_OFFSET_MS = 60 * 60 * 1000; // WAT = UTC+1
   const nowUTC = Date.now();

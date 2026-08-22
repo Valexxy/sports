@@ -35,6 +35,7 @@ import { VcFundingModal } from '../components/vc-funding-modal';
 import { fetchLiveMatches, MatchData } from '../lib/sports-api';
 import { PhoneHardwareBanner } from '../components/phone-install-banner';
 import { LeagueStandingsModal } from '../components/league-standings-modal';
+import { GlobalLeagueBrowser } from '../components/global-league-browser';
 import { SettlementLedgerSection } from '../components/settlement-ledger-section';
 import { RealtimeCaptureStatus } from '../components/realtime-capture-status';
 import { MatchAlertScheduler } from '../lib/match-alert-scheduler';
@@ -48,7 +49,7 @@ import { cacheOffline } from '../lib/offline-manager';
 
 import { useTranslation } from '../lib/translation-engine';
 
-type FilterType = 'LIVE' | 'UPCOMING' | 'PLAYED' | 'ALL';
+type FilterType = 'LIVE' | 'UPCOMING' | 'PLAYED' | 'FOLLOWING' | 'ALL';
 
 export default function Home() {
   const { t } = useTranslation();
@@ -65,6 +66,8 @@ export default function Home() {
   const [activeDockTab, setActiveDockTab] = useState('MATCHES');
   const [showBetSlipDrawer, setShowBetSlipDrawer] = useState(false);
   const [followedMatchIds, setFollowedMatchIds] = useState<string[]>([]);
+  const [followedLeagues, setFollowedLeagues] = useState<string[]>([]);
+  const [showLeagueBrowser, setShowLeagueBrowser] = useState(false);
   const [savedMatches, setSavedMatches] = useState<MatchData[]>([]);
   const [betSlipItems, setBetSlipItems] = useState<BetItem[]>([]);
   const [selectedMatchForReceipt, setSelectedMatchForReceipt] = useState<MatchData | null>(null);
@@ -131,6 +134,17 @@ export default function Home() {
     if (!matches.length) return;
     cacheOffline('aurascore_matches', matches).catch(() => {});
   }, [matches.length]);
+
+  
+  const handleToggleFollowLeague = (leagueId: string) => {
+    setFollowedLeagues((prev) => {
+      const updated = prev.includes(leagueId) ? prev.filter((id) => id !== leagueId) : [...prev, leagueId];
+      try {
+        localStorage.setItem('aurascore_followed_leagues', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
 
   const handleToggleFollow = (match: MatchData) => {
     const exists = followedMatchIds.includes(match.id);
@@ -210,11 +224,12 @@ export default function Home() {
       if (activeFilter === 'LIVE') return m.status === 'LIVE';
       if (activeFilter === 'UPCOMING') return m.status === 'SCHEDULED';
       if (activeFilter === 'PLAYED') return m.status === 'FINISHED';
+      if (activeFilter === 'FOLLOWING') return followedMatchIds.includes(m.id) || followedLeagues.some(l => m.league.toLowerCase().includes(l.toLowerCase()));
       if (highGuaranteesOnly && (m.prediction?.topPick?.probability || 0) < 70 && m.prediction?.topPick?.confidenceTier !== 'ULTRA-BANKER') return false;
-      return true; // ALL
+      return true;
     });
     return sortMatchesByClosestKickoff(base, activeFilter);
-  }, [matches, selectedDateStr, isViewingToday, searchQuery, activeFilter, highGuaranteesOnly]);
+  }, [matches, selectedDateStr, isViewingToday, searchQuery, activeFilter, highGuaranteesOnly, followedMatchIds, followedLeagues]);
 
   const displayedMatches = filteredMatches.slice(0, visibleCount);
 
@@ -222,9 +237,11 @@ export default function Home() {
 
   type PillDef = { key: FilterType; emoji: string; label: string; count: number; activeClass: string };
   const filterPills: PillDef[] = [
+    { key: 'ALL',      emoji: '⚽', label: t('All Matches'), count: sportMatches.length, activeClass: 'bg-white/20 border-white text-white' },
     { key: 'LIVE',     emoji: '🔴', label: t('Live'),     count: liveCount,     activeClass: 'bg-crimson/20 border-crimson/50 text-crimson' },
     { key: 'UPCOMING', emoji: '🟡', label: t('Upcoming'), count: upcomingCount, activeClass: 'bg-gold/20 border-gold/50 text-gold' },
     { key: 'PLAYED',   emoji: '✅', label: t('Played'),   count: playedCount,   activeClass: 'bg-stadiumGreen/20 border-stadiumGreen/50 text-stadiumGreen' },
+    { key: 'FOLLOWING', emoji: '⭐', label: t('Following'), count: sportMatches.filter(m => followedMatchIds.includes(m.id) || followedLeagues.some(l => m.league.toLowerCase().includes(l.toLowerCase()))).length, activeClass: 'bg-gold text-black border-gold font-black' },
   ];
 
   return (
@@ -334,6 +351,16 @@ export default function Home() {
                   )}
                 </button>
               ))}
+
+              {/* Global 35+ Leagues & Countries Browser */}
+              <button
+                onClick={() => setShowLeagueBrowser(true)}
+                className="flex-shrink-0 flex items-center space-x-1.5 px-3 py-2 rounded-2xl border border-stadiumGreen/40 bg-stadiumGreen/15 hover:bg-stadiumGreen/25 text-stadiumGreen text-xs font-black transition-all hover:scale-105 shadow-md"
+                title="Browse all 35+ World Leagues & Countries"
+              >
+                <span>🌍</span>
+                <span>All Leagues (35+)</span>
+              </button>
 
               {/* High Guarantees Only (70%+ probability) */}
               <button
@@ -514,6 +541,18 @@ export default function Home() {
             initialLeague={selectedLeagueForTable || 'PREMIER_LEAGUE'}
             onClose={() => setShowStandingsModal(false)}
             onSelectTeam={() => setShowTeamsModal(true)}
+          />
+        )}
+        {showLeagueBrowser && (
+          <GlobalLeagueBrowser
+            isOpen={showLeagueBrowser}
+            onClose={() => setShowLeagueBrowser(false)}
+            onSelectLeague={(leagueName) => {
+              setSearchQuery(leagueName);
+              setActiveFilter('ALL');
+            }}
+            followedLeagues={followedLeagues}
+            onToggleFollowLeague={handleToggleFollowLeague}
           />
         )}
         {showHistoryModal && <HistoryArchiveModal onClose={() => setShowHistoryModal(false)} />}
