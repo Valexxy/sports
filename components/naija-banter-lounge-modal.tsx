@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Flame, Sparkles, Share2, Send } from 'lucide-react';
+import { X, Flame, Share2, Send, Shuffle, Bot } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { stadiumAudio } from '../lib/sound-synthesizer';
 
@@ -9,7 +9,7 @@ interface BanterModalProps {
   onClose: () => void;
 }
 
-interface RoastItem {
+export interface RoastItem {
   id: string;
   club: string;
   roaster: string;
@@ -18,7 +18,7 @@ interface RoastItem {
   hype: number;
 }
 
-const ROAST_FEED: RoastItem[] = [
+const AI_ROAST_VAULT: RoastItem[] = [
   {
     id: 'r-1',
     club: 'Manchester United 🔴',
@@ -67,13 +67,67 @@ const ROAST_FEED: RoastItem[] = [
     tag: 'Economic Lever FC',
     hype: 1980,
   },
+  {
+    id: 'r-7',
+    club: 'Man City 🩵',
+    roaster: '@PepTactics_Naija',
+    roast: 'Haaland touch ball 3 times in 90 minutes and score 4 goals. Man is literally a robotic cheat code plugged into Etihad electricity grid! 🤖⚡',
+    tag: 'Robotic Cheat',
+    hype: 2800,
+  },
+  {
+    id: 'r-8',
+    club: 'Tottenham ⚪',
+    roaster: '@LondonBanter',
+    roast: 'Tottenham trophy cabinet is currently being rented out as a 2-bedroom self-contain apartment in Lekki Phase 1 for 4 million Naira! 🏠💀',
+    tag: 'Dusty Cabinet',
+    hype: 3100,
+  },
+  {
+    id: 'r-9',
+    club: 'Liverpool 🔴',
+    roaster: '@KloppVibes',
+    roast: 'Arne Slot come Anfield with glossy bald head, pass ball like prime Barca. Defense say no panic, na high line heavy metal rock and roll! 🎸',
+    tag: 'Gegenpress Heavy',
+    hype: 2450,
+  },
+  {
+    id: 'r-10',
+    club: 'Enyimba & NPFL 🇳🇬',
+    roaster: '@AbaBoy_NPFL',
+    roast: 'Aba stadium grass so green even cows want scholarship to graze there! Away team keeper dey catch cold because defense tight pass iron gate! 🛡️⚽',
+    tag: 'Peoples Elephant',
+    hype: 2900,
+  },
 ];
 
 export const NaijaBanterLoungeModal: React.FC<BanterModalProps> = ({ onClose }) => {
-  const [feed, setFeed] = useState<RoastItem[]>(ROAST_FEED);
+  const [feed, setFeed] = useState<RoastItem[]>(AI_ROAST_VAULT);
   const [selectedClub, setSelectedClub] = useState('Man United');
   const [userRoast, setUserRoast] = useState('');
   const [hypes, setHypes] = useState<Record<string, boolean>>({});
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+
+  const handleGenerateAiRoast = () => {
+    setIsGeneratingAi(true);
+    stadiumAudio.playCrowdRoar();
+
+    setTimeout(() => {
+      const randomRoast = AI_ROAST_VAULT[Math.floor(Math.random() * AI_ROAST_VAULT.length)];
+      const freshAiRoast: RoastItem = {
+        id: 'ai-' + Date.now(),
+        club: randomRoast.club,
+        roaster: '🤖 AuraAI Roaster',
+        roast: randomRoast.roast,
+        tag: '⚡ AI LIVE DROP',
+        hype: Math.floor(500 + Math.random() * 2500),
+      };
+
+      setFeed([freshAiRoast, ...feed]);
+      setIsGeneratingAi(false);
+      confetti({ particleCount: 40, spread: 50, origin: { y: 0.4 } });
+    }, 600);
+  };
 
   const handleHype = (id: string) => {
     if (hypes[id]) return;
@@ -82,9 +136,7 @@ export const NaijaBanterLoungeModal: React.FC<BanterModalProps> = ({ onClose }) 
       prev.map((item) => (item.id === id ? { ...item, hype: item.hype + 1 } : item))
     );
     stadiumAudio.playCrowdRoar();
-    if (typeof window !== 'undefined') {
-      confetti({ particleCount: 60, spread: 60, origin: { y: 0.6 } });
-    }
+    confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
   };
 
   const handlePostRoast = () => {
@@ -100,33 +152,45 @@ export const NaijaBanterLoungeModal: React.FC<BanterModalProps> = ({ onClose }) 
     setFeed([newRoast, ...feed]);
     setUserRoast('');
     stadiumAudio.playCrowdRoar();
+    confetti({ particleCount: 40, spread: 50, origin: { y: 0.5 } });
   };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-fadeIn font-mono text-xs">
       <div className="relative w-full max-w-2xl glass-panel-premium rounded-3xl border-2 border-crimson/50 p-5 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
         
-        {/* Close */}
+        {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-full bg-panel text-gray-400 hover:text-white border border-white/10 hover:border-crimson transition-all"
+          className="absolute top-4 right-4 p-2 rounded-full bg-panel text-gray-400 hover:text-white border border-white/10 hover:border-crimson transition-all hover:rotate-90 z-20"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Header */}
-        <div className="flex items-center space-x-3 border-b border-white/10 pb-3">
-          <div className="p-2.5 rounded-2xl bg-crimson/20 border border-crimson/40 text-crimson">
-            <Flame className="w-6 h-6 fill-current animate-pulse" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-3 gap-2">
+          <div className="flex items-center space-x-3">
+            <div className="p-2.5 rounded-2xl bg-crimson/20 border border-crimson/40 text-crimson">
+              <Flame className="w-6 h-6 fill-current animate-pulse" />
+            </div>
+            <div>
+              <h2 className="font-black text-white text-base flex items-center space-x-2">
+                <span>NAIJA GEN-Z ROAST & BANTER LOUNGE 🎙️🔥</span>
+              </h2>
+              <p className="text-[10px] text-gray-400 font-sans">
+                AI-Powered Nigerian club banter, viral football slander, and locker room drama.
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="font-black text-white text-base flex items-center space-x-2">
-              <span>NAIJA GEN-Z ROAST & BANTER LOUNGE 🎙️🔥</span>
-            </h2>
-            <p className="text-[10px] text-gray-400 font-sans">
-              No dulling! Real Nigerian club banter, hot takes, and viral locker room drama.
-            </p>
-          </div>
+
+          <button
+            onClick={handleGenerateAiRoast}
+            disabled={isGeneratingAi}
+            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-crimson to-amber-600 hover:from-crimson hover:to-amber-500 text-white font-black text-[11px] shadow-lg shadow-crimson/30 transition-all flex items-center space-x-1.5 self-start sm:self-auto disabled:opacity-50"
+          >
+            <Bot className="w-4 h-4 animate-bounce" />
+            <span>{isGeneratingAi ? 'Synthesizing Roast...' : '🤖 AI Random Roast Drop'}</span>
+          </button>
         </div>
 
         {/* Post Roast Box */}
@@ -135,11 +199,11 @@ export const NaijaBanterLoungeModal: React.FC<BanterModalProps> = ({ onClose }) 
             🔥 Drop Your Hot Club Roast
           </span>
           <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-hide">
-            {['Man United', 'Arsenal', 'Chelsea', 'Real Madrid', 'Barcelona', 'Man City', 'Osimhen 🇳🇬'].map((c) => (
+            {['Man United', 'Arsenal', 'Chelsea', 'Real Madrid', 'Barcelona', 'Man City', 'Liverpool', 'Tottenham', 'Osimhen 🇳🇬'].map((c) => (
               <button
                 key={c}
                 onClick={() => setSelectedClub(c)}
-                className={'px-2.5 py-1 rounded-xl text-[10px] font-bold border transition-all ' +
+                className={'px-2.5 py-1 rounded-xl text-[10px] font-bold border transition-all flex-shrink-0 ' +
                   (selectedClub === c
                     ? 'bg-crimson text-white border-crimson shadow-md'
                     : 'bg-black/50 text-gray-400 border-white/10 hover:text-white')}
@@ -148,66 +212,82 @@ export const NaijaBanterLoungeModal: React.FC<BanterModalProps> = ({ onClose }) 
               </button>
             ))}
           </div>
-          <textarea
-            value={userRoast}
-            onChange={(e) => setUserRoast(e.target.value)}
-            placeholder={'Drop savage pidgin roast for ' + selectedClub + '...'}
-            rows={2}
-            className="w-full px-3 py-2 rounded-xl bg-black/60 border border-white/10 text-white placeholder-gray-500 font-mono text-xs focus:border-crimson focus:outline-none"
-          />
-          <button
-            onClick={handlePostRoast}
-            disabled={!userRoast.trim()}
-            className="w-full py-2.5 rounded-xl bg-crimson hover:bg-red-500 text-white font-black text-xs flex items-center justify-center space-x-2 transition-all disabled:opacity-50"
-          >
-            <Send className="w-3.5 h-3.5" />
-            <span>Post Roast to Live Stadium Wire 🚀</span>
-          </button>
+
+          <div className="flex items-center space-x-2">
+            <input
+              type="text"
+              value={userRoast}
+              onChange={(e) => setUserRoast(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handlePostRoast()}
+              placeholder={`Drop spicy ${selectedClub} slander or banter here...`}
+              className="flex-1 px-3.5 py-2 rounded-xl bg-black/70 border border-white/10 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-crimson font-mono"
+            />
+            <button
+              onClick={handlePostRoast}
+              className="px-4 py-2 rounded-xl bg-crimson hover:bg-rose-600 text-white font-black text-xs transition-all flex items-center space-x-1 shadow-md shadow-crimson/30"
+            >
+              <Send className="w-3.5 h-3.5" />
+              <span>Roast</span>
+            </button>
+          </div>
         </div>
 
-        {/* Live Feed */}
+        {/* Roast Stream Feed */}
         <div className="space-y-3">
-          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">
-            ⚡ Trending Stadium Roasts
-          </span>
-          <div className="space-y-2.5 max-h-[360px] overflow-y-auto pr-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+              🔥 LIVE BANTER FEED ({feed.length} Roasts)
+            </span>
+            <button
+              onClick={handleGenerateAiRoast}
+              className="text-[10px] text-gold hover:text-amber-300 font-bold flex items-center space-x-1"
+            >
+              <Shuffle className="w-3 h-3" />
+              <span>Shuffle AI Roasts</span>
+            </button>
+          </div>
+
+          <div className="space-y-2.5">
             {feed.map((item) => (
               <div
                 key={item.id}
-                className="p-3.5 rounded-2xl bg-black/60 border border-white/10 hover:border-crimson/40 space-y-2 transition-all"
+                className="p-3.5 rounded-2xl bg-black/60 border border-white/10 hover:border-crimson/40 space-y-2 transition-all group"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <span className="font-black text-xs text-white">{item.club}</span>
-                    <span className="text-[9px] px-2 py-0.5 rounded-full bg-crimson/20 text-crimson border border-crimson/30 font-bold">
-                      {item.tag}
-                    </span>
+                    <span className="font-bold text-crimson text-xs">{item.club}</span>
+                    <span className="text-[10px] text-gray-400 font-sans">{item.roaster}</span>
                   </div>
-                  <span className="text-[9px] text-stadiumGreen font-bold">{item.roaster}</span>
+                  <span className="px-2 py-0.5 rounded-full bg-crimson/20 text-crimson font-bold text-[9px]">
+                    {item.tag}
+                  </span>
                 </div>
-                <p className="text-gray-200 font-sans text-xs leading-relaxed font-medium">
-                  "{item.roast}"
-                </p>
-                <div className="flex items-center justify-between pt-1 border-t border-white/5">
+
+                <p className="text-white text-xs font-sans leading-relaxed">{item.roast}</p>
+
+                <div className="flex items-center justify-between pt-1 border-t border-white/5 text-[10px]">
                   <button
                     onClick={() => handleHype(item.id)}
-                    className={'px-3 py-1 rounded-xl text-[10px] font-black flex items-center space-x-1 border transition-all ' +
+                    className={'flex items-center space-x-1 px-2.5 py-1 rounded-xl transition-all ' +
                       (hypes[item.id]
-                        ? 'bg-crimson text-white border-crimson'
-                        : 'bg-white/5 text-gray-300 border-white/10 hover:text-white')}
+                        ? 'bg-crimson text-white font-black shadow-md'
+                        : 'bg-white/5 hover:bg-crimson/20 text-gray-400 hover:text-white')}
                   >
-                    <Flame className="w-3 h-3 fill-current text-crimson" />
-                    <span>{item.hype} Hypes</span>
+                    <Flame className={'w-3.5 h-3.5 ' + (hypes[item.id] ? 'fill-current' : '')} />
+                    <span>{item.hype.toLocaleString()} Hypes</span>
                   </button>
-                  <a
-                    href={'https://api.whatsapp.com/send?text=' + encodeURIComponent('🔥 Naija Football Banter (' + item.club + '): "' + item.roast + '" - Bantered on AuraScore Stadium ⚡')}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[10px] text-emerald-400 font-bold hover:underline flex items-center space-x-1"
+
+                  <button
+                    onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({ title: item.club, text: item.roast, url: window.location.href });
+                      }
+                    }}
+                    className="text-gray-400 hover:text-white flex items-center space-x-1 p-1"
                   >
-                    <Share2 className="w-3 h-3" />
-                    <span>Share on WhatsApp</span>
-                  </a>
+                    <Share2 className="w-3.5 h-3.5" />
+                    <span>Share</span>
+                  </button>
                 </div>
               </div>
             ))}
