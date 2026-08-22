@@ -42,7 +42,7 @@ import { StadiumUserWeatherPanel } from '../components/stadium-user-weather-pane
 import { registerPushClient, pushClientId } from '../lib/push-client';
 import { cacheOffline } from '../lib/offline-manager';
 
-type FilterType = 'ALL' | 'LIVE' | 'UPCOMING' | 'PLAYED' | 'BANKERS';
+type FilterType = 'LIVE' | 'UPCOMING' | 'PLAYED' | 'ALL';
 
 export default function Home() {
   const [matches, setMatches] = useState<MatchData[]>([]);
@@ -175,7 +175,6 @@ export default function Home() {
   const liveCount = sportMatches.filter(m => m.status === 'LIVE').length;
   const upcomingCount = sportMatches.filter(m => m.status === 'SCHEDULED').length;
   const playedCount = sportMatches.filter(m => m.status === 'FINISHED').length;
-  const bankersCount = sportMatches.filter(m => m.prediction.topPick.confidenceTier === 'ULTRA-BANKER').length;
 
   const filteredMatches = React.useMemo(() => {
     const base = matches.filter(m => {
@@ -185,8 +184,7 @@ export default function Home() {
       if (activeFilter === 'LIVE') return m.status === 'LIVE';
       if (activeFilter === 'UPCOMING') return m.status === 'SCHEDULED';
       if (activeFilter === 'PLAYED') return m.status === 'FINISHED';
-      if (activeFilter === 'BANKERS') return m.prediction.topPick.confidenceTier === 'ULTRA-BANKER';
-      return true;
+      return true; // ALL
     });
     return sortMatchesByClosestKickoff(base, activeFilter);
   }, [matches, selectedSport, searchQuery, activeFilter]);
@@ -197,11 +195,9 @@ export default function Home() {
 
   type PillDef = { key: FilterType; emoji: string; label: string; count: number; activeClass: string };
   const filterPills: PillDef[] = [
-    { key: 'ALL', emoji: '⚽', label: 'All Matches', count: sportMatches.length, activeClass: 'bg-white/10 border-white/30 text-white' },
-    { key: 'LIVE', emoji: '🔴', label: 'Live', count: liveCount, activeClass: 'bg-crimson/20 border-crimson/50 text-crimson' },
+    { key: 'LIVE',     emoji: '🔴', label: 'Live',     count: liveCount,     activeClass: 'bg-crimson/20 border-crimson/50 text-crimson' },
     { key: 'UPCOMING', emoji: '🟡', label: 'Upcoming', count: upcomingCount, activeClass: 'bg-gold/20 border-gold/50 text-gold' },
-    { key: 'PLAYED', emoji: '✅', label: 'Played', count: playedCount, activeClass: 'bg-stadiumGreen/20 border-stadiumGreen/50 text-stadiumGreen' },
-    { key: 'BANKERS', emoji: '👑', label: 'Bankers', count: bankersCount, activeClass: 'bg-cyberPurple/20 border-cyberPurple/50 text-cyberPurple' },
+    { key: 'PLAYED',   emoji: '✅', label: 'Played',   count: playedCount,   activeClass: 'bg-stadiumGreen/20 border-stadiumGreen/50 text-stadiumGreen' },
   ];
 
   return (

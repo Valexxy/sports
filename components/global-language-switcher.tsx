@@ -82,7 +82,7 @@ export const GlobalLanguageSwitcher: React.FC = () => {
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div className="absolute right-0 mt-2 z-50 w-64 max-h-[420px] overflow-y-auto rounded-2xl glass-panel-premium border border-stadiumGreen/30 shadow-2xl p-2">
             <div className="px-2 py-1.5 text-[10px] font-black text-gray-400 uppercase tracking-wider border-b border-white/10 mb-1">
-              🌍 Language / Sprache / Idioma
+              🌍 Language — English / Pidgin / Naija
             </div>
             {SUPPORTED_LANGUAGES.map((l) => (
               <button

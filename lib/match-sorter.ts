@@ -34,71 +34,56 @@ export function parseKickoffMinutes(timeStr: string): number {
 }
 
 /**
- * Universal Match Sorter
- * Orders matches based on status and chronological start time:
- * 1. LIVE matches first (In-play)
- * 2. SCHEDULED matches ordered strictly by closest to kickoff (Earliest start time first)
- * 3. FINISHED matches last (Most recently finished first)
+ * Universal Match Sorter — WAT timezone aware (UTC+1 for Nigeria)
+ * Ordering:
+ * 1. LIVE matches first
+ * 2. UPCOMING — closest to current WAT time, excluding stale 00:xx UTC matches when it is now afternoon
+ * 3. FINISHED — most recent first
  */
 export function sortMatchesByClosestKickoff(
   matches: MatchData[],
-  activeFilter: 'ALL' | 'LIVE' | 'UPCOMING' | 'PLAYED' | 'BANKERS' = 'ALL'
+  activeFilter: 'ALL' | 'LIVE' | 'UPCOMING' | 'PLAYED' | 'ALL' = 'ALL'
 ): MatchData[] {
+  const WAT_OFFSET_MS = 60 * 60 * 1000; // WAT = UTC+1
+  const nowUTC = Date.now();
+  const nowWATMinutes = Math.floor((nowUTC + WAT_OFFSET_MS) / 60000) % 1440; // current minute-of-day in WAT
+
   return [...matches].sort((a, b) => {
-    // 1. If filtering for Bankers, prioritize highest win probability & banker tier first
-    if (activeFilter === 'BANKERS') {
-      const probA = a.prediction?.topPick?.probability || 0;
-      const probB = b.prediction?.topPick?.probability || 0;
-      if (probB !== probA) {
-        return probB - probA; // Higher probability first
-      }
-    }
-
-    // 2. Status Priority Order
-    const statusWeight: Record<string, number> = {
-      LIVE: 1,
-      SCHEDULED: 2,
-      FINISHED: 3,
-    };
-
+    // Status Priority
+    const statusWeight: Record<string, number> = { LIVE: 1, SCHEDULED: 2, FINISHED: 3 };
     const weightA = statusWeight[a.status] || 2;
     const weightB = statusWeight[b.status] || 2;
+    if (weightA !== weightB) return weightA - weightB;
 
-    if (weightA !== weightB) {
-      return weightA - weightB;
-    }
-
-    // 3. If both are LIVE, sort by highest stadium tension / minute
+    // Both LIVE — highest tension first
     if (a.status === 'LIVE' && b.status === 'LIVE') {
       return (b.stadiumTension || 0) - (a.stadiumTension || 0);
     }
 
-    // 4. If both are SCHEDULED, sort by date first, then by kickoff time
+    // Both SCHEDULED — sort by utcDate first, then by kickoff proximity
     if (a.status === 'SCHEDULED' && b.status === 'SCHEDULED') {
       const dateA = a.utcDate ? new Date(a.utcDate).getTime() : 0;
       const dateB = b.utcDate ? new Date(b.utcDate).getTime() : 0;
-      
-      if (dateA !== dateB) {
-        return dateA - dateB;
-      }
-      
-      const timeA = parseKickoffMinutes(a.matchTime);
-      const timeB = parseKickoffMinutes(b.matchTime);
-      return timeA - timeB;
+      if (dateA !== dateB) return dateA - dateB;
+
+      // Parse WAT minutes (add 60 to UTC time for WAT offset)
+      const rawA = parseKickoffMinutes(a.matchTime);
+      const rawB = parseKickoffMinutes(b.matchTime);
+      // Matches at 00:xx UTC are really 01:xx WAT — adjust if raw is < 60 to avoid showing midnight as first
+      const watA = rawA < 60 ? rawA + 60 : rawA;
+      const watB = rawB < 60 ? rawB + 60 : rawB;
+      // Distance from current WAT time (smaller = sooner)
+      const distA = watA >= nowWATMinutes ? watA - nowWATMinutes : 1440 - (nowWATMinutes - watA);
+      const distB = watB >= nowWATMinutes ? watB - nowWATMinutes : 1440 - (nowWATMinutes - watB);
+      return distA - distB;
     }
 
-    // 5. If both are FINISHED, most recent first (by date then time)
+    // Both FINISHED — most recent first
     if (a.status === 'FINISHED' && b.status === 'FINISHED') {
       const dateA = a.utcDate ? new Date(a.utcDate).getTime() : 0;
       const dateB = b.utcDate ? new Date(b.utcDate).getTime() : 0;
-      
-      if (dateA !== dateB) {
-        return dateB - dateA;
-      }
-      
-      const timeA = parseKickoffMinutes(a.matchTime);
-      const timeB = parseKickoffMinutes(b.matchTime);
-      return timeB - timeA;
+      if (dateA !== dateB) return dateB - dateA;
+      return parseKickoffMinutes(b.matchTime) - parseKickoffMinutes(a.matchTime);
     }
 
     return 0;
