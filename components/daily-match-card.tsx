@@ -2,15 +2,89 @@
 
 import React, { useState } from 'react';
 import { MatchData } from '../lib/sports-api';
-import { Bell, BellRing, Star, Eye, Plus, Zap, CheckCircle2, Clock, Calendar, AlertCircle } from 'lucide-react';
+import { Bell, BellRing, Star, Eye, Plus, Zap, CheckCircle2, XCircle, Calendar, AlertCircle } from 'lucide-react';
 
-interface DailyMatchCardProps {
+export interface DailyMatchCardProps {
   match: MatchData;
   onOpenInsights: (match: MatchData) => void;
   onSelectOdds: (match: MatchData, selection: string, odds: number) => void;
   onBookmarkMatch?: (match: MatchData) => void;
   followedMatchIds?: string[];
   onToggleFollow?: (match: MatchData) => void;
+}
+
+/**
+ * Evaluates whether the predicted topPick WON or LOST against final score
+ */
+function evaluatePickOutcome(
+  selection: string,
+  homeScore: number,
+  awayScore: number
+): { won: boolean; label: string; scoreSummary: string } {
+  const sel = selection.toLowerCase();
+  const totalGoals = homeScore + awayScore;
+  const isHomeWin = homeScore > awayScore;
+  const isDraw = homeScore === awayScore;
+  const isAwayWin = awayScore > homeScore;
+
+  let won = false;
+
+  if (sel.includes('over 1.5')) {
+    won = totalGoals >= 2;
+  } else if (sel.includes('over 2.5')) {
+    won = totalGoals >= 3;
+  } else if (sel.includes('under 2.5')) {
+    won = totalGoals <= 2;
+  } else if (sel.includes('under 3.5')) {
+    won = totalGoals <= 3;
+  } else if (sel.includes('1x') || sel.includes('or draw (1x)')) {
+    won = isHomeWin || isDraw;
+  } else if (sel.includes('x2') || sel.includes('or draw (x2)')) {
+    won = isAwayWin || isDraw;
+  } else if (sel.includes('draw')) {
+    won = isDraw;
+  } else if (sel.includes('gg') || sel.includes('both teams')) {
+    won = homeScore > 0 && awayScore > 0;
+  } else {
+    // Team name pick
+    won = isHomeWin;
+  }
+
+  const scoreSummary = homeScore + '-' + awayScore + ' (' + totalGoals + ' Goals)';
+  return {
+    won,
+    label: won ? 'WON ✅' : 'LOST ❌',
+    scoreSummary,
+  };
+}
+
+/**
+ * Smart Date Formatter differentiating past, today, and future dates
+ */
+function formatSmartMatchDate(utcDateStr?: string, matchTimeStr: string = '19:00', status: string = 'SCHEDULED'): string {
+  const now = new Date();
+  const matchDate = utcDateStr ? new Date(utcDateStr) : now;
+
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const matchDayStart = new Date(matchDate.getFullYear(), matchDate.getMonth(), matchDate.getDate());
+
+  const diffDays = Math.round((matchDayStart.getTime() - todayStart.getTime()) / 86400000);
+  const dayName = matchDate.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+
+  if (status === 'LIVE') {
+    return '🔴 LIVE Now • ' + matchTimeStr;
+  }
+
+  if (status === 'FINISHED') {
+    if (diffDays === 0) return '📅 Today, ' + matchDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' • FT';
+    if (diffDays === -1) return '📅 Yesterday, ' + matchDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' • FT';
+    return '📅 ' + dayName + ' • FT';
+  }
+
+  // Scheduled / Upcoming
+  if (diffDays === 0) return '📅 Today, ' + matchDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' • ' + matchTimeStr;
+  if (diffDays === 1) return '📅 Tomorrow, ' + matchDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' • ' + matchTimeStr;
+  return '📅 ' + dayName + ' • ' + matchTimeStr;
 }
 
 export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
@@ -31,18 +105,20 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   const drawW = Math.round(p.drawProb * 100);
   const awayW = Math.round(p.awayWinProb * 100);
 
-  // Formulate Date + Time display
-  const matchDate = match.utcDate ? new Date(match.utcDate) : new Date();
-  const dateFormatted = matchDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-  const dateTimeDisplay = dateFormatted + ' • ' + match.matchTime;
+  const smartDateDisplay = formatSmartMatchDate(match.utcDate, match.matchTime, match.status);
 
-  // Multi-factor prediction shift reason generator
+  // Evaluate final settlement if finished
+  const outcome = isFinished ? evaluatePickOutcome(p.topPick.selection, match.homeScore, match.awayScore) : null;
+
+  // Multi-factor prediction shift reason
   const shiftReason = p.topPick.rationale || (
     'Multi-factor model factored 4-3-3 tactical stance, recent match outings (' +
     homeW + '% vs ' + awayW + '%), and stadium ground advantage into ' + p.topPick.selection + '.'
   );
 
-  const confidenceColor = p.topPick.confidenceTier === 'ULTRA-BANKER'
+  const confidenceColor = isFinished
+    ? (outcome?.won ? 'text-stadiumGreen border-stadiumGreen/50 bg-stadiumGreen/10' : 'text-crimson border-crimson/50 bg-crimson/10')
+    : p.topPick.confidenceTier === 'ULTRA-BANKER'
     ? 'text-stadiumGreen border-stadiumGreen/50 bg-stadiumGreen/10'
     : p.topPick.confidenceTier === 'BANKER'
     ? 'text-gold border-gold/40 bg-gold/10'
@@ -54,7 +130,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   const borderClass = isLive
     ? 'border-crimson/40 bg-gradient-to-br from-crimson/5 via-panel to-panel shadow-crimson/10'
     : isFinished
-    ? 'border-stadiumGreen/30 bg-panel/80'
+    ? (outcome?.won ? 'border-stadiumGreen/40 bg-panel/90 shadow-stadiumGreen/10' : 'border-crimson/30 bg-panel/90 shadow-crimson/5')
     : p.topPick.confidenceTier === 'ULTRA-BANKER'
     ? 'border-stadiumGreen/40 bg-gradient-to-br from-stadiumGreen/5 via-panel to-panel shadow-stadiumGreen/10'
     : 'border-white/10 bg-panel/70 hover:border-white/20';
@@ -89,7 +165,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
 
       <div className="p-4 sm:p-5 space-y-3.5">
 
-        {/* Row 1: League + Date/Time Together + Actions */}
+        {/* Row 1: League + Smart Date/Time + Status Badge + Actions */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2 min-w-0">
             <span className="text-lg flex-shrink-0">{match.leagueFlag || '⚽'}</span>
@@ -101,15 +177,15 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
               </span>
             )}
             {isFinished && (
-              <span className="flex-shrink-0 flex items-center space-x-1 px-2 py-0.5 rounded-full bg-stadiumGreen/20 border border-stadiumGreen/40 text-stadiumGreen text-[10px] font-black">
-                <CheckCircle2 className="w-3 h-3" />
-                <span>FT</span>
+              <span className={'flex-shrink-0 flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-black border ' + (outcome?.won ? 'bg-stadiumGreen/20 border-stadiumGreen/50 text-stadiumGreen' : 'bg-crimson/20 border-crimson/40 text-crimson')}>
+                {outcome?.won ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                <span>{outcome?.won ? 'FT • WON' : 'FT • LOST'}</span>
               </span>
             )}
             {isUpcoming && (
               <span className="flex-shrink-0 flex items-center space-x-1 px-2 py-0.5 rounded-full bg-gold/20 border border-gold/30 text-gold text-[10px] font-black">
                 <Calendar className="w-3 h-3" />
-                <span>{dateTimeDisplay}</span>
+                <span>{smartDateDisplay}</span>
               </span>
             )}
           </div>
@@ -127,7 +203,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
           </div>
         </div>
 
-        {/* Row 2: Teams + Score + Prominent Date & Time */}
+        {/* Row 2: Teams + Score + Smart Date Box */}
         <div className="grid grid-cols-3 items-center text-center gap-2">
           <div className="flex flex-col items-center space-y-1.5">
             {match.homeLogo && match.homeLogo.startsWith('http') ? (
@@ -141,16 +217,16 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
 
           <div className="flex flex-col items-center space-y-1">
             {isLive || isFinished ? (
-              <div className={'text-3xl sm:text-4xl font-black font-mono px-3 py-2 rounded-2xl border shadow-inner ' + (isLive ? 'text-crimson bg-black/70 border-crimson/30' : 'text-white bg-black/60 border-white/10')}>
+              <div className={'text-3xl sm:text-4xl font-black font-mono px-3 py-2 rounded-2xl border shadow-inner ' + (isLive ? 'text-crimson bg-black/70 border-crimson/30' : outcome?.won ? 'text-stadiumGreen bg-black/80 border-stadiumGreen/40' : 'text-white bg-black/60 border-white/10')}>
                 {match.homeScore}<span className="text-gray-500 text-2xl mx-1">:</span>{match.awayScore}
               </div>
             ) : (
               <div className="flex flex-col items-center p-2 rounded-2xl bg-gold/10 border border-gold/20">
-                <span className="text-[9px] text-gray-400 font-bold uppercase">{dateFormatted}</span>
-                <span className="text-xl font-black text-gold font-mono">{match.matchTime}</span>
+                <span className="text-[9px] text-gray-400 font-bold uppercase">{match.matchTime}</span>
+                <span className="text-xs font-black text-gold font-mono">Upcoming</span>
               </div>
             )}
-            {match.venue && <span className="text-[9px] text-gray-500 font-mono text-center leading-tight max-w-[90px] truncate">{'🏟 ' + match.venue}</span>}
+            <span className="text-[9px] text-gray-400 font-mono text-center leading-tight">{smartDateDisplay}</span>
             <span className="text-[10px] text-stadiumGreen font-mono flex items-center space-x-0.5">
               <Zap className="w-3 h-3" />
               <span>Tap insights</span>
@@ -182,30 +258,49 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
           </div>
         </div>
 
-        {/* Row 4: Top Pick + Add Button */}
-        <div className={'flex items-center justify-between gap-3 p-3 rounded-2xl border ' + confidenceColor} onClick={e => e.stopPropagation()}>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center space-x-1.5 mb-0.5">
-              <span className="text-base">👑</span>
-              <span className="text-[10px] font-black uppercase tracking-wider opacity-80">{p.topPick.confidenceTier}</span>
-            </div>
-            <p className="font-black text-sm text-white truncate">{p.topPick.selection}</p>
-            <div className="flex items-center space-x-2 mt-1">
-              <div className="flex-1 h-1.5 rounded-full bg-black/40 overflow-hidden">
-                <div className={'h-full ' + probBarColor + ' transition-all duration-700'} style={{ width: p.topPick.probability + '%' }} />
+        {/* Row 4: Top Pick vs Outcome Settlement Audit */}
+        {isFinished && outcome ? (
+          <div className={'p-3 rounded-2xl border flex items-center justify-between gap-3 ' + (outcome.won ? 'bg-stadiumGreen/15 border-stadiumGreen/50' : 'bg-crimson/15 border-crimson/50')}>
+            <div>
+              <div className="flex items-center space-x-1.5 mb-0.5">
+                <span className={'text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ' + (outcome.won ? 'bg-stadiumGreen text-black font-black' : 'bg-crimson text-white')}>
+                  {outcome.label}
+                </span>
+                <span className="text-[10px] text-gray-300 font-bold">@ {p.topPick.odds}</span>
               </div>
-              <span className="text-[10px] font-black whitespace-nowrap">{p.topPick.probability}% confident</span>
+              <p className="font-black text-xs text-white">
+                Pick: <span className="text-gold">{p.topPick.selection}</span> ➡️ Result: <span className="text-white">{outcome.scoreSummary}</span>
+              </p>
+            </div>
+            <div className={'text-right font-black font-mono text-sm ' + (outcome.won ? 'text-stadiumGreen' : 'text-crimson')}>
+              {outcome.won ? 'SETTLED ✓' : 'SETTLED ✗'}
             </div>
           </div>
-          <div className="flex flex-col items-center space-y-1.5 flex-shrink-0">
-            <span className="text-lg font-black text-white">@ {p.topPick.odds}</span>
-            <button onClick={handleAddPick}
-              className="px-3 py-1.5 rounded-xl bg-stadiumGreen text-black font-black text-xs flex items-center space-x-1 hover:bg-emerald-400 transition-all active:scale-95">
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Pick</span>
-            </button>
+        ) : (
+          <div className={'flex items-center justify-between gap-3 p-3 rounded-2xl border ' + confidenceColor} onClick={e => e.stopPropagation()}>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center space-x-1.5 mb-0.5">
+                <span className="text-base">👑</span>
+                <span className="text-[10px] font-black uppercase tracking-wider opacity-80">{p.topPick.confidenceTier}</span>
+              </div>
+              <p className="font-black text-sm text-white truncate">{p.topPick.selection}</p>
+              <div className="flex items-center space-x-2 mt-1">
+                <div className="flex-1 h-1.5 rounded-full bg-black/40 overflow-hidden">
+                  <div className={'h-full ' + probBarColor + ' transition-all duration-700'} style={{ width: p.topPick.probability + '%' }} />
+                </div>
+                <span className="text-[10px] font-black whitespace-nowrap">{p.topPick.probability}% confident</span>
+              </div>
+            </div>
+            <div className="flex flex-col items-center space-y-1.5 flex-shrink-0">
+              <span className="text-lg font-black text-white">@ {p.topPick.odds}</span>
+              <button onClick={handleAddPick}
+                className="px-3 py-1.5 rounded-xl bg-stadiumGreen text-black font-black text-xs flex items-center space-x-1 hover:bg-emerald-400 transition-all active:scale-95">
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Pick</span>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Multi-Factor Live Reason Badge */}
         <div className="px-3 py-2 rounded-xl bg-black/40 border border-white/5 text-[9px] text-gray-300 flex items-start space-x-1.5 leading-snug">

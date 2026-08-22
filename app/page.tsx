@@ -346,7 +346,7 @@ export default function Home() {
                     <DailyMatchCard
                       key={match.id}
                       match={match}
-                      onOpenInsights={m => setSelectedMatchForInsights(m)}
+                      onOpenInsights={setSelectedMatchForInsights}
                       onSelectOdds={handleAddBetItem}
                       onBookmarkMatch={handleBookmarkToggle}
                       followedMatchIds={followedMatchIds}
