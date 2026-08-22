@@ -1,0 +1,61 @@
+  ▲ Next.js 14.2.35
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/11) ...
+   Generating static pages (2/11) 
+   Generating static pages (5/11) 
+   Generating static pages (8/11) 
+Redis get cache fallback active.
+Redis get cache fallback active.
+Redis get cache fallback active.
+Redis get cache fallback active.
+Redis set cache fallback active.
+Redis set cache fallback active.
+Redis set cache fallback active.
+Redis set cache fallback active.
+Redis set cache fallback active.
+Redis set cache fallback active.
+Redis set cache fallback active.
+Redis set cache fallback active.
+ ✓ Generating static pages (11/11)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+┌ ○ /                                    72.3 kB         174 kB
+├ ○ /_not-found                          876 B          88.5 kB
+├ ○ /admin                               106 kB          194 kB
+├ ƒ /api/admin                           0 B                0 B
+├ ƒ /api/analytics                       0 B                0 B
+├ ƒ /api/comments                        0 B                0 B
+├ ƒ /api/cron/daily                      0 B                0 B
+├ ƒ /api/db/init                         0 B                0 B
+├ ƒ /api/follow                          0 B                0 B
+├ ƒ /api/match-details                   0 B                0 B
+├ ƒ /api/matches                         0 B                0 B
+├ ƒ /api/news                            0 B                0 B
+├ ƒ /api/push/deliver                    0 B                0 B
+├ ƒ /api/push/subscribe                  0 B                0 B
+├ ƒ /api/push/vapid                      0 B                0 B
+├ ƒ /api/settlement                      0 B                0 B
+├ ƒ /api/standings                       0 B                0 B
+├ ƒ /api/stream                          0 B                0 B
+├ ○ /arbitrage                           2.94 kB        99.3 kB
+├ ○ /bankroll                            2.74 kB        99.1 kB
+├ ○ /leaderboard                         2.01 kB         104 kB
+├ ○ /robots.txt                          0 B                0 B
+├ ƒ /settlement                          176 B          96.5 kB
+└ ○ /sitemap.xml                         0 B                0 B
++ First Load JS shared by all            87.6 kB
+  ├ chunks/117-935b7e462b8566e1.js       31.9 kB
+  ├ chunks/fd9d1056-6b62a532f6cb17a9.js  53.6 kB
+  └ other shared chunks (total)          2.07 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

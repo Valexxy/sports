@@ -2,12 +2,23 @@
 
 import React from 'react';
 import { TWENTY_UI_EFFECTS_REGISTRY } from '../lib/twenty-ui-effects';
-import { X, Sparkles, Cpu, Layers, Palette, Volume2 } from 'lucide-react';
+import { getEventEffect, playEventSound, MatchEventKind } from '../lib/event-effects-engine';
+import { X, Sparkles, Cpu, Layers, Palette, Volume2, Zap } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface EffectsModalProps {
   onClose: () => void;
 }
+
+// Distinct match-event FX worth showcasing (goal / cards / kickoff / sub).
+const PREVIEW_EVENTS: Array<{ kind: MatchEventKind; label: string; team: string; scorer: string }> = [
+  { kind: 'GOAL', label: '⚽ GOAL', team: 'Manchester City', scorer: 'Erling Haaland' },
+  { kind: 'YELLOW_CARD', label: '🟨 YELLOW', team: 'Real Madrid', scorer: 'Vinicius Jr' },
+  { kind: 'RED_CARD', label: '🟥 RED CARD', team: 'Arsenal', scorer: 'Declan Rice' },
+  { kind: 'KICKOFF', label: '🚦 KICK-OFF', team: 'Barcelona', scorer: '' },
+  { kind: 'SUBSTITUTION', label: '🔄 SUB', team: 'Liverpool', scorer: 'Mohamed Salah' },
+  { kind: 'HALFTIME', label: '⏸️ HALF-TIME', team: 'Chelsea', scorer: '' },
+];
 
 export const EffectsModal: React.FC<EffectsModalProps> = ({ onClose }) => {
   const handleTestConfetti = () => {
@@ -19,6 +30,16 @@ export const EffectsModal: React.FC<EffectsModalProps> = ({ onClose }) => {
     if (typeof window !== 'undefined' && 'vibrate' in navigator) {
       navigator.vibrate([100, 50, 100, 50, 200]);
     }
+  };
+
+  const previewEffect = (kind: MatchEventKind, scorer: string, team: string) => {
+    const fx = getEventEffect({ kind, scorer, team, minute: "64'" });
+    playEventSound(fx.sound);
+    if (fx.confetti) handleTestConfetti();
+    if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+      navigator.vibrate(fx.screenShake ? [120, 60, 180] : [40, 40, 80]);
+    }
+    return fx;
   };
 
   return (
@@ -59,8 +80,35 @@ export const EffectsModal: React.FC<EffectsModalProps> = ({ onClose }) => {
           </button>
         </div>
 
+        {/* Distinct Match Event FX Previews */}
+        <div className="mb-4">
+          <div className="flex items-center space-x-2 mb-2">
+            <Zap className="w-4 h-4 text-gold" />
+            <span className="font-black text-white text-sm">LIVE MATCH EVENT FX — TAP TO PREVIEW</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {PREVIEW_EVENTS.map((ev) => {
+              const fx = getEventEffect({ kind: ev.kind, scorer: ev.scorer, team: ev.team, minute: "64'" });
+              return (
+                <button
+                  key={ev.kind}
+                  onClick={() => previewEffect(ev.kind, ev.scorer, ev.team)}
+                  className={`p-3 rounded-2xl border bg-gradient-to-r ${fx.colors.bg} ${fx.colors.border} ${fx.animation} text-left transition-all hover:scale-105 shadow-md`}
+                >
+                  <span className={`text-lg ${fx.colors.text}`}>{fx.emoji}</span>
+                  <span className={`block font-black text-[11px] mt-1 ${fx.colors.text}`}>{ev.label}</span>
+                  <span className={`block text-[9px] ${fx.colors.text} opacity-80`}>{fx.subTitle}</span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-[9px] text-gray-400 mt-2">
+            Every goal, card, kickoff, sub and whistle triggers its own popup + WebAudio SFX + haptics on mobile. 100% free, zero assets.
+          </p>
+        </div>
+
         {/* Effects List */}
-        <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+        <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
           {TWENTY_UI_EFFECTS_REGISTRY.map((fx) => (
             <div key={fx.id} className="p-3.5 rounded-2xl bg-panel/90 border border-white/10 hover:border-stadiumGreen/40 transition-all flex items-center justify-between">
               <div className="space-y-0.5">

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '../../../../lib/supabase-client';
-import { DAILY_MATCHES_ARCHIVE } from '../../../../lib/prediction-archive-engine';
+import { buildDynamicArchive } from '../../../../lib/prediction-archive-engine';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,8 +8,9 @@ export async function GET() {
   const syncResults: Record<string, any> = {};
 
   try {
-    // 1. Seed / Sync Historical Settlement Ledger
-    const ledgerPayload = DAILY_MATCHES_ARCHIVE.map((m) => ({
+    // 1. Seed / Sync Historical Settlement Ledger (derived from real scores)
+    const dynamicArchive = await buildDynamicArchive();
+    const ledgerPayload = dynamicArchive.map((m) => ({
       id: m.id,
       match_date: m.date,
       league: m.league,

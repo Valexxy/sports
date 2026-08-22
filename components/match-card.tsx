@@ -66,7 +66,13 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onOpenReceipt, onOp
   const over25Prob = Math.min(88, Math.round(over15Prob * 0.76));
   const bttsProb = Math.min(85, Math.round((1 - Math.exp(-p.expectedHomeGoals)) * (1 - Math.exp(-p.expectedAwayGoals)) * 100));
 
+  // Honest model-derived odds for the quick-add markets (no hardcoded figures)
+  const dc1xOdds = parseFloat((1.05 / Math.max(p.homeWinProb + p.drawProb, 0.1)).toFixed(2));
+  const over15Odds = parseFloat((1.05 / Math.max(over15Prob / 100, 0.1)).toFixed(2));
+  const bttsOdds = parseFloat((1.05 / Math.max(bttsProb / 100, 0.1)).toFixed(2));
+
   const handleFlashVote = (vote: string) => {
+
     setFlashVoted(vote);
     if (typeof window !== 'undefined' && 'vibrate' in navigator) {
       navigator.vibrate([100, 50, 100]);
@@ -434,28 +440,29 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onOpenReceipt, onOp
       {/* 6. Multi-Market Quick-Add Pills (3 Additional Markets Directly on Card) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <button
-          onClick={() => onSelectOdds(match, `${match.homeTeam} or Draw (1X)`, 1.18)}
+          onClick={() => onSelectOdds(match, `${match.homeTeam} or Draw (1X)`, dc1xOdds)}
           className="p-2 rounded-xl bg-panel hover:bg-panel/80 border border-white/10 hover:border-stadiumGreen/40 text-left font-mono text-[11px] flex items-center justify-between transition-all group"
         >
           <span className="text-gray-300 group-hover:text-white">Double Chance (1X)</span>
-          <span className="text-stadiumGreen font-bold bg-stadiumGreen/10 px-1.5 py-0.5 rounded">1.18 +</span>
+          <span className="text-stadiumGreen font-bold bg-stadiumGreen/10 px-1.5 py-0.5 rounded">{dc1xOdds} +</span>
         </button>
 
         <button
-          onClick={() => onSelectOdds(match, 'Over 1.5 Total Goals', 1.25)}
+          onClick={() => onSelectOdds(match, 'Over 1.5 Total Goals', over15Odds)}
           className="p-2 rounded-xl bg-panel hover:bg-panel/80 border border-white/10 hover:border-gold/40 text-left font-mono text-[11px] flex items-center justify-between transition-all group"
         >
           <span className="text-gray-300 group-hover:text-white">Over 1.5 Goals</span>
-          <span className="text-gold font-bold bg-gold/10 px-1.5 py-0.5 rounded">1.25 +</span>
+          <span className="text-gold font-bold bg-gold/10 px-1.5 py-0.5 rounded">{over15Odds} +</span>
         </button>
 
         <button
-          onClick={() => onSelectOdds(match, 'Both Teams to Score (BTTS)', 1.78)}
+          onClick={() => onSelectOdds(match, 'Both Teams to Score (BTTS)', bttsOdds)}
           className="p-2 rounded-xl bg-panel hover:bg-panel/80 border border-white/10 hover:border-cyberPurple/40 text-left font-mono text-[11px] flex items-center justify-between transition-all group"
         >
           <span className="text-gray-300 group-hover:text-white">BTTS: Yes</span>
-          <span className="text-cyberPurple font-bold bg-cyberPurple/10 px-1.5 py-0.5 rounded">1.78 +</span>
+          <span className="text-cyberPurple font-bold bg-cyberPurple/10 px-1.5 py-0.5 rounded">{bttsOdds} +</span>
         </button>
+
       </div>
 
       {/* 7. Expandable Live Bookmaker Odds Matrix */}

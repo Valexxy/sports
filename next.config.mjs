@@ -19,8 +19,9 @@ const nextConfig = {
             value: 'origin-when-cross-origin',
           },
           {
+            // Allow phone hardware features (camera, mic, geolocation, notifications, vibration)
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
+            value: 'camera=(self), microphone=(self), geolocation=(self), notifications=(self), vibrate=(self)',
           },
           {
             key: 'X-XSS-Protection',

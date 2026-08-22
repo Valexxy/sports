@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Newspaper, Clock, X, RefreshCw, ChevronDown, ChevronUp, Sparkles, Flame, ThumbsUp, Target } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Newspaper, Clock, X, RefreshCw, ChevronDown, ChevronUp, Flame, ThumbsUp, Target, Share2, ExternalLink } from 'lucide-react';
 
 export interface SportsArticle {
   id: string;
@@ -68,15 +68,39 @@ export const SportsNewsSection: React.FC = () => {
   };
 
   const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
+  const [sourceFilter, setSourceFilter] = useState('ALL');
 
   const handleImgError = (articleId: string) => {
     setImgErrors(prev => ({ ...prev, [articleId]: true }));
   };
 
-  // Only show articles with real content
+  // Unique real sources for the filter tabs
+  const sources = useMemo(() => {
+    const set = new Set<string>(articles.map(a => a.source).filter(Boolean));
+    return ['ALL', ...Array.from(set).slice(0, 4)];
+  }, [articles]);
+
+  // Filter by source, then only show articles with real content
   const displayedArticles = articles
+    .filter(a => sourceFilter === 'ALL' || a.source === sourceFilter)
     .filter(a => a.title && a.title.length > 5 && a.description && a.description.length > 10)
     .slice(0, visibleCount);
+
+  const handleShare = async (article: SportsArticle) => {
+    const shareData = {
+      title: article.title,
+      text: `${article.title} — via AuraScore Stadium`,
+      url: article.link,
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard?.writeText(article.link);
+        alert('Link copied to clipboard!');
+      }
+    } catch { /* user cancelled */ }
+  };
 
   return (
     <div className="glass-panel rounded-3xl p-5 border border-white/10 space-y-4 shadow-2xl font-mono text-xs">
@@ -135,6 +159,25 @@ export const SportsNewsSection: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Source Filter Tabs */}
+      {isOpen && sources.length > 1 && (
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 -mt-1">
+          {sources.map(src => (
+            <button
+              key={src}
+              onClick={() => { setSourceFilter(src); setVisibleCount(3); }}
+              className={`flex-shrink-0 px-3 py-1.5 rounded-xl border text-[10px] font-black transition-all ${
+                sourceFilter === src
+                  ? 'bg-gold/20 border-gold/50 text-gold scale-105 shadow-md'
+                  : 'bg-panel border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+              }`}
+            >
+              {src === 'ALL' ? '🗞️ All Sources' : src}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* 3-in-a-Row News Cards Grid (Collapsible) */}
       {isOpen && (
@@ -307,13 +350,29 @@ export const SportsNewsSection: React.FC = () => {
               </div>
             </div>
 
-            {/* Footer Close Button */}
-            <div className="pt-2 border-t border-white/10">
+            {/* Footer Actions */}
+            <div className="pt-2 border-t border-white/10 flex flex-col sm:flex-row gap-2">
+              <a
+                href={activeArticle.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 py-2.5 rounded-xl bg-panel hover:bg-white/5 border border-white/10 text-gold font-black text-xs flex items-center justify-center space-x-1.5 transition-all"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Open Original</span>
+              </a>
+              <button
+                onClick={() => handleShare(activeArticle)}
+                className="flex-1 py-2.5 rounded-xl bg-cyberPurple/20 hover:bg-cyberPurple/30 border border-cyberPurple/40 text-cyberPurple font-black text-xs flex items-center justify-center space-x-1.5 transition-all"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                <span>Share Story</span>
+              </button>
               <button
                 onClick={() => setActiveArticle(null)}
-                className="w-full py-2.5 rounded-xl bg-stadiumGreen text-black font-black text-xs hover:bg-emerald-400 transition-all shadow-lg"
+                className="flex-1 py-2.5 rounded-xl bg-stadiumGreen text-black font-black text-xs hover:bg-emerald-400 transition-all shadow-lg"
               >
-                Close Article
+                Close
               </button>
             </div>
 

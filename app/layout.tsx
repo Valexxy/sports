@@ -92,10 +92,19 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
-        <link rel="manifest" href="/manifest.json" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
         <meta name="theme-color" content="#0a0f1d" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="AuraScore" />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/icons/icon-192.png" sizes="192x192" type="image/png" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="description" content="Real-time live scores, xG analytics, and match commentary across top football leagues." />
+
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

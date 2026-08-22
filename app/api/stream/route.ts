@@ -1,62 +1,91 @@
 import { NextRequest } from 'next/server';
+import { getRealLiveAndPlayedMatches } from '../../../lib/real-sports-stream';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * AURASCORE REAL-TIME DATA CAPTURING & STREAMING ENGINE (SSE / HTTP-2)
- * Pushes live per-second clock ticks, score changes, goal events, odds fluctuations,
- * and referee settlements directly to connected browser clients with zero latency.
+ * AURASCORE REAL-TIME DATA STREAM (SSE)
+ * Pushes ONLY real verified match data pulled live from ESPN public APIs.
+ * No simulated events, no fake latency, no fabricated scores.
  */
 export async function GET(req: NextRequest) {
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
-    start(controller) {
-      // 1. Send Initial Connection Event
-      const initPayload = JSON.stringify({
+    async start(controller) {
+      const send = (payload: any) => {
+        try {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`));
+        } catch (e) {
+          /* client disconnected */
+        }
+      };
+
+      // 1. Initial Connection Event
+      send({
         type: 'ENGINE_CONNECTED',
         timestamp: Date.now(),
-        latencyMs: 14,
-        protocol: 'SSE-Edge-v2.5',
-        message: 'Connected to AuraScore Real-Time Match Data Stream Relay',
+        protocol: 'SSE-Real-Data-v3.0',
+        message: 'Connected to AuraScore Real-Time Match Data Stream (100% verified live sources)',
       });
-      controller.enqueue(encoder.encode(`data: ${initPayload}\n\n`));
 
-      let tickCount = 0;
+      let lastSnapshotKey = '';
+      const tick = async () => {
+        try {
+          const matches = await getRealLiveAndPlayedMatches();
+          const live = matches.filter((m) => m.status === 'LIVE');
+          const snapshotKey = matches
+            .map((m) => `${m.id}:${m.homeScore}-${m.awayScore}`)
+            .join('|');
 
-      // 2. Continuous 1-Second Heartbeat & Telemetry Ingestion Loop
-      const interval = setInterval(() => {
-        tickCount++;
-
-        // Live Clock & In-Play Momentum Pulse
-        const clockPulse = {
-          type: 'CLOCK_PULSE',
-          tickCount,
-          timestamp: Date.now(),
-          latencyMs: Math.floor(12 + Math.random() * 8), // 12-20ms edge latency
-          activeIngestionFeeds: ['ESPN-CDN', 'BBC-LiveWire', 'Open-Meteo', 'TheSportsDB'],
-          dataIngestionRate: `${(1400 + (tickCount % 60) * 8).toLocaleString()} pkts/min`,
-        };
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(clockPulse)}\n\n`));
-
-        // Periodically emit simulated live goal / odds fluctuations
-        if (tickCount % 15 === 0) {
-          const liveEvent = {
-            type: 'MATCH_UPDATE',
+          send({
+            type: 'MATCH_SNAPSHOT',
             timestamp: Date.now(),
-            event: 'IN_PLAY_MOMENTUM_SURGE',
-            homeXGDelta: +0.05,
-            awayXGDelta: +0.02,
-            oddsMultiplier: +(0.98 + Math.random() * 0.04).toFixed(2),
-          };
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify(liveEvent)}\n\n`));
-        }
-      }, 1000);
+            liveCount: live.length,
+            totalCount: matches.length,
+            matches: matches.slice(0, 8).map((m) => ({
+              id: m.id,
+              homeTeam: m.homeTeam,
+              awayTeam: m.awayTeam,
+              homeScore: m.homeScore,
+              awayScore: m.awayScore,
+              status: m.status,
+              matchTime: m.matchTime,
+              league: m.league,
+            })),
+          });
 
-      // Clean up when client disconnects
+          // Only emit a "LIVE_UPDATE" when an actual score changed
+          if (lastSnapshotKey !== '' && snapshotKey !== lastSnapshotKey) {
+            const changed = matches.filter((m) => m.status === 'LIVE');
+            send({
+              type: 'SCORE_UPDATE',
+              timestamp: Date.now(),
+              liveUpdates: changed.map((m) => ({
+                id: m.id,
+                homeTeam: m.homeTeam,
+                awayTeam: m.awayTeam,
+                homeScore: m.homeScore,
+                awayScore: m.awayScore,
+                matchTime: m.matchTime,
+              })),
+            });
+          }
+          lastSnapshotKey = snapshotKey;
+        } catch (e) {
+          send({ type: 'STREAM_ERROR', timestamp: Date.now(), message: 'Snapshot fetch failed' });
+        }
+      };
+
+      // Immediate first snapshot
+      await tick();
+
+      // Poll real APIs every 15s for live score changes
+      const interval = setInterval(tick, 15000);
+
       req.signal.addEventListener('abort', () => {
         clearInterval(interval);
-        controller.close();
+        try { controller.close(); } catch (e) {}
       });
     },
   });

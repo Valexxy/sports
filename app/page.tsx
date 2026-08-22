@@ -27,6 +27,8 @@ import { SportsNewsSection } from '../components/sports-news-section';
 import { BetSlipDrawer, BetItem } from '../components/bet-slip-drawer';
 import { MobileAppDock } from '../components/mobile-app-dock';
 import { StadiumSuitesMenu } from '../components/stadium-suites-menu';
+import { EffectsModal } from '../components/effects-modal';
+import { VcFundingModal } from '../components/vc-funding-modal';
 import { fetchLiveMatches, MatchData } from '../lib/sports-api';
 import { PhoneHardwareBanner } from '../components/phone-install-banner';
 import { SettlementLedgerSection } from '../components/settlement-ledger-section';
@@ -34,6 +36,11 @@ import { RealtimeCaptureStatus } from '../components/realtime-capture-status';
 import { MatchAlertScheduler } from '../lib/match-alert-scheduler';
 import { sortMatchesByClosestKickoff } from '../lib/match-sorter';
 import { Sparkles, Search, ChevronDown, RefreshCw, Radio, Calendar, Clock, Zap } from 'lucide-react';
+import { GlobalLanguageSwitcher } from '../components/global-language-switcher';
+import { ViralFeaturesGrid } from '../components/viral-features-grid';
+import { StadiumUserWeatherPanel } from '../components/stadium-user-weather-panel';
+import { registerPushClient, pushClientId } from '../lib/push-client';
+import { cacheOffline } from '../lib/offline-manager';
 
 type FilterType = 'ALL' | 'LIVE' | 'UPCOMING' | 'PLAYED' | 'BANKERS';
 
@@ -70,6 +77,8 @@ export default function Home() {
   const [showTelemetryModal, setShowTelemetryModal] = useState(false);
   const [showHardwareModal, setShowHardwareModal] = useState(false);
   const [showVisitorModal, setShowVisitorModal] = useState(false);
+  const [showEffectsModal, setShowEffectsModal] = useState(false);
+  const [showVcFundingModal, setShowVcFundingModal] = useState(false);
 
   const loadMatches = async () => {
     setLoadingMatches(true);
@@ -93,14 +102,45 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
+  // Boot: analytics tracking + push subscription + offline caching
+  useEffect(() => {
+    const sessionId = pushClientId || `s-${Date.now().toString(36)}`;
+    fetch('/api/analytics', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'pageview', sessionId }),
+    }).catch(() => {});
+
+    // Register for server-initiated Web Push (silent, only if user grants).
+    registerPushClient().catch(() => {});
+
+    // Cache matches offline so the app remains usable with no network.
+    if (!matches.length) return;
+    cacheOffline('aurascore_matches', matches).catch(() => {});
+  }, [matches.length]);
+
   const handleToggleFollow = (match: MatchData) => {
     const exists = followedMatchIds.includes(match.id);
     if (exists) {
       MatchAlertScheduler.unfollowMatch(match.id);
       setFollowedMatchIds(prev => prev.filter(id => id !== match.id));
+      // Remove from server-side follow store.
+      fetch(`/api/follow?clientId=${encodeURIComponent(pushClientId)}&matchId=${encodeURIComponent(match.id)}`, { method: 'DELETE' }).catch(() => {});
     } else {
       MatchAlertScheduler.followMatch(match);
       setFollowedMatchIds(prev => [...prev, match.id]);
+      // Persist to server so server-initiated push works.
+      fetch('/api/follow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientId: pushClientId,
+          matchId: match.id,
+          matchTitle: `${match.homeTeam} vs ${match.awayTeam}`,
+          lastHomeScore: match.homeScore,
+          lastAwayScore: match.awayScore,
+        }),
+      }).catch(() => {});
     }
   };
 
@@ -171,6 +211,11 @@ export default function Home() {
         <BroadcastTicker matches={matches} onSelectUpdate={handleSelectTickerUpdate} />
         <OfflineBanner />
         <GenZLiveAlerts matches={matches} onOpenMatchAudit={() => setShowHistoryModal(true)} />
+
+        {/* Floating global language switcher */}
+        <div className="fixed top-2 right-2 sm:top-16 sm:right-4 z-50">
+          <GlobalLanguageSwitcher />
+        </div>
 
         <StadiumHeader
           onOpenReceipt={() => matches.length > 0 && setSelectedMatchForReceipt(matches[0])}
@@ -317,12 +362,14 @@ export default function Home() {
             )}
           </div>
 
-          {/* Auxiliary sections */}
-          <div className="pt-4 space-y-4 border-t border-white/5">
+          {/* Viral world-first features */}
+          <div className="pt-4 space-y-3 border-t border-white/5">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black text-gray-400 uppercase tracking-wider">More Tools</span>
+              <span className="text-[11px] font-black text-gray-400 uppercase tracking-wider">⚡ World-First Features</span>
               <button onClick={() => setShowSuitesMenu(true)} className="text-[10px] text-stadiumGreen font-bold hover:underline">Open Full Menu</button>
             </div>
+            <ViralFeaturesGrid matches={matches} onSelectMatch={(m) => setSelectedMatchForInsights(m)} />
+            <StadiumUserWeatherPanel venueName={matches[0]?.venue} />
             <SettlementLedgerSection onOpenAuditModal={() => setShowHistoryModal(true)} />
             <SportsNewsSection />
           </div>
@@ -353,6 +400,8 @@ export default function Home() {
           onOpenNews={() => setShowNewsModal(true)}
           onOpenRotatingPool={() => setShowRotatingPoolModal(true)}
           onOpenVisitor={() => setShowVisitorModal(true)}
+          onOpenEffects={() => setShowEffectsModal(true)}
+          onOpenVcFunding={() => setShowVcFundingModal(true)}
         />
 
         {showStandingsModal && (
@@ -420,19 +469,22 @@ export default function Home() {
         {showHistoryModal && <HistoryArchiveModal onClose={() => setShowHistoryModal(false)} />}
         {showReverseJinxModal && <ReverseJinxModal onClose={() => setShowReverseJinxModal(false)} />}
         {showRotatingPoolModal && <RotatingPoolModal onClose={() => setShowRotatingPoolModal(false)} />}
-        {showCloutCardModal && (
+        {showEffectsModal && <EffectsModal onClose={() => setShowEffectsModal(false)} />}
+        {showVcFundingModal && <VcFundingModal onClose={() => setShowVcFundingModal(false)} />}
+        {showCloutCardModal && matches[0] && (
           <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
             <div className="w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl overflow-hidden">
               <CloutCardGenerator
-                matchTitle={matches[0] ? matches[0].homeTeam + ' vs ' + matches[0].awayTeam : 'Arsenal vs Chelsea'}
-                pickSelection={matches[0] ? matches[0].prediction.topPick.selection : 'Home Win'}
-                odds={matches[0] ? matches[0].prediction.topPick.odds : 1.45}
-                winRate={matches[0] ? matches[0].prediction.topPick.probability : 82}
+                matchTitle={matches[0].homeTeam + ' vs ' + matches[0].awayTeam}
+                pickSelection={matches[0].prediction.topPick.selection}
+                odds={matches[0].prediction.topPick.odds}
+                winRate={matches[0].prediction.topPick.probability}
                 onClose={() => setShowCloutCardModal(false)}
               />
             </div>
           </div>
         )}
+
 
         <footer className="glass-panel border-t border-white/10 py-6 px-4 mt-8 font-mono text-xs text-gray-400">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">

@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
-import { DAILY_MATCHES_ARCHIVE, ArchivedMatch } from '../lib/prediction-archive-engine';
+import React, { useState, useEffect } from 'react';
+import { ArchivedMatch } from '../lib/prediction-archive-engine';
 import { detectUserLocationTimezone } from '../lib/timezone-engine';
-import { X, Calendar, Trophy, CheckCircle, XCircle, Sparkles, Filter, MapPin, Flame, Activity } from 'lucide-react';
+import { X, Calendar, Trophy, CheckCircle, XCircle, Sparkles, MapPin, Loader2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface HistoryModalProps {
@@ -11,19 +11,40 @@ interface HistoryModalProps {
 }
 
 export const HistoryArchiveModal: React.FC<HistoryModalProps> = ({ onClose }) => {
+  const [archive, setArchive] = useState<ArchivedMatch[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedFilter, setSelectedFilter] = useState<'ALL' | 'WON' | 'LOST'>('ALL');
   const [activeDateRange, setActiveDateRange] = useState<'TODAY' | 'LAST_7_DAYS' | 'LAST_30_DAYS'>('TODAY');
 
   const userLocation = detectUserLocationTimezone();
 
-  const filteredArchive = DAILY_MATCHES_ARCHIVE.filter((m) => {
+  // Load the live-computed settlement archive from the API (real scores only).
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/settlement', { cache: 'no-store' });
+        const data = await res.json();
+        if (active && data?.success && Array.isArray(data.archive)) {
+          setArchive(data.archive);
+        }
+      } catch {
+        /* network error — empty archive */
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => { active = false; };
+  }, []);
+
+  const filteredArchive = archive.filter((m) => {
     if (selectedFilter === 'WON') return m.prediction.result === 'WON';
     if (selectedFilter === 'LOST') return m.prediction.result === 'LOST';
     return true;
   });
 
-  const wonCount = DAILY_MATCHES_ARCHIVE.filter((m) => m.prediction.result === 'WON').length;
-  const totalFinished = DAILY_MATCHES_ARCHIVE.filter((m) => m.prediction.result !== 'PENDING').length;
+  const wonCount = archive.filter((m) => m.prediction.result === 'WON').length;
+  const totalFinished = archive.filter((m) => m.prediction.result !== 'PENDING').length;
   const winRate = totalFinished > 0 ? Math.round((wonCount / totalFinished) * 100) : 0;
 
   const triggerVictoryCelebration = () => {
@@ -120,7 +141,18 @@ export const HistoryArchiveModal: React.FC<HistoryModalProps> = ({ onClose }) =>
 
         {/* Archived Match Cards Feed */}
         <div className="space-y-3 max-h-[320px] overflow-y-auto pr-1">
-          {filteredArchive.map((m) => (
+          {loading ? (
+            <div className="py-8 text-center text-gray-400 flex items-center justify-center space-x-2">
+              <Loader2 className="w-4 h-4 animate-spin text-stadiumGreen" />
+              <span>Syncing live settlement ledger...</span>
+            </div>
+          ) : filteredArchive.length === 0 ? (
+            <div className="py-8 text-center text-gray-400">
+              No settled predictions yet. The cron auto-settles every finished match from real scores.
+            </div>
+          ) : null}
+
+          {!loading && filteredArchive.map((m) => (
             <div
               key={m.id}
               className={`p-4 rounded-2xl bg-panel border transition-all space-y-2 ${

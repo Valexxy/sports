@@ -1,16 +1,58 @@
 {
   "name": "AuraScore Stadium 2.0",
   "short_name": "AuraScore",
+  "description": "World-First Offline-First Live Sports Analytics, Match Predictions & Stadium Atmosphere Super-App",
+  "id": "/",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
   "background_color": "#0a0f1d",
   "theme_color": "#00ff87",
-  "description": "World-First Offline-First Stadium Match Predictions & Live Scores",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["sports", "entertainment", "news"],
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Live Matches",
+      "short_name": "Live",
+      "description": "Jump straight to live matches",
+      "url": "/?filter=LIVE",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Bankers",
+      "short_name": "Bankers",
+      "description": "View premium ultra-banker picks",
+      "url": "/?filter=BANKERS",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

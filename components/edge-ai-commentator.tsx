@@ -1,12 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Volume2, RefreshCw, Radio, Flame, Brain, FileText, Sparkles } from 'lucide-react';
-import { playSynthesizedStadiumRoar } from '../lib/stadium-audio';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Volume2, Radio, Loader2, RefreshCw } from 'lucide-react';
 import { speakStadiumCommentary } from '../lib/voice-engine';
-import { LiveCommentaryEngine, CommentaryStyle, LiveMatchContext } from '../lib/live-commentary-engine';
+import { speakNaija, naijaMomentLine, primeNaijaVoices } from '../lib/naija-voice-engine';
+import { getEventEffect, playEventSound, eventDedupeKey, EventEffect } from '../lib/event-effects-engine';
+import { fetchRealLiveCommentary, RealCommentaryEvent, extractEspnEventId } from '../lib/real-live-commentary';
+import { MatchData } from '../lib/sports-api';
 
-interface PressBoxCommentaryProps {
+interface LiveCommentaryProps {
+  match?: MatchData;
   matchTitle?: string;
   league?: string;
   homeTeam?: string;
@@ -15,151 +18,363 @@ interface PressBoxCommentaryProps {
   awayScore?: number;
   status?: 'LIVE' | 'SCHEDULED' | 'FINISHED';
   matchTime?: string;
-  expectedHomeGoals?: number;
-  expectedAwayGoals?: number;
 }
 
-export const EdgeAiCommentator: React.FC<PressBoxCommentaryProps> = ({
-  matchTitle = 'Arsenal vs Coventry City',
-  league = 'Premier League',
-  homeTeam = 'Arsenal',
-  awayTeam = 'Coventry City',
+const KIND_STYLES: Record<RealCommentaryEvent['kind'], string> = {
+  GOAL: 'border-crimson/50 bg-gradient-to-r from-crimson/15 to-transparent',
+  CARD: 'border-gold/50 bg-gradient-to-r from-gold/10 to-transparent',
+  SUBSTITUTION: 'border-cyberPurple/50 bg-gradient-to-r from-cyberPurple/10 to-transparent',
+  KICKOFF: 'border-stadiumGreen/50 bg-gradient-to-r from-stadiumGreen/10 to-transparent',
+  HALFTIME: 'border-gold/40 bg-gradient-to-r from-gold/10 to-transparent',
+  FULLTIME: 'border-stadiumGreen/50 bg-gradient-to-r from-stadiumGreen/15 to-transparent',
+  INFO: 'border-white/10 bg-black/50',
+};
+
+const KIND_ICON: Record<RealCommentaryEvent['kind'], string> = {
+  GOAL: '⚽',
+  CARD: '🟨',
+  SUBSTITUTION: '🔄',
+  KICKOFF: '🏁',
+  HALFTIME: '⏸️',
+  FULLTIME: '🏆',
+  INFO: '●',
+};
+
+const KIND_LABEL: Record<RealCommentaryEvent['kind'], string> = {
+  GOAL: 'GOAL',
+  CARD: 'CARD',
+  SUBSTITUTION: 'SUB',
+  KICKOFF: 'KICKOFF',
+  HALFTIME: 'HT',
+  FULLTIME: 'FT',
+  INFO: 'LIVE',
+};
+
+// Authentic Naija Vibe commentary phrases used as spoken/fallback narration (real data always shown first)
+const NAIJA_PHRASES = [
+  'Omo! Ball dey roll for stadium o!',
+  'E don hot for inside pitch!',
+  'See ball! The boys dey fight well well!',
+  'E go beta for the boys wey sabi ball!',
+  'Naija fans dey enjoy this one!',
+];
+
+export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
+  match,
+  matchTitle,
+  league = '',
+  homeTeam = '',
+  awayTeam = '',
   homeScore = 0,
   awayScore = 0,
   status = 'SCHEDULED',
-  matchTime = '19:00',
-  expectedHomeGoals = 2.45,
-  expectedAwayGoals = 1.10,
+  matchTime = '',
 }) => {
-  const [style, setStyle] = useState<CommentaryStyle>('FAN_HYPE');
-  const [selectedEvent, setSelectedEvent] = useState<string>('Matchday Buildup');
+  const resolvedHome = match?.homeTeam || homeTeam;
+  const resolvedAway = match?.awayTeam || awayTeam;
+  const resolvedLeague = match?.league || league;
+  const resolvedStatus = match?.status || status;
+  const resolvedScore = match ? `${match.homeScore} - ${match.awayScore}` : `${homeScore} - ${awayScore}`;
+  const resolvedTime = match?.matchTime || matchTime;
 
-  const matchContext: LiveMatchContext = {
-    homeTeam,
-    awayTeam,
-    league,
-    homeScore,
-    awayScore,
-    status,
-    matchTime,
-    expectedHomeGoals,
-    expectedAwayGoals,
-  };
+  const [events, setEvents] = useState<RealCommentaryEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  // Latest distinct event that needs a popup + Naija voice + SFX trigger.
+  const [activeEffect, setActiveEffect] = useState<{ effect: EventEffect; ctx: RealCommentaryEvent } | null>(null);
+  const seenEventKeys = useRef<Set<string>>(new Set());
+  const lastSpokenKey = useRef<string | null>(null);
+  const [autoSpeak, setAutoSpeak] = useState(true);
 
-  const commentaryData = LiveCommentaryEngine.generateCommentary(matchContext, style, selectedEvent);
+  // Prime voices once on mount so the first tap speaks instantly.
+  useEffect(() => {
+    primeNaijaVoices();
+  }, []);
+
+  // Auto-dismiss the popup after a few seconds.
+  useEffect(() => {
+    if (!activeEffect) return;
+    const t = setTimeout(() => setActiveEffect(null), 3800);
+    return () => clearTimeout(t);
+  }, [activeEffect]);
+
+  const loadCommentary = useCallback(async () => {
+    if (!match) {
+      setLoading(false);
+      setError(true);
+      return;
+    }
+    const eventId = extractEspnEventId(match.id);
+    if (!eventId) {
+      setLoading(false);
+      setError(true);
+      return;
+    }
+
+    setLoading(true);
+    setError(false);
+    try {
+      const data = await fetchRealLiveCommentary(eventId, match.league, match.homeTeam, match.awayTeam);
+      // Detect NEW distinct events since last poll → fire effect + Naija voice.
+      const fresh = data.filter((ev) => {
+        const key = `${ev.kind}|${ev.scorer || ''}|${ev.team || ''}|${ev.minute || ''}`;
+        if (seenEventKeys.current.has(key)) return false;
+        seenEventKeys.current.add(key);
+        return true;
+      });
+      setEvents(data);
+      if (data.length === 0) setError(true);
+
+      // Trigger the biggest new event (goal > red card > kickoff > sub > info).
+      if (fresh.length > 0) {
+        const priority: Record<RealCommentaryEvent['kind'], number> = {
+          GOAL: 6, KICKOFF: 4, FULLTIME: 4, CARD: 3, HALFTIME: 2, SUBSTITUTION: 1, INFO: 0,
+        };
+        const top = fresh.reduce((a, b) => (priority[b.kind] > priority[a.kind] ? b : a));
+        // Map the real-feed event kind onto the effects engine's vocabulary.
+        const effectKind =
+          top.kind === 'GOAL' ? 'GOAL' :
+          top.kind === 'CARD' ? 'YELLOW_CARD' :
+          top.kind === 'SUBSTITUTION' ? 'SUBSTITUTION' :
+          top.kind === 'KICKOFF' ? 'KICKOFF' :
+          top.kind === 'HALFTIME' ? 'HALFTIME' :
+          top.kind === 'FULLTIME' ? 'FULLTIME' : 'INFO';
+        const effect = getEventEffect({
+          kind: effectKind,
+          team: top.team,
+          scorer: top.scorer,
+          minute: top.minute,
+        });
+        setActiveEffect({ effect, ctx: top });
+        playEventSound(effect.sound);
+
+        if (autoSpeak) {
+          const key = eventDedupeKey({
+            kind: effectKind,
+            scorer: top.scorer,
+            team: top.team,
+            minute: top.minute,
+          });
+          if (lastSpokenKey.current !== key) {
+            lastSpokenKey.current = key;
+            const moment = top.kind === 'GOAL' ? 'goal' : top.kind === 'KICKOFF' ? 'kickoff' : top.kind === 'FULLTIME' ? 'fulltime' : top.kind === 'HALFTIME' ? 'halftime' : top.kind === 'CARD' ? 'yellowcard' : 'sub';
+            const naija = naijaMomentLine(moment, top.team || resolvedHome, resolvedHome === top.team ? resolvedAway : resolvedHome, top.scorer);
+            speakNaija(top.kind === 'GOAL' && top.scorer ? `Goal! ${top.scorer}! ${top.text}` : top.text, naija.tone);
+          }
+        }
+      }
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [match, resolvedHome, resolvedAway, autoSpeak]);
+
+  useEffect(() => {
+    setEvents([]);
+    seenEventKeys.current.clear();
+    lastSpokenKey.current = null;
+    setActiveEffect(null);
+    if (match) {
+      loadCommentary();
+      const interval = setInterval(loadCommentary, 30000); // live refresh
+      return () => clearInterval(interval);
+    } else {
+      setLoading(false);
+    }
+  }, [match, loadCommentary]);
 
   const handleSpeak = () => {
-    playSynthesizedStadiumRoar();
-    speakStadiumCommentary(commentaryData.commentary);
+    // Speak latest significant event in Naija Vibe (real data always drives it).
+    const target =
+      events.find((e) => e.kind === 'GOAL') ||
+      events.find((e) => e.kind === 'FULLTIME') ||
+      events[events.length - 1] ||
+      events[0];
+
+    const text = target
+      ? target.kind === 'GOAL' && target.scorer
+        ? `Goal! ${target.scorer} scores for ${target.team || resolvedHome}! ${target.text}`
+        : target.text
+      : NAIJA_PHRASES[Math.floor(Math.random() * NAIJA_PHRASES.length)];
+
+    speakStadiumCommentary(text);
+    speakNaija(text, 'normal');
   };
+
+  const goals = events.filter((e) => e.kind === 'GOAL');
+  const latestGoal = goals[goals.length - 1];
+
+  // Score summary extracted from latest goal text / match state
+  const scoreLine =
+    resolvedStatus === 'LIVE' || resolvedStatus === 'FINISHED'
+      ? resolvedScore
+      : resolvedTime;
 
   return (
     <div className="p-4 rounded-3xl glass-panel-premium border border-stadiumGreen/40 space-y-3 font-mono text-xs shadow-xl">
-      
-      {/* Top Header */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2.5">
         <div className="flex items-center space-x-2">
-          <div className="p-1.5 rounded-xl bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/40 flex items-center justify-center">
+          <div className="p-1.5 rounded-xl bg-stadiumGreen/20 border border-stadiumGreen/40">
             <Radio className="w-4 h-4 text-stadiumGreen animate-pulse" />
           </div>
           <div>
-            <span className="font-black text-white text-xs block">LIVE PRESS BOX COMMENTARY 🎙️</span>
+            <span className="font-black text-white text-xs block">🎙️ LIVE COMMENTARY — NAIJA VIBE</span>
             <span className="text-[9px] text-stadiumGreen flex items-center space-x-1">
               <span className="w-1.5 h-1.5 rounded-full bg-stadiumGreen animate-ping"></span>
-              <span>OFFICIAL STADIUM BROADCAST • {homeTeam} vs {awayTeam}</span>
+              <span>{resolvedHome} vs {resolvedAway} • {resolvedLeague}</span>
             </span>
           </div>
         </div>
 
-        <span className="px-2 py-0.5 rounded-full bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/30 text-[9px] font-bold">
-          {commentaryData.badge}
-        </span>
-      </div>
-
-      {/* Style Selection Pills */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-        <button
-          onClick={() => setStyle('FAN_HYPE')}
-          className={`py-1.5 px-2 rounded-xl text-[10px] font-bold transition-all text-center ${
-            style === 'FAN_HYPE' ? 'bg-stadiumGreen text-black font-black shadow-md shadow-stadiumGreen/20' : 'bg-black/50 text-gray-400 border border-white/5 hover:text-white'
-          }`}
-        >
-          🔥 Fan Hype
-        </button>
-
-        <button
-          onClick={() => setStyle('TACTICAL_ANALYST')}
-          className={`py-1.5 px-2 rounded-xl text-[10px] font-bold transition-all text-center ${
-            style === 'TACTICAL_ANALYST' ? 'bg-cyberPurple text-white font-black shadow-md shadow-cyberPurple/20' : 'bg-black/50 text-gray-400 border border-white/5 hover:text-white'
-          }`}
-        >
-          🧠 Match Analyst
-        </button>
-
-        <button
-          onClick={() => setStyle('STADIUM_REPORTER')}
-          className={`py-1.5 px-2 rounded-xl text-[10px] font-bold transition-all text-center ${
-            style === 'STADIUM_REPORTER' ? 'bg-gold text-black font-black shadow-md shadow-gold/20' : 'bg-black/50 text-gray-400 border border-white/5 hover:text-white'
-          }`}
-        >
-          📋 Press Box
-        </button>
-
-        <button
-          onClick={() => setStyle('NAIJA_STREET')}
-          className={`py-1.5 px-2 rounded-xl text-[10px] font-bold transition-all text-center ${
-            style === 'NAIJA_STREET' ? 'bg-stadiumGreen text-black font-black shadow-md shadow-stadiumGreen/20' : 'bg-black/50 text-gray-400 border border-white/5 hover:text-white'
-          }`}
-        >
-          🇳🇬 Naija Vibe
-        </button>
-      </div>
-
-      {/* Pitch Event Triggers */}
-      <div className="flex items-center space-x-1.5 overflow-x-auto py-1 text-[10px]">
-        <span className="text-gray-500 font-bold flex-shrink-0">MATCH EVENT:</span>
-        {['Kickoff ⚽', 'Goal Alert 🎯', 'Tactical Change 🔄', 'Yellow / Red Card 🟨', 'Full Time ⏱️'].map((ev) => (
-          <button
-            key={ev}
-            onClick={() => setSelectedEvent(ev)}
-            className={`px-2 py-0.5 rounded-lg border whitespace-nowrap transition-all ${
-              selectedEvent === ev
-                ? 'bg-stadiumGreen/20 border-stadiumGreen text-stadiumGreen font-bold'
-                : 'bg-panel border-white/5 text-gray-400 hover:text-white'
-            }`}
-          >
-            {ev}
-          </button>
-        ))}
-      </div>
-
-      {/* Live Commentary Output Box */}
-      <div className="p-3.5 rounded-2xl bg-black/70 border border-white/10 space-y-2 shadow-inner">
-        <div className="flex items-center justify-between text-[10px] text-gray-400 border-b border-white/5 pb-1.5">
-          <span className="font-extrabold text-white">{commentaryData.headline}</span>
-          <span className="text-stadiumGreen font-mono">Live Audio Ready</span>
-        </div>
-
-        <p className="text-gray-200 font-sans text-xs leading-relaxed font-medium">
-          "{commentaryData.commentary}"
-        </p>
-
-        {/* Action Button */}
-        <div className="flex items-center justify-between pt-1 border-t border-white/5">
-          <span className="text-[9px] text-gray-400 font-mono">
-            {league} • {status === 'FINISHED' ? 'Final Result' : status === 'LIVE' ? 'Live In-Play' : 'Upcoming Fixture'}
+        <div className="flex items-center space-x-1.5">
+          <span className="px-2.5 py-1 rounded-xl bg-black/60 border border-white/10 font-black text-sm text-white">
+            {scoreLine}
           </span>
+          {events.length > 0 && (
+            <button
+              onClick={loadCommentary}
+              disabled={loading}
+              className="p-1.5 rounded-lg bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/30 hover:bg-stadiumGreen/30 transition-all disabled:opacity-50"
+              title="Refresh live feed"
+            >
+              <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+          )}
+        </div>
+      </div>
 
+      {/* Latest goal banner */}
+      {latestGoal && (
+        <div className="p-3 rounded-2xl bg-gradient-to-r from-crimson/20 via-gold/10 to-transparent border border-crimson/40 space-y-1 animate-fadeIn">
+          <div className="flex items-center space-x-2">
+            <span className="text-xl">⚽</span>
+            <div>
+              <p className="font-black text-white text-sm">
+                GOAL! {latestGoal.scorer || latestGoal.team || 'Someone'} scores!
+              </p>
+              <p className="text-[10px] text-gray-300 font-sans line-clamp-2">{latestGoal.text}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Popup event FX overlay (goal / card / kickoff / sub) */}
+      {activeEffect && (
+        <div
+          key={activeEffect.effect.kind}
+          className={`relative overflow-hidden p-3.5 rounded-2xl border bg-gradient-to-r ${activeEffect.effect.colors.bg} ${activeEffect.effect.colors.border} ${activeEffect.effect.animation}`}
+        >
+          {/* Glow accent */}
+          <div
+            className="absolute -top-10 -right-10 w-28 h-28 rounded-full opacity-40 blur-2xl"
+            style={{ background: activeEffect.effect.colors.accent }}
+          />
+          <div className="relative flex items-center space-x-3">
+            <div className={`p-2.5 rounded-xl bg-black/30 text-2xl ${activeEffect.effect.colors.text}`}>
+              {activeEffect.effect.emoji}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className={`text-[9px] font-black tracking-widest uppercase ${activeEffect.effect.colors.text} opacity-90`}>
+                {activeEffect.effect.label}
+              </p>
+              <p className={`font-black text-sm leading-snug mt-0.5 ${activeEffect.effect.colors.text}`}>
+                {activeEffect.effect.title} · {activeEffect.effect.subTitle}
+              </p>
+              <p className="text-[10px] text-white/80 font-sans line-clamp-2">{activeEffect.ctx.text}</p>
+            </div>
+            <span className="text-[9px] font-bold text-white whitespace-nowrap bg-black/40 px-2 py-0.5 rounded-lg border border-white/20">
+              {activeEffect.effect.sound === 'goal' ? '🎉 GOLAZO' : activeEffect.effect.sound === 'whistle' ? '🔔 WHISTLE' : activeEffect.effect.sound === 'card' ? '🟨 CAUTION' : 'LIVE'}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Body */}
+      {loading && events.length === 0 ? (
+        <div className="p-5 text-center text-gray-400 flex items-center justify-center space-x-2">
+          <Loader2 className="w-4 h-4 animate-spin text-stadiumGreen" />
+          <span>Loading live commentary...</span>
+        </div>
+      ) : error && events.length === 0 ? (
+        <div className="p-5 text-center space-y-2">
+          <p className="text-gray-400 text-[11px]">
+            {match
+              ? `No live feed for ${resolvedHome} vs ${resolvedAway} yet. Check back closer to kickoff.`
+              : 'Select a match to see live commentary.'}
+          </p>
           <button
             onClick={handleSpeak}
-            className="px-3.5 py-1.5 rounded-xl bg-stadiumGreen hover:bg-emerald-400 text-black font-black text-[10px] flex items-center space-x-1.5 transition-all hover:scale-105 shadow-md glow-emerald"
+            className="px-3.5 py-1.5 rounded-xl bg-stadiumGreen text-black font-black text-[10px] flex items-center space-x-1.5 mx-auto transition-all hover:scale-105 shadow-md glow-emerald"
           >
             <Volume2 className="w-3.5 h-3.5 fill-current" />
-            <span>Listen Live (Audio) 🔊</span>
+            <span>Naija Vibe Audio 🔊</span>
           </button>
         </div>
-      </div>
+      ) : (
+        <div className="space-y-2">
+          {/* Per-minute feed */}
+          <div className="relative space-y-1 max-h-[320px] overflow-y-auto pr-1">
+            {events.map((ev, idx) => (
+              <div
+                key={`${ev.sequence}-${idx}`}
+                className={`p-2.5 rounded-xl border flex items-start space-x-3 animate-fadeIn ${KIND_STYLES[ev.kind]}`}
+              >
+                {/* Minute column */}
+                <span className={`w-12 flex-shrink-0 text-[10px] font-black pt-0.5 text-center rounded-lg py-0.5 ${
+                  ev.kind === 'GOAL'
+                    ? 'bg-crimson text-white'
+                    : ev.kind === 'CARD'
+                    ? 'bg-gold text-black'
+                    : 'bg-black/50 text-gray-300 border border-white/10'
+                }`}>
+                  {ev.minute}
+                </span>
 
+                {/* Event body */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center space-x-1.5 mb-0.5">
+                    {ev.kind !== 'INFO' && (
+                      <span className="px-1.5 py-0.5 rounded bg-black/40 text-[8px] font-black tracking-wider">
+                        {KIND_ICON[ev.kind]} {KIND_LABEL[ev.kind]}
+                      </span>
+                    )}
+                    {ev.kind === 'GOAL' && ev.scorer && (
+                      <span className="text-[9px] font-bold text-crimson">👤 {ev.scorer}</span>
+                    )}
+                    {ev.team && ev.kind !== 'GOAL' && (
+                      <span className="text-[9px] font-bold text-gold">{ev.team}</span>
+                    )}
+                  </div>
+                  <p className="text-gray-200 font-sans text-[11px] leading-relaxed">{ev.text}</p>
+                </div>
+              </div>
+            ))}
+
+            {loading && events.length > 0 && (
+              <div className="p-2 text-center text-[10px] text-gray-400 flex items-center justify-center space-x-1.5">
+                <Loader2 className="w-3 h-3 animate-spin text-stadiumGreen" />
+                <span>Refreshing...</span>
+              </div>
+            )}
+          </div>
+
+          {/* Voice action */}
+          <div className="flex items-center justify-between pt-1 border-t border-white/5">
+            <span className="text-[9px] text-gray-400">
+              {resolvedStatus === 'FINISHED' ? 'Full Time' : resolvedStatus === 'LIVE' ? `Live • ${resolvedTime}` : 'Upcoming'}
+            </span>
+            <button
+              onClick={handleSpeak}
+              className="px-3.5 py-1.5 rounded-xl bg-stadiumGreen hover:bg-emerald-400 text-black font-black text-[10px] flex items-center space-x-1.5 transition-all hover:scale-105 shadow-md glow-emerald"
+            >
+              <Volume2 className="w-3.5 h-3.5 fill-current" />
+              <span>Naija Vibe Voice 🔊</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

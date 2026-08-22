@@ -1,5 +1,3 @@
-import { getRealLiveAndPlayedMatches } from './real-sports-stream';
-
 export interface BookmakerOdds {
   bookie: string;
   homeWin: number;
@@ -25,6 +23,47 @@ export interface MatchPrediction {
   expectedAwayGoals: number;
 }
 
+export interface CommentaryEvent {
+  minute: string;
+  /** Primary field — real match event text. */
+  text: string;
+  /** Backward-compatible alias used by older components. */
+  description?: string;
+  kind: 'GOAL' | 'CARD' | 'SUBSTITUTION' | 'KICKOFF' | 'HALFTIME' | 'FULLTIME' | 'INFO';
+  team?: string;
+  scorer?: string;
+  sequence: number;
+}
+
+
+export interface MatchLineupEntry {
+  name: string;
+  position: string;
+  shirt: string;
+  starter: boolean;
+}
+
+export interface MatchStatsRow {
+  label: string;
+  home: string | number;
+  away: string | number;
+}
+
+/** Full real match detail block pulled from ESPN summary endpoint. */
+export interface MatchDetails {
+  venue?: string;
+  referee?: string;
+  attendance?: string;
+  minute?: string;
+  scorers: CommentaryEvent[];
+  cards: CommentaryEvent[];
+  substitutions: CommentaryEvent[];
+  stats: MatchStatsRow[];
+  lineups: { home: MatchLineupEntry[]; away: MatchLineupEntry[] };
+  h2h: { date: string; home: string; away: string; homeScore: number; awayScore: number }[];
+  keyEvents: CommentaryEvent[];
+}
+
 export interface MatchData {
   id: string;
   homeTeam: string;
@@ -41,19 +80,20 @@ export interface MatchData {
   stadiumTension: number;
   venue?: string;
   referee?: string;
+  utcDate?: string;
   prediction: MatchPrediction;
   odds: BookmakerOdds[];
-  liveEvents?: { minute: string; description: string; team: string }[];
+  liveEvents?: CommentaryEvent[];
   lineups?: {
     homeFormation?: string;
     awayFormation?: string;
     homeStartingXI?: string[];
     awayStartingXI?: string[];
   };
+  details?: MatchDetails;
 }
 
 export async function fetchLiveMatches(): Promise<MatchData[]> {
-  // If running in browser, call local Next.js server route /api/matches (bypasses CORS & uses Upstash Redis)
   if (typeof window !== 'undefined') {
     try {
       const res = await fetch('/api/matches', { cache: 'no-store' });
@@ -68,12 +108,10 @@ export async function fetchLiveMatches(): Promise<MatchData[]> {
     }
   }
 
-  // If running on server, fetch directly from real aggregator
   try {
+    const { getRealLiveAndPlayedMatches } = await import('./real-sports-stream');
     const realMatches = await getRealLiveAndPlayedMatches();
-    if (realMatches && realMatches.length > 0) {
-      return realMatches;
-    }
+    if (realMatches && realMatches.length > 0) return realMatches;
   } catch (err) {
     console.warn('Direct aggregator fetch error:', err);
   }

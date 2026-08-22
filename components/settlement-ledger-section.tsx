@@ -1,25 +1,47 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { DAILY_MATCHES_ARCHIVE, ArchivedMatch } from '../lib/prediction-archive-engine';
-import { ShieldCheck, CheckCircle2, XCircle, ChevronDown, ChevronUp, ExternalLink, Calendar, Filter, ArrowUpRight } from 'lucide-react';
+import { ArchivedMatch } from '../lib/prediction-archive-engine';
+import { ShieldCheck, CheckCircle2, XCircle, ChevronDown, ChevronUp, ExternalLink, Calendar, Filter, ArrowUpRight, Loader2 } from 'lucide-react';
 
 interface SettlementLedgerSectionProps {
   onOpenAuditModal: (record?: ArchivedMatch) => void;
 }
 
 export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = ({ onOpenAuditModal }) => {
+  const [archive, setArchive] = useState<ArchivedMatch[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [filter, setFilter] = useState<'ALL' | 'WON' | 'LOST'>('ALL');
   const [selectedDate, setSelectedDate] = useState<string>('ALL');
 
-  const wonCount = DAILY_MATCHES_ARCHIVE.filter((m) => m.prediction.result === 'WON').length;
-  const lostCount = DAILY_MATCHES_ARCHIVE.filter((m) => m.prediction.result === 'LOST').length;
-  const totalCount = DAILY_MATCHES_ARCHIVE.length;
-  const winRate = Math.round((wonCount / totalCount) * 100);
+  // Load the live-computed settlement ledger (real scores only).
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/settlement', { cache: 'no-store' });
+        const data = await res.json();
+        if (active && data?.success && Array.isArray(data.archive)) {
+          setArchive(data.archive);
+        }
+      } catch {
+        /* network error — empty archive */
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => { active = false; };
+  }, []);
 
-  const filteredMatches = DAILY_MATCHES_ARCHIVE.filter((m) => {
+  const wonCount = archive.filter((m) => m.prediction.result === 'WON').length;
+  const lostCount = archive.filter((m) => m.prediction.result === 'LOST').length;
+  const totalCount = archive.length;
+  const settledCount = archive.filter((m) => m.prediction.result !== 'PENDING').length;
+  const winRate = settledCount > 0 ? Math.round((wonCount / settledCount) * 100) : 0;
+
+  const filteredMatches = archive.filter((m) => {
     if (filter === 'WON' && m.prediction.result !== 'WON') return false;
     if (filter === 'LOST' && m.prediction.result !== 'LOST') return false;
     if (selectedDate !== 'ALL' && m.date !== selectedDate) return false;

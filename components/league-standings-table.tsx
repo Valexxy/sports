@@ -19,7 +19,7 @@ export interface StandingRow {
 }
 
 export const LeagueStandingsTable: React.FC = () => {
-  const [selectedLeague, setSelectedLeague] = useState<'PREMIER_LEAGUE' | 'LA_LIGA' | 'SERIE_A' | 'BUNDESLIGA'>('PREMIER_LEAGUE');
+  const [selectedLeague, setSelectedLeague] = useState<'PREMIER_LEAGUE' | 'LA_LIGA' | 'SERIE_A' | 'BUNDESLIGA' | 'LIGUE_1' | 'CHAMPIONS_LEAGUE'>('PREMIER_LEAGUE');
   const [tableData, setTableData] = useState<StandingRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
@@ -80,6 +80,8 @@ export const LeagueStandingsTable: React.FC = () => {
                 { key: 'LA_LIGA', label: '🇪🇸 La Liga' },
                 { key: 'SERIE_A', label: '🇮🇹 Serie A' },
                 { key: 'BUNDESLIGA', label: '🇩🇪 Bund.' },
+                { key: 'LIGUE_1', label: '🇫🇷 Ligue 1' },
+                { key: 'CHAMPIONS_LEAGUE', label: '🏆 UCL' },
               ].map((l) => (
                 <button
                   key={l.key}

@@ -96,8 +96,15 @@ export async function fetchAllRealLiveMatches(): Promise<MatchData[]> {
               { bookie: 'Bet9ja 🇳🇬', homeWin: Math.round(((1 / dcOutput.homeWinProb) + 0.05) * 100) / 100, draw: Math.round(((1 / dcOutput.drawProb) + 0.05) * 100) / 100, awayWin: Math.round(((1 / dcOutput.awayWinProb) + 0.05) * 100) / 100, affiliateUrl: 'https://www.bet9ja.com' },
             ],
             liveEvents: [
-              { minute: clock, description: isLive ? `Live match action under stadium lights!` : `Kickoff scheduled`, team: homeTeamName },
+              {
+                minute: clock,
+                text: isLive ? `Live match action under stadium lights!` : `Kickoff scheduled`,
+                kind: isLive ? 'INFO' : 'KICKOFF' as const,
+                team: homeTeamName,
+                sequence: 0,
+              },
             ],
+
           });
         });
       }

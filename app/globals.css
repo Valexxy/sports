@@ -76,3 +76,15 @@
   -webkit-text-fill-color: transparent;
   animation: textShimmer 4s ease infinite;
 }
+
+/* Broadcast ticker continuous marquee */
+@keyframes tickerMarquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-ticker-marquee {
+  animation-name: tickerMarquee;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}

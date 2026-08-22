@@ -1,78 +1,86 @@
-// AuraScore Stadium 2.0 - Background Service Worker & Hardware Bridge
-const CACHE_NAME = 'aurascore-stadium-v2.5';
+// AuraScore Stadium 2.0 - Service Worker (PWA + Push + Offline + Background Sync)
+const CACHE_NAME = 'aurascore-stadium-v3';
 const STATIC_ASSETS = [
   '/',
-  '/favicon.ico',
-  '/manifest.json'
+  '/manifest.json',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
+  '/icons/icon-maskable-192.png',
+  '/icons/icon-maskable-512.png',
+  '/icons/apple-touch-icon.png',
+  '/icons/badge-96.png',
 ];
 
-// Install Event: Pre-cache App Shell
+// Install: pre-cache app shell
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('⚡ AuraScore Stadium Service Worker: Caching App Shell');
-      return cache.addAll(STATIC_ASSETS);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS).catch(() => {}))
   );
   self.skipWaiting();
 });
 
-// Activate Event: Clean old caches & claim clients
+// Activate: clean old caches and claim clients
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      );
+      return Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)));
     })
   );
   self.clients.claim();
 });
 
-// Fetch Event: Stale-While-Revalidate Strategy
+// Fetch: stale-while-revalidate for static, network-first for API
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
-  // Don't cache dynamic API calls
-  if (event.request.url.includes('/api/')) {
+  const url = new URL(event.request.url);
+
+  // Never cache API calls — always try network, then fall back to cached copy.
+  if (url.pathname.includes('/api/')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((res) => {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          return res;
+        })
+        .catch(() => caches.match(event.request))
+    );
     return;
   }
 
+  // Static assets: cache-first then network fallback.
   event.respondWith(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.match(event.request).then((cachedResponse) => {
-        const fetchPromise = fetch(event.request)
-          .then((networkResponse) => {
-            if (networkResponse.status === 200) {
-              cache.put(event.request, networkResponse.clone());
-            }
-            return networkResponse;
-          })
-          .catch(() => cachedResponse);
-
-        return cachedResponse || fetchPromise;
-      });
+    caches.match(event.request).then((cached) => {
+      const fetchPromise = fetch(event.request)
+        .then((res) => {
+          if (res && res.status === 200) {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return res;
+        })
+        .catch(() => cached);
+      return cached || fetchPromise;
     })
   );
 });
 
-// Background Push Notification Event (Wakes Phone when asleep)
+// Push notification (wakes phone when asleep)
 self.addEventListener('push', (event) => {
   let payload = {
     title: '⚽ AuraScore Goal Alert!',
     body: 'Live in-play event detected in your followed match.',
-    icon: '/favicon.ico',
+    icon: '/icons/icon-192.png',
+    badge: '/icons/badge-96.png',
     tag: 'live-match-alert',
-    data: { url: '/' }
+    data: { url: '/' },
   };
 
   if (event.data) {
     try {
-      payload = event.data.json();
+      const parsed = event.data.json();
+      payload = { ...payload, ...parsed };
     } catch (e) {
       payload.body = event.data.text();
     }
@@ -80,49 +88,53 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: payload.body,
-    icon: payload.icon || '/favicon.ico',
-    badge: '/favicon.ico',
-    vibrate: [200, 100, 200, 100, 400], // Goal celebration vibration
+    icon: payload.icon || '/icons/icon-192.png',
+    badge: payload.badge || '/icons/badge-96.png',
+    vibrate: [200, 100, 200, 100, 400],
     data: payload.data || { url: '/' },
     tag: payload.tag || 'live-match-alert',
     renotify: true,
-    requireInteraction: false
+    requireInteraction: false,
   };
 
-  event.waitUntil(
-    self.registration.showNotification(payload.title, options)
-  );
+  event.waitUntil(self.registration.showNotification(payload.title, options));
 });
 
-// Notification Click Event (Brings user directly to the live pitch)
+// Notification click
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const targetUrl = (event.notification.data && event.notification.data.url) || '/';
-
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
-        if (client.url.includes(targetUrl) && 'focus' in client) {
-          return client.focus();
-        }
+        if (client.url.includes(targetUrl) && 'focus' in client) return client.focus();
       }
-      if (clients.openWindow) {
-        return clients.openWindow(targetUrl);
-      }
+      if (clients.openWindow) return clients.openWindow(targetUrl);
     })
   );
 });
 
-// Periodic Background Sync (Polls matches in background if supported by OS)
-self.addEventListener('periodicsync', (event) => {
-  if (event.tag === 'check-live-scores') {
+// Background Sync (re-sync cached data when back online)
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'aurascore-resync') {
     event.waitUntil(
       fetch('/api/matches')
         .then((res) => res.json())
         .then((data) => {
-          console.log('⚡ Background periodic sync refreshed matches:', data.length);
+          return caches.open(CACHE_NAME).then((cache) => {
+            return cache.put('/api/matches', new Response(JSON.stringify(data), {
+              headers: { 'Content-Type': 'application/json' },
+            }));
+          });
         })
-        .catch((err) => console.warn('Background sync failed:', err))
+        .catch(() => {})
     );
+  }
+});
+
+// Message handling (client can ask SW to skip waiting, etc.)
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
   }
 });

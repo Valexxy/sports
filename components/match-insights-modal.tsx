@@ -44,7 +44,7 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
   useEffect(() => {
     if (!match) return;
 
-    // Load from localStorage or API
+    // Load only real user-submitted chat from localStorage (no fabricated seeds)
     const saved = localStorage.getItem(`match_chat_${match.id}`);
     if (saved) {
       try {
@@ -53,14 +53,9 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
       } catch (e) {}
     }
 
-    // Default dynamic comments tailored to this match fixture
-    const initialComments: MatchComment[] = [
-      { id: '1', sender: 'AbaTactician_99', badge: 'VIP 👑', text: `${match.homeTeam} pressing in the final third looks intense! Expecting early goals. 🔥`, time: '14\'' },
-      { id: '2', sender: 'PoissonAnalyst', badge: 'PRO ⚡', text: `xG Model for ${match.league} shows 84% probability of Over 1.5.`, time: '20\'' },
-      { id: '3', sender: 'StadiumBot', badge: 'ANALYST 🛡️', text: `Official referee settlement will record full-time result automatically.`, time: '28\'' },
-    ];
-    setChatFeed(initialComments);
+    setChatFeed([]);
   }, [match]);
+
 
   const [isFollowed, setIsFollowed] = useState(false);
 
@@ -125,36 +120,41 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
     }
   };
 
-  // Real-Time Verified Sports News & Fan Wire Sources (BBC Sport, Sky Sports, Guardian, ESPN)
-  const verifiedNewsHype = [
-    {
-      source: 'Sky Sports Football Desk',
-      sourceBadge: 'SKY SPORTS ✓',
-      time: '12m ago',
-      title: `${match.homeTeam} Tactical Preview`,
-      summary: `High line and counter-pressing expected in today's ${match.league} clash.`,
-      url: 'https://www.skysports.com/football',
-      color: 'text-sky-400',
-    },
-    {
-      source: 'BBC Sport Live Wire',
-      sourceBadge: 'BBC SPORT ✓',
-      time: '24m ago',
-      title: `${match.awayTeam} Lineup Confirmed`,
-      summary: `Starting XI officially submitted to match referees with key forwards starting.`,
-      url: 'https://www.bbc.com/sport/football',
-      color: 'text-gold',
-    },
-    {
-      source: 'The Guardian Match Center',
-      sourceBadge: 'GUARDIAN ✓',
-      time: '45m ago',
-      title: `${match.league} Matchday Momentum`,
-      summary: `Poisson goal distribution indicates high second-half conversion rate.`,
-      url: 'https://www.theguardian.com/football',
-      color: 'text-stadiumGreen',
-    },
-  ];
+  // Real-Time Verified Sports News from BBC/Sky RSS (no fabricated headlines)
+  const [verifiedNewsHype, setVerifiedNewsHype] = useState<{
+    sourceBadge: string;
+    source: string;
+    time: string;
+    title: string;
+    summary: string;
+    url: string;
+    color: string;
+  }[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/news?limit=5', { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        const items = (data.news || []).slice(0, 3).map((n: any, idx: number) => ({
+          sourceBadge: (n.source || 'BBC').toUpperCase() + ' ✓',
+          source: n.source || 'BBC Sport',
+          time: n.publishedAt ? new Date(n.publishedAt).toLocaleTimeString() : 'Just now',
+          title: n.title || 'Football news',
+          summary: (n.summary || n.title || '').slice(0, 90),
+          url: n.link || '#',
+          color: idx === 0 ? 'text-sky-400' : idx === 1 ? 'text-gold' : 'text-stadiumGreen',
+        }));
+        if (mounted && items.length > 0) setVerifiedNewsHype(items);
+      } catch (e) {
+        // leave empty — no fake fallback
+      }
+    })();
+    return () => { mounted = false; };
+  }, [match?.id]);
+
 
   return (
     <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-fadeIn overflow-y-auto">
@@ -248,19 +248,8 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
               onSelectOdds={onSelectOdds}
             />
 
-            {/* 3. Autonomous Edge AI Live Commentator */}
-            <EdgeAiCommentator
-              matchTitle={`${match.homeTeam} vs ${match.awayTeam}`}
-              league={match.league}
-              homeTeam={match.homeTeam}
-              awayTeam={match.awayTeam}
-              homeScore={match.homeScore}
-              awayScore={match.awayScore}
-              status={match.status}
-              matchTime={match.matchTime}
-              expectedHomeGoals={match.prediction.expectedHomeGoals}
-              expectedAwayGoals={match.prediction.expectedAwayGoals}
-            />
+            {/* 3. Single Unified Live Match Commentary (Free Real Feed + AI Fallback) */}
+            <EdgeAiCommentator match={match} />
 
           </div>
 

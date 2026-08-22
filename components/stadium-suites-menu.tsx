@@ -38,6 +38,8 @@ interface StadiumSuitesMenuProps {
   onOpenNews: () => void;
   onOpenRotatingPool: () => void;
   onOpenVisitor: () => void;
+  onOpenEffects: () => void;
+  onOpenVcFunding: () => void;
 }
 
 export const StadiumSuitesMenu: React.FC<StadiumSuitesMenuProps> = ({
@@ -56,6 +58,8 @@ export const StadiumSuitesMenu: React.FC<StadiumSuitesMenuProps> = ({
   onOpenNews,
   onOpenRotatingPool,
   onOpenVisitor,
+  onOpenEffects,
+  onOpenVcFunding,
 }) => {
   if (!isOpen) return null;
 
@@ -310,6 +314,48 @@ export const StadiumSuitesMenu: React.FC<StadiumSuitesMenuProps> = ({
                 </div>
               </div>
               <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-stadiumGreen group-hover:translate-x-1 transition-all" />
+            </button>
+
+            <button
+              onClick={() => handleAction(onOpenEffects)}
+              className="p-3 rounded-2xl bg-panel hover:bg-white/5 border border-white/10 hover:border-cyberPurple/50 text-left transition-all flex items-center justify-between group"
+            >
+              <div className="flex items-center space-x-3">
+                <span className="text-xl">✨</span>
+                <div>
+                  <span className="font-black text-white text-xs block group-hover:text-cyberPurple">
+                    Effects & Event FX Engine
+                  </span>
+                  <span className="text-[9px] text-gray-400 font-sans">Goal popups, confetti, haptics, SFX</span>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-cyberPurple group-hover:translate-x-1 transition-all" />
+            </button>
+
+          </div>
+        </div>
+
+        {/* CATEGORY 4: BUSINESS & GROWTH */}
+        <div className="space-y-2.5">
+          <span className="text-[10px] font-black text-gold uppercase tracking-wider block">
+            4. BUSINESS & GROWTH 🚀
+          </span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+
+            <button
+              onClick={() => handleAction(onOpenVcFunding)}
+              className="p-3 rounded-2xl bg-panel hover:bg-white/5 border border-white/10 hover:border-gold/50 text-left transition-all flex items-center justify-between group"
+            >
+              <div className="flex items-center space-x-3">
+                <span className="text-xl">🚀</span>
+                <div>
+                  <span className="font-black text-white text-xs block group-hover:text-gold">
+                    Investor Pitch Deck
+                  </span>
+                  <span className="text-[9px] text-gray-400 font-sans">VC metrics & zero-cost roadmap</span>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-gold group-hover:translate-x-1 transition-all" />
             </button>
 
           </div>
