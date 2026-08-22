@@ -320,16 +320,12 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Sport selector */}
-            <div className="flex items-center gap-2">
-              {(['SOCCER', 'BASKETBALL', 'TENNIS'] as const).map(sport => (
-                <button key={sport} onClick={() => setSelectedSport(sport)}
-                  className={'px-3 py-1.5 rounded-xl text-[11px] font-black border transition-all ' +
-                    (selectedSport === sport ? 'bg-stadiumGreen text-black border-stadiumGreen' : 'bg-panel text-gray-400 border-white/10 hover:text-white')}
-                >
-                  {sport === 'SOCCER' ? '⚽ Football' : sport === 'BASKETBALL' ? '🏀 Basketball' : '🎾 Tennis'}
-                </button>
-              ))}
+            {/* 100% Pure Football Guarantee Banner */}
+            <div className="flex items-center space-x-2">
+              <span className="px-3 py-1.5 rounded-xl bg-stadiumGreen/20 border border-stadiumGreen/40 text-stadiumGreen font-black text-xs flex items-center space-x-1.5 shadow-md">
+                <span>⚽ 100% Pure Football Stadium</span>
+                <span className="w-2 h-2 rounded-full bg-stadiumGreen animate-ping" />
+              </span>
             </div>
 
             {/* Match grid */}

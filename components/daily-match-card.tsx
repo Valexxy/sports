@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MatchData } from '../lib/sports-api';
-import { Bell, BellRing, Star, Eye, Plus, Zap, CheckCircle2, XCircle, Calendar, AlertCircle, Clock } from 'lucide-react';
+import { getLeagueInfo } from '../lib/league-badges';
+import { Bell, BellRing, Star, Eye, Plus, Zap, CheckCircle2, XCircle, Calendar, AlertCircle, Clock, Timer, Flame } from 'lucide-react';
 
 export interface DailyMatchCardProps {
   match: MatchData;
@@ -14,8 +15,52 @@ export interface DailyMatchCardProps {
 }
 
 /**
- * Evaluates whether the predicted topPick WON or LOST against final score
+ * Live Countdown Timer hook for upcoming matches
  */
+function useLiveCountdown(utcDateStr?: string, matchTimeStr: string = '19:00'): string {
+  const [timeLeft, setTimeLeft] = useState('');
+
+  useEffect(() => {
+    const calculateTime = () => {
+      const now = new Date();
+      let targetTime: Date;
+
+      if (utcDateStr) {
+        targetTime = new Date(utcDateStr);
+      } else {
+        const [hours, minutes] = (matchTimeStr || '19:00').split(':').map(Number);
+        targetTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours || 19, minutes || 0);
+      }
+
+      const diff = targetTime.getTime() - now.getTime();
+
+      if (diff <= 0) {
+        setTimeLeft('Starting soon ⚡');
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const mins = Math.floor((diff % (1000 * 60)) / (1000 * 60));
+      const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+      if (days > 0) {
+        setTimeLeft(`Starts in ${days}d ${hours}h`);
+      } else if (hours > 0) {
+        setTimeLeft(`Starts in ${hours}h ${mins}m ${secs}s`);
+      } else {
+        setTimeLeft(`Starts in ${mins}m ${secs}s`);
+      }
+    };
+
+    calculateTime();
+    const interval = setInterval(calculateTime, 1000);
+    return () => clearInterval(interval);
+  }, [utcDateStr, matchTimeStr]);
+
+  return timeLeft;
+}
+
 /**
  * Evaluates whether the predicted topPick WON or LOST against final score
  */
@@ -95,9 +140,6 @@ function evaluatePickOutcome(
   };
 }
 
-/**
- * Clean Date Formatter differentiating past, today, and future dates
- */
 function getMatchDateLabel(utcDateStr?: string): string {
   const now = new Date();
   const matchDate = utcDateStr ? new Date(utcDateStr) : now;
@@ -130,6 +172,8 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   const awayW = Math.round(p.awayWinProb * 100);
 
   const dateLabel = getMatchDateLabel(match.utcDate);
+  const liveCountdown = useLiveCountdown(match.utcDate, match.matchTime);
+  const leagueInfo = getLeagueInfo(match.league);
 
   // Evaluate final settlement if finished
   const outcome = isFinished ? evaluatePickOutcome(p.topPick.selection, match.homeTeam, match.awayTeam, match.homeScore, match.awayScore) : null;
@@ -139,6 +183,15 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
     'Multi-factor model factored 4-3-3 tactical stance, recent match outings (' +
     homeW + '% vs ' + awayW + '%), and stadium ground advantage into ' + p.topPick.selection + '.'
   );
+
+  // DISTINCTIVE GLOWS & AURA BORDERS PER STATUS
+  const cardAuraClass = isLive
+    ? 'border-crimson/70 bg-gradient-to-br from-crimson/15 via-panel/95 to-panel shadow-2xl shadow-crimson/25 ring-1 ring-crimson/40 animate-pulse-glow'
+    : isFinished
+    ? (outcome?.won
+      ? 'border-stadiumGreen/60 bg-gradient-to-br from-stadiumGreen/10 via-panel/95 to-panel shadow-xl shadow-stadiumGreen/20 ring-1 ring-stadiumGreen/30'
+      : 'border-crimson/50 bg-gradient-to-br from-crimson/10 via-panel/95 to-panel shadow-lg shadow-crimson/15 ring-1 ring-crimson/20')
+    : 'border-gold/45 bg-gradient-to-br from-gold/10 via-panel/95 to-panel shadow-xl shadow-gold/15 ring-1 ring-gold/25 hover:border-gold/70';
 
   const confidenceColor = isFinished
     ? (outcome?.won ? 'text-stadiumGreen border-stadiumGreen/50 bg-stadiumGreen/10' : 'text-crimson border-crimson/50 bg-crimson/10')
@@ -150,14 +203,6 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
 
   const probBarColor = p.topPick.probability >= 80 ? 'bg-stadiumGreen'
     : p.topPick.probability >= 65 ? 'bg-gold' : 'bg-cyberPurple';
-
-  const borderClass = isLive
-    ? 'border-crimson/40 bg-gradient-to-br from-crimson/5 via-panel to-panel shadow-crimson/10'
-    : isFinished
-    ? (outcome?.won ? 'border-stadiumGreen/40 bg-panel/90 shadow-stadiumGreen/10' : 'border-crimson/30 bg-panel/90 shadow-crimson/5')
-    : p.topPick.confidenceTier === 'ULTRA-BANKER'
-    ? 'border-stadiumGreen/40 bg-gradient-to-br from-stadiumGreen/5 via-panel to-panel shadow-stadiumGreen/10'
-    : 'border-white/10 bg-panel/70 hover:border-white/20';
 
   const handleBookmark = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -182,38 +227,44 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
 
   return (
     <div
-      className={'relative rounded-3xl border transition-all duration-300 overflow-hidden shadow-xl cursor-pointer group active:scale-[0.98] ' + borderClass}
+      className={'relative rounded-3xl border transition-all duration-300 overflow-hidden cursor-pointer group active:scale-[0.98] ' + cardAuraClass}
       onClick={() => onOpenInsights(match)}
     >
-      {isLive && <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-crimson via-gold to-crimson animate-pulse" />}
+      {isLive && <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-crimson via-gold to-crimson animate-pulse" />}
+      {isUpcoming && <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-gold/50 via-gold to-gold/50" />}
+      {isFinished && outcome?.won && <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-stadiumGreen/50 via-stadiumGreen to-stadiumGreen/50" />}
 
       <div className="p-4 sm:p-5 space-y-3.5">
 
-        {/* Row 1: League + Smart Status & Date Badge + Actions */}
+        {/* Row 1: Official League Crest + Smart Status Badge + Actions */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2 min-w-0">
-            <span className="text-lg flex-shrink-0">{match.leagueFlag || '⚽'}</span>
-            <span className="text-xs font-black text-white truncate">{match.league}</span>
+            {leagueInfo.logo ? (
+              <img src={leagueInfo.logo} alt={match.league} className="w-5 h-5 object-contain flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            ) : (
+              <span className="text-base flex-shrink-0">{leagueInfo.flag}</span>
+            )}
+            <span className="text-xs font-black text-white truncate">{leagueInfo.name}</span>
             
-            {/* LIVE Badge with Date */}
+            {/* LIVE Glowing Badge */}
             {isLive && (
-              <span className="flex-shrink-0 flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-crimson/20 border border-crimson/50 text-crimson text-[10px] font-black animate-pulse">
+              <span className="flex-shrink-0 flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-crimson/30 border border-crimson/70 text-crimson text-[10px] font-black animate-pulse shadow-md shadow-crimson/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-crimson inline-block animate-ping" />
-                <span>LIVE • {dateLabel}</span>
+                <span>LIVE</span>
               </span>
             )}
 
-            {/* PLAYED / FINISHED Badge with Date */}
+            {/* PLAYED / FINISHED Glowing Badge */}
             {isFinished && (
-              <span className={'flex-shrink-0 flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-black border ' + (outcome?.won ? 'bg-stadiumGreen/20 border-stadiumGreen/50 text-stadiumGreen' : 'bg-crimson/20 border-crimson/40 text-crimson')}>
+              <span className={'flex-shrink-0 flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-black border ' + (outcome?.won ? 'bg-stadiumGreen/25 border-stadiumGreen text-stadiumGreen shadow-md shadow-stadiumGreen/25' : 'bg-crimson/25 border-crimson text-crimson shadow-md shadow-crimson/20')}>
                 {outcome?.won ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                <span>{outcome?.won ? 'FT • WON' : 'FT • LOST'} • {dateLabel}</span>
+                <span>{outcome?.won ? 'FT • WON' : 'FT • LOST'}</span>
               </span>
             )}
 
-            {/* UPCOMING Badge with Date */}
+            {/* UPCOMING Glowing Badge */}
             {isUpcoming && (
-              <span className="flex-shrink-0 flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-gold/15 border border-gold/30 text-gold text-[10px] font-black">
+              <span className="flex-shrink-0 flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-gold/20 border border-gold/50 text-gold text-[10px] font-black shadow-md shadow-gold/20">
                 <Calendar className="w-3 h-3" />
                 <span>{dateLabel}</span>
               </span>
@@ -234,7 +285,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
           </div>
         </div>
 
-        {/* Row 2: Teams + Scenario-Specific Center Display (Kickoff Time / In-Play Time / Ended Time) */}
+        {/* Row 2: Teams + Live Kickoff Countdown OR In-Play/FT Score */}
         <div className="grid grid-cols-3 items-center text-center gap-2">
           {/* Home */}
           <div className="flex flex-col items-center space-y-1.5">
@@ -247,32 +298,36 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
             <span className="text-[10px] text-stadiumGreen font-mono">xG {(p.expectedHomeGoals || 1.4).toFixed(1)}</span>
           </div>
 
-          {/* Center Display tailored per scenario */}
+          {/* Center Display with Live Countdown Timer */}
           <div className="flex flex-col items-center space-y-1">
             {isLive ? (
               <>
-                <div className="text-3xl sm:text-4xl font-black font-mono px-3 py-2 rounded-2xl border shadow-inner text-crimson bg-black/80 border-crimson/40">
+                <div className="text-3xl sm:text-4xl font-black font-mono px-3 py-2 rounded-2xl border shadow-inner text-crimson bg-black/85 border-crimson/50 shadow-crimson/20">
                   {match.homeScore}<span className="text-gray-500 text-2xl mx-1">:</span>{match.awayScore}
                 </div>
-                <span className="text-[10px] text-crimson font-mono font-bold flex items-center space-x-1">
-                  <Clock className="w-3 h-3 animate-spin" />
+                <span className="text-[10px] text-crimson font-mono font-black flex items-center space-x-1 animate-pulse">
+                  <Flame className="w-3 h-3 text-crimson" />
                   <span>Kickoff: {match.matchTime}</span>
                 </span>
               </>
             ) : isFinished ? (
               <>
-                <div className={'text-3xl sm:text-4xl font-black font-mono px-3 py-2 rounded-2xl border shadow-inner ' + (outcome?.won ? 'text-stadiumGreen bg-black/80 border-stadiumGreen/40' : 'text-white bg-black/60 border-white/10')}>
+                <div className={'text-3xl sm:text-4xl font-black font-mono px-3 py-2 rounded-2xl border shadow-inner ' + (outcome?.won ? 'text-stadiumGreen bg-black/85 border-stadiumGreen/50 shadow-stadiumGreen/20' : 'text-white bg-black/70 border-white/15')}>
                   {match.homeScore}<span className="text-gray-500 text-2xl mx-1">:</span>{match.awayScore}
                 </div>
                 <span className="text-[10px] text-gray-400 font-mono flex items-center space-x-1">
-                  <Clock className="w-3 h-3" />
+                  <Clock className="w-3 h-3 text-gold" />
                   <span>Played at {match.matchTime}</span>
                 </span>
               </>
             ) : (
-              <div className="px-3.5 py-2 rounded-2xl bg-gold/15 border border-gold/30 shadow-md text-center">
-                <span className="text-xl sm:text-2xl font-black text-gold font-mono tracking-wider block">{match.matchTime}</span>
-                <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider block mt-0.5">Kickoff Time</span>
+              <div className="px-3.5 py-2 rounded-2xl bg-gold/20 border-2 border-gold/50 shadow-lg shadow-gold/20 text-center w-full max-w-[130px]">
+                <span className="text-lg sm:text-xl font-black text-gold font-mono tracking-wider block">{match.matchTime}</span>
+                {/* Live Countdown Timer Badge */}
+                <div className="flex items-center justify-center space-x-1 mt-0.5 text-[9px] text-amber-300 font-mono font-black">
+                  <Timer className="w-3 h-3 text-gold animate-spin" />
+                  <span className="truncate">{liveCountdown}</span>
+                </div>
               </div>
             )}
             
@@ -311,7 +366,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
 
         {/* Row 4: Top Pick vs Outcome Settlement Audit */}
         {isFinished && outcome ? (
-          <div className={'p-3 rounded-2xl border flex items-center justify-between gap-3 ' + (outcome.won ? 'bg-stadiumGreen/15 border-stadiumGreen/50' : 'bg-crimson/15 border-crimson/50')}>
+          <div className={'p-3 rounded-2xl border flex items-center justify-between gap-3 ' + (outcome.won ? 'bg-stadiumGreen/20 border-stadiumGreen/60 shadow-md shadow-stadiumGreen/20' : 'bg-crimson/20 border-crimson/60 shadow-md shadow-crimson/20')}>
             <div>
               <div className="flex items-center space-x-1.5 mb-0.5">
                 <span className={'text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ' + (outcome.won ? 'bg-stadiumGreen text-black font-black' : 'bg-crimson text-white')}>
@@ -345,7 +400,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
             <div className="flex flex-col items-center space-y-1.5 flex-shrink-0">
               <span className="text-lg font-black text-white">@ {p.topPick.odds}</span>
               <button onClick={handleAddPick}
-                className="px-3 py-1.5 rounded-xl bg-stadiumGreen text-black font-black text-xs flex items-center space-x-1 hover:bg-emerald-400 transition-all active:scale-95">
+                className="px-3 py-1.5 rounded-xl bg-stadiumGreen text-black font-black text-xs flex items-center space-x-1 hover:bg-emerald-400 transition-all active:scale-95 shadow-md">
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add Pick</span>
               </button>
