@@ -73,8 +73,15 @@ export function sortMatchesByClosestKickoff(
       return (b.stadiumTension || 0) - (a.stadiumTension || 0);
     }
 
-    // 4. If both are SCHEDULED, sort strictly by closest kickoff time (earliest hour first)
+    // 4. If both are SCHEDULED, sort by date first, then by kickoff time
     if (a.status === 'SCHEDULED' && b.status === 'SCHEDULED') {
+      const dateA = a.utcDate ? new Date(a.utcDate).getTime() : 0;
+      const dateB = b.utcDate ? new Date(b.utcDate).getTime() : 0;
+      
+      if (dateA !== dateB) {
+        return dateA - dateB;
+      }
+      
       const timeA = parseKickoffMinutes(a.matchTime);
       const timeB = parseKickoffMinutes(b.matchTime);
       return timeA - timeB;

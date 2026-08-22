@@ -60,6 +60,24 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onOpenReceipt, onOp
   const isFinished = match.status === 'FINISHED';
   const isLive = match.status === 'LIVE';
 
+  // Derive date label from utcDate or matchTime
+  const matchDate = match.utcDate ? new Date(match.utcDate) : null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  const isToday = matchDate && matchDate.toDateString() === today.toDateString();
+  const isTomorrow = matchDate && matchDate.toDateString() === tomorrow.toDateString();
+  
+  const dateLabel = isToday 
+    ? 'TODAY' 
+    : isTomorrow 
+    ? 'TOMORROW' 
+    : matchDate 
+    ? matchDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase()
+    : '';
+
   // Derived Goal Market Probabilities from Dixon-Coles xG
   const totalXG = p.expectedHomeGoals + p.expectedAwayGoals;
   const over15Prob = Math.min(95, Math.round((1 - Math.exp(-totalXG) * (1 + totalXG)) * 100));
@@ -126,8 +144,19 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onOpenReceipt, onOp
           )}
 
           {!isLive && !isFinished && (
-            <span className="px-2.5 py-0.5 rounded-full bg-gold/20 border border-gold/30 text-gold text-[10px] font-mono font-bold">
-              ⏰ {match.matchTime}
+            <span className="flex items-center space-x-1">
+              {dateLabel && (
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-black ${
+                  isToday ? 'bg-stadiumGreen/20 border border-stadiumGreen/40 text-stadiumGreen' :
+                  isTomorrow ? 'bg-blue-500/20 border border-blue-500/40 text-blue-400' :
+                  'bg-gray-600/20 border border-gray-600/40 text-gray-300'
+                }`}>
+                  {dateLabel}
+                </span>
+              )}
+              <span className="px-2.5 py-0.5 rounded-full bg-gold/20 border border-gold/30 text-gold text-[10px] font-mono font-bold">
+                ⏰ {match.matchTime}
+              </span>
             </span>
           )}
         </div>
