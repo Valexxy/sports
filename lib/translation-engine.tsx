@@ -23,6 +23,23 @@ export const SUPPORTED_LANGUAGES: LanguageMeta[] = [
 const STORAGE_KEY = 'aurascore_language';
 
 export const COMPREHENSIVE_DICTIONARY: Record<string, Record<LanguageCode, string>> = {
+  // Days of Week (Sunday to Saturday)
+  'Sun': { en: 'Sun', pidgin: 'Sun', yoruba: 'Àìkú', igbo: 'Ụka', hausa: 'Lah' },
+  'Mon': { en: 'Mon', pidgin: 'Mon', yoruba: 'Ajé', igbo: 'Mọn', hausa: 'Lit' },
+  'Tue': { en: 'Tue', pidgin: 'Tue', yoruba: 'Ìṣẹ́gun', igbo: 'Tuu', hausa: 'Tal' },
+  'Wed': { en: 'Wed', pidgin: 'Wed', yoruba: 'Rú', igbo: 'Wen', hausa: 'Lar' },
+  'Thu': { en: 'Thu', pidgin: 'Thu', yoruba: 'Bọ̀', igbo: 'Tọọ', hausa: 'Alh' },
+  'Fri': { en: 'Fri', pidgin: 'Fri', yoruba: 'Ẹtì', igbo: 'Fraị', hausa: 'Jum' },
+  'Sat': { en: 'Sat', pidgin: 'Sat', yoruba: 'Àbámẹ́ta', igbo: 'Satọ', hausa: 'Asa' },
+  'Sunday': { en: 'Sunday', pidgin: 'Sunday', yoruba: 'Ọjọ́ Àìkú', igbo: 'Ụbọchị Ụka', hausa: 'Lahadi' },
+  'Monday': { en: 'Monday', pidgin: 'Monday', yoruba: 'Ọjọ́ Ajé', igbo: 'Mọnde', hausa: 'Litinin' },
+  'Tuesday': { en: 'Tuesday', pidgin: 'Tuesday', yoruba: 'Ọjọ́ Ìṣẹ́gun', igbo: 'Tuuzde', hausa: 'Talata' },
+  'Wednesday': { en: 'Wednesday', pidgin: 'Wednesday', yoruba: 'Ọjọ́ Rú', igbo: 'Wenezde', hausa: 'Laraba' },
+  'Thursday': { en: 'Thursday', pidgin: 'Thursday', yoruba: 'Ọjọ́ Bọ̀', igbo: 'Tọọzde', hausa: 'Alhamis' },
+  'Friday': { en: 'Friday', pidgin: 'Friday', yoruba: 'Ọjọ́ Ẹtì', igbo: 'Fraịde', hausa: "Jumma'a" },
+  'Saturday': { en: 'Saturday', pidgin: 'Saturday', yoruba: 'Ọjọ́ Àbámẹ́ta', igbo: 'Satọde', hausa: 'Asabar' },
+  'This Week (Sun - Sat)': { en: 'This Week (Sun - Sat)', pidgin: 'This Week (Sun - Sat)', yoruba: 'Ọ̀sẹ̀ Yìí (Àìkú - Àbámẹ́ta)', igbo: 'Izu A (Ụka - Satọ)', hausa: 'Wannan Makon (Lah - Asa)' },
+
   // Navigation & Header
   'Live Matches': { en: 'Live Matches', pidgin: 'Live Matches', yoruba: 'Àwọn Eré Láyé', igbo: 'Egwuregwu Ndụ', hausa: 'Wasannin Raye' },
   'Live Matches ⚡': { en: 'Live Matches ⚡', pidgin: 'Live Matches ⚡', yoruba: 'Àwọn Eré Láyé ⚡', igbo: 'Egwuregwu Ndụ ⚡', hausa: 'Wasannin Raye ⚡' },
