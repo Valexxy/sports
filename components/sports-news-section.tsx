@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Newspaper, Clock, X, RefreshCw, ChevronDown, ChevronUp, Flame, ThumbsUp, Target, Share2, ExternalLink } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
 export interface SportsArticle {
   id: string;
@@ -15,6 +16,8 @@ export interface SportsArticle {
   fullContent?: string;
 }
 
+const FALLBACK_PHOTO = 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80';
+
 export const SportsNewsSection: React.FC = () => {
   const [articles, setArticles] = useState<SportsArticle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,20 +25,19 @@ export const SportsNewsSection: React.FC = () => {
   const [activeArticle, setActiveArticle] = useState<SportsArticle | null>(null);
   const [autoSync, setAutoSync] = useState(true);
   const [isOpen, setIsOpen] = useState(true);
-  const [reactions, setReactions] = useState<Record<string, { flame: number; target: number; clap: number }>>({});
+  const [sourceFilter, setSourceFilter] = useState('ALL');
 
   const loadNews = async () => {
-    setLoading(true);
     try {
       const res = await fetch('/api/news', { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
-        if (data.articles && Array.isArray(data.articles)) {
+        if (data.articles && Array.isArray(data.articles) && data.articles.length > 0) {
           setArticles(data.articles);
         }
       }
     } catch (err) {
-      console.warn('News loading warning:', err);
+      console.warn('News loading error:', err);
     } finally {
       setLoading(false);
     }
@@ -45,48 +47,24 @@ export const SportsNewsSection: React.FC = () => {
     loadNews();
   }, []);
 
-  // Background Auto-Sync every 30s
+  // Background High-Frequency Auto-Sync (Every 25s)
   useEffect(() => {
     if (!autoSync) return;
-    const interval = setInterval(() => {
-      loadNews();
-    }, 30000);
+    const interval = setInterval(loadNews, 25000);
     return () => clearInterval(interval);
   }, [autoSync]);
 
-  const handleReact = (articleId: string, type: 'flame' | 'target' | 'clap') => {
-    setReactions((prev) => {
-      const current = prev[articleId] || { flame: 0, target: 0, clap: 0 };
-      return {
-        ...prev,
-        [articleId]: {
-          ...current,
-          [type]: current[type] + 1,
-        },
-      };
-    });
-  };
-
-  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
-  const [sourceFilter, setSourceFilter] = useState('ALL');
-
-  const handleImgError = (articleId: string) => {
-    setImgErrors(prev => ({ ...prev, [articleId]: true }));
-  };
-
-  // Unique real sources for the filter tabs
   const sources = useMemo(() => {
     const set = new Set<string>(articles.map(a => a.source).filter(Boolean));
-    return ['ALL', ...Array.from(set).slice(0, 4)];
+    return ['ALL', ...Array.from(set).slice(0, 5)];
   }, [articles]);
 
-  // Filter by source, then only show articles with real content
   const displayedArticles = articles
     .filter(a => sourceFilter === 'ALL' || a.source === sourceFilter)
-    .filter(a => a.title && a.title.length > 5 && a.description && a.description.length > 10)
     .slice(0, visibleCount);
 
-  const handleShare = async (article: SportsArticle) => {
+  const handleShare = async (e: React.MouseEvent, article: SportsArticle) => {
+    e.stopPropagation();
     const shareData = {
       title: article.title,
       text: `${article.title} — via AuraScore Stadium`,
@@ -97,9 +75,9 @@ export const SportsNewsSection: React.FC = () => {
         await navigator.share(shareData);
       } else {
         await navigator.clipboard?.writeText(article.link);
-        alert('Link copied to clipboard!');
+        confetti({ particleCount: 30, spread: 50, origin: { y: 0.7 } });
       }
-    } catch { /* user cancelled */ }
+    } catch { /* ignored */ }
   };
 
   return (
@@ -121,157 +99,147 @@ export const SportsNewsSection: React.FC = () => {
                 100% PURE FOOTBALL ✓
               </span>
             </h3>
-            <p className="text-[10px] text-gray-400 font-sans">
-              Live tactical match previews, official UEFA rosters, and transfer market updates
-            </p>
+            <span className="text-[10px] text-gray-400 font-sans">
+              Live tactical previews, official UEFA rosters, transfer wire, and injury bulletins.
+            </span>
           </div>
         </div>
 
-        {/* Auto-Sync, Refresh & Collapse Buttons */}
         <div className="flex items-center space-x-2 self-stretch sm:self-auto justify-between sm:justify-end">
           <button
             onClick={() => setAutoSync(!autoSync)}
-            className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold flex items-center space-x-1.5 transition-all ${
+            className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center space-x-1.5 transition-all ${
               autoSync
-                ? 'bg-stadiumGreen/20 border-stadiumGreen/40 text-stadiumGreen'
+                ? 'bg-stadiumGreen/20 border-stadiumGreen text-stadiumGreen shadow-md'
                 : 'bg-panel border-white/10 text-gray-400'
             }`}
-            title="Toggle Background Auto-Sync"
           >
-            <span className={`w-2 h-2 rounded-full ${autoSync ? 'bg-stadiumGreen animate-ping' : 'bg-gray-500'}`}></span>
-            <span>{autoSync ? 'Auto-Sync ON (30s)' : 'Auto-Sync OFF'}</span>
+            <span className={`w-2 h-2 rounded-full ${autoSync ? 'bg-stadiumGreen animate-ping' : 'bg-gray-500'}`} />
+            <span>{autoSync ? 'Auto-Sync ON (25s)' : 'Auto-Sync Paused'}</span>
           </button>
 
           <button
-            onClick={loadNews}
-            className="px-3.5 py-1.5 rounded-xl bg-panel hover:bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/30 text-xs font-bold flex items-center space-x-1.5 transition-all hover:scale-105"
+            onClick={() => { setLoading(true); loadNews(); }}
+            disabled={loading}
+            className="px-3 py-1.5 rounded-xl bg-panel hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white text-xs font-bold flex items-center space-x-1 transition-all"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 text-gold ${loading ? 'animate-spin' : ''}`} />
             <span>Sync ⚡</span>
           </button>
 
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="flex items-center space-x-1 text-gray-400 hover:text-white text-xs font-bold px-2.5 py-1.5 rounded-xl bg-panel border border-white/10"
+            className="p-1.5 rounded-xl bg-panel hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white transition-all"
           >
-            <span className="hidden sm:inline">{isOpen ? 'Collapse' : 'Expand'}</span>
             {isOpen ? <ChevronUp className="w-4 h-4 text-stadiumGreen" /> : <ChevronDown className="w-4 h-4 text-gold" />}
           </button>
         </div>
       </div>
 
-      {/* Source Filter Tabs */}
-      {isOpen && sources.length > 1 && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 -mt-1">
-          {sources.map(src => (
-            <button
-              key={src}
-              onClick={() => { setSourceFilter(src); setVisibleCount(3); }}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-xl border text-[10px] font-black transition-all ${
-                sourceFilter === src
-                  ? 'bg-gold/20 border-gold/50 text-gold scale-105 shadow-md'
-                  : 'bg-panel border-white/10 text-gray-400 hover:text-white hover:border-white/20'
-              }`}
-            >
-              {src === 'ALL' ? '🗞️ All Sources' : src}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* 3-in-a-Row News Cards Grid (Collapsible) */}
       {isOpen && (
-        <div className="animate-fadeIn">
-          {loading && articles.length === 0 ? (
-            <div className="p-8 text-center rounded-2xl glass-panel border border-stadiumGreen/20 flex items-center justify-center space-x-2 text-stadiumGreen">
-              <RefreshCw className="w-4 h-4 animate-spin" />
-              <span>Loading verified football news...</span>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {displayedArticles.map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() => setActiveArticle(item)}
-                    className="rounded-3xl bg-panel/90 hover:bg-panel border border-white/10 hover:border-stadiumGreen/60 transition-all cursor-pointer flex flex-col justify-between group shadow-xl overflow-hidden hover:scale-[1.01]"
-                  >
-                    {/* Photo Thumbnail — hidden if broken or missing */}
-                    {item.imageUrl && !imgErrors[item.id] ? (
-                      <div className="relative h-40 w-full overflow-hidden bg-black">
-                        <img
-                          src={item.imageUrl}
-                          alt={item.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
-                          onError={() => handleImgError(item.id)}
-                        />
-                        <div className="absolute top-3 left-3">
-                          <span className="text-[9px] px-2.5 py-1 rounded-xl bg-black/85 text-stadiumGreen font-black border border-stadiumGreen/40">
-                            {item.category}
-                          </span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="relative h-16 w-full overflow-hidden bg-gradient-to-r from-stadiumGreen/20 via-gold/10 to-cyberPurple/10 flex items-center px-4">
-                        <span className="text-[10px] px-2.5 py-1 rounded-xl bg-black/50 text-stadiumGreen font-black border border-stadiumGreen/30">
-                          {item.category}
-                        </span>
-                        <span className="ml-2 text-[10px] text-gold font-bold">{item.source}</span>
-                      </div>
-                    )}
+        <div className="space-y-4">
+          
+          {/* Source Filter Tabs */}
+          <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none">
+            {sources.map((src) => (
+              <button
+                key={src}
+                onClick={() => setSourceFilter(src)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition-all ${
+                  sourceFilter === src
+                    ? 'bg-gold text-black shadow-lg shadow-gold/20'
+                    : 'bg-panel/80 text-gray-400 hover:text-white border border-white/5'
+                }`}
+              >
+                {src === 'ALL' ? '⚡ All Sources' : src}
+              </button>
+            ))}
+          </div>
 
-                    {/* Content */}
-                    <div className="p-4 flex-1 flex flex-col justify-between space-y-2.5">
-                      <div>
-                        <span className="text-gold font-extrabold text-[10px] block mb-1">
-                          {item.source}
-                        </span>
-                        <h4 className="font-extrabold text-xs text-white group-hover:text-stadiumGreen transition-all line-clamp-2 leading-snug">
-                          {item.title}
-                        </h4>
-                        <p className="text-[11px] text-gray-400 font-sans mt-1 line-clamp-2 leading-relaxed">
-                          {item.description}
-                        </p>
-                      </div>
-
-                      <div className="pt-2.5 border-t border-white/5 flex items-center justify-between text-[10px] text-gray-500">
-                        <span className="flex items-center space-x-1 font-mono text-gray-400">
-                          <Clock className="w-3 h-3 text-gold" />
-                          <span>{item.pubDate}</span>
-                        </span>
-                        <span className="text-stadiumGreen font-bold group-hover:underline flex items-center space-x-1">
-                          <span>Read Story</span>
-                          <span>➔</span>
-                        </span>
-                      </div>
-                    </div>
+          {/* News Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {displayedArticles.map((item) => (
+              <div
+                key={item.id}
+                onClick={() => setActiveArticle(item)}
+                className="rounded-2xl border border-white/10 bg-panel/70 hover:border-stadiumGreen/40 hover:bg-panel/90 transition-all duration-300 overflow-hidden flex flex-col group cursor-pointer shadow-lg hover:scale-[1.01]"
+              >
+                {/* Guaranteed Working Image Header */}
+                <div className="relative h-44 w-full overflow-hidden bg-black">
+                  <img
+                    src={item.imageUrl || FALLBACK_PHOTO}
+                    alt={item.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = FALLBACK_PHOTO;
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+                  
+                  <div className="absolute top-2.5 left-2.5 flex items-center space-x-1.5">
+                    <span className="text-[10px] px-2 py-0.5 rounded-lg bg-black/80 text-stadiumGreen font-black border border-stadiumGreen/40 backdrop-blur-md">
+                      {item.category}
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-lg bg-black/80 text-gold font-bold border border-white/10 backdrop-blur-md">
+                      {item.source}
+                    </span>
                   </div>
-                ))}
-              </div>
 
-              {/* Load More News Button */}
-              {articles.length > visibleCount && (
-                <div className="text-center pt-2">
                   <button
-                    onClick={() => setVisibleCount((prev) => prev + 3)}
-                    className="px-6 py-2.5 rounded-2xl bg-stadiumGreen/15 hover:bg-stadiumGreen/25 border border-stadiumGreen/40 text-stadiumGreen font-bold text-xs shadow-md transition-all inline-flex items-center space-x-2 hover:scale-105"
+                    onClick={(e) => handleShare(e, item)}
+                    className="absolute top-2.5 right-2.5 p-1.5 rounded-lg bg-black/80 text-gray-300 hover:text-gold border border-white/10 backdrop-blur-md transition-all"
+                    title="Share article"
                   >
-                    <span>⚡ Load 3 More News Articles ({articles.length - visibleCount} remaining)</span>
-                    <ChevronDown className="w-4 h-4" />
+                    <Share2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
-              )}
+
+                {/* Article Content */}
+                <div className="p-4 flex-1 flex flex-col justify-between space-y-2.5">
+                  <div>
+                    <h4 className="font-extrabold text-xs sm:text-sm text-white group-hover:text-stadiumGreen transition-all line-clamp-2 leading-snug">
+                      {item.title}
+                    </h4>
+                    <p className="text-[11px] text-gray-400 font-sans mt-1.5 line-clamp-2 leading-relaxed">
+                      {item.description}
+                    </p>
+                  </div>
+
+                  <div className="pt-2.5 border-t border-white/5 flex items-center justify-between text-[10px] text-gray-500">
+                    <span className="flex items-center space-x-1 font-mono text-gray-400">
+                      <Clock className="w-3 h-3 text-gold" />
+                      <span>{item.pubDate}</span>
+                    </span>
+                    <span className="text-stadiumGreen font-bold group-hover:underline flex items-center space-x-1">
+                      <span>Read Story</span>
+                      <span>➔</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Load More Button */}
+          {articles.length > visibleCount && (
+            <div className="text-center pt-2">
+              <button
+                onClick={() => setVisibleCount((prev) => prev + 3)}
+                className="px-6 py-2.5 rounded-2xl bg-stadiumGreen/15 hover:bg-stadiumGreen/25 border border-stadiumGreen/40 text-stadiumGreen font-bold text-xs shadow-md transition-all inline-flex items-center space-x-2 hover:scale-105"
+              >
+                <span>⚡ Load 3 More News Articles ({articles.length - visibleCount} remaining)</span>
+                <ChevronDown className="w-4 h-4" />
+              </button>
             </div>
           )}
+
         </div>
       )}
 
-      {/* Ultra-Stylish Article Reader Modal */}
+      {/* Full Article Reader Modal */}
       {activeArticle && (
         <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-lg flex items-center justify-center p-3 sm:p-4 animate-fadeIn overflow-y-auto">
           <div className="relative w-full max-w-xl glass-panel-premium rounded-3xl border-2 border-stadiumGreen/50 p-6 shadow-2xl font-mono text-xs my-6 max-h-[92vh] overflow-y-auto space-y-4">
-            
-            {/* Close Button */}
             <button
               onClick={() => setActiveArticle(null)}
               className="absolute top-4 right-4 p-2 rounded-full bg-panel text-gray-400 hover:text-white border border-white/10 transition-all hover:rotate-90 z-10"
@@ -279,101 +247,56 @@ export const SportsNewsSection: React.FC = () => {
               <X className="w-5 h-5" />
             </button>
 
-            {/* Hero Image */}
             <div className="relative h-56 w-full rounded-2xl overflow-hidden border border-white/10 bg-black">
               <img
-                src={activeArticle.imageUrl}
+                src={activeArticle.imageUrl || FALLBACK_PHOTO}
                 alt={activeArticle.title}
                 className="w-full h-full object-cover"
+                onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_PHOTO; }}
               />
-              <div className="absolute top-3 left-3">
+              <div className="absolute top-3 left-3 flex items-center space-x-1.5">
                 <span className="px-3 py-1 rounded-xl bg-black/85 text-stadiumGreen font-black text-[10px] border border-stadiumGreen/40 shadow-lg">
                   {activeArticle.category}
                 </span>
-              </div>
-              <div className="absolute bottom-3 right-3 bg-black/80 px-2.5 py-1 rounded-xl text-[10px] text-gray-300 font-bold border border-white/10">
-                ⏱️ 2 Min Read
-              </div>
-            </div>
-
-            {/* Date & Non-Clickable Source Badge */}
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
-              {/* NON-CLICKABLE SOURCE TAG */}
-              <div className="px-3 py-1 rounded-xl bg-panel border border-white/10 text-gold font-bold text-[11px] select-none cursor-default">
-                <span>Verified Source: {activeArticle.source}</span>
-              </div>
-
-              <div className="flex items-center space-x-1.5 text-gray-300 font-bold text-[11px]">
-                <Clock className="w-3.5 h-3.5 text-stadiumGreen" />
-                <span>{activeArticle.pubDate}</span>
+                <span className="px-3 py-1 rounded-xl bg-black/85 text-gold font-bold text-[10px] border border-white/10 shadow-lg">
+                  {activeArticle.source}
+                </span>
               </div>
             </div>
 
-            {/* Headline & Full Content */}
             <div className="space-y-3">
-              <h2 className="text-lg sm:text-xl font-black text-white leading-snug">
+              <div className="flex items-center justify-between text-gray-400 text-[10px]">
+                <span>Published: {activeArticle.pubDate}</span>
+                <span className="text-stadiumGreen font-bold">100% Legal RSS Ingest ✓</span>
+              </div>
+
+              <h2 className="text-base sm:text-lg font-black text-white leading-snug">
                 {activeArticle.title}
               </h2>
-              <div className="p-4 rounded-2xl bg-black/50 border border-white/5 space-y-2 text-gray-200 font-sans text-xs sm:text-sm leading-relaxed">
-                <p>{activeArticle.fullContent || activeArticle.description}</p>
-                <p className="text-gray-400 text-xs pt-2 border-t border-white/5">
-                  Verified by AuraScore Stadium Global Match Center press wire. All statistics and tactical lineups synchronized in real time.
-                </p>
-              </div>
-            </div>
 
-            {/* Interactive Reader Reactions */}
-            <div className="p-3 rounded-2xl bg-panel border border-white/10 flex items-center justify-between">
-              <span className="text-[10px] text-gray-400 font-bold">READER PULSE:</span>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => handleReact(activeArticle.id, 'flame')}
-                  className="px-2.5 py-1 rounded-xl bg-black/60 hover:bg-white/10 text-pink-400 border border-white/10 text-xs font-bold flex items-center space-x-1 transition-all"
+              <p className="text-gray-300 font-sans text-xs sm:text-sm leading-relaxed whitespace-pre-line border-t border-b border-white/10 py-3">
+                {activeArticle.fullContent || activeArticle.description}
+              </p>
+
+              <div className="flex items-center justify-between pt-2">
+                <a
+                  href={activeArticle.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 rounded-xl bg-stadiumGreen text-black font-black text-xs flex items-center space-x-1.5 hover:bg-emerald-400 transition-all"
                 >
-                  <Flame className="w-3.5 h-3.5" />
-                  <span>{(reactions[activeArticle.id]?.flame || 14)}</span>
-                </button>
+                  <span>Read on {activeArticle.source}</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+
                 <button
-                  onClick={() => handleReact(activeArticle.id, 'target')}
-                  className="px-2.5 py-1 rounded-xl bg-black/60 hover:bg-white/10 text-stadiumGreen border border-white/10 text-xs font-bold flex items-center space-x-1 transition-all"
+                  onClick={(e) => handleShare(e, activeArticle)}
+                  className="px-4 py-2 rounded-xl bg-panel border border-white/10 text-white font-bold text-xs flex items-center space-x-1.5 hover:bg-white/10 transition-all"
                 >
-                  <Target className="w-3.5 h-3.5" />
-                  <span>{(reactions[activeArticle.id]?.target || 22)}</span>
-                </button>
-                <button
-                  onClick={() => handleReact(activeArticle.id, 'clap')}
-                  className="px-2.5 py-1 rounded-xl bg-black/60 hover:bg-white/10 text-gold border border-white/10 text-xs font-bold flex items-center space-x-1 transition-all"
-                >
-                  <ThumbsUp className="w-3.5 h-3.5" />
-                  <span>{(reactions[activeArticle.id]?.clap || 35)}</span>
+                  <Share2 className="w-3.5 h-3.5 text-gold" />
+                  <span>Share Story</span>
                 </button>
               </div>
-            </div>
-
-            {/* Footer Actions */}
-            <div className="pt-2 border-t border-white/10 flex flex-col sm:flex-row gap-2">
-              <a
-                href={activeArticle.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 py-2.5 rounded-xl bg-panel hover:bg-white/5 border border-white/10 text-gold font-black text-xs flex items-center justify-center space-x-1.5 transition-all"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>Open Original</span>
-              </a>
-              <button
-                onClick={() => handleShare(activeArticle)}
-                className="flex-1 py-2.5 rounded-xl bg-cyberPurple/20 hover:bg-cyberPurple/30 border border-cyberPurple/40 text-cyberPurple font-black text-xs flex items-center justify-center space-x-1.5 transition-all"
-              >
-                <Share2 className="w-3.5 h-3.5" />
-                <span>Share Story</span>
-              </button>
-              <button
-                onClick={() => setActiveArticle(null)}
-                className="flex-1 py-2.5 rounded-xl bg-stadiumGreen text-black font-black text-xs hover:bg-emerald-400 transition-all shadow-lg"
-              >
-                Close
-              </button>
             </div>
 
           </div>
