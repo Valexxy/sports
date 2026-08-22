@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { getClubCrest } from '../lib/club-crest-engine';
 import { MatchData } from '../lib/sports-api';
 import { getLeagueInfo } from '../lib/league-badges';
 import { Bell, BellRing, Star, Zap, CheckCircle2, XCircle, Calendar, Clock, Timer, Flame, Trophy, Shield } from 'lucide-react';
@@ -216,7 +217,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
               title="Click to view League Table & Standings"
             >
               {leagueInfo.logo ? (
-                <img src={leagueInfo.logo} alt={match.league} className="w-4 h-4 object-contain flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                <img src={leagueInfo.logo} alt={match.league} className="w-4 h-4 object-contain flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).src = getClubCrest(match.homeTeam); }} />
               ) : (
                 <span className="text-sm flex-shrink-0">{leagueInfo.flag}</span>
               )}
@@ -270,7 +271,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
           >
             <div className="w-7 h-7 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center p-1 flex-shrink-0">
               {match.homeLogo ? (
-                <img src={match.homeLogo} alt={match.homeTeam} className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                <img src={match.homeLogo || getClubCrest(match.homeTeam)} alt={match.homeTeam} className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLImageElement).src = getClubCrest(match.awayTeam); }} />
               ) : (
                 <Shield className="w-3.5 h-3.5 text-gray-400" />
               )}
@@ -330,7 +331,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
             </div>
             <div className="w-7 h-7 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center p-1 flex-shrink-0">
               {match.awayLogo ? (
-                <img src={match.awayLogo} alt={match.awayTeam} className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                <img src={match.awayLogo || getClubCrest(match.awayTeam)} alt={match.awayTeam} className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
               ) : (
                 <Shield className="w-3.5 h-3.5 text-gray-400" />
               )}
