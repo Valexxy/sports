@@ -23,154 +23,123 @@ export const SUPPORTED_LANGUAGES: LanguageMeta[] = [
 const STORAGE_KEY = 'aurascore_language';
 
 export const COMPREHENSIVE_DICTIONARY: Record<string, Record<LanguageCode, string>> = {
-  // Modals, Popups & Insights Translations
-  'STADIUM LIVE MATCH CENTER': { en: 'STADIUM LIVE MATCH CENTER', pidgin: 'STADIUM LIVE MATCH CENTER', yoruba: 'IBÙDÓ ERÉ LÁYÉ', igbo: 'EBE EGWUREGWO NDỤ', hausa: 'CIKIYAR WASAN RAYE' },
-  'EXACT CORRECT SCORE PROBABILITIES': { en: 'EXACT CORRECT SCORE PROBABILITIES', pidgin: 'CORRECT SCORE PROBABILITIES', yoruba: 'ÀWỌN ÀṢEYỌRÍ GOOLU TÍ Ń BỌ̀', igbo: 'ATỤLỤ NA EZIOGE GOOLU', hausa: 'HASASHEN CIKAKKEN SAKAMAKO' },
-  '5-GAME FORM STREAKS & HEAD-TO-HEAD': { en: '5-GAME FORM STREAKS & HEAD-TO-HEAD', pidgin: 'LAST 5 GAMES FORM & H2H', yoruba: 'ÀṢEYỌRÍ ERÉ 5 TẸ́LẸ̀ & DOJU-KỌ-DOJU', igbo: 'ỤDỊ EGWUREGWO 5 GARA AGA & ISIALA', hausa: 'WASANNI 5 DA SUKA GABATA & GABAR JUNA' },
-  'VERIFIED RECENT RUN': { en: 'VERIFIED RECENT RUN', pidgin: 'VERIFIED RECENT RUN', yoruba: 'ÌRÌN ÀÌPẸ́ TÍ A YẸ̀WÒ', igbo: 'EZIOGE NDỊ ỌHỤRỤ', hausa: 'SAKAMAKON KWANAN NAN' },
-  'POISSON MODEL': { en: 'POISSON MODEL', pidgin: 'POISSON MATH MODEL', yoruba: 'ÀWỌN ÌṢIRÒ POISSON', igbo: 'ỤDỊ MGBASO POISSON', hausa: 'TSARIN LISSAFI NA POISSON' },
-  'HOME FORM': { en: 'HOME FORM', pidgin: 'HOME FORM', yoruba: 'ERÉ ILÉ', igbo: 'ỤDỊ ỤLỌ', hausa: 'YANAYIN GIDA' },
-  'AWAY FORM': { en: 'AWAY FORM', pidgin: 'AWAY FORM', yoruba: 'ERÉ ÀBẸ̀WÒ', igbo: 'ỤDỊ NLETA', hausa: 'YANAYIN WAJE' },
-  'Pin to Lock Screen (Live Google Style)': { en: 'Pin to Lock Screen (Live Google Style)', pidgin: 'Pin to Phone Lock Screen 📌', yoruba: 'Fi Sí Ojú Ìbòjú Fóònù 📌', igbo: 'Kụba na Ihuenyo Mkpọchi 📌', hausa: 'Manna a Allon Kulle 📌' },
-  '2D TACTICAL PITCH': { en: '2D TACTICAL PITCH', pidgin: '2D TACTICAL PITCH ⚽', yoruba: 'PÁPÁ ÈTÒ ERÉ 2D ⚽', igbo: 'AMA EGWUREGWU USORO 2D ⚽', hausa: 'FILIN DABARUN WASA NA 2D ⚽' },
-  '⚽ 2D Tactical Pitch': { en: '⚽ 2D Tactical Pitch', pidgin: '⚽ 2D Tactical Pitch', yoruba: '⚽ Pápá Ètò Eré 2D', igbo: '⚽ Ama Usoro 2D', hausa: '⚽ Filin Dabaru 2D' },
-  '🎬 Match Highlights': { en: '🎬 Match Highlights', pidgin: '🎬 Match Highlights & Goals', yoruba: '🎬 Àkópọ̀ Eré & Àwọn Goolu', igbo: '🎬 Mmemme Ndị Pụrụ Iche', hausa: '🎬 Takaitaccen Wasa & Ƙwallaye' },
-  'VERIFIED TOP MATCH PICK': { en: 'VERIFIED TOP MATCH PICK', pidgin: 'VERIFIED NUMBER 1 PICK 🔥', yoruba: 'ÌSỌTẸ́LẸ̀ ERÉ GÚNGÙN TÍ A YẸ̀WÒ', igbo: 'EZIGBO NHỌRỌ EGWUREGWU', hausa: 'BABBAN HASASHEN WASA MAI INGANCI' },
-  'Winning Chance': { en: 'Winning Chance', pidgin: 'Sure Chance', yoruba: 'Ànfààní Ìṣẹ́gun', igbo: 'Ohere Mmeri', hausa: 'Damar Nasara' },
-  'Recommended Stake': { en: 'Recommended Stake', pidgin: 'Recommended Stake', yoruba: 'Iye Kalokalo Tó Yẹ', igbo: 'Ego Nzọ Akwadoro', hausa: 'Adadin Caca da Aka Shawarta' },
-  'Goal Power': { en: 'Goal Power', pidgin: 'Goal Power (xG)', yoruba: 'Agbára Goolu (xG)', igbo: 'Ike Goolu (xG)', hausa: 'Ƙarfin Ci Ƙwallo (xG)' },
-  'Listen Live Audio Commentary': { en: 'Listen Live Audio Commentary', pidgin: 'Listen Naija Live Audio 🔊', yoruba: 'Gbọ́ Ìròyìn Eré Láyé 🔊', igbo: 'Ge Ozi Ọdịyo Ndụ 🔊', hausa: 'Saurari Sharhin Wasa Kai Tsaye 🔊' },
-  'HISTORICAL ACCURACY HEATMAP & LEDGER': { en: 'HISTORICAL ACCURACY HEATMAP & LEDGER', pidgin: 'HISTORICAL ACCURACY HEATMAP & LEDGER 📜', yoruba: 'ÀKỌSÍLẸ̀ & ÀWÒRÁN ÌPÈNÍYÀ ERÉ TẸ́LẸ̀ 📜', igbo: 'AKWỤKWỌ NDEKỌ NNYOCHA EGWUREGWU 📜', hausa: 'TEBURIN TANTANCE SAKAMAKON WASANNI 📜' },
-  'Audited Win Rate': { en: 'Audited Win Rate', pidgin: 'Audited Win Rate', yoruba: 'Ìwọ̀n Ìṣẹ́gun Tí A Yẹ̀wÒ', igbo: 'Ọnụego Mmeri Enyochara', hausa: 'Yawan Nasarar da Aka Tantance' },
-  'Confidence Accuracy': { en: 'Confidence Accuracy', pidgin: 'Sure Accuracy', yoruba: 'Ìṣedéédé Ìdánilójú', igbo: 'Eziokwu Ntụkwasị Obi', hausa: 'Ingancin Tabbaci' },
-  'Victory Confetti': { en: 'Victory Confetti', pidgin: 'Celebrate Wins 🎉', yoruba: 'Ayẹyẹ Ìṣẹ́gun 🎉', igbo: 'Mmemme Mmeri 🎉', hausa: 'Bikin Nasara 🎉' },
-  'Celebrate Wins 🎉': { en: 'Celebrate Wins 🎉', pidgin: 'Celebrate Wins 🎉', yoruba: 'Ṣe Ayẹyẹ Ìṣẹ́gun 🎉', igbo: 'Mmemme Mmeri 🎉', hausa: 'Gudanar da Biki 🎉' },
-  'Close Heatmap ➔': { en: 'Close Heatmap ➔', pidgin: 'Close ➔', yoruba: 'Pa Dé ➔', igbo: 'Mechie ➔', hausa: 'Rufe ➔' },
-  'Select Language': { en: 'Select Language', pidgin: 'Select Language / Asụsụ', yoruba: 'Yan Èdè', igbo: 'Họrọ Asụsụ', hausa: 'Zaɓi Harshe' },
-  'Audited Ledger': { en: 'Audited Ledger', pidgin: 'Audited Ledger 📜', yoruba: 'Àkọsílẹ̀ Ìyẹ̀wò 📜', igbo: 'Akwụkwọ Ndekọ 📜', hausa: 'Teburin Bincike 📜' },
-  'Legal & Compliance': { en: 'Legal & Compliance', pidgin: 'Legal & Terms', yoruba: 'Òfin & Ìbámu', igbo: 'Iwu & Nkwado', hausa: "Doka & Ka'idodi" },
-  'All Leagues': { en: 'All Leagues', pidgin: 'All Leagues', yoruba: 'Gbogbo Liigi', igbo: 'Liigi Niile', hausa: 'Duk Gasanni' },
-  'High Guarantees': { en: 'High Guarantees', pidgin: 'Sure Bankers', yoruba: 'Ìdánilójú Gíga', igbo: 'Eziokwu Nwere Nkwa', hausa: 'Tabbaci Mai Yawa' },
-  'Search team, league or fixture...': { en: 'Search team, league or fixture...', pidgin: 'Search club, league or match...', yoruba: 'Wá ẹgbẹ́, liigi tàbí eré...', igbo: 'Chọọ otu, liigi ma ọ bụ egwuregwu...', hausa: 'Nemi kungiya, gasa ko wasa...' },
-  'WON': { en: 'WON ✅', pidgin: 'WON ✅', yoruba: 'WỌLÉ ✅', igbo: 'MERIRI ✅', hausa: 'AN CI ✅' },
-  'LOST': { en: 'LOST ❌', pidgin: 'LOST ❌', yoruba: 'BỌ́ ❌', igbo: 'KỌRỌ ❌', hausa: 'AN RASA ❌' },
-  'Close': { en: 'Close', pidgin: 'Close', yoruba: 'Pa Dé', igbo: 'Mechie', hausa: 'Rufe' },
+  // Brand, Header & Ticker
+  'LIVE WIRE': { en: 'LIVE WIRE', pidgin: 'LIVE WIRE ⚡', yoruba: 'WÁYÀ LÁYÉ ⚡', igbo: 'WAYA NDỤ ⚡', hausa: 'LABARAI MASU ZAFI ⚡' },
+  'World-First Live Prediction & Stadium Atmosphere': { en: 'World-First Live Prediction & Stadium Atmosphere', pidgin: 'Number 1 Live Prediction & Stadium Atmosphere for World', yoruba: 'Àkọ́kọ́ Ìsọtẹ́lẹ̀ Láyé & Afẹ́fẹ́ Pápá Eré Ní Àgbáyé', igbo: 'Amụma Ndụ nke Mbụ n’Ụwa & Ọnọdụ Ama Egwuregwu', hausa: 'Hasashen Raye na Farko a Duniya & Yanayin Filin Wasa' },
+  'World First Live Prediction & Stadium Atmosphere': { en: 'World First Live Prediction & Stadium Atmosphere', pidgin: 'Number 1 Live Prediction & Stadium Atmosphere for World', yoruba: 'Àkọ́kọ́ Ìsọtẹ́lẹ̀ Láyé & Afẹ́fẹ́ Pápá Eré Ní Àgbáyé', igbo: 'Amụma Ndụ nke Mbụ n’Ụwa & Ọnọdụ Ama Egwuregwu', hausa: 'Hasashen Raye na Farko a Duniya & Yanayin Filin Wasa' },
+  'Statistical intelligence engine. 18+ Please play responsibly.': { en: 'Statistical intelligence engine. 18+ Please play responsibly.', pidgin: 'Correct match stats engine. 18+ Bet wisely.', yoruba: 'Injin bọ́ọ̀lù oníṣirò. 18+ Ẹ jọ̀wọ́ tẹtẹ pẹ̀lú ọgbọ́n.', igbo: 'Ngwa amụma bọọlụ. 18+ Biko jiri nlezianya zọọ nzọ.', hausa: 'Injin binciken lissafin kwallon kafa. Shekara 18+ Don Allah a yi caca cikin hankali.' },
+  'AES 256 Encrypted': { en: 'AES 256 Encrypted', pidgin: 'AES 256 Encrypted', yoruba: 'Ààbò AES 256 Pípé', igbo: 'Nchedo AES 256 zuru oke', hausa: 'Tsare da Boyayyen Lambar AES 256' },
+  'Legal & 18+ Terms': { en: 'Legal & 18+ Terms', pidgin: 'Legal & 18+ Terms', yoruba: 'Òfin & Àwọn Àdéhùn 18+', igbo: 'Iwu & Usoro 18+', hausa: "Dokoki & Ka'idojin Shekara 18+" },
+  
+  // Weekly Calendar & Date Navigation
+  'WEEKLY FIXTURE CALENDAR': { en: 'WEEKLY FIXTURE CALENDAR', pidgin: 'WEEKLY MATCH CALENDAR', yoruba: 'KÀLẸ́NDÀ ERÉ Ọ̀SẸ̀', igbo: 'KALENDA EGWUREGWO IZU', hausa: 'JADAWALIN WASANNIN MAKO' },
+  'WEEKLY FIXTURE CALENDAR NG': { en: 'WEEKLY FIXTURE CALENDAR NG', pidgin: 'WEEKLY MATCH CALENDAR 🇳🇬', yoruba: 'KÀLẸ́NDÀ ERÉ Ọ̀SẸ̀ 🇳🇬', igbo: 'KALENDA EGWUREGWO IZU 🇳🇬', hausa: 'JADAWALIN WASANNIN MAKO 🇳🇬' },
+  'TODAY': { en: 'TODAY', pidgin: 'TODAY', yoruba: 'ÒNÍ', igbo: 'TAA', hausa: 'YAU' },
+  'Today': { en: 'Today', pidgin: 'Today', yoruba: 'Òní', igbo: 'Taa', hausa: 'Yau' },
+  'Yesterday': { en: 'Yesterday', pidgin: 'Yesterday', yoruba: 'Àná', igbo: 'Ụnyaahụ', hausa: 'Jiya' },
+  'Tomorrow': { en: 'Tomorrow', pidgin: 'Tomorrow', yoruba: 'Ọ̀la', igbo: 'Echi', hausa: 'Gobe' },
+  'This Week (Sun - Sat)': { en: 'This Week (Sun - Sat)', pidgin: 'This Week (Sun - Sat)', yoruba: 'Ọ̀sẹ̀ Yìí (Àìkú - Àbámẹ́ta)', igbo: 'Izu A (Ụka - Satọ)', hausa: 'Wannan Makon (Lah - Asa)' },
+  'Wannan Makon (Lah - Asa)': { en: 'This Week (Sun - Sat)', pidgin: 'This Week (Sun - Sat)', yoruba: 'Ọ̀sẹ̀ Yìí (Àìkú - Àbámẹ́ta)', igbo: 'Izu A (Ụka - Satọ)', hausa: 'Wannan Makon (Lah - Asa)' },
 
+  // Stadium Hub & Suites
+  'STADIUM HUB & NAIJA LIVE SUITES': { en: 'STADIUM HUB & NAIJA LIVE SUITES', pidgin: 'STADIUM HUB & NAIJA LIVE SUITES ⚡🇳🇬', yoruba: 'IBÙDÓ PÁPÁ & ÀWỌN ERÉ NÀÌJÍRÍÀ ⚡🇳🇬', igbo: 'EBE AMA EGWUREGWU & SUITES NAỊJIRỊA ⚡🇳🇬', hausa: 'CIBIYAR FILIN WASA & DANDALIN NAJERIYA ⚡🇳🇬' },
+  'STADIUM HUB & NAIJA LIVE SUITES ⚡🇳🇬': { en: 'STADIUM HUB & NAIJA LIVE SUITES ⚡🇳🇬', pidgin: 'STADIUM HUB & NAIJA LIVE SUITES ⚡🇳🇬', yoruba: 'IBÙDÓ PÁPÁ & ÀWỌN ERÉ NÀÌJÍRÍÀ ⚡🇳🇬', igbo: 'EBE AMA EGWUREGWU & SUITES NAỊJIRỊA ⚡🇳🇬', hausa: 'CIBIYAR FILIN WASA & DANDALIN NAJERIYA ⚡🇳🇬' },
+  'Everything in the Stadium Hub brought out live. Scouting, AI Roasts, Birthdays, Leaderboard & Bankroll.': { en: 'Everything in the Stadium Hub brought out live. Scouting, AI Roasts, Birthdays, Leaderboard & Bankroll.', pidgin: 'Everything for Stadium Hub live: Wonderkids, Yab lounge, Birthdays, Top punters & Bankroll.', yoruba: 'Gbogbo ohun tó wà nínú Ibùdó Pápá láyé: Àwárí agbábọ́ọ̀lù, Àwàdà AI, Ọjọ́ ìbí, Àkójọ olórí & Ìṣirò owó.', igbo: 'Ihe niile dị na Ama Egwuregwu: Nchọpụta, Njakịrị AI, Ụbọchị ọmụmụ, Ndị isi & Mgbakọ ego.', hausa: 'Dukkan abubuwan da ke cikin Cibiyar Filin Wasa kai tsaye. Gano yan wasa, barkwanci, ranakun haihuwa, jadawali & kula da kudi.' },
+  
+  // Hub Tiles
+  'Naija Grassroots Scouting': { en: 'Naija Grassroots Scouting', pidgin: 'Naija Grassroots Scouting 🇳🇬⚽', yoruba: 'Àwárí Agbábọ́ọ̀lù Nàìjíríà 🇳🇬⚽', igbo: 'Nchọpụta Ndị Na-eto Eto Naịjirịa 🇳🇬⚽', hausa: 'Gano Matasan Yan Wasan Najeriya 🇳🇬⚽' },
+  'Discover next Osimhen & Kanu. Watch scouting videos, vote wonderkids, and submit talent.': { en: 'Discover next Osimhen & Kanu. Watch scouting videos, vote wonderkids, and submit talent.', pidgin: 'Find the next Osimhen & Kanu. Watch scouting clips, vote young stars & submit talent.', yoruba: 'Wá Osimhen & Kanu tó ń bọ̀. Wo fídíò àwọn agbábọ́ọ̀lù tuntun, dìbò fún àwọn ọ̀dọ́, kí o sì fi ẹ̀bùn ránṣẹ́.', igbo: 'Chọpụta Osimhen na Kanu na-esote. Lee vidiyo, votu maka ụmụaka nwere nkà ma ziga nkà.', hausa: 'Gano sabbin Osimhen & Kanu. Kalli bidiyon yan wasa, zabi matasa, kuma kawo kwararrun yan wasa.' },
+  'Open Scouting Radar ➔': { en: 'Open Scouting Radar ➔', pidgin: 'Open Scouting Radar ➔', yoruba: 'Ṣí Rádà Àwárí ➔', igbo: 'Mepee Rada Nchọpụta ➔', hausa: 'Bude Filin Gano Yan Wasa ➔' },
 
-  // Bet Tips & Card Elements
+  'Gen-Z Roast & Banter Lounge': { en: 'Gen-Z Roast & Banter Lounge', pidgin: 'Naija Football Yab & Banter Lounge 🔥', yoruba: 'Yíyán Àwọn Ẹgbẹ́ & Àwàdà Bọ́ọ̀lù 🔥', igbo: 'Ebe Nkata & Njakịrị Bọọlụ 🔥', hausa: 'Dandalin Barkwanci & Zagin Kwallo 🔥' },
+  'Dynamic AI Nigerian football slander, spicy locker-room burns, club memes, and viral roasts.': { en: 'Dynamic AI Nigerian football slander, spicy locker-room burns, club memes, and viral roasts.', pidgin: 'Spicy Nigerian football banter, dressing room yabs, memes and viral football banter.', yoruba: 'Àwàdà bọ́ọ̀lù Nàìjíríà gidi, yíyán àwọn ẹgbẹ́ nínú yàrá ìṣeré, àwòrán apanilẹ́rìn-ín, àti yíyán orí ayélujára.', igbo: 'Njakịrị bọọlụ Naịjirịa, mkparịta ụka ime ụlọ egwuregwu, memes na ihe na-atọ ọchị bọọlụ.', hausa: 'Barkwancin kwallon kafa na Najeriya, zafin dakin sauya kaya, hotunan barkwanci, da zagin kungiyoyi.' },
+  'Enter Banter Lounge ➔': { en: 'Enter Banter Lounge ➔', pidgin: 'Enter Banter Lounge ➔', yoruba: 'Wọle Sí Ibùdó Àwàdà ➔', igbo: 'Banye n’Ebe Njakịrị ➔', hausa: 'Shiga Dandalin Barkwanci ➔' },
+
+  'Star Birthdays & Fan Wishes': { en: 'Star Birthdays & Fan Wishes', pidgin: 'Star Birthdays & Fan Wishes 🎂', yoruba: 'Ọjọ́ Ìbí Àwọn Gbajúmọ̀ Agbábọ́ọ̀lù 🎂', igbo: 'Ụbọchị Ọmụmụ Ndị Dinta Bọọlụ 🎂', hausa: 'Ranar Haihuwar Manyan Yan Wasa 🎂' },
+  'Football star birthdays this week. Send wishes, cheer with crowd audio, and share on WhatsApp.': { en: 'Football star birthdays this week. Send wishes, cheer with crowd audio, and share on WhatsApp.', pidgin: 'Star birthdays for this week. Send wishes, play stadium cheers & share for WhatsApp.', yoruba: 'Ọjọ́ ìbí àwọn gbajúmọ̀ ní ọ̀sẹ̀ yìí. Rán ìkíni, yọ̀ pẹ̀lú ariwo àwọn èrò pápá, kí o sì pín lórí WhatsApp.', igbo: 'Ụbọchị ọmụmụ ndị egwuregwu n’izu a. Zipu ozi ọma, tie mkpu ọṅụ, ma kesaa na WhatsApp.', hausa: 'Ranar haihuwar manyan yan wasan kwallo a wannan makon. Aika gaisuwa, yi murna da sautin taro, kuma raba a WhatsApp.' },
+  'Send Wishes 🎉': { en: 'Send Wishes 🎉', pidgin: 'Send Wishes 🎉', yoruba: 'Rán Ìkíni 🎉', igbo: 'Zipu Ozi Ọma 🎉', hausa: 'Aika Gaisuwa 🎉' },
+
+  'Community Golden Boy Leaderboard': { en: 'Community Golden Boy Leaderboard', pidgin: 'Top Punters & Golden Boy Leaderboard 🏆', yoruba: 'Àkójọ Olórí Golden Boy 🏆', igbo: 'Tebụl Ndị Kasị Mma Golden Boy 🏆', hausa: 'Teburin Jagororin Golden Boy na Jama’a 🏆' },
+  'Official ranking of top Nigerian punters, highest streaks, and wonderkid voting charts.': { en: 'Official ranking of top Nigerian punters, highest streaks, and wonderkid voting charts.', pidgin: 'Official rank of best Naija punters, win streaks & wonderkid votes.', yoruba: 'Àtòjọ àwọn olùtẹtẹ Nàìjíríà tí ó tayọ jùlọ, àkójọ àṣeyọrí tó ga jù, àti àtẹ ìdìbò àwọn ọ̀dọ́ agbábọ́ọ̀lù.', igbo: 'Ọkwa ndị dinta nzọ kacha elu na Naịjirịa, usoro mmeri kacha elu, na eserese votu ndị ntorobịa.', hausa: 'Matsayin manyan masana caca na Najeriya, jerin nasarori, da teburin zaben matasa.' },
+
+  'Settlement Ledger & Banker Records': { en: 'Settlement Ledger & Banker Records', pidgin: 'Official Match Record & Banker Ledger 📜', yoruba: 'Àkọsílẹ̀ Ìpèníyà Eré Pípé 📜', igbo: 'Akwụkwọ Ndekọ Emechara 📜', hausa: 'Teburin Sakamakon Wasanni & Bayanan Tabbaci 📜' },
+  'Full transparent calendar of settled picks, verified match outcomes, and banker audits.': { en: 'Full transparent calendar of settled picks, verified match outcomes, and banker audits.', pidgin: 'Clear calendar of settled picks, true referee match results & banker audits.', yoruba: 'Kàlẹ́ndà tí ó ṣe kedere ti àwọn eré tí a pinnu, àbájáde eré tí a yẹ̀wò, àti àyẹ̀wò ìdánilójú.', igbo: 'Kalennda doro anya nke nhọrọ ndị edoziri, nsonaazụ egwuregwu enyochara, na nyocha banker.', hausa: 'Cikakken jadawalin hasashen da aka kammala, sakamakon wasanni da aka tantance, da binciken tabbaci.' },
+
+  'Kelly Criterion Bankroll Calculator': { en: 'Kelly Criterion Bankroll Calculator', pidgin: 'Money Management & Bankroll Lab 💰', yoruba: 'Ètò Ìṣirò Owó Eré 💰', igbo: 'Mgbakọ Ego Egwuregwu 💰', hausa: 'Kwamfutar Kula Da Kudi ta Kelly Criterion 💰' },
+  'Mathematical position-sizing, Poisson probability staking, and risk management lab.': { en: 'Mathematical position-sizing, Poisson probability staking, and risk management lab.', pidgin: 'Kelly math staking formula, Poisson odds analysis & risk control lab.', yoruba: 'Ètò ìṣirò fún iye owó kalokalo, àyẹ̀wò ìmọ̀ Poisson, àti yíyẹra fún ewu.', igbo: 'Usoro mgbakọ nchikota ego, nyocha ohere Poisson, na njikwa ihe egwu.', hausa: 'Lissafin adadin kudin caca, hasashen Poisson, da dakin gwajin kula da hadari.' },
+
+  // World-First Features Grid
+  'WORLD-FIRST FEATURES': { en: 'WORLD-FIRST FEATURES', pidgin: 'WORLD-FIRST FEATURES ⚡', yoruba: 'ÀWỌN OHUN ÈLÒ TUNTUN LÁYÉ ⚡', igbo: 'ATỤMATỤ NKE MBỤ N’ỤWA ⚡', hausa: 'KAYAN AIKI NA FARKO A DUNIYA ⚡' },
+  '⚡ World-First Features': { en: '⚡ World-First Features', pidgin: '⚡ World-First Features', yoruba: '⚡ Àwọn Ohun Èlò Tuntun Láyé', igbo: '⚡ Atụmatụ Nke Mbụ n’Ụwa', hausa: '⚡ Kayan Aiki na Farko a Duniya' },
+  'Open Full Menu': { en: 'Open Full Menu', pidgin: 'Open Full Menu', yoruba: 'Ṣí Àkójọ Pípé', igbo: 'Mepee Nchịkọta Niile', hausa: 'Bude Cikakken Menu' },
+  'CROWD VIBE': { en: 'CROWD VIBE', pidgin: 'CROWD VIBE 🔥', yoruba: 'ARIWO ÀWỌN ÈRÒ PÁPÁ 🔥', igbo: 'ỌṄỤ NDỊ AMA EGWUREGWU 🔥', hausa: 'YANAYIN MASOYA 🔥' },
+  'GOAL RUSH RADAR': { en: 'GOAL RUSH RADAR', pidgin: 'GOAL RUSH RADAR 🚨', yoruba: 'RÁDÀ GOOLU GBÍGBÓNÁ 🚨', igbo: 'RADA GOOLU DỊ OKPUKPỌ 🚨', hausa: 'FILIN KWALLAYE MASU ZAFI 🚨' },
+  '12 in play': { en: '12 in play', pidgin: '12 dey play now', yoruba: '12 ń ṣeré lọ́wọ́', igbo: '12 na-egwu egwu', hausa: '12 a fili yanzu' },
+  'Highest-tension live fixture:': { en: 'Highest-tension live fixture:', pidgin: 'Hottest live match:', yoruba: 'Eré tó gbóná jùlọ láyé:', igbo: 'Egwuregwu ndụ kacha ekpo ọkụ:', hausa: 'Wasan da ya fi zafi kai tsaye:' },
+  'MATCHDAY FORTUNE': { en: 'MATCHDAY FORTUNE', pidgin: 'MATCHDAY FORTUNE 🎲', yoruba: 'ORÍRE ỌJỌ́ ERÉ 🎲', igbo: 'AKANTALỌ EGWUREGWO 🎲', hausa: 'SA’AR RANAR WASA 🎲' },
+  'Ask the pitch for a lucky read.': { en: 'Ask the pitch for a lucky read.', pidgin: 'Ask the pitch for a lucky read.', yoruba: 'Béèrè lọ́wọ́ pápá fún oríire.', igbo: 'Jụọ ama egwuregwu maka amụma ihu ọma.', hausa: 'Nemi hasashen sa’a daga filin wasa.' },
+  'Roll Fortune': { en: 'Roll Fortune', pidgin: 'Roll Fortune 🎲', yoruba: 'Yí Oríire 🎲', igbo: 'Tụgharịa Akantalọ 🎲', hausa: 'Juya Sa’a 🎲' },
+  'DELUSION CHECK': { en: 'DELUSION CHECK', pidgin: 'DELUSION CHECK 🧠', yoruba: 'ÀYẸ̀WÒ ÒTÍTỌ́ 🧠', igbo: 'NNYOCHA EZIOKWU 🧠', hausa: 'GWAJIN GASKIYA 🧠' },
+  'Rational market — low risk appetite': { en: 'Rational market — low risk appetite', pidgin: 'Calm market — low risk', yoruba: 'Ọjà oníṣirò — ewu kékeré', igbo: 'Ahịa kwụsiri ike — obere ihe egwu', hausa: 'Kasuwa mai hankali — karancin hadari' },
+
+  // Settlement Ledger & Calendar
+  'HISTORICAL SETTLEMENT LEDGER & CALENDAR': { en: 'HISTORICAL SETTLEMENT LEDGER & CALENDAR', pidgin: 'HISTORICAL SETTLEMENT LEDGER & CALENDAR 📜', yoruba: 'ÀKỌSÍLẸ̀ & KÀLẸ́NDÀ ÌPÈNÍYÀ ERÉ TẸ́LẸ̀ 📜', igbo: 'AKWỤKWỌ NDEKỌ NNYOCHA EGWUREGWU 📜', hausa: 'TEBURIN TANTANCE SAKAMAKON WASANNI & JADAWALI 📜' },
+  'Immutable referee score sheets, banker accuracy (100% Win Rate), and verified payouts.': { en: 'Immutable referee score sheets, banker accuracy (100% Win Rate), and verified payouts.', pidgin: 'Official referee scores, 100% banker win rate record & verified bet settlements.', yoruba: 'Àkọsílẹ̀ àwọn adájọ́ tí kò lè yípadà, ìṣedéédé ìdánilójú (100% Win Rate), àti owó tí a yẹ̀wò.', igbo: 'Akwụkwọ nsonaazụ ndị ọkaikpe, izi ezi banker (100% Win Rate), na ịkwụ ụgwọ enyochara.', hausa: 'Sakamakon alkalan wasa na karshe, tabbacin nasara (100% Win Rate), da kudaden da aka biya.' },
+  'Full Ledger Page': { en: 'Full Ledger Page', pidgin: 'Full Ledger Page ↗', yoruba: 'Ojúewé Àkọsílẹ̀ Pípé ↗', igbo: 'Ihu Akwụkwọ Ndekọ Niile ↗', hausa: 'Cikakken Shafin Bincike ↗' },
+  'All Settled': { en: 'All Settled', pidgin: 'All Settled', yoruba: 'Gbogbo Tó Ti Pari', igbo: 'Ndị Edoziri Niile', hausa: 'Duk da Aka Kammala' },
+  'Won Picks': { en: 'Won Picks', pidgin: 'Won Picks', yoruba: 'Àwọn Ìsọtẹ́lẹ̀ Tó Wọlé', igbo: 'Nhọrọ Ndị Meriri', hausa: 'Hasashen da Aka Ci' },
+  'Lost Picks': { en: 'Lost Picks', pidgin: 'Lost Picks', yoruba: 'Àwọn Ìsọtẹ́lẹ̀ Tó Bọ́', igbo: 'Nhọrọ Ndị Kọrọ', hausa: 'Hasashen da Aka Rasa' },
+  'Pick Date:': { en: 'Pick Date:', pidgin: 'Pick Date:', yoruba: 'Ọjọ́ Ìsọtẹ́lẹ̀:', igbo: 'Ụbọchị Nhọrọ:', hausa: 'Ranar Hasashe:' },
+  'DATE & LEAGUE': { en: 'DATE & LEAGUE', pidgin: 'DATE & LEAGUE', yoruba: 'ỌJỌ́ & LIIGI', igbo: 'ỤBỌCHỊ & LIIGI', hausa: 'RANA & GASA' },
+  'FIXTURE & FULL-TIME SCORE': { en: 'FIXTURE & FULL-TIME SCORE', pidgin: 'MATCH & FT SCORE', yoruba: 'ERÉ & ÀBÁJÁDE PÍPÉ', igbo: 'EGWUREGWO & NSONAAZỤ', hausa: 'WASA & SAKAMAKON KARSHE' },
+  'SYSTEM BANKER PICK': { en: 'SYSTEM BANKER PICK', pidgin: 'SYSTEM BANKER PICK', yoruba: 'ÌSỌTẸ́LẸ̀ ÌDÁNILÓJÚ INJIN', igbo: 'EZIOKWU NHỌRỌ SISTEM', hausa: 'HASASHEN TABBACI NA NA’URA' },
+  'ODDS': { en: 'ODDS', pidgin: 'ODDS', yoruba: 'IYE KALOKALO', igbo: 'ODDS', hausa: 'RABO' },
+  'OUTCOME': { en: 'OUTCOME', pidgin: 'OUTCOME', yoruba: 'ÀBÁJÁDE', igbo: 'NSONAAZỤ', hausa: 'SAKAMAKO' },
+  'AUDIT': { en: 'AUDIT', pidgin: 'AUDIT', yoruba: 'ÀYẸ̀WÒ', igbo: 'NNYOCHA', hausa: 'TANTANCEWA' },
+  'Collapse': { en: 'Collapse', pidgin: 'Fold Am', yoruba: 'Ká Pọ̀', igbo: 'Pịaji', hausa: 'Kulle' },
+
+  // News Wire & Load More
+  'Load 3 More Articles': { en: 'Load 3 More Articles', pidgin: 'Load 3 More Gist', yoruba: 'Ka Àwọn Ìròyìn 3 Síi', igbo: 'Gụkwuo Akụkọ 3 Ọzọ', hausa: 'Kara Wasu Labarai 3' },
+  '⚡ Load 3 More Articles': { en: '⚡ Load 3 More Articles', pidgin: '⚡ Load 3 More Gist', yoruba: '⚡ Ka Àwọn Ìròyìn 3 Síi', igbo: '⚡ Gụkwuo Akụkọ 3 Ọzọ', hausa: '⚡ Kara Wasu Labarai 3' },
+  'VERIFIED OFFICIAL REPORT ✓': { en: 'VERIFIED OFFICIAL REPORT ✓', pidgin: 'TRUE OFFICIAL GIST ✓', yoruba: 'ÌRÒYÌN GIDI TÍ A YẸ̀WÒ ✓', igbo: 'EZI AKỤKỌ ENYOCHARA ✓', hausa: 'CIKAKKEN LABARI MAI INGANCI ✓' },
+
+  // Match Cards, Actions & Predictions
   '+ Bet Tips': { en: '+ Bet Tips', pidgin: '+ Bet Tips 🎯', yoruba: '+ Ìmọ̀ràn Kalokalo 🎯', igbo: '+ Ndụmọdụ Nzọ 🎯', hausa: '+ Shawarar Caca 🎯' },
-  '+ Add Pick': { en: '+ Bet Tips', pidgin: '+ Bet Tips 🎯', yoruba: '+ Ìmọ̀ràn Kalokalo 🎯', igbo: '+ Ndụmọdụ Nzọ 🎯', hausa: '+ Shawarar Caca 🎯' },
-  'Bet Tips': { en: 'Bet Tips', pidgin: 'Bet Tips', yoruba: 'Ìmọ̀ràn Kalokalo', igbo: 'Ndụmọdụ Nzọ', hausa: 'Shawarar Caca' },
+  'Shawarar Caca': { en: 'Bet Tips', pidgin: 'Bet Tips', yoruba: 'Ìmọ̀ràn Kalokalo', igbo: 'Ndụmọdụ Nzọ', hausa: 'Shawarar Caca' },
   'Table ➔': { en: 'Table ➔', pidgin: 'Table ➔', yoruba: 'Tábìlì ➔', igbo: 'Tebụl ➔', hausa: 'Tebur ➔' },
   'win confidence': { en: 'win confidence', pidgin: 'sure confidence', yoruba: 'ìdánilójú ìṣẹ́gun', igbo: 'ntụkwasị obi mmeri', hausa: 'tabbacin nasara' },
-  'Over 1.5 Goals': { en: 'Over 1.5 Goals', pidgin: 'Over 1.5 Goals', yoruba: 'Goolu tó ju 1.5 lọ', igbo: 'Ihe karịrị goolu 1.5', hausa: 'Sama da ƙwallo 1.5' },
-  'Over 2.5 Goals': { en: 'Over 2.5 Goals', pidgin: 'Over 2.5 Goals', yoruba: 'Goolu tó ju 2.5 lọ', igbo: 'Ihe karịrị goolu 2.5', hausa: 'Sama da ƙwallo 2.5' },
-  'Under 2.5 Goals': { en: 'Under 2.5 Goals', pidgin: 'Under 2.5 Goals', yoruba: 'Goolu tí kò ju 2.5 lọ', igbo: 'Goolu na-erughị 2.5', hausa: 'Ƙasa da ƙwallo 2.5' },
-  'Both Teams to Score (GG)': { en: 'Both Teams to Score (GG)', pidgin: 'Both Teams Go Score (GG)', yoruba: 'Àwọn Ẹgbẹ́ Méjèèjì Yóò Gba Goolu', igbo: 'Otu Abụọ Ga-agba Goolu', hausa: 'Dukkan Ƙungiyoyin Za Su Ci Ƙwallo' },
-  'Home Win or Draw (1X)': { en: 'Home Win or Draw (1X)', pidgin: 'Home Win or Draw (1X)', yoruba: 'Ìṣẹ́gun Ilé tàbí Dọ́gba (1X)', igbo: 'Mmeri Ụlọ ma ọ bụ Jikọọ (1X)', hausa: 'Nasara a Gida ko Canjaras (1X)' },
-  'Away Win or Draw (X2)': { en: 'Away Win or Draw (X2)', pidgin: 'Away Win or Draw (X2)', yoruba: 'Ìṣẹ́gun Àbẹ̀wò tàbí Dọ́gba (X2)', igbo: 'Mmeri Nleta ma ọ bụ Jikọọ (X2)', hausa: 'Nasara a Waje ko Canjaras (X2)' },
-  'or Draw': { en: 'or Draw', pidgin: 'or Draw', yoruba: 'tàbí Dọ́gba', igbo: 'ma ọ bụ Jikọọ', hausa: 'ko Canjaras' },
-  'or Draw (1X)': { en: 'or Draw (1X)', pidgin: 'or Draw (1X)', yoruba: 'tàbí Dọ́gba (1X)', igbo: 'ma ọ bụ Jikọọ (1X)', hausa: 'ko Canjaras (1X)' },
-  
-  // Header & Branding
-  'Download App': { en: 'Download App', pidgin: 'Download App 📲', yoruba: 'Gba Ohun Èlò 📲', igbo: 'Budata Ngwa 📲', hausa: 'Sauke Manhaja 📲' },
-  'Downloading...': { en: 'Downloading...', pidgin: 'De Download...', yoruba: 'Ń Gbà Á...', igbo: 'Na-ebudata...', hausa: 'Ana Saukewa...' },
-  'World First Live Prediction & Stadium Atmosphere': { en: 'World First Live Prediction & Stadium Atmosphere', pidgin: 'Number 1 Live Prediction & Stadium Atmosphere for World', yoruba: 'Àkọ́kọ́ Ìsọtẹ́lẹ̀ Láyé & Afẹ́fẹ́ Pápá Eré Ní Àgbáyé', igbo: 'Amụma Ndụ nke Mbụ n’Ụwa & Ọnọdụ Ama Egwuregwu', hausa: 'Hasashen Raye na Farko a Duniya & Yanayin Filin Wasa' },
-  'Star Players': { en: 'Star Players', pidgin: 'Star Players ⭐', yoruba: 'Àwọn Gbajúmọ̀ ⭐', igbo: 'Ndị Ama Ama ⭐', hausa: 'Manyan Yan Wasa ⭐' },
-  'All Leagues (35+)': { en: 'All Leagues (35+)', pidgin: 'All Leagues (35+) 🌍', yoruba: 'Gbogbo Liigi (35+) 🌍', igbo: 'Liigi Niile (35+) 🌍', hausa: 'Duk Gasanni (35+) 🌍' },
-  'Following ⭐': { en: 'Following ⭐', pidgin: 'Following ⭐', yoruba: 'Tẹ̀lé ⭐', igbo: 'Na-eso ⭐', hausa: 'Masu Bi ⭐' },
-  'Following': { en: 'Following', pidgin: 'Following', yoruba: 'Tẹ̀lé', igbo: 'Na-eso', hausa: 'Masu Bi' },
+  'Home': { en: 'Home', pidgin: 'Home', yoruba: 'Ilé', igbo: 'Ụlọ', hausa: 'Gida' },
+  'Draw': { en: 'Draw', pidgin: 'Draw', yoruba: 'Dọ́gba', igbo: 'Jikọọ', hausa: 'Canjaras' },
+  'Away': { en: 'Away', pidgin: 'Away', yoruba: 'Àbẹ̀wò', igbo: 'Nleta', hausa: 'Waje' },
+  'Gida': { en: 'Home', pidgin: 'Home', yoruba: 'Ilé', igbo: 'Ụlọ', hausa: 'Gida' },
+  'Canjaras': { en: 'Draw', pidgin: 'Draw', yoruba: 'Dọ́gba', igbo: 'Jikọọ', hausa: 'Canjaras' },
+  'Waje': { en: 'Away', pidgin: 'Away', yoruba: 'Àbẹ̀wò', igbo: 'Nleta', hausa: 'Waje' },
+  'CIKAKKEN TABBACI': { en: 'ULTRA-BANKER', pidgin: 'PURE BANKER 🔥', yoruba: 'ÌDÁNILÓJÚ PÍPÉ 🔥', igbo: 'EZIOKWU 100% 🔥', hausa: 'CIKAKKEN TABBACI 🔥' },
+  'Sama da ƙwallo 1.5': { en: 'Over 1.5 Goals', pidgin: 'Over 1.5 Goals', yoruba: 'Goolu tó ju 1.5 lọ', igbo: 'Ihe karịrị goolu 1.5', hausa: 'Sama da ƙwallo 1.5' },
+  'Sama da ƙwallo 2.5': { en: 'Over 2.5 Goals', pidgin: 'Over 2.5 Goals', yoruba: 'Goolu tó ju 2.5 lọ', igbo: 'Ihe karịrị goolu 2.5', hausa: 'Sama da ƙwallo 2.5' },
+  'Ƙasa da ƙwallo 2.5': { en: 'Under 2.5 Goals', pidgin: 'Under 2.5 Goals', yoruba: 'Goolu tí kò ju 2.5 lọ', igbo: 'Goolu na-erughị 2.5', hausa: 'Ƙasa da ƙwallo 2.5' },
+  'Dukkan Ƙungiyoyin Za Su Ci Ƙwallo': { en: 'Both Teams to Score (GG)', pidgin: 'Both Teams Go Score (GG)', yoruba: 'Àwọn Ẹgbẹ́ Méjèèjì Yóò Gba Goolu', igbo: 'Otu Abụọ Ga-agba Goolu', hausa: 'Dukkan Ƙungiyoyin Za Su Ci Ƙwallo' },
 
-  // Live Alerts & Popups
-  'LIVE MATCH': { en: 'LIVE MATCH ⚽', pidgin: 'LIVE MATCH ⚽', yoruba: 'ERÉ LÁYÉ ⚽', igbo: 'EGWUREG职务 NDỤ ⚽', hausa: 'WASAN RAYE ⚽' },
-  'Hype 🔥': { en: 'Hype 🔥', pidgin: 'Hype 🔥', yoruba: 'Ariwo 🔥', igbo: 'Ọṅụ 🔥', hausa: 'Murna 🔥' },
-  'View Audit ↗': { en: 'View Audit ↗', pidgin: 'Check Am ↗', yoruba: 'Wo Àyẹ̀wò ↗', igbo: 'Lee Nnyocha ↗', hausa: 'Duba Sakamako ↗' },
-  '1-Click automatic instant download': { en: '1-Click automatic instant download', pidgin: '1-Click fast download', yoruba: 'Ìgbàsílẹ̀ lẹ́ẹ̀kan ṣoṣo', igbo: 'Nbudata ngwa ngwa na otu pịa', hausa: 'Saukarwa ta atomatik da dannawa 1' },
-  'Install Stadium App': { en: 'Install Stadium App', pidgin: 'Install Stadium App', yoruba: 'Fi Ohun Èlò Pápá Sí', igbo: 'Wụnye Ngwa Ama Egwuregwu', hausa: 'Sanya Manhajar Filin Wasa' },
-  'Download': { en: 'Download', pidgin: 'Download', yoruba: 'Gba Sílẹ̀', igbo: 'Budata', hausa: 'Sauke' },
-  '100% Pure Football Stadium': { en: '100% Pure Football Stadium', pidgin: '100% Pure Football Stadium', yoruba: '100% Pápá Bọ́ọ̀lù Pípé', igbo: '100% Ezigbo Ama Egwuregwu', hausa: '100% Filin Wasan Ƙwallo na Gaskiya' },
-
-  // Days of Week (Sunday to Saturday)
-  'Sun': { en: 'Sun', pidgin: 'Sun', yoruba: 'Àìkú', igbo: 'Ụka', hausa: 'Lah' },
-  'Mon': { en: 'Mon', pidgin: 'Mon', yoruba: 'Ajé', igbo: 'Mọn', hausa: 'Lit' },
-  'Tue': { en: 'Tue', pidgin: 'Tue', yoruba: 'Ìṣẹ́gun', igbo: 'Tuu', hausa: 'Tal' },
-  'Wed': { en: 'Wed', pidgin: 'Wed', yoruba: 'Rú', igbo: 'Wen', hausa: 'Lar' },
-  'Thu': { en: 'Thu', pidgin: 'Thu', yoruba: 'Bọ̀', igbo: 'Tọọ', hausa: 'Alh' },
-  'Fri': { en: 'Fri', pidgin: 'Fri', yoruba: 'Ẹtì', igbo: 'Fraị', hausa: 'Jum' },
-  'Sat': { en: 'Sat', pidgin: 'Sat', yoruba: 'Àbámẹ́ta', igbo: 'Satọ', hausa: 'Asa' },
-  'Sunday': { en: 'Sunday', pidgin: 'Sunday', yoruba: 'Ọjọ́ Àìkú', igbo: 'Ụbọchị Ụka', hausa: 'Lahadi' },
-  'Monday': { en: 'Monday', pidgin: 'Monday', yoruba: 'Ọjọ́ Ajé', igbo: 'Mọnde', hausa: 'Litinin' },
-  'Tuesday': { en: 'Tuesday', pidgin: 'Tuesday', yoruba: 'Ọjọ́ Ìṣẹ́gun', igbo: 'Tuuzde', hausa: 'Talata' },
-  'Wednesday': { en: 'Wednesday', pidgin: 'Wednesday', yoruba: 'Ọjọ́ Rú', igbo: 'Wenezde', hausa: 'Laraba' },
-  'Thursday': { en: 'Thursday', pidgin: 'Thursday', yoruba: 'Ọjọ́ Bọ̀', igbo: 'Tọọzde', hausa: 'Alhamis' },
-  'Friday': { en: 'Friday', pidgin: 'Friday', yoruba: 'Ọjọ́ Ẹtì', igbo: 'Fraịde', hausa: "Jumma'a" },
-  'Saturday': { en: 'Saturday', pidgin: 'Saturday', yoruba: 'Ọjọ́ Àbámẹ́ta', igbo: 'Satọde', hausa: 'Asabar' },
-  'This Week (Sun - Sat)': { en: 'This Week (Sun - Sat)', pidgin: 'This Week (Sun - Sat)', yoruba: 'Ọ̀sẹ̀ Yìí (Àìkú - Àbámẹ́ta)', igbo: 'Izu A (Ụka - Satọ)', hausa: 'Wannan Makon (Lah - Asa)' },
-
-  // Navigation & Header
-  'Live Matches': { en: 'Live Matches', pidgin: 'Live Matches', yoruba: 'Àwọn Eré Láyé', igbo: 'Egwuregwu Ndụ', hausa: 'Wasannin Raye' },
-  'Live Matches ⚡': { en: 'Live Matches ⚡', pidgin: 'Live Matches ⚡', yoruba: 'Àwọn Eré Láyé ⚡', igbo: 'Egwuregwu Ndụ ⚡', hausa: 'Wasannin Raye ⚡' },
-  'Stadium Hub': { en: 'Stadium Hub ⚡', pidgin: 'Stadium Hub ⚡', yoruba: 'Ibùdó Pápá ⚡', igbo: 'Ebe Ama Egwuregwu ⚡', hausa: 'Cibiyar Filin Wasa ⚡' },
-  'Stadium Hub ⚡': { en: 'Stadium Hub ⚡', pidgin: 'Stadium Hub ⚡', yoruba: 'Ibùdó Pápá ⚡', igbo: 'Ebe Ama Egwuregwu ⚡', hausa: 'Cibiyar Filin Wasa ⚡' },
-  'Leaderboard': { en: 'Leaderboard', pidgin: 'Leaderboard 🏆', yoruba: 'Àkójọ Olórí 🏆', igbo: 'Ndị Isi Oche 🏆', hausa: 'Teburin Jagorori 🏆' },
-  'Birthdays': { en: 'Birthdays 🎂', pidgin: 'Birthdays 🎂', yoruba: 'Ọjọ́ Ìbí 🎂', igbo: 'Ụbọchị Ọmụmụ 🎂', hausa: 'Ranar Haihuwa 🎂' },
-  'Flex Slip': { en: 'Flex Slip 🔥', pidgin: 'Flex Slip 🔥', yoruba: 'Iwe Tiketi 🔥', igbo: 'Tiketi Flex 🔥', hausa: 'Tikitin Wasa 🔥' },
-  'Flex Slip 🔥': { en: 'Flex Slip 🔥', pidgin: 'Flex Slip 🔥', yoruba: 'Iwe Tiketi 🔥', igbo: 'Tiketi Flex 🔥', hausa: 'Tikitin Wasa 🔥' },
-  'Hub': { en: 'Hub', pidgin: 'Hub', yoruba: 'Ibùdó', igbo: 'Ebe', hausa: 'Cibiya' },
-  'Profile': { en: 'Profile', pidgin: 'My Profile', yoruba: 'Àkọọ́lẹ̀ Mi', igbo: 'Profaịlụ M', hausa: 'Bayanina' },
-  'Matches': { en: 'Matches', pidgin: 'All Matches', yoruba: 'Àwọn Eré', igbo: 'Egwuregwu', hausa: 'Wasanni' },
-
-  // Filters & Tabs
+  // Status Filter Tabs
   'Live': { en: 'Live', pidgin: 'Live Now 🔴', yoruba: 'Láyé 🔴', igbo: 'Ndụ Ugbu A 🔴', hausa: 'Raye Yanzu 🔴' },
   'Upcoming': { en: 'Upcoming', pidgin: 'Coming Up 🟡', yoruba: 'Tó Ń Bọ̀ 🟡', igbo: 'Na-abịa 🟡', hausa: 'Mai Zuwa 🟡' },
   'Played': { en: 'Played', pidgin: 'Don Finish ✅', yoruba: 'Ti Ṣeré ✅', igbo: 'Emechara ✅', hausa: 'An Kammala ✅' },
-  'All': { en: 'All Matches', pidgin: 'All Matches', yoruba: 'Gbogbo Eré', igbo: 'Egwuregwu Niile', hausa: 'Duk Wasanni' },
-  'High Guarantees (70%+)': { en: '👑 High Guarantees (70%+)', pidgin: '👑 Sure Banker (70%+)', yoruba: '👑 Ìdánilójú Gíga (70%+)', igbo: '👑 Eziokwu Nwere Nkwa (70%+)', hausa: '👑 Tabbaci Mai Yawa (70%+)' },
+  'Following': { en: 'Following', pidgin: 'Following ⭐', yoruba: 'Tẹ̀lé ⭐', igbo: 'Na-eso ⭐', hausa: 'Masu Bi ⭐' },
+  'All Leagues': { en: 'All Leagues', pidgin: 'All Leagues 🌍', yoruba: 'Gbogbo Liigi 🌍', igbo: 'Liigi Niile 🌍', hausa: 'Duk Gasanni 🌍' },
+  'High Guarantees': { en: 'High Guarantees', pidgin: 'Sure Bankers 👑', yoruba: 'Ìdánilójú Gíga 👑', igbo: 'Eziokwu Nwere Nkwa 👑', hausa: 'Tabbaci Mai Yawa 👑' },
+  '👑 70%+ Bankers': { en: '👑 70%+ Bankers', pidgin: '👑 70%+ Sure Bankers', yoruba: '👑 Ìdánilójú 70%+', igbo: '👑 Eziokwu 70%+', hausa: '👑 70%+ Masu Tabbaci' },
 
-  // Date Navigator
-  'Yesterday': { en: 'Yesterday', pidgin: 'Yesterday', yoruba: 'Àná', igbo: 'Ụnyaahụ', hausa: 'Jiya' },
-  'Today': { en: 'Today', pidgin: 'Today', yoruba: 'Òní', igbo: 'Taa', hausa: 'Yau' },
-  'Tomorrow': { en: 'Tomorrow', pidgin: 'Tomorrow', yoruba: 'Ọ̀la', igbo: 'Echi', hausa: 'Gobe' },
-  'Earlier': { en: 'Earlier', pidgin: 'Earlier', yoruba: 'Tẹ́lẹ̀', igbo: 'Na Mbụ', hausa: 'Da Farko' },
-  'Ahead': { en: 'Ahead', pidgin: 'Ahead', yoruba: 'Iwájú', igbo: 'N’ihu', hausa: 'A Gaba' },
-  "Today's Matches": { en: "Today's Matches", pidgin: "Today Matches", yoruba: "Àwọn Eré Òní", igbo: "Egwuregwu Taa", hausa: "Wasannin Yau" },
-
-  // Match Cards & Actions
-  'Added ✓': { en: 'Added ✓', pidgin: 'Don Add ✓', yoruba: 'Ti Kún ✓', igbo: 'Etinyela ✓', hausa: 'An Ƙara ✓' },
-  'Tap insights': { en: 'Tap insights', pidgin: 'Tap for gist', yoruba: 'Tẹ fún ìmọ̀', igbo: 'Kpatụ maka nkọwa', hausa: 'Danna don bayani' },
-  'View Full Match Insights': { en: 'View Full Match Insights', pidgin: 'See Full Match Gist ➔', yoruba: 'Wo Ìmọ̀ Eré Pípé ➔', igbo: 'Lee Nkọwa Niile ➔', hausa: 'Duba Cikakken Bayani ➔' },
-  'Prediction Reason:': { en: 'Prediction Reason:', pidgin: 'Why We Pick Am:', yoruba: 'Ìdí Ìsọtẹ́lẹ̀:', igbo: 'Ihe Mere Anyị Ji Họrọ:', hausa: 'Dalilin Hasashe:' },
-  'Played at': { en: 'Played at', pidgin: 'Play for', yoruba: 'Ṣeré ní', igbo: 'Gbara na', hausa: 'An buga a' },
-  'Starts in': { en: 'Starts in', pidgin: 'Go start in', yoruba: 'Yóò bẹ̀rẹ̀ ní', igbo: 'Ga-amalite na', hausa: 'Zai fara a' },
-  'Home': { en: 'Home', pidgin: 'Home', yoruba: 'Ilé', igbo: 'Ụlọ', hausa: 'Gida' },
-  'Draw': { en: 'Draw', pidgin: 'Draw / Stalemate', yoruba: 'Dọ́gba', igbo: 'Jikọọ', hausa: 'Canjaras' },
-  'Away': { en: 'Away', pidgin: 'Away', yoruba: 'Àbẹ̀wò', igbo: 'Nleta', hausa: 'Waje' },
-  'ULTRA-BANKER': { en: 'ULTRA-BANKER', pidgin: 'PURE BANKER 🔥', yoruba: 'ÌDÁNILÓJÚ PÍPÉ 🔥', igbo: 'EZIOKWU 100% 🔥', hausa: 'CIKAKKEN TABBACI 🔥' },
-  'BANKER': { en: 'BANKER', pidgin: 'SURE PICK', yoruba: 'ÌDÁNILÓJÚ', igbo: 'EZIOKWU', hausa: 'TABBACI' },
-  'HIGH VALUE': { en: 'HIGH VALUE', pidgin: 'HIGH VALUE ODD', yoruba: 'IYE GÍGA', igbo: 'URÙ DỊ ELU', hausa: 'DARAJA MAI YAWA' },
-  'FT • WON': { en: 'FT • WON', pidgin: 'FT • WON ✓', yoruba: 'FT • WỌLÉ ✓', igbo: 'FT • MERIRI ✓', hausa: 'FT • AN CI ✓' },
-  'FT • LOST': { en: 'FT • LOST', pidgin: 'FT • LOST', yoruba: 'FT • BỌ́', igbo: 'FT • KỌRỌ', hausa: 'FT • AN RASA' },
-
-  // News Wire
-  'LATEST FOOTBALL NEWS & MATCH WIRE 📰': { en: 'LATEST FOOTBALL NEWS & MATCH WIRE 📰', pidgin: 'LATEST FOOTBALL GIST & MATCH WIRE 📰', yoruba: 'ÌRÒYÌN BỌ́Ọ̀LÙ TUNTUN & WÁYÀ ERÉ 📰', igbo: 'OZI ỌHỤRỤ BỌỌLỤ NA AKWỤKWỌ 📰', hausa: 'LABARAN ƘWALLON ƘAFA NA YANZU 📰' },
-  'Read Story': { en: 'Read Story', pidgin: 'Read Full Gist ➔', yoruba: 'Ka Ìròyìn ➔', igbo: 'Gụọ Akụkọ ➔', hausa: 'Karanta Labari ➔' },
-  'Share Story': { en: 'Share Story', pidgin: 'Share Gist', yoruba: 'Pín Ìròyìn', igbo: 'Kekọrịta Akụkọ', hausa: 'Raba Labari' },
-  '⚡ All News': { en: '⚡ All News', pidgin: '⚡ All Gist', yoruba: '⚡ Gbogbo Ìròyìn', igbo: '⚡ Ozi Niile', hausa: '⚡ Duk Labarai' },
-  '🔥 Transfers': { en: '🔥 Transfers', pidgin: '🔥 Transfers Gist', yoruba: '🔥 Gbígbé Agbábọ́ọ̀lù', igbo: '🔥 Mgbanwe Ndị Egwuregwu', hausa: '🔥 Sayen Yan Wasa' },
-  '🚨 Match Reports': { en: '🚨 Match Reports', pidgin: '🚨 Match Gist', yoruba: '🚨 Ìròyìn Eré', igbo: '🚨 Akụkọ Egwuregwu', hausa: '🚨 Rahoton Wasa' },
-  '🚑 Injuries': { en: '🚑 Injuries', pidgin: '🚑 Injury Bulletins', yoruba: '🚑 Ìpalára Agbábọ́ọ̀lù', igbo: '🚑 Mmerụ Ahụ', hausa: '🚑 Raunin Yan Wasa' },
-  '🧠 Manager & Tactics': { en: '🧠 Manager & Tactics', pidgin: '🧠 Coach & Tactics', yoruba: '🧠 Olùkọ́ & Ètò Eré', igbo: '🧠 Onye Nchịkwa & Usoro', hausa: '🧠 Koci & Dabaru' },
-  '🇳🇬 Naija & AFCON': { en: '🇳🇬 Naija & AFCON', pidgin: '🇳🇬 Super Eagles & Naija', yoruba: '🇳🇬 Nàìjíríà & AFCON', igbo: '🇳🇬 Naịjirịa & AFCON', hausa: '🇳🇬 Najeriya & AFCON' },
-  '⭐ UCL & Europe': { en: '⭐ UCL & Europe', pidgin: '⭐ Champions League', yoruba: '⭐ UCL & Yúróòpù', igbo: '⭐ UCL & Yurop', hausa: '⭐ UCL & Turai' },
-
-  // Hub Features
-  'STADIUM HUB & NAIJA LIVE SUITES ⚡🇳🇬': { en: 'STADIUM HUB & NAIJA LIVE SUITES ⚡🇳🇬', pidgin: 'STADIUM HUB & NAIJA LIVE SUITES ⚡🇳🇬', yoruba: 'IBÙDÓ PÁPÁ & ÀWỌN ERÉ NÀÌJÍRÍÀ ⚡🇳🇬', igbo: 'EBE AMA EGWUREGWU & SUITES NAỊJIRỊA ⚡🇳🇬', hausa: 'CIBIYAR FILIN WASA & DANDALIN NAJERIYA ⚡🇳🇬' },
-  'Naija Grassroots Scouting 🇳🇬⚽': { en: 'Naija Grassroots Scouting 🇳🇬⚽', pidgin: 'Naija Grassroots Scouting 🇳🇬⚽', yoruba: 'Àwárí Agbábọ́ọ̀lù Nàìjíríà 🇳🇬⚽', igbo: 'Nchọpụta Ndị Na-eto Eto Naịjirịa 🇳🇬⚽', hausa: 'Gano Matasan Yan Wasa Na Najeriya 🇳🇬⚽' },
-  'Gen-Z Roast & Banter Lounge 🔥': { en: 'Gen-Z Roast & Banter Lounge 🔥', pidgin: 'Naija Football Yab & Banter Lounge 🔥', yoruba: 'Yíyán Àwọn Ẹgbẹ́ & Àwàdà Bọ́ọ̀lù 🔥', igbo: 'Ebe Nkata & Njakịrị Bọọlụ 🔥', hausa: 'Dandalin Barkwanci & Zagin Ƙwallo 🔥' },
-  'Star Birthdays & Fan Wishes 🎂': { en: 'Star Birthdays & Fan Wishes 🎂', pidgin: 'Star Birthdays & Fan Wishes 🎂', yoruba: 'Ọjọ́ Ìbí Àwọn Gbajúmọ̀ Agbábọ́ọ̀lù 🎂', igbo: 'Ụbọchị Ọmụmụ Ndị Dinta Bọọlụ 🎂', hausa: 'Ranar Haihuwar Manyan Yan Wasa 🎂' },
-  'Community Golden Boy Leaderboard 🏆': { en: 'Community Golden Boy Leaderboard 🏆', pidgin: 'Top Punters & Golden Boy Leaderboard 🏆', yoruba: 'Àkójọ Olórí Golden Boy 🏆', igbo: 'Tebụl Ndị Kasị Mma Golden Boy 🏆', hausa: 'Teburin Jagororin Golden Boy 🏆' },
-  'Settlement Ledger & Banker Records 📜': { en: 'Settlement Ledger & Banker Records 📜', pidgin: 'Official Match Record & Banker Ledger 📜', yoruba: 'Àkọsílẹ̀ Ìpèníyà Eré Pípé 📜', igbo: 'Akwụkwọ Ndekọ Emechara 📜', hausa: 'Teburin Sakamakon Wasanni 📜' },
-  'Kelly Criterion Bankroll Calculator 💰': { en: 'Kelly Criterion Bankroll Calculator 💰', pidgin: 'Money Management & Bankroll Lab 💰', yoruba: 'Ètò Ìṣirò Owó Eré 💰', igbo: 'Mgbakọ Ego Egwuregwu 💰', hausa: 'Kwamfutar Kula Da Kudi 💰' },
+  // Actions & Buttons
+  'Sauke Manhaja': { en: 'Download App', pidgin: 'Download App 📲', yoruba: 'Gba Ohun Èlò 📲', igbo: 'Budata Ngwa 📲', hausa: 'Sauke Manhaja 📲' },
+  'Manyan Yan Wasa': { en: 'Star Players', pidgin: 'Star Players ⭐', yoruba: 'Àwọn Gbajúmọ̀ ⭐', igbo: 'Ndị Ama Ama ⭐', hausa: 'Manyan Yan Wasa ⭐' },
+  'Wasannin Raye': { en: 'Live Matches', pidgin: 'Live Matches ⚡', yoruba: 'Àwọn Eré Láyé ⚡', igbo: 'Egwuregwu Ndụ ⚡', hausa: 'Wasannin Raye ⚡' },
+  'Teburin Jagorori': { en: 'Leaderboard', pidgin: 'Leaderboard 🏆', yoruba: 'Àkójọ Olórí 🏆', igbo: 'Ndị Isi Oche 🏆', hausa: 'Teburin Jagorori 🏆' },
+  'Ranar Haihuwa': { en: 'Birthdays', pidgin: 'Birthdays 🎂', yoruba: 'Ọjọ́ Ìbí 🎂', igbo: 'Ụbọchị Ọmụmụ 🎂', hausa: 'Ranar Haihuwa 🎂' },
+  'Sauke': { en: 'Download', pidgin: 'Download', yoruba: 'Gba Sílẹ̀', igbo: 'Budata', hausa: 'Sauke' },
+  'Karanta Labari': { en: 'Read Story', pidgin: 'Read Full Gist ➔', yoruba: 'Ka Ìròyìn ➔', igbo: 'Gụọ Akụkọ ➔', hausa: 'Karanta Labari ➔' },
+  'Karanta Labari ➔': { en: 'Read Story ➔', pidgin: 'Read Full Gist ➔', yoruba: 'Ka Ìròyìn ➔', igbo: 'Gụọ Akụkọ ➔', hausa: 'Karanta Labari ➔' },
+  'Raba Labari': { en: 'Share Story', pidgin: 'Share Gist', yoruba: 'Pín Ìròyìn', igbo: 'Kekọrịta Akụkọ', hausa: 'Raba Labari' },
+  'Close': { en: 'Close', pidgin: 'Close', yoruba: 'Pa Dé', igbo: 'Mechie', hausa: 'Rufe' },
 };
 
 interface LanguageContextType {
@@ -186,9 +155,6 @@ const LanguageContext = createContext<LanguageContextType>({
   t: (k) => k,
   meta: SUPPORTED_LANGUAGES[0],
 });
-
-// Cache for neural translation
-const DYNAMIC_CACHE = new Map<string, string>();
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [lang, setLangState] = useState<LanguageCode>('en');
@@ -228,6 +194,56 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
     return key;
   };
+
+  // REAL-TIME AUTOMATIC DOM RECURSIVE DEEP TRANSLATION OBSERVER
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    if (lang === 'en') return;
+
+    const translateNode = (node: Node) => {
+      if (node.nodeType === Node.TEXT_NODE && node.nodeValue) {
+        const raw = node.nodeValue.trim();
+        if (raw.length > 1 && !/^\d+$/.test(raw)) {
+          for (const [enKey, map] of Object.entries(COMPREHENSIVE_DICTIONARY)) {
+            if (map[lang] && (raw === enKey || raw.toLowerCase() === enKey.toLowerCase())) {
+              node.nodeValue = node.nodeValue.replace(raw, map[lang]);
+              break;
+            }
+          }
+        }
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        const el = node as HTMLElement;
+        if (['SCRIPT', 'STYLE', 'IFRAME', 'SVG', 'NOSCRIPT'].includes(el.tagName)) return;
+        
+        // Translate placeholders
+        if (el.getAttribute && el.getAttribute('placeholder')) {
+          const ph = el.getAttribute('placeholder')!;
+          if (COMPREHENSIVE_DICTIONARY[ph]?.[lang]) {
+            el.setAttribute('placeholder', COMPREHENSIVE_DICTIONARY[ph][lang]);
+          }
+        }
+
+        // Translate child nodes
+        node.childNodes.forEach(translateNode);
+      }
+    };
+
+    // Initial pass
+    translateNode(document.body);
+
+    // Dynamic Mutation Observer for lazy/async rendered elements & modals
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((addedNode) => {
+          translateNode(addedNode);
+        });
+      });
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => observer.disconnect();
+  }, [lang]);
 
   const meta = SUPPORTED_LANGUAGES.find((l) => l.code === lang) || SUPPORTED_LANGUAGES[0];
 
