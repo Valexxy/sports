@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { PersistentStorage } from '../lib/persistent-storage-engine';
 import { getClubCrest } from '../lib/club-crest-engine';
 import { MatchData } from '../lib/sports-api';
 import { getLeagueInfo } from '../lib/league-badges';

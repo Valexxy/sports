@@ -226,20 +226,7 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
           </button>
 
           
-          {/* Light / Dark Mode Toggle */}
-          {onToggleTheme && (
-            <button
-              onClick={onToggleTheme}
-              className="p-2 rounded-2xl bg-panel border border-white/10 hover:border-gold/50 text-gold transition-all active:scale-95"
-              title={currentTheme === 'dark' ? 'Switch to Daylight Light Mode ☀️' : 'Switch to Cyber Obsidian Dark Mode 🌙'}
-            >
-              {currentTheme === 'dark' ? (
-                <Moon className="w-3.5 h-3.5 text-gold" />
-              ) : (
-                <Sun className="w-3.5 h-3.5 text-amber-500" />
-              )}
-            </button>
-          )}
+
 
           {/* Language Switcher AT THE VERY TOP */}
           <div className="flex-shrink-0">

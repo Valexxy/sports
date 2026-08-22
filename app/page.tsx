@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { PersistentStorage } from '../lib/persistent-storage-engine';
 import { StadiumHeader } from '../components/stadium-header';
 import { DailyMatchCard } from '../components/daily-match-card';
 import { LeagueStandingsTable } from '../components/league-standings-table';
@@ -70,12 +71,15 @@ export default function Home() {
   const [visibleCount, setVisibleCount] = useState(12);
   const [activeDockTab, setActiveDockTab] = useState('MATCHES');
   const [showBetSlipDrawer, setShowBetSlipDrawer] = useState(false);
-  const [followedMatchIds, setFollowedMatchIds] = useState<string[]>([]);
+  const [followedMatchIds, setFollowedMatchIds] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') return PersistentStorage.getFollowedMatches();
+    return [];
+  });
   const [followedLeagues, setFollowedLeagues] = useState<string[]>([]);
   const [showLeagueBrowser, setShowLeagueBrowser] = useState(false);
   const [showPlayersModal, setShowPlayersModal] = useState(false);
   const [followedPlayers, setFollowedPlayers] = useState<string[]>([]);
-  const [currentTheme, setCurrentTheme] = useState<'dark' | 'light'>('dark');
+  // Dark Mode Permanently Locked
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [savedMatches, setSavedMatches] = useState<MatchData[]>([]);
   const [betSlipItems, setBetSlipItems] = useState<BetItem[]>([]);
@@ -147,22 +151,7 @@ export default function Home() {
 
   
   
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem('aurascore_theme') as 'dark' | 'light';
-      if (savedTheme) setCurrentTheme(savedTheme);
-    }
-  }, []);
-
-  const handleToggleTheme = () => {
-    setCurrentTheme((prev) => {
-      const nextTheme = prev === 'dark' ? 'light' : 'dark';
-      try {
-        localStorage.setItem('aurascore_theme', nextTheme);
-      } catch {}
-      return nextTheme;
-    });
-  };
+  // Permanent Cyber Obsidian Dark Mode
 
   const handleToggleFollowLeague = (leagueId: string) => {
     setFollowedLeagues((prev) => {
@@ -273,7 +262,7 @@ export default function Home() {
 
   return (
     <ErrorBoundary>
-      <div className={`min-h-screen bg-void flex flex-col pb-24 selection:bg-stadiumGreen selection:text-black font-sans ${currentTheme === "light" ? "theme-light" : ""}`}>
+      <div className={`min-h-screen bg-void flex flex-col pb-24 selection:bg-stadiumGreen selection:text-black font-sans `}>
 
         <BroadcastTicker matches={matches} onSelectUpdate={handleSelectTickerUpdate} />
         <OfflineBanner />
@@ -283,9 +272,8 @@ export default function Home() {
 
 
         <StadiumHeader
-          currentTheme={currentTheme}
+          
           onOpenPlayers={() => setShowPlayersModal(true)}
-          onToggleTheme={handleToggleTheme}
           onOpenReceipt={() => matches.length > 0 && setSelectedMatchForReceipt(matches[0])}
           onOpenLedger={() => setShowTrackRecord(true)}
           onOpenBankroll={() => setShowBankroll(true)}
@@ -593,8 +581,6 @@ export default function Home() {
             onClose={() => setShowProfile(false)}
             followedMatchIds={followedMatchIds}
             followedLeagues={followedLeagues}
-            currentTheme={currentTheme}
-            onToggleTheme={handleToggleTheme}
           />
         )}
         {showTeamsModal && <TeamExplorerModal onClose={() => setShowTeamsModal(false)} />}
