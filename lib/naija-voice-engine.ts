@@ -1,3 +1,5 @@
+let hasUserTriggeredSpeech = false;
+export function allowSpeechOnUserGesture() { hasUserTriggeredSpeech = true; }
 /**
  * NAIJA VIBE — NIGERIAN ACCENT VOICE ENGINE (en-NG)
  * Signature commentator voice. 100% free, works offline via browser SpeechSynthesis.
@@ -94,7 +96,7 @@ export function speakNaija(
 
   // Chrome needs this kick to reliably start speaking after an async voice load.
   synth.cancel();
-  synth.speak(utterance);
+  if (hasUserTriggeredSpeech) { synth.speak(utterance); }
 
   return () => {
     try {

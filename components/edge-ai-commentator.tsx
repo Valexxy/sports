@@ -84,7 +84,7 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
   const [activeEffect, setActiveEffect] = useState<{ effect: EventEffect; ctx: RealCommentaryEvent } | null>(null);
   const seenEventKeys = useRef<Set<string>>(new Set());
   const lastSpokenKey = useRef<string | null>(null);
-  const [autoSpeak, setAutoSpeak] = useState(true);
+  const [autoSpeak, setAutoSpeak] = useState(false);
 
   // Prime voices once on mount so the first tap speaks instantly.
   useEffect(() => {
@@ -146,7 +146,7 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
           minute: top.minute,
         });
         setActiveEffect({ effect, ctx: top });
-        playEventSound(effect.sound);
+        // auto sound disabled
 
         if (autoSpeak) {
           const key = eventDedupeKey({

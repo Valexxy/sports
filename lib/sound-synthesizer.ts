@@ -93,7 +93,7 @@ class StadiumAudioEngine {
     lfo.start(now);
     lfo.stop(now + 1.3);
 
-    this.speakNigerian('GOLAZO! E don enter! Na goal be this o!');
+    // speech on click only
   }
 
   /** 2. REFEREE KICKOFF WHISTLE — Crisp high acoustic pitch with vibrato */
@@ -119,12 +119,12 @@ class StadiumAudioEngine {
         osc.start(now + offset);
         osc.stop(now + offset + 0.28);
       });
-      this.speakNigerian('Full time! Match don finish!');
+      // speech on click only
     } else if (type === 'halftime') {
       [0, 0.4].forEach((offset) => {
         this.tone(3000, 'sine', now + offset, 0.3, 0.25);
       });
-      this.speakNigerian('Half time! Rest small!');
+      // speech on click only
     } else {
       // Single sharp kickoff whistle
       const osc = this.audioCtx.createOscillator();
@@ -139,7 +139,7 @@ class StadiumAudioEngine {
       g.connect(this.audioCtx.destination);
       osc.start(now);
       osc.stop(now + 0.48);
-      this.speakNigerian('Referee blow whistle! Match don start!');
+      // speech on click only
     }
   }
 
@@ -151,7 +151,7 @@ class StadiumAudioEngine {
     const now = this.audioCtx.currentTime;
     this.tone(440, 'sawtooth', now, 0.15, 0.14);
     this.tone(330, 'square', now + 0.12, 0.25, 0.12);
-    this.speakNigerian('Yellow card! Ref don warn am!');
+    // speech on click only
   }
 
   /** 4. RED CARD — Menacing low alarm siren */
@@ -162,7 +162,7 @@ class StadiumAudioEngine {
     const now = this.audioCtx.currentTime;
     this.tone(180, 'sawtooth', now, 0.35, 0.22);
     this.tone(130, 'square', now + 0.18, 0.45, 0.25);
-    this.speakNigerian('Red card wahala! Player don comot pitch!');
+    // speech on click only
   }
 
   /** 5. ADD PICK TO SLIP — Crisp Ascending Cash Register Chime */
@@ -215,7 +215,7 @@ class StadiumAudioEngine {
     [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((f, i) => {
       this.tone(f, 'triangle', now + i * 0.07, 0.8, 0.16);
     });
-    this.speakNigerian('Ticket don enter! Correct banker confirmed!');
+    // speech on click only
   }
 
   /** 10. LEAGUE TABLE SWOOSH — Digital Data Scan Sweep */
