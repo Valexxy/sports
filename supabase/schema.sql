@@ -203,12 +203,15 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER IF NOT EXISTS matches_updated_at
+-- Drop existing triggers if they exist, then recreate
+DROP TRIGGER IF EXISTS matches_updated_at ON public.matches;
+CREATE TRIGGER matches_updated_at
     BEFORE UPDATE ON public.matches
     FOR EACH ROW
     EXECUTE FUNCTION public.handle_updated_at();
 
-CREATE TRIGGER IF NOT EXISTS user_profiles_updated_at
+DROP TRIGGER IF EXISTS user_profiles_updated_at ON public.user_profiles;
+CREATE TRIGGER user_profiles_updated_at
     BEFORE UPDATE ON public.user_profiles
     FOR EACH ROW
     EXECUTE FUNCTION public.handle_updated_at();
