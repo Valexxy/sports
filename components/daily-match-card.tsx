@@ -149,6 +149,16 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
 }) => {
   const { t } = useTranslation();
   const [bookmarked, setBookmarked] = useState(false);
+  const basePins = Math.round((match.prediction?.topPick?.probability || 75) * 14.2 + (parseInt(match.id.replace(/[^0-9]/g, '') || '42', 10) % 320));
+  const [pinCount, setPinCount] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const isPinned = PersistentStorage.getBookmarks().includes(match.id);
+      return isPinned ? basePins + 1 : basePins;
+    }
+    return basePins;
+  });
+  const [justPinnedEffect, setJustPinnedEffect] = useState(false);
+
   const isLive = match.status === 'LIVE';
   const isFinished = match.status === 'FINISHED';
   const isUpcoming = match.status === 'SCHEDULED';
@@ -258,10 +268,20 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
             </button>
             <button 
               onClick={handleBookmark}
-              className={'p-1.5 rounded-xl border transition-all ' + (bookmarked ? 'bg-gold/25 border-gold text-gold shadow-md shadow-gold/30 scale-105' : 'bg-black/40 border-white/10 text-gray-400 hover:text-gold')}
+              className={'relative px-2 py-1 rounded-xl border transition-all flex items-center space-x-1 ' + (bookmarked ? 'bg-gold/25 border-gold text-gold shadow-md shadow-gold/30 scale-105 ring-1 ring-gold/40' : 'bg-black/40 border-white/10 text-gray-400 hover:text-gold hover:border-gold/30')}
               title={bookmarked ? "⭐ Pinned to Smart Phone Lock Screen Widget (Tap to unpin)" : "⭐ Pin to Smart Phone Lock Screen Widget"}
             >
-              <Star className={'w-3.5 h-3.5 ' + (bookmarked ? 'fill-current animate-pulse' : '')} />
+              <Star className={'w-3.5 h-3.5 ' + (bookmarked ? 'fill-current text-gold animate-pulse' : '')} />
+              <span className="text-[10px] font-mono font-black">
+                {pinCount >= 1000 ? (pinCount / 1000).toFixed(1) + 'k' : pinCount}
+              </span>
+              
+              {/* Floating +1 Animation Badge */}
+              {justPinnedEffect && (
+                <span className="absolute -top-3.5 -right-1 px-1.5 py-0.2 rounded-full bg-gradient-to-r from-gold to-amber-400 text-black font-black text-[9px] animate-bounce shadow-lg pointer-events-none">
+                  +1
+                </span>
+              )}
             </button>
           </div>
         </div>
