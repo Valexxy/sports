@@ -171,12 +171,12 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
         {/* Hero Header Scoreboard */}
         <div className="flex items-center space-x-2 text-xs font-mono text-stadiumGreen font-bold mb-1">
           <Zap className="w-4 h-4 animate-bounce" />
-          <span>STADIUM LIVE MATCH CENTER • {visitorData?.city ? `${visitorData.city} (${visitorData.countryCode})` : 'Worldwide'}</span>
+          <span>STADIUM LIVE MATCH CENTER • {match.venue && match.venue !== 'Official League Stadium' ? match.venue : `${match.homeTeam} Stadium`}</span>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-4 mb-4 gap-2">
           <div>
-            <span className="text-xs font-mono text-gray-400">{match.leagueFlag} {match.league} • ☀️ Live Weather 28°C</span>
+            <span className="text-xs font-mono text-gray-400">{match.leagueFlag} {match.league} • 🏟️ {match.venue && match.venue !== 'Official League Stadium' ? match.venue : `${match.homeTeam} Arena`}</span>
             <h2 className="text-xl sm:text-3xl font-black text-white flex items-center space-x-2 mt-0.5">
               <span>{match.homeTeam}</span>
               <span className="text-stadiumGreen font-mono">VS</span>

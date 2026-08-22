@@ -5,6 +5,7 @@
  */
 
 import { calculateDixonColesPrediction, MatchStats } from './dixon-coles';
+import { getTeamStrength } from './team-ratings';
 import { computeLiveMatchMomentum } from './match-momentum-engine';
 import { MatchData } from './sports-api';
 

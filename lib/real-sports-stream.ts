@@ -5,6 +5,7 @@
  */
 
 import { calculateDixonColesPrediction, MatchStats } from './dixon-coles';
+import { getTeamStrength } from './team-ratings';
 import { SmartApiThrottler } from './smart-api-throttler';
 import { MatchData, BookmakerOdds, CommentaryEvent, MatchDetails, MatchLineupEntry, MatchStatsRow } from './sports-api';
 
@@ -31,20 +32,7 @@ export const LEAGUE_METADATA: Record<string, { flag: string; sport: 'SOCCER' | '
   'WTA Tennis': { flag: '🎾👩', sport: 'TENNIS' },
 };
 
-function estimateTeamStrength(teamName: string): { attack: number; defense: number } {
-  const name = teamName.toLowerCase();
-  // Top attacking teams
-  if (name.includes('manchester city') || name.includes('man city') || name.includes('real madrid') || name.includes('barcelona') || name.includes('bayern')) 
-    return { attack: 2.1, defense: 0.72 };
-  if (name.includes('arsenal') || name.includes('liverpool') || name.includes('atletico') || name.includes('psg') || name.includes('inter') || name.includes('napoli'))
-    return { attack: 1.85, defense: 0.82 };
-  if (name.includes('chelsea') || name.includes('tottenham') || name.includes('juventus') || name.includes('milan') || name.includes('dortmund'))
-    return { attack: 1.65, defense: 0.95 };
-  if (name.includes('leicester') || name.includes('west ham') || name.includes('newcastle') || name.includes('roma') || name.includes('sevilla'))
-    return { attack: 1.40, defense: 1.10 };
-  // Default mid-table
-  return { attack: 1.20, defense: 1.25 };
-}
+function estimateTeamStrength(teamName: string) { return getTeamStrength(teamName); }
 
 // 1. Fetch Football-Data.org Matches
 async function fetchFootballDataMatches(): Promise<MatchData[]> {

@@ -171,6 +171,8 @@ export default function Home() {
     if (match) setSelectedMatchForInsights(match);
   };
 
+  const [highGuaranteesOnly, setHighGuaranteesOnly] = useState(false);
+
   const sportMatches = matches.filter(m => m.sport === selectedSport);
   const liveCount = sportMatches.filter(m => m.status === 'LIVE').length;
   const upcomingCount = sportMatches.filter(m => m.status === 'SCHEDULED').length;
@@ -184,10 +186,11 @@ export default function Home() {
       if (activeFilter === 'LIVE') return m.status === 'LIVE';
       if (activeFilter === 'UPCOMING') return m.status === 'SCHEDULED';
       if (activeFilter === 'PLAYED') return m.status === 'FINISHED';
+      if (highGuaranteesOnly && (m.prediction?.topPick?.probability || 0) < 68) return false;
       return true; // ALL
     });
     return sortMatchesByClosestKickoff(base, activeFilter);
-  }, [matches, selectedSport, searchQuery, activeFilter]);
+  }, [matches, selectedSport, searchQuery, activeFilter, highGuaranteesOnly]);
 
   const displayedMatches = filteredMatches.slice(0, visibleCount);
 
@@ -298,6 +301,19 @@ export default function Home() {
                   )}
                 </button>
               ))}
+
+              {/* High Guarantees Only (70%+ probability) */}
+              <button
+                onClick={() => setHighGuaranteesOnly(!highGuaranteesOnly)}
+                className={'flex-shrink-0 flex items-center space-x-1.5 px-3 py-2 rounded-2xl border text-xs font-black transition-all ' +
+                  (highGuaranteesOnly
+                    ? 'bg-stadiumGreen/20 border-stadiumGreen text-stadiumGreen scale-105 shadow-md shadow-stadiumGreen/20'
+                    : 'border-white/10 text-gray-400 bg-panel hover:text-white hover:border-white/20')}
+                title="Show only matches with >= 70% win probability or Ultra-Banker rating"
+              >
+                <span>👑</span>
+                <span>High Guarantees (70%+)</span>
+              </button>
             </div>
 
             {/* Sport selector */}

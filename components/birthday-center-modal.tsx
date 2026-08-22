@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { X, Cake, Sparkles, Heart, Trophy, Share2, Calendar, Award, ChevronRight, Globe, Star, Users, Zap, Instagram, Twitter } from 'lucide-react';
+import { X, Cake, Sparkles, Heart, Trophy, Share2, Calendar, Award, ChevronRight, Globe, Star, Users, Zap, Instagram, Twitter, Flame } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { stadiumAudio } from '../lib/sound-synthesizer';
 
@@ -14,13 +14,14 @@ export interface BirthdayPlayer {
   country: string;
   countryFlag: string;
   birthYear: number;
-  birthMonth: number;
-  birthDay: number;
+  birthMonth: number; // 1 - 12
+  birthDay: number;   // 1 - 31
   birthDate?: string;
   age?: number;
   sport: 'FOOTBALL' | 'BASKETBALL' | 'TENNIS' | 'ATHLETICS' | 'BOXING';
   position: string;
   photoUrl: string;
+  fallbackPhotoUrl?: string;
   trophies: string;
   quote: string;
   wishesCount: number;
@@ -33,33 +34,60 @@ export interface BirthdayPlayer {
 }
 
 type SportCategory = 'ALL' | 'FOOTBALL' | 'BASKETBALL' | 'TENNIS' | 'ATHLETICS' | 'BOXING';
-type FilterTab = 'THIS_WEEK' | 'THIS_MONTH' | 'ALL';
+type FilterTab = 'TODAY' | 'THIS_WEEK' | 'THIS_MONTH' | 'ALL';
 
 // ─── PLAYER DATABASE ─────────────────────────────────────────────────────────
 
 const STAR_BIRTHDAYS: BirthdayPlayer[] = [
+  // ⚽ FOOTBALL — TODAY (August 22)
+  {
+    id: 'bday-lautaro',
+    name: 'Lautaro Martínez',
+    sport: 'FOOTBALL',
+    club: 'Inter Milan 🇮🇹',
+    country: 'Argentina',
+    countryFlag: '🇦🇷',
+    birthYear: 1997, birthMonth: 8, birthDay: 22,
+    position: 'Striker / El Toro',
+    nationality: 'Argentine',
+    height: '1.74m',
+    marketValue: '€110M',
+    photoUrl: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=500&auto=format&fit=crop&q=80',
+    fallbackPhotoUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=500&auto=format&fit=crop&q=80',
+    trophies: 'World Cup 2022, 2× Copa América, 2× Serie A, Capocannoniere',
+    quote: 'El Toro never stops charging. We fight for every inch on the pitch.',
+    wishesCount: 5120,
+    stats: [
+      { label: 'Inter Goals', value: '130+' },
+      { label: 'Argentina Goals', value: '30' },
+      { label: 'Serie A POTY', value: '2024' },
+      { label: 'World Cup', value: 'Champion 🏆' },
+    ],
+    instagram: 'lautaromartinez',
+  },
   // ⚽ FOOTBALL
   {
     id: 'bday-lewandowski',
     name: 'Robert Lewandowski',
     sport: 'FOOTBALL',
-    club: 'FC Barcelona',
+    club: 'FC Barcelona 🇪🇸',
     country: 'Poland',
     countryFlag: '🇵🇱',
     birthYear: 1988, birthMonth: 8, birthDay: 21,
-    position: 'Centre Forward',
+    position: 'Centre Forward / Goal Machine',
     nationality: 'Polish',
     height: '1.85m',
     marketValue: '€15M',
-    photoUrl: 'https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/132145.png&w=350&h=254',
-    trophies: 'UCL, 10× Bundesliga, La Liga, 2× FIFA Best',
+    photoUrl: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=500&auto=format&fit=crop&q=80',
+    fallbackPhotoUrl: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=500&auto=format&fit=crop&q=80',
+    trophies: 'UCL, 10× Bundesliga, La Liga, 2× FIFA The Best',
     quote: 'Hard work beats talent when talent doesn\'t work hard.',
     wishesCount: 2840,
     stats: [
       { label: 'Club Goals', value: '600+' },
-      { label: 'Int\'l Goals', value: '82' },
-      { label: 'Seasons', value: '18' },
+      { label: 'Int\'l Goals', value: '84' },
       { label: 'Golden Boots', value: '6' },
+      { label: 'Seasons', value: '18' },
     ],
     twitter: 'lewy_official',
   },
@@ -67,46 +95,70 @@ const STAR_BIRTHDAYS: BirthdayPlayer[] = [
     id: 'bday-henry',
     name: 'Thierry Henry',
     sport: 'FOOTBALL',
-    club: 'Arsenal (Retired)',
+    club: 'Arsenal Invincibles 🏴󠁧󠁢󠁥󠁮󠁧󠁿',
     country: 'France',
     countryFlag: '🇫🇷',
     birthYear: 1977, birthMonth: 8, birthDay: 17,
-    position: 'Striker',
+    position: 'Striker / King of Highbury',
     nationality: 'French',
     height: '1.88m',
     marketValue: 'Legend',
-    photoUrl: 'https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/352.png&w=350&h=254',
-    trophies: 'World Cup 1998, EURO 2000, 2× PL, UCL',
+    photoUrl: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=500&auto=format&fit=crop&q=80',
+    fallbackPhotoUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=500&auto=format&fit=crop&q=80',
+    trophies: 'World Cup 1998, EURO 2000, 2× Premier League, UCL',
     quote: 'Sometimes in football you have to score goals before you think of style.',
     wishesCount: 3450,
     stats: [
       { label: 'Arsenal Goals', value: '228' },
       { label: 'Int\'l Goals', value: '51' },
       { label: 'PL Golden Boots', value: '4' },
-      { label: 'PFA POTY', value: '2× Winner' },
+      { label: 'Invincible', value: '2003-04 👑' },
+    ],
+  },
+  {
+    id: 'bday-bernardo',
+    name: 'Bernardo Silva',
+    sport: 'FOOTBALL',
+    club: 'Manchester City 🏴󠁧󠁢󠁥󠁮󠁧󠁿',
+    country: 'Portugal',
+    countryFlag: '🇵🇹',
+    birthYear: 1994, birthMonth: 8, birthDay: 10,
+    position: 'Playmaker / Tactical Genius',
+    nationality: 'Portuguese',
+    height: '1.73m',
+    marketValue: '€70M',
+    photoUrl: 'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=500&auto=format&fit=crop&q=80',
+    trophies: 'UCL, 6× Premier League, UEFA Nations League',
+    quote: 'Magician on the ball with relentless tactical pressing.',
+    wishesCount: 1980,
+    stats: [
+      { label: 'PL Titles', value: '6' },
+      { label: 'Man City Apps', value: '350+' },
+      { label: 'Treble Winner', value: '2023 🏆' },
+      { label: 'Pass Accuracy', value: '89%' },
     ],
   },
   {
     id: 'bday-haaland',
     name: 'Erling Haaland',
     sport: 'FOOTBALL',
-    club: 'Manchester City',
+    club: 'Manchester City 🏴󠁧󠁢󠁥󠁮󠁧󠁿',
     country: 'Norway',
     countryFlag: '🇳🇴',
     birthYear: 2000, birthMonth: 7, birthDay: 21,
-    position: 'Centre Forward',
+    position: 'Striker / The Cyborg',
     nationality: 'Norwegian',
     height: '1.94m',
     marketValue: '€180M',
-    photoUrl: 'https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/251347.png&w=350&h=254',
-    trophies: 'UCL, 2× PL, Treble Winner, Golden Boot',
-    quote: 'Stay hungry. Focus on the net. Never stop.',
+    photoUrl: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=500&auto=format&fit=crop&q=80',
+    trophies: 'UCL, 2× Premier League, Treble Winner, Golden Boot',
+    quote: 'Stay hungry, focus on the net, never stop scoring.',
     wishesCount: 4210,
     stats: [
       { label: 'PL Season Record', value: '36 Goals' },
       { label: 'UCL Goals', value: '44' },
       { label: 'Goals/Game', value: '0.87' },
-      { label: 'Age', value: '24' },
+      { label: 'Hat-tricks', value: '18' },
     ],
     instagram: 'erling.haaland',
   },
@@ -114,67 +166,67 @@ const STAR_BIRTHDAYS: BirthdayPlayer[] = [
     id: 'bday-kane',
     name: 'Harry Kane',
     sport: 'FOOTBALL',
-    club: 'Bayern Munich',
+    club: 'Bayern Munich 🇩🇪',
     country: 'England',
     countryFlag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
     birthYear: 1993, birthMonth: 7, birthDay: 28,
-    position: 'Centre Forward',
+    position: 'Striker / Golden Boot',
     nationality: 'English',
     height: '1.88m',
     marketValue: '€80M',
-    photoUrl: 'https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/156942.png&w=350&h=254',
-    trophies: 'European Golden Shoe, 3× PL Golden Boot, Euro 2024 Runner-up',
+    photoUrl: 'https://images.unsplash.com/photo-1489944445391-11dd35574549?w=500&auto=format&fit=crop&q=80',
+    trophies: 'European Golden Shoe, 3× Premier League Golden Boot',
     quote: 'Never let setbacks define your ultimate journey.',
     wishesCount: 1520,
     stats: [
       { label: 'England Goals', value: '69' },
-      { label: 'Bundesliga Goals', value: '36 (season)' },
+      { label: 'Bundesliga Goals', value: '36' },
       { label: 'PL Goals', value: '213' },
-      { label: 'England Caps', value: '100+' },
+      { label: 'Golden Shoes', value: '2024 👟' },
     ],
   },
   {
     id: 'bday-modric',
     name: 'Luka Modrić',
     sport: 'FOOTBALL',
-    club: 'Real Madrid',
+    club: 'Real Madrid 🇪🇸',
     country: 'Croatia',
     countryFlag: '🇭🇷',
     birthYear: 1985, birthMonth: 9, birthDay: 9,
-    position: 'Central Midfielder',
+    position: 'Midfield Maestro',
     nationality: 'Croatian',
     height: '1.72m',
     marketValue: '€4M',
-    photoUrl: 'https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/104327.png&w=350&h=254',
+    photoUrl: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=500&auto=format&fit=crop&q=80',
     trophies: '6× UCL, Ballon d\'Or 2018, 4× La Liga',
     quote: 'Age is just a number when passion drives your feet.',
     wishesCount: 3890,
     stats: [
-      { label: 'UCL Wins', value: '6' },
-      { label: 'La Liga Wins', value: '4' },
+      { label: 'UCL Titles', value: '6 🏆' },
       { label: 'Ballon d\'Or', value: '2018' },
-      { label: 'WC Best Player', value: '2018' },
+      { label: 'Real Madrid Apps', value: '530+' },
+      { label: 'WC Silver/Bronze', value: '2018/2022' },
     ],
   },
   {
     id: 'bday-saka',
     name: 'Bukayo Saka',
     sport: 'FOOTBALL',
-    club: 'Arsenal',
+    club: 'Arsenal 🏴󠁧󠁢󠁥󠁮󠁧󠁿',
     country: 'England',
     countryFlag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
     birthYear: 2001, birthMonth: 9, birthDay: 5,
-    position: 'Right Winger',
+    position: 'Right Winger / Starboy',
     nationality: 'English-Nigerian',
     height: '1.78m',
     marketValue: '€130M',
-    photoUrl: 'https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/253907.png&w=350&h=254',
-    trophies: 'FA Cup, 2× Community Shield, England Player of Year',
+    photoUrl: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=500&auto=format&fit=crop&q=80',
+    trophies: 'FA Cup, 2× Community Shield, 2× England POTY',
     quote: 'God gives me strength, the fans give me wings.',
     wishesCount: 2610,
     stats: [
       { label: 'PL Goals (23/24)', value: '16' },
-      { label: 'Assists (23/24)', value: '9' },
+      { label: 'Assists', value: '9' },
       { label: 'England Goals', value: '18' },
       { label: 'Dribbles/Game', value: '2.4' },
     ],
@@ -184,22 +236,22 @@ const STAR_BIRTHDAYS: BirthdayPlayer[] = [
     id: 'bday-osimhen',
     name: 'Victor Osimhen',
     sport: 'FOOTBALL',
-    club: 'Galatasaray (loan)',
+    club: 'Galatasaray 🇹🇷 (Loan)',
     country: 'Nigeria',
     countryFlag: '🇳🇬',
     birthYear: 1998, birthMonth: 12, birthDay: 29,
-    position: 'Centre Forward',
+    position: 'Striker / African Footballer of the Year',
     nationality: 'Nigerian',
     height: '1.85m',
     marketValue: '€80M',
-    photoUrl: 'https://a.espncdn.com/combiner/i?img=/i/headshots/soccer/players/full/247605.png&w=350&h=254',
-    trophies: 'Serie A Title 2023, Super Eagles, AFCON 2023',
-    quote: 'From the streets of Lagos to world stages. Nothing stops me.',
-    wishesCount: 3100,
+    photoUrl: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=500&auto=format&fit=crop&q=80',
+    trophies: 'Serie A Title 2023, Capocannoniere, CAF POTY 2023',
+    quote: 'From the streets of Olusosun Lagos to world glory. Believe in yourself.',
+    wishesCount: 5420,
     stats: [
       { label: 'Serie A Goals', value: '26 (22/23)' },
-      { label: 'Nigeria Goals', value: '21' },
-      { label: 'CAF POTY', value: '2023' },
+      { label: 'Super Eagles Goals', value: '21' },
+      { label: 'CAF Player of Year', value: '2023 👑' },
       { label: 'Market Value', value: '€80M' },
     ],
     instagram: 'victorosimhen9',
@@ -209,23 +261,23 @@ const STAR_BIRTHDAYS: BirthdayPlayer[] = [
     id: 'bday-lebron',
     name: 'LeBron James',
     sport: 'BASKETBALL',
-    club: 'LA Lakers',
+    club: 'LA Lakers 🇺🇸',
     country: 'USA',
     countryFlag: '🇺🇸',
     birthYear: 1984, birthMonth: 12, birthDay: 30,
-    position: 'Small Forward / GOAT',
+    position: 'Small Forward / King James',
     nationality: 'American',
     height: '2.06m',
     marketValue: 'Legend',
-    photoUrl: 'https://cdn.nba.com/headshots/nba/latest/1040x760/2544.png',
-    trophies: '4× NBA Champion, 4× Finals MVP, 4× NBA MVP',
-    quote: 'Strive for greatness.',
+    photoUrl: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=500&auto=format&fit=crop&q=80',
+    trophies: '4× NBA Champion, 4× Finals MVP, 4× NBA MVP, All-Time Scorer',
+    quote: 'Strive for greatness every single day.',
     wishesCount: 9800,
     stats: [
+      { label: 'All-Time Points', value: '40,000+' },
       { label: 'Career PPG', value: '27.1' },
-      { label: 'Career Points', value: '40,000+' },
-      { label: 'All-Star Apps', value: '20' },
-      { label: 'Championships', value: '4' },
+      { label: 'Championships', value: '4 🏆' },
+      { label: 'All-Star Games', value: '20' },
     ],
     twitter: 'KingJames',
     instagram: 'kingjames',
@@ -234,121 +286,73 @@ const STAR_BIRTHDAYS: BirthdayPlayer[] = [
     id: 'bday-curry',
     name: 'Stephen Curry',
     sport: 'BASKETBALL',
-    club: 'Golden State Warriors',
+    club: 'Golden State Warriors 🇺🇸',
     country: 'USA',
     countryFlag: '🇺🇸',
     birthYear: 1988, birthMonth: 3, birthDay: 14,
-    position: 'Point Guard',
+    position: 'Point Guard / Chef Curry',
     nationality: 'American',
     height: '1.88m',
     marketValue: 'All-Time',
-    photoUrl: 'https://cdn.nba.com/headshots/nba/latest/1040x760/201939.png',
-    trophies: '4× NBA Champion, 2× MVP, 3× Finals',
-    quote: 'Success is not an accident, it is hard work, perseverance.',
+    photoUrl: 'https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=500&auto=format&fit=crop&q=80',
+    trophies: '4× NBA Champion, 2× MVP, Finals MVP, 3PT Record',
+    quote: 'I can do all things through Christ who strengthens me.',
     wishesCount: 6540,
     stats: [
-      { label: '3PT Record', value: '3,747 (all-time)' },
+      { label: '3PT Record', value: '3,747+ 🎯' },
       { label: 'Career PPG', value: '24.8' },
-      { label: 'Championships', value: '4' },
+      { label: 'Championships', value: '4 🏆' },
       { label: 'Unanimous MVP', value: '2016' },
     ],
     twitter: 'StephenCurry30',
-  },
-  {
-    id: 'bday-giannis',
-    name: 'Giannis Antetokounmpo',
-    sport: 'BASKETBALL',
-    club: 'Milwaukee Bucks',
-    country: 'Greece',
-    countryFlag: '🇬🇷',
-    birthYear: 1994, birthMonth: 12, birthDay: 6,
-    position: 'Power Forward',
-    nationality: 'Greek-Nigerian',
-    height: '2.11m',
-    marketValue: 'Elite',
-    photoUrl: 'https://cdn.nba.com/headshots/nba/latest/1040x760/203507.png',
-    trophies: 'NBA Champion 2021, 2× MVP, Finals MVP, DPOY',
-    quote: 'You have to work hard in the dark to shine in the light.',
-    wishesCount: 5430,
-    stats: [
-      { label: 'Career PPG', value: '28.4' },
-      { label: 'Career RPG', value: '11.5' },
-      { label: 'Championships', value: '1' },
-      { label: 'All-Star Apps', value: '9' },
-    ],
-    instagram: 'giannisantetokounmpo',
   },
   // 🎾 TENNIS
   {
     id: 'bday-djokovic',
     name: 'Novak Djokovic',
     sport: 'TENNIS',
-    club: 'Serbia National',
+    club: 'Serbia 🇷🇸',
     country: 'Serbia',
     countryFlag: '🇷🇸',
     birthYear: 1987, birthMonth: 5, birthDay: 22,
-    position: 'World No.1 / GOAT',
+    position: 'World No.1 / Tennis GOAT',
     nationality: 'Serbian',
     height: '1.88m',
     marketValue: 'GOAT',
-    photoUrl: 'https://www.atptour.com/-/media/alias/player-gladiator-headshot/D643',
-    trophies: '24× Grand Slams, Olympic Gold 2024, 7× Wimbledon',
-    quote: 'It\'s loving what you do that matters. Nothing else.',
+    photoUrl: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=500&auto=format&fit=crop&q=80',
+    trophies: '24× Grand Slams, Olympic Gold 2024, 7× ATP Finals, 428 Weeks at No.1',
+    quote: 'Pressure is a privilege. Believe when nobody else does.',
     wishesCount: 7120,
     stats: [
-      { label: 'Grand Slams', value: '24' },
+      { label: 'Grand Slams', value: '24 🏆' },
       { label: 'Weeks at No.1', value: '428+' },
-      { label: 'Career Titles', value: '98' },
-      { label: 'Olympic Gold', value: '2024' },
+      { label: 'Olympic Gold', value: 'Paris 2024' },
+      { label: 'ATP Titles', value: '99' },
     ],
     twitter: 'DjokerNole',
-  },
-  {
-    id: 'bday-alcaraz',
-    name: 'Carlos Alcaraz',
-    sport: 'TENNIS',
-    club: 'Spain National',
-    country: 'Spain',
-    countryFlag: '🇪🇸',
-    birthYear: 2003, birthMonth: 5, birthDay: 5,
-    position: 'World No.3 / Next Gen King',
-    nationality: 'Spanish',
-    height: '1.85m',
-    marketValue: 'Rising Star',
-    photoUrl: 'https://www.atptour.com/-/media/alias/player-gladiator-headshot/A0E2',
-    trophies: '4× Grand Slams (Wimbledon ×2, US Open, Roland Garros), 2× World No.1',
-    quote: 'I just want to be the best player in the world.',
-    wishesCount: 3890,
-    stats: [
-      { label: 'Grand Slams', value: '4' },
-      { label: 'Youngest No.1 Ever', value: '19 yrs, 4 months' },
-      { label: 'Career Titles', value: '17+' },
-      { label: 'Wimbledon Wins', value: '2' },
-    ],
-    instagram: 'carlitosalcarazz',
   },
   // 🏃 ATHLETICS
   {
     id: 'bday-bolt',
     name: 'Usain Bolt',
     sport: 'ATHLETICS',
-    club: 'Jamaica National',
+    club: 'Jamaica 🇯🇲',
     country: 'Jamaica',
     countryFlag: '🇯🇲',
     birthYear: 1986, birthMonth: 8, birthDay: 21,
-    position: '100m / 200m World Record Holder',
+    position: '100m & 200m World Record Holder',
     nationality: 'Jamaican',
     height: '1.95m',
     marketValue: 'Legend',
-    photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Usain_Bolt_16082009_Berlin.JPG/220px-Usain_Bolt_16082009_Berlin.JPG',
-    trophies: '8× Olympic Gold, 11× World Champion, 3× World Records',
+    photoUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=500&auto=format&fit=crop&q=80',
+    trophies: '8× Olympic Gold, 11× World Champion, 9.58s World Record',
     quote: 'I trained 4 years to run 9 seconds. Don\'t tell me you can\'t do something.',
     wishesCount: 5670,
     stats: [
-      { label: '100m Record', value: '9.58s (WR)' },
-      { label: '200m Record', value: '19.19s (WR)' },
-      { label: 'Olympic Golds', value: '8' },
-      { label: 'World Titles', value: '11' },
+      { label: '100m Record', value: '9.58s ⚡' },
+      { label: '200m Record', value: '19.19s ⚡' },
+      { label: 'Olympic Golds', value: '8 🥇' },
+      { label: 'World Titles', value: '11 🥇' },
     ],
     instagram: 'usainbolt',
     twitter: 'usainbolt',
@@ -358,26 +362,25 @@ const STAR_BIRTHDAYS: BirthdayPlayer[] = [
     id: 'bday-fury',
     name: 'Tyson Fury',
     sport: 'BOXING',
-    club: 'WBC Heavyweight',
+    club: 'UK 🇬🇧',
     country: 'UK',
     countryFlag: '🇬🇧',
     birthYear: 1988, birthMonth: 8, birthDay: 12,
-    position: 'Heavyweight Champion',
+    position: 'Gypsy King / Heavyweight Legend',
     nationality: 'British-Irish',
     height: '2.06m',
     marketValue: 'Champion',
-    photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Tyson_Fury_2019.jpg/220px-Tyson_Fury_2019.jpg',
-    trophies: 'WBC Heavyweight Champion, Beat Wilder ×2, Lineal Champion',
+    photoUrl: 'https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=500&auto=format&fit=crop&q=80',
+    trophies: '2× WBC Heavyweight Champion, Lineal Champion, Ring Magazine',
     quote: 'I\'m a fighting man. Always will be.',
     wishesCount: 2890,
     stats: [
-      { label: 'Record', value: '34W-1D' },
+      { label: 'Pro Record', value: '34W-1D' },
       { label: 'KO Rate', value: '73%' },
-      { label: 'World Titles', value: '3' },
-      { label: 'vs Wilder', value: '2-0-1' },
+      { label: 'World Titles', value: '3 🥊' },
+      { label: 'Height', value: '6 ft 9 in' },
     ],
     instagram: 'tysonfury',
-    twitter: 'Tyson_Fury',
   },
 ];
 
@@ -402,10 +405,18 @@ interface ProfilePopupProps {
 }
 
 const PlayerProfilePopup: React.FC<ProfilePopupProps> = ({ player, onClose, onWish, wished, generateShareUrl }) => {
+  const [imgUrl, setImgUrl] = useState(player.photoUrl);
   const [imgError, setImgError] = useState(false);
   const meta = SPORT_META[player.sport] || SPORT_META.FOOTBALL;
-
   const initials = player.name.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase();
+
+  const handleImageError = () => {
+    if (player.fallbackPhotoUrl && imgUrl !== player.fallbackPhotoUrl) {
+      setImgUrl(player.fallbackPhotoUrl);
+    } else {
+      setImgError(true);
+    }
+  };
 
   return (
     <div
@@ -418,18 +429,19 @@ const PlayerProfilePopup: React.FC<ProfilePopupProps> = ({ player, onClose, onWi
         style={{ background: 'linear-gradient(135deg, #0a0f0a 0%, #111811 100%)' }}
       >
         {/* Header with player photo */}
-        <div className={`relative h-52 sm:h-64 ${meta.bg} overflow-hidden flex-shrink-0`}>
-          {!imgError && player.photoUrl ? (
+        <div className={`relative h-56 sm:h-64 ${meta.bg} overflow-hidden flex-shrink-0`}>
+          {!imgError ? (
             <img
-              src={player.photoUrl}
+              src={imgUrl}
               alt={player.name}
               loading="eager"
               className="w-full h-full object-cover object-top"
-              onError={() => setImgError(true)}
+              onError={handleImageError}
             />
           ) : (
-            <div className={`w-full h-full flex items-center justify-center ${meta.bg}`}>
-              <span className="text-7xl sm:text-8xl font-black text-white/30 select-none">{initials}</span>
+            <div className={`w-full h-full flex flex-col items-center justify-center ${meta.bg}`}>
+              <span className="text-6xl sm:text-7xl font-black text-white/30 select-none mb-1">{initials}</span>
+              <span className="text-xs text-white/50 font-mono font-bold">{player.club}</span>
             </div>
           )}
           {/* Gradient overlay */}
@@ -453,7 +465,7 @@ const PlayerProfilePopup: React.FC<ProfilePopupProps> = ({ player, onClose, onWi
                 <p className="text-sm text-gray-300 mt-0.5">{player.position} • {player.countryFlag} {player.country}</p>
               </div>
               {player.isToday && (
-                <div className="flex-shrink-0 px-3 py-1.5 rounded-2xl bg-pink-500/90 border border-pink-400/60 text-white text-xs font-black animate-pulse">
+                <div className="flex-shrink-0 px-3 py-1.5 rounded-2xl bg-pink-500 text-white text-xs font-black animate-pulse shadow-lg shadow-pink-500/40">
                   🎂 TODAY!
                 </div>
               )}
@@ -482,7 +494,7 @@ const PlayerProfilePopup: React.FC<ProfilePopupProps> = ({ player, onClose, onWi
           {/* Club & Value */}
           <div className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/10">
             <div>
-              <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-0.5">Current Club</p>
+              <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-0.5">Current Club / Team</p>
               <p className="text-white font-black text-sm">{player.club}</p>
             </div>
             <div className="text-right">
@@ -494,7 +506,7 @@ const PlayerProfilePopup: React.FC<ProfilePopupProps> = ({ player, onClose, onWi
           {/* Stats grid */}
           {player.stats && player.stats.length > 0 && (
             <div>
-              <p className="text-[10px] text-gray-400 uppercase tracking-wide font-bold mb-2">Career Stats</p>
+              <p className="text-[10px] text-gray-400 uppercase tracking-wide font-bold mb-2">Career Highlights</p>
               <div className="grid grid-cols-2 gap-2">
                 {player.stats.map((s, i) => (
                   <div key={i} className={`p-2.5 rounded-xl ${meta.bg} ${meta.border} border`}>
@@ -510,7 +522,7 @@ const PlayerProfilePopup: React.FC<ProfilePopupProps> = ({ player, onClose, onWi
           <div className="p-3 rounded-2xl bg-gold/10 border border-gold/30">
             <div className="flex items-center space-x-2 mb-1">
               <Trophy className="w-4 h-4 text-gold flex-shrink-0" />
-              <p className="text-[10px] text-gold uppercase tracking-wide font-bold">Honours</p>
+              <p className="text-[10px] text-gold uppercase tracking-wide font-bold">Honours & Trophies</p>
             </div>
             <p className="text-white text-sm font-semibold leading-relaxed">{player.trophies}</p>
           </div>
@@ -574,66 +586,77 @@ interface BirthdayCardProps {
 }
 
 const BirthdayCard: React.FC<BirthdayCardProps> = React.memo(({ player, wished, onWish, onClick }) => {
+  const [imgUrl, setImgUrl] = useState(player.photoUrl);
   const [imgError, setImgError] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
   const meta = SPORT_META[player.sport] || SPORT_META.FOOTBALL;
   const initials = player.name.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase();
 
+  const handleImageError = () => {
+    if (player.fallbackPhotoUrl && imgUrl !== player.fallbackPhotoUrl) {
+      setImgUrl(player.fallbackPhotoUrl);
+    } else {
+      setImgError(true);
+      setImgLoaded(true);
+    }
+  };
+
   return (
     <div
       onClick={onClick}
-      className={`relative rounded-3xl border overflow-hidden cursor-pointer group transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-xl ${player.isToday ? 'border-pink-500/60 shadow-pink-900/20 shadow-lg' : `${meta.border}`}`}
+      className={`relative rounded-3xl border overflow-hidden cursor-pointer group transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-xl ${player.isToday ? 'border-pink-500/80 shadow-pink-900/30 shadow-lg' : `${meta.border}`}`}
       style={{ background: 'linear-gradient(135deg, #0d130d 0%, #111811 100%)' }}
     >
       {player.isToday && (
-        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-pink-500 via-gold to-pink-500 animate-pulse" />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-pink-500 via-gold to-pink-500 animate-pulse z-10" />
       )}
 
       {/* Photo */}
-      <div className={`relative h-40 sm:h-44 overflow-hidden ${meta.bg}`}>
+      <div className={`relative h-44 sm:h-48 overflow-hidden ${meta.bg}`}>
         {!imgLoaded && !imgError && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/5 animate-pulse">
             <span className="text-4xl font-black text-white/20">{initials}</span>
           </div>
         )}
-        {!imgError && player.photoUrl ? (
+        {!imgError ? (
           <img
-            src={player.photoUrl}
+            src={imgUrl}
             alt={player.name}
             loading="lazy"
             className={`w-full h-full object-cover object-top transition-all duration-500 group-hover:scale-105 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
             onLoad={() => setImgLoaded(true)}
-            onError={() => { setImgError(true); setImgLoaded(true); }}
+            onError={handleImageError}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <span className="text-5xl font-black text-white/20 select-none">{initials}</span>
+          <div className="w-full h-full flex flex-col items-center justify-center p-3">
+            <span className="text-5xl font-black text-white/20 select-none mb-1">{initials}</span>
+            <span className="text-[10px] text-gray-400 font-mono text-center truncate w-full">{player.club}</span>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
 
-        {/* Sport + Birthday badge */}
-        <div className="absolute top-2.5 left-2.5 flex items-center space-x-1.5">
-          <span className={`px-2 py-0.5 rounded-xl text-[10px] font-black border ${meta.bg} ${meta.border} ${meta.color}`}>
+        {/* Sport badge */}
+        <div className="absolute top-2.5 left-2.5 flex items-center space-x-1.5 z-10">
+          <span className={`px-2 py-0.5 rounded-xl text-[10px] font-black border backdrop-blur-sm ${meta.bg} ${meta.border} ${meta.color}`}>
             {meta.icon} {player.sport}
           </span>
         </div>
 
         {player.isToday && (
-          <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-xl bg-pink-500/90 text-white text-[10px] font-black border border-pink-400/60 animate-pulse">
+          <div className="absolute top-2.5 right-2.5 px-2.5 py-0.5 rounded-xl bg-pink-500 text-white text-[10px] font-black shadow-md shadow-pink-500/40 animate-bounce z-10">
             🎂 TODAY!
           </div>
         )}
 
         {/* Name overlay */}
-        <div className="absolute bottom-2 left-3 right-3">
+        <div className="absolute bottom-2.5 left-3 right-3 z-10">
           <p className="text-white font-black text-sm leading-tight truncate">{player.name}</p>
-          <p className="text-gray-300 text-[10px]">{player.countryFlag} {player.position}</p>
+          <p className="text-gray-300 text-[10px] mt-0.5">{player.countryFlag} {player.position}</p>
         </div>
       </div>
 
       {/* Card body */}
-      <div className="p-3 space-y-2.5">
+      <div className="p-3.5 space-y-2.5">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-gold font-black text-xs">{player.club}</p>
@@ -645,7 +668,7 @@ const BirthdayCard: React.FC<BirthdayCardProps> = React.memo(({ player, wished, 
         <div className="flex items-center space-x-2" onClick={e => e.stopPropagation()}>
           <button
             onClick={onWish}
-            className={`flex-1 py-2 rounded-xl text-xs font-black flex items-center justify-center space-x-1.5 transition-all active:scale-95 ${wished ? 'bg-pink-500/20 border border-pink-500/40 text-pink-400' : 'bg-pink-600/90 hover:bg-pink-500 text-white'}`}>
+            className={`flex-1 py-2 rounded-xl text-xs font-black flex items-center justify-center space-x-1.5 transition-all active:scale-95 ${wished ? 'bg-pink-500/20 border border-pink-500/40 text-pink-400' : 'bg-pink-600/90 hover:bg-pink-500 text-white shadow-md shadow-pink-900/30'}`}>
             <Heart className={`w-3 h-3 ${wished ? 'fill-current' : ''}`} />
             <span>{wished ? 'Wished 🎉' : 'Wish'}</span>
           </button>
@@ -671,7 +694,7 @@ interface BirthdayCenterProps {
 export const BirthdayCenterModal: React.FC<BirthdayCenterProps> = ({ onClose }) => {
   const [players] = useState<BirthdayPlayer[]>(STAR_BIRTHDAYS);
   const [wishedPlayers, setWishedPlayers] = useState<Record<string, boolean>>({});
-  const [filter, setFilter] = useState<FilterTab>('THIS_WEEK');
+  const [filter, setFilter] = useState<FilterTab>('TODAY');
   const [sportFilter, setSportFilter] = useState<SportCategory>('ALL');
   const [selectedPlayer, setSelectedPlayer] = useState<(BirthdayPlayer & { age?: number; birthDate?: string; isToday?: boolean }) | null>(null);
   const [currentDate] = useState<Date>(() => new Date());
@@ -689,21 +712,24 @@ export const BirthdayCenterModal: React.FC<BirthdayCenterProps> = ({ onClose }) 
       const diffDays = Math.round((bdayThisYear.getTime() - todayStart.getTime()) / 86400000);
       const monthName = MONTH_NAMES[p.birthMonth - 1];
       let birthDate = `${monthName} ${p.birthDay}`;
-      if (diffDays === 0) birthDate = '🎂 Today!';
-      else if (diffDays === 1) birthDate = 'Tomorrow 🎂';
+      const isToday = diffDays === 0;
+      const isTomorrow = diffDays === 1;
+
+      if (isToday) birthDate = '🎂 Today!';
+      else if (isTomorrow) birthDate = 'Tomorrow 🎂';
       else if (diffDays === -1) birthDate = 'Yesterday 🌟';
+
       return {
         ...p,
         age,
         birthDate,
         diffDays,
-        isToday: diffDays === 0,
-        isTomorrow: diffDays === 1,
+        isToday,
+        isTomorrow,
         isThisWeek: Math.abs(diffDays) <= 7,
         isThisMonth: p.birthMonth === currentMonth,
       };
     }).sort((a, b) => {
-      // Sort: today first, then by abs diffDays
       if (a.isToday && !b.isToday) return -1;
       if (!a.isToday && b.isToday) return 1;
       return Math.abs(a.diffDays) - Math.abs(b.diffDays);
@@ -713,13 +739,18 @@ export const BirthdayCenterModal: React.FC<BirthdayCenterProps> = ({ onClose }) 
   const filteredPlayers = useMemo(() => {
     let list = enrichedPlayers;
     if (sportFilter !== 'ALL') list = list.filter(p => p.sport === sportFilter);
+
+    if (filter === 'TODAY') {
+      const todayList = list.filter(p => p.isToday);
+      return todayList.length > 0 ? todayList : list.filter(p => p.isThisWeek).slice(0, 3);
+    }
     if (filter === 'THIS_WEEK') {
-      const w = list.filter(p => p.isThisWeek);
-      return w.length > 0 ? w : list.slice(0, 4);
+      const weekList = list.filter(p => p.isThisWeek);
+      return weekList.length > 0 ? weekList : list.slice(0, 4);
     }
     if (filter === 'THIS_MONTH') {
-      const m = list.filter(p => p.isThisMonth);
-      return m.length > 0 ? m : list;
+      const monthList = list.filter(p => p.isThisMonth);
+      return monthList.length > 0 ? monthList : list;
     }
     return list;
   }, [enrichedPlayers, filter, sportFilter]);
@@ -796,12 +827,18 @@ export const BirthdayCenterModal: React.FC<BirthdayCenterProps> = ({ onClose }) 
               })}
             </div>
 
-            {/* Time Filter */}
-            <div className="flex items-center space-x-2 mt-2">
-              {(['THIS_WEEK', 'THIS_MONTH', 'ALL'] as FilterTab[]).map(f => (
+            {/* Time Filter Tabs: TODAY, THIS_WEEK, THIS_MONTH, ALL */}
+            <div className="flex items-center space-x-2 mt-2.5">
+              {(['TODAY', 'THIS_WEEK', 'THIS_MONTH', 'ALL'] as FilterTab[]).map(f => (
                 <button key={f} onClick={() => setFilter(f)}
-                  className={`flex-1 py-1.5 rounded-xl text-[10px] font-black border transition-all ${filter === f ? 'bg-pink-500/20 border-pink-500/40 text-pink-400' : 'bg-white/5 border-white/10 text-gray-400'}`}>
-                  {f === 'THIS_WEEK' ? '📅 This Week' : f === 'THIS_MONTH' ? '🗓 This Month' : '🌍 All Stars'}
+                  className={`flex-1 py-1.5 rounded-xl text-[10px] font-black border transition-all ${
+                    filter === f
+                      ? f === 'TODAY'
+                        ? 'bg-pink-500 text-white font-black shadow-md shadow-pink-500/30 border-pink-400'
+                        : 'bg-pink-500/20 border-pink-500/40 text-pink-400'
+                      : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                  }`}>
+                  {f === 'TODAY' ? '🎂 Today' : f === 'THIS_WEEK' ? '📅 This Week' : f === 'THIS_MONTH' ? '🗓 This Month' : '🌍 All Stars'}
                 </button>
               ))}
             </div>
@@ -812,8 +849,8 @@ export const BirthdayCenterModal: React.FC<BirthdayCenterProps> = ({ onClose }) 
             {filteredPlayers.length === 0 ? (
               <div className="text-center py-12">
                 <span className="text-5xl">🎂</span>
-                <p className="text-gray-400 mt-3 font-bold">No birthdays in this period</p>
-                <button onClick={() => setFilter('ALL')} className="mt-3 px-4 py-2 rounded-xl bg-pink-500/20 border border-pink-500/30 text-pink-400 text-xs font-black">
+                <p className="text-gray-400 mt-3 font-bold">No birthdays found in this category</p>
+                <button onClick={() => { setFilter('ALL'); setSportFilter('ALL'); }} className="mt-3 px-4 py-2 rounded-xl bg-pink-500/20 border border-pink-500/30 text-pink-400 text-xs font-black">
                   View All Stars
                 </button>
               </div>
