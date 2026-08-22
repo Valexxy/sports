@@ -307,7 +307,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
                 </div>
                 <span className="text-[10px] text-crimson font-mono font-black flex items-center space-x-1 animate-pulse">
                   <Flame className="w-3 h-3 text-crimson" />
-                  <span>Kickoff: {match.matchTime}</span>
+                  <span>{match.matchTime}</span>
                 </span>
               </>
             ) : isFinished ? (
