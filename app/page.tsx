@@ -293,22 +293,33 @@ export default function Home() {
 
   const [highGuaranteesOnly, setHighGuaranteesOnly] = useState(false);
 
-  const sportMatches = matches.filter(m => m.sport === selectedSport);
-  const liveCount = sportMatches.filter(m => m.status === 'LIVE').length;
-  const upcomingCount = sportMatches.filter(m => m.status === 'SCHEDULED').length;
-  const playedCount = sportMatches.filter(m => m.status === 'FINISHED').length;
-  const highGuaranteesCount = sportMatches.filter(m => (m.prediction?.topPick?.probability || 0) >= 70 || m.prediction?.topPick?.confidenceTier === 'ULTRA-BANKER').length;
+  // Helper to extract clean YYYY-MM-DD in user's local timezone
+  const getMatchLocalDate = (utcDate?: string): string => {
+    if (!utcDate) return new Date().toLocaleDateString('en-CA');
+    try {
+      const d = new Date(utcDate);
+      if (isNaN(d.getTime())) return new Date().toLocaleDateString('en-CA');
+      return d.toLocaleDateString('en-CA');
+    } catch {
+      return new Date().toLocaleDateString('en-CA');
+    }
+  };
+
+  // Strictly segment matches by the selected calendar day
+  const dayMatches = React.useMemo(() => {
+    return matches.filter((m) => {
+      const matchDate = getMatchLocalDate(m.utcDate);
+      return matchDate === selectedDateStr;
+    });
+  }, [matches, selectedDateStr]);
+
+  const liveCount = dayMatches.filter(m => m.status === 'LIVE').length;
+  const upcomingCount = dayMatches.filter(m => m.status === 'SCHEDULED').length;
+  const playedCount = dayMatches.filter(m => m.status === 'FINISHED').length;
+  const highGuaranteesCount = dayMatches.filter(m => (m.prediction?.topPick?.probability || 0) >= 70 || m.prediction?.topPick?.confidenceTier === 'ULTRA-BANKER').length;
 
   const filteredMatches = React.useMemo(() => {
-    const base = matches.filter(m => {
-      // Filter by Date (Resilient timezone matching)
-      if (selectedDateStr && !isViewingToday) {
-        const matchDate = m.utcDate ? new Date(m.utcDate).toLocaleDateString('en-CA') : '';
-        if (matchDate && matchDate !== selectedDateStr) {
-          return false;
-        }
-      }
-
+    const base = dayMatches.filter(m => {
       const q = searchQuery.toLowerCase();
       if (q && !m.homeTeam.toLowerCase().includes(q) && !m.awayTeam.toLowerCase().includes(q) && !m.league.toLowerCase().includes(q)) return false;
       if (activeFilter === 'LIVE') return m.status === 'LIVE';
@@ -317,7 +328,6 @@ export default function Home() {
         // Verify kickoff is not in the past
         if (m.utcDate) {
           const matchKickoff = new Date(m.utcDate).getTime();
-          // If kickoff was more than 30 mins ago, it has already started/concluded
           if (!isNaN(matchKickoff) && matchKickoff < Date.now() - 30 * 60 * 1000) {
             return false;
           }
@@ -330,7 +340,7 @@ export default function Home() {
       return true;
     });
     return sortMatchesByClosestKickoff(base, activeFilter);
-  }, [matches, selectedDateStr, isViewingToday, searchQuery, activeFilter, highGuaranteesOnly, followedMatchIds, followedLeagues]);
+  }, [dayMatches, searchQuery, activeFilter, highGuaranteesOnly, followedMatchIds, followedLeagues]);
 
 
   // Sync URL search params with Matches for Browser Back Button and Page Refresh Continuity
@@ -373,7 +383,7 @@ export default function Home() {
     { key: 'UPCOMING', emoji: '', label: t('Upcoming'), count: upcomingCount, activeClass: 'bg-amber-500/20 border-amber-500 text-amber-400 font-black shadow-lg shadow-amber-500/30' },
     { key: 'PLAYED',   emoji: '', label: t('Played'),   count: playedCount,   activeClass: 'bg-cyan-500/20 border-cyan-500 text-cyan-400 font-black shadow-lg shadow-cyan-500/30' },
   ];
-  const followingCount = (sportMatches || []).filter(m => (followedMatchIds || []).includes(m.id) || (followedLeagues || []).some(l => (m.league || '').toLowerCase().includes((l || '').toLowerCase()))).length;
+  const followingCount = (dayMatches || []).filter(m => (followedMatchIds || []).includes(m.id) || (followedLeagues || []).some(l => (m.league || '').toLowerCase().includes((l || '').toLowerCase()))).length;
 
   return (
     <ErrorBoundary>
