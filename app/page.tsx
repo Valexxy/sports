@@ -372,7 +372,7 @@ export default function Home() {
     { key: 'UPCOMING', emoji: '', label: t('Upcoming'), count: upcomingCount, activeClass: 'bg-amber-500/20 border-amber-500 text-amber-400 font-black shadow-lg shadow-amber-500/30' },
     { key: 'PLAYED',   emoji: '', label: t('Played'),   count: playedCount,   activeClass: 'bg-cyan-500/20 border-cyan-500 text-cyan-400 font-black shadow-lg shadow-cyan-500/30' },
   ];
-  const followingCount = sportMatches.filter(m => followedMatchIds.includes(m.id) || followedLeagues.some(l => m.league.toLowerCase().includes(l.toLowerCase()))).length;
+  const followingCount = (sportMatches || []).filter(m => (followedMatchIds || []).includes(m.id) || (followedLeagues || []).some(l => (m.league || '').toLowerCase().includes((l || '').toLowerCase()))).length;
 
   return (
     <ErrorBoundary>
