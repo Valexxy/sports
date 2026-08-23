@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Volume2, Play, Pause, Radio, Clock, Shield, Sparkles } from 'lucide-react';
+import { Volume2, Play, Pause, Radio, Clock, Shield, Sparkles, Navigation } from 'lucide-react';
 import { stadiumAudio } from '../lib/sound-synthesizer';
 import { stadiumBroadcastAudio } from '../lib/stadium-broadcast-audio-engine';
 import { primeNaijaVoices, stopNaijaAudio } from '../lib/naija-voice-engine';
@@ -23,44 +23,41 @@ function parseMinute(timeStr?: string): number {
   return m ? parseInt(m[1], 10) : 45;
 }
 
-// Generate realistic, unbroken per-minute commentary for EVERY single minute 1..N
 function buildMinuteEvent(
   min: number,
   home: string,
   away: string,
   homeScore: number,
   awayScore: number
-): { min: string; icon: string; title: string; text: string; type: string } {
-  // Key highlights at specific minutes
+): { minNum: number; min: string; icon: string; title: string; text: string; type: string } {
   if (min === 1) {
-    return { min: "1'", icon: '🏁', title: 'Referee Don Blow Whistle!', text: `Match don start! ${home} and ${away} enter pitch with heavy fire!`, type: 'kickoff' };
+    return { minNum: 1, min: "1'", icon: '🏁', title: 'Referee Don Blow Whistle!', text: `Match don start! ${home} and ${away} enter pitch with heavy fire!`, type: 'kickoff' };
   }
   if (min === 14) {
-    return { min: "14'", icon: '🧤', title: 'Miracle Diving Save!', text: `Omo see thunder shot! ${away} keeper jump like cat parry ball go corner!`, type: 'save' };
+    return { minNum: 14, min: "14'", icon: '🧤', title: 'Miracle Diving Save!', text: `Omo see thunder shot! ${away} keeper jump like cat parry ball go corner!`, type: 'save' };
   }
   if (min === 24) {
-    return { min: "24'", icon: '⚽', title: `GOAL O! ${home} Wire Am Enter Net!`, text: `Gooooooal o! Low drive strike enter corner! Score na ${home} 1 - 0 ${away}!`, type: 'goal' };
+    return { minNum: 24, min: "24'", icon: '⚽', title: `GOAL O! ${home} Wire Am Enter Net!`, text: `Gooooooal o! Low drive strike enter corner! Score na ${home} 1 - 0 ${away}!`, type: 'goal' };
   }
   if (min === 35) {
-    return { min: "35'", icon: '🟨', title: 'Yellow Card for Bad Tackle!', text: `Referee blow whistle! Yellow card fly out for rough sliding challenge!`, type: 'card' };
+    return { minNum: 35, min: "35'", icon: '🟨', title: 'Yellow Card for Bad Tackle!', text: `Referee blow whistle! Yellow card fly out for rough sliding challenge!`, type: 'card' };
   }
   if (min === 45) {
-    return { min: "45'", icon: '⏸️', title: 'First Half Don End', text: `Referee blow half-time! Players enter tunnel go drink pure water. Score: ${home} 1 - 0 ${away}.`, type: 'halftime' };
+    return { minNum: 45, min: "45'", icon: '⏸️', title: 'First Half Don End', text: `Referee blow half-time! Players enter tunnel go drink pure water. Score: ${home} 1 - 0 ${away}.`, type: 'halftime' };
   }
   if (min === 68) {
-    return { min: "68'", icon: '⚽', title: `GOAL AGAIN! ${away} Equalize!`, text: `What a finish! Thunder curling shot hit post enter net! Score na ${home} 1 - 1 ${away}!`, type: 'goal' };
+    return { minNum: 68, min: "68'", icon: '⚽', title: `GOAL AGAIN! ${away} Equalize!`, text: `What a finish! Thunder curling shot hit post enter net! Score na ${home} 1 - 1 ${away}!`, type: 'goal' };
   }
   if (min === 78) {
-    return { min: "78'", icon: '🟨', title: 'Yellow Card for Professional Foul', text: `Tactical pull on jersey to stop counter attack, referee flash yellow card without hesitation!`, type: 'card' };
+    return { minNum: 78, min: "78'", icon: '🟨', title: 'Yellow Card for Professional Foul', text: `Tactical pull on jersey to stop counter attack, referee flash yellow card without hesitation!`, type: 'card' };
   }
   if (min === 86) {
-    return { min: "86'", icon: '🧤', title: 'Fingertip Goal-Line Save!', text: `Point-blank header saved on the goal line! Incredible reflexes!`, type: 'save' };
+    return { minNum: 86, min: "86'", icon: '🧤', title: 'Fingertip Goal-Line Save!', text: `Point-blank header saved on the goal line! Incredible reflexes!`, type: 'save' };
   }
   if (min === 90) {
-    return { min: '90+3\'', icon: '🏆', title: 'Referee Blow Final Whistle!', text: `Match don settle kpatakpata! Official final score: ${home} ${homeScore} - ${awayScore} ${away}. Record locked.`, type: 'fulltime' };
+    return { minNum: 90, min: '90+3\'', icon: '🏆', title: 'Referee Blow Final Whistle!', text: `Match don settle kpatakpata! Official final score: ${home} ${homeScore} - ${awayScore} ${away}. Record locked.`, type: 'fulltime' };
   }
 
-  // Dynamic procedural narrative for all other individual minutes
   const seed = (min * 7 + 13) % 10;
   const narratives = [
     { icon: '⚽', title: `${home} Building Up From Back`, text: `Smooth passing exchange in deep defense as ${home} draws out the opposition press.`, type: 'play' },
@@ -77,6 +74,7 @@ function buildMinuteEvent(
 
   const item = narratives[seed];
   return {
+    minNum: min,
     min: `${min}'`,
     icon: item.icon,
     title: item.title,
@@ -113,6 +111,7 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
   const [activeAudioChannel, setActiveAudioChannel] = useState<'NONE' | 'ENGLISH' | 'PIDGIN'>('NONE');
   const [isBroadcastPaused, setIsBroadcastPaused] = useState<boolean>(false);
   const [broadcastClock, setBroadcastClock] = useState<string>(resolvedTime || "28'");
+  const [activePlayheadMin, setActivePlayheadMin] = useState<number>(currentMin);
 
   useEffect(() => {
     primeNaijaVoices();
@@ -122,12 +121,11 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
     };
   }, []);
 
-  // GENERATE EVERY SINGLE MINUTE FROM 1 TO CURRENT MINUTE (NO MINUTES SKIPPED!)
   const timelineEvents = useMemo(() => {
     if (isUpcoming) {
       return [
-        { min: 'PRE', icon: '🏃', title: 'Pre-Match Team Warmup', text: `${resolvedHome} and ${resolvedAway} boys dey stretch body, stadium full ground!`, type: 'info' },
-        { min: 'PRE', icon: '📋', title: 'Tactical Team Lineups Confirmed', text: 'Two coaches don release first eleven, fire go burn today!', type: 'info' },
+        { minNum: 0, min: 'PRE', icon: '🏃', title: 'Pre-Match Team Warmup', text: `${resolvedHome} and ${resolvedAway} boys dey stretch body, stadium full ground!`, type: 'info' },
+        { minNum: 0, min: 'PRE', icon: '📋', title: 'Tactical Team Lineups Confirmed', text: 'Two coaches don release first eleven, fire go burn today!', type: 'info' },
       ];
     }
 
@@ -135,8 +133,6 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
     for (let m = 1; m <= currentMin; m++) {
       events.push(buildMinuteEvent(m, resolvedHome, resolvedAway, homeScore, awayScore));
     }
-
-    // Latest minute appears at top
     return events.reverse();
   }, [isUpcoming, currentMin, resolvedHome, resolvedAway, homeScore, awayScore]);
 
@@ -151,7 +147,10 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
         resolvedHome,
         resolvedAway,
         currentMin,
-        (timeStr) => setBroadcastClock(timeStr)
+        (timeStr, isPlaying, minNum) => {
+          setBroadcastClock(timeStr);
+          setActivePlayheadMin(minNum);
+        }
       );
     } else if (!isBroadcastPaused) {
       setIsBroadcastPaused(true);
@@ -173,7 +172,10 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
         resolvedHome,
         resolvedAway,
         currentMin,
-        (timeStr) => setBroadcastClock(timeStr)
+        (timeStr, isPlaying, minNum) => {
+          setBroadcastClock(timeStr);
+          setActivePlayheadMin(minNum);
+        }
       );
     } else if (!isBroadcastPaused) {
       setIsBroadcastPaused(true);
@@ -181,6 +183,31 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
     } else {
       setIsBroadcastPaused(false);
       stadiumBroadcastAudio.resumeBroadcast(resolvedHome, resolvedAway);
+    }
+  };
+
+  // User taps on any past or present minute to jump commentary back/forward
+  const handleSeekToMinute = (targetMin: number) => {
+    if (targetMin <= 0) return;
+    phoneHardware.triggerHaptic('SELECTION');
+    stadiumAudio.enableOnUserClick();
+    setActivePlayheadMin(targetMin);
+
+    if (activeAudioChannel === 'NONE') {
+      setActiveAudioChannel('PIDGIN');
+      setIsBroadcastPaused(false);
+      stadiumBroadcastAudio.startPidginBroadcast(
+        resolvedHome,
+        resolvedAway,
+        targetMin,
+        (timeStr, isPlaying, minNum) => {
+          setBroadcastClock(timeStr);
+          setActivePlayheadMin(minNum);
+        }
+      );
+    } else {
+      setIsBroadcastPaused(false);
+      stadiumBroadcastAudio.seekToMinute(targetMin);
     }
   };
 
@@ -197,7 +224,7 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
             </h3>
             <p className="text-[10px] text-gray-400 font-sans">
               {isLive
-                ? `🔴 LIVE In-Play (${resolvedTime}) — Unbroken per-minute commentary (1' to ${currentMin}') with live voice stream`
+                ? `🔴 LIVE In-Play (${broadcastClock}) — Tap any minute below to jump audio back/forward!`
                 : isUpcoming
                 ? `Match scheduled for ${resolvedTime} — Pre-match buildup active`
                 : `🏆 Full-Time settled — Complete 1' to 90' match archive`}
@@ -208,7 +235,7 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
         {/* 2 Loud Voice Commentary Buttons */}
         <div className="flex flex-wrap items-center gap-2">
           
-          {/* BUTTON 1: WARRI / EDO NIGERIAN PIDGIN */}
+          {/* BUTTON 1: WARRI / EDO NIGERIAN PIDGIN (STREET SWAGGER) */}
           <button
             onClick={handleTogglePidgin}
             className={`px-3 py-2 rounded-xl border text-xs font-black transition-all flex items-center space-x-1.5 shadow-md ${
@@ -222,22 +249,22 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
             {activeAudioChannel === 'PIDGIN' && !isBroadcastPaused ? (
               <>
                 <Volume2 className="w-3.5 h-3.5" />
-                <span>⏸️ Pause Warri Pidgin ({broadcastClock})</span>
+                <span>⏸️ Pause Warri ({broadcastClock})</span>
               </>
             ) : activeAudioChannel === 'PIDGIN' && isBroadcastPaused ? (
               <>
                 <Play className="w-3.5 h-3.5 fill-current" />
-                <span>▶️ Resume Warri Pidgin ({broadcastClock})</span>
+                <span>▶️ Resume Warri ({broadcastClock})</span>
               </>
             ) : (
               <>
                 <Play className="w-3.5 h-3.5 fill-current" />
-                <span>🇳🇬 Play Warri Pidgin Voice</span>
+                <span>🇳🇬 Play Warri Voice</span>
               </>
             )}
           </button>
 
-          {/* BUTTON 2: ENGLISH COMMENTARY */}
+          {/* BUTTON 2: UK ENGLISH COMMENTARY */}
           <button
             onClick={handleToggleEnglish}
             className={`px-3 py-2 rounded-xl border text-xs font-black transition-all flex items-center space-x-1.5 shadow-md ${
@@ -251,17 +278,17 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
             {activeAudioChannel === 'ENGLISH' && !isBroadcastPaused ? (
               <>
                 <Volume2 className="w-3.5 h-3.5" />
-                <span>⏸️ Pause English ({broadcastClock})</span>
+                <span>⏸️ Pause UK English ({broadcastClock})</span>
               </>
             ) : activeAudioChannel === 'ENGLISH' && isBroadcastPaused ? (
               <>
                 <Play className="w-3.5 h-3.5 fill-current" />
-                <span>▶️ Resume English ({broadcastClock})</span>
+                <span>▶️ Resume UK English ({broadcastClock})</span>
               </>
             ) : (
               <>
                 <Play className="w-3.5 h-3.5 fill-current" />
-                <span>🇬🇧 Play English Voice</span>
+                <span>🇬🇧 Play UK Voice</span>
               </>
             )}
           </button>
@@ -269,46 +296,60 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
         </div>
       </div>
 
-      {/* UNBROKEN PER-MINUTE TIMELINE (1, 2, 3, 4, 5... TO CURRENT MINUTE) */}
+      {/* UNBROKEN PER-MINUTE TIMELINE (CLICKABLE FOR INSTANT SCRUBBING) */}
       <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-        {timelineEvents.map((evt, idx) => (
-          <div
-            key={idx}
-            className={`p-2.5 sm:p-3 rounded-2xl border transition-all flex items-start space-x-3 ${
-              evt.type === 'goal'
-                ? 'bg-gradient-to-r from-stadiumGreen/20 to-gold/10 border-stadiumGreen/60 shadow-md ring-1 ring-stadiumGreen/40'
-                : evt.type === 'card'
-                ? 'bg-amber-500/10 border-amber-500/40'
-                : evt.type === 'save'
-                ? 'bg-cyan-500/10 border-cyan-500/30'
-                : 'bg-black/50 border-white/5 hover:border-white/20'
-            }`}
-          >
-            <span className={`px-2 py-1 rounded-xl text-[10px] font-mono font-black flex-shrink-0 ${
-              evt.type === 'goal'
-                ? 'bg-stadiumGreen text-black font-black'
-                : evt.type === 'card'
-                ? 'bg-amber-500 text-black'
-                : evt.type === 'save'
-                ? 'bg-cyan-400 text-black'
-                : 'bg-white/10 text-gray-300'
-            }`}>
-              {evt.min}
-            </span>
+        {timelineEvents.map((evt, idx) => {
+          const isCurrentActive = activePlayheadMin === evt.minNum;
+          return (
+            <div
+              key={idx}
+              onClick={() => handleSeekToMinute(evt.minNum)}
+              className={`p-2.5 sm:p-3 rounded-2xl border transition-all flex items-start space-x-3 cursor-pointer group active:scale-[0.99] ${
+                isCurrentActive
+                  ? 'bg-stadiumGreen/20 border-stadiumGreen shadow-lg shadow-stadiumGreen/25 ring-2 ring-stadiumGreen/50'
+                  : evt.type === 'goal'
+                  ? 'bg-gradient-to-r from-stadiumGreen/20 to-gold/10 border-stadiumGreen/60 shadow-md ring-1 ring-stadiumGreen/40 hover:border-stadiumGreen'
+                  : evt.type === 'card'
+                  ? 'bg-amber-500/10 border-amber-500/40 hover:border-amber-500'
+                  : evt.type === 'save'
+                  ? 'bg-cyan-500/10 border-cyan-500/30 hover:border-cyan-400'
+                  : 'bg-black/50 border-white/5 hover:border-white/20'
+              }`}
+              title={`Tap to jump voice commentary to minute ${evt.min}`}
+            >
+              <span className={`px-2 py-1 rounded-xl text-[10px] font-mono font-black flex-shrink-0 ${
+                isCurrentActive
+                  ? 'bg-stadiumGreen text-black font-black animate-pulse'
+                  : evt.type === 'goal'
+                  ? 'bg-stadiumGreen text-black font-black'
+                  : evt.type === 'card'
+                  ? 'bg-amber-500 text-black'
+                  : evt.type === 'save'
+                  ? 'bg-cyan-400 text-black'
+                  : 'bg-white/10 text-gray-300 group-hover:bg-white/20'
+              }`}>
+                {evt.min}
+              </span>
 
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center space-x-1.5 mb-0.5">
-                <span className="text-sm">{evt.icon}</span>
-                <span className="font-black text-white text-xs block truncate">
-                  {evt.title}
-                </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-1 mb-0.5">
+                  <div className="flex items-center space-x-1.5 min-w-0">
+                    <span className="text-sm">{evt.icon}</span>
+                    <span className={`font-black text-xs block truncate ${isCurrentActive ? 'text-stadiumGreen' : 'text-white'}`}>
+                      {evt.title}
+                    </span>
+                  </div>
+                  <span className="text-[9px] text-gray-500 font-sans group-hover:text-stadiumGreen transition-colors flex-shrink-0">
+                    {isCurrentActive ? '▶ Playing now' : 'Tap to jump ➔'}
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-300 font-sans leading-relaxed">
+                  {evt.text}
+                </p>
               </div>
-              <p className="text-[11px] text-gray-300 font-sans leading-relaxed">
-                {evt.text}
-              </p>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
     </div>
