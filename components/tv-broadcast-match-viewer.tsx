@@ -29,7 +29,7 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
 
   // Fetch official clean ScoreBat feed (Zero YouTube, Zero ads)
   useEffect(() => {
-    if (viewMode === 'HIGHLIGHTS_PLAYER' && match.status === 'FINISHED') {
+    if (viewMode === 'HIGHLIGHTS_PLAYER' && (match.status === 'FINISHED' || match.matchTime === 'FT')) {
       setLoadingHighlight(true);
       fetch(`/api/highlights?home=${encodeURIComponent(match.homeTeam)}&away=${encodeURIComponent(match.awayTeam)}`)
         .then((res) => res.json())
