@@ -34,7 +34,7 @@ export const COMPREHENSIVE_DICTIONARY: Record<string, Record<LanguageCode, strin
   // Weekly Calendar & Date Navigation
   'WEEKLY FIXTURE CALENDAR': { en: 'WEEKLY FIXTURE CALENDAR', pidgin: 'WEEKLY MATCH CALENDAR', yoruba: 'KÀLẸ́NDÀ ERÉ Ọ̀SẸ̀', igbo: 'KALENDA EGWUREGWO IZU', hausa: 'JADAWALIN WASANNIN MAKO' },
   'WEEKLY FIXTURE CALENDAR NG': { en: 'WEEKLY FIXTURE CALENDAR NG', pidgin: 'WEEKLY MATCH CALENDAR 🇳🇬', yoruba: 'KÀLẸ́NDÀ ERÉ Ọ̀SẸ̀ 🇳🇬', igbo: 'KALENDA EGWUREGWO IZU 🇳🇬', hausa: 'JADAWALIN WASANNIN MAKO 🇳🇬' },
-  'TODAY': { en: 'TODAY', pidgin: 'TODAY', yoruba: 'ÒNÍ', igbo: 'TAA', hausa: 'YAU' },
+  'TODAY': { en: 'TODAY', pidgin: 'TODAY WEY WE DEY', yoruba: 'ÒNÍ', igbo: 'TAA', hausa: 'YAU' },
   'Today': { en: 'Today', pidgin: 'Today', yoruba: 'Òní', igbo: 'Taa', hausa: 'Yau' },
   'Yesterday': { en: 'Yesterday', pidgin: 'Yesterday', yoruba: 'Àná', igbo: 'Ụnyaahụ', hausa: 'Jiya' },
   'Tomorrow': { en: 'Tomorrow', pidgin: 'Tomorrow', yoruba: 'Ọ̀la', igbo: 'Echi', hausa: 'Gobe' },
@@ -120,14 +120,14 @@ export const COMPREHENSIVE_DICTIONARY: Record<string, Record<LanguageCode, strin
   'Ƙasa da ƙwallo 2.5': { en: 'Under 2.5 Goals', pidgin: 'Under 2.5 Goals', yoruba: 'Goolu tí kò ju 2.5 lọ', igbo: 'Goolu na-erughị 2.5', hausa: 'Ƙasa da ƙwallo 2.5' },
   'Dukkan Ƙungiyoyin Za Su Ci Ƙwallo': { en: 'Both Teams to Score (GG)', pidgin: 'Both Teams Go Score (GG)', yoruba: 'Àwọn Ẹgbẹ́ Méjèèjì Yóò Gba Goolu', igbo: 'Otu Abụọ Ga-agba Goolu', hausa: 'Dukkan Ƙungiyoyin Za Su Ci Ƙwallo' },
 
-  // Status Filter Tabs (Pure Text — Zero Double Icons)
-  'Live': { en: 'Live', pidgin: 'Live', yoruba: 'Láyé', igbo: 'Ndụ Ugbu A', hausa: 'Raye' },
-  'Upcoming': { en: 'Upcoming', pidgin: 'Coming Up', yoruba: 'Tó Ń Bọ̀', igbo: 'Na-abịa', hausa: 'Mai Zuwa' },
-  'Played': { en: 'Played', pidgin: 'Don Finish', yoruba: 'Ti Ṣeré', igbo: 'Emechara', hausa: 'An Kammala' },
-  'Following': { en: 'Following', pidgin: 'Following', yoruba: 'Tẹ̀lé', igbo: 'Na-eso', hausa: 'Masu Bi' },
-  'All Leagues': { en: 'All Leagues', pidgin: 'All Leagues', yoruba: 'Gbogbo Liigi', igbo: 'Liigi Niile', hausa: 'Duk Gasanni' },
-  'Bankers': { en: 'Bankers', pidgin: 'Bankers', yoruba: 'Ìdánilójú', igbo: 'Eziokwu', hausa: 'Tabbaci' },
-  'High Guarantees': { en: 'Bankers', pidgin: 'Bankers', yoruba: 'Ìdánilójú', igbo: 'Eziokwu', hausa: 'Tabbaci' },
+  // Status Filter Tabs (Pure Text — Unmistakably Authentic Pidgin)
+  'Live': { en: 'Live', pidgin: 'Live Match', yoruba: 'Láyé', igbo: 'Ndụ Ugbu A', hausa: 'Raye' },
+  'Upcoming': { en: 'Upcoming', pidgin: 'Wey Dey Come', yoruba: 'Tó Ń Bọ̀', igbo: 'Na-abịa', hausa: 'Mai Zuwa' },
+  'Played': { en: 'Played', pidgin: 'Wey Don Finish', yoruba: 'Ti Ṣeré', igbo: 'Emechara', hausa: 'An Kammala' },
+  'Following': { en: 'Following', pidgin: 'Wey You Dey Follow', yoruba: 'Tẹ̀lé', igbo: 'Na-eso', hausa: 'Masu Bi' },
+  'All Leagues': { en: 'All Leagues', pidgin: 'All Leagues for World', yoruba: 'Gbogbo Liigi', igbo: 'Liigi Niile', hausa: 'Duk Gasanni' },
+  'Bankers': { en: 'Bankers', pidgin: 'Correct Banker', yoruba: 'Ìdánilójú', igbo: 'Eziokwu', hausa: 'Tabbaci' },
+  'High Guarantees': { en: 'Bankers', pidgin: 'Correct Banker', yoruba: 'Ìdánilójú', igbo: 'Eziokwu', hausa: 'Tabbaci' },
 
   // Actions & Buttons
   'Sauke Manhaja': { en: 'Download App', pidgin: 'Download App 📲', yoruba: 'Gba Ohun Èlò 📲', igbo: 'Budata Ngwa 📲', hausa: 'Sauke Manhaja 📲' },

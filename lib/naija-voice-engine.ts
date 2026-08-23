@@ -153,14 +153,16 @@ export function naijaMomentLine(kind: string, home: string, away: string, minute
   const m = minute ? `for minute ${minute}` : '';
   switch (kind) {
     case 'GOAL':
-      return `Omo Goal don enter ${m}! Net don shake between ${home} and ${away}!`;
+      return `Omo see correct goal o ${m}! ${home} don wire ball enter ${away} net! Pitch don scatter with celebration!`;
+    case 'KICKOFF':
+      return `Whistle don blow for kickoff! ${home} vs ${away}. Make we see how game go flow!`;
     case 'RED_CARD':
       return `Referee don show red card ${m}! Man down for pitch!`;
     case 'HALFTIME':
-      return `Half time don reach! ${home} and ${away} dey go rest small.`;
+      return `First half don finish! Ref blow whistle for halftime. Players dey rest for dressing room.`;
     case 'FULLTIME':
-      return `Game don finish FT! Full time score settled between ${home} and ${away}.`;
+      return `Full time whistle don sound! Match between ${home} and ${away} don lock final score!`;
     default:
-      return `Ball dey roll between ${home} and ${away} ${m}! Action heavy!`;
+      return `Action dey heavy on top pitch between ${home} and ${away} ${m}. Pure football vibe!`;
   }
 }

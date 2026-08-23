@@ -6,29 +6,69 @@ const MEMORY_CACHE = new Map<string, string>();
 
 const PIDGIN_REPLACEMENTS: Record<string, string> = {
   'wins': 'win well well',
+  'won': 'win am clean',
   'defeats': 'flog',
-  'scored': 'score correct goal',
+  'defeated': 'flog well well',
+  'scored': 'wire ball enter net',
+  'scores': 'score correct goal',
   'transfers': 'sign new deal',
+  'signed': 'don put pen for paper',
+  'signing': 'new signing player',
   'injury': 'injury wahala',
+  'injured': 'get injury for pitch',
   'manager': 'head coach',
+  'coach': 'gaffer',
   'stadium': 'stadium ground',
   'champions': 'champions of the league',
   'breaking': 'fresh gist',
   'reports': 'authentic gist',
+  'reported': 'gist talk say',
   'agrees': 'don agree',
   'deal': 'contract deal',
   'striker': 'goal machine',
+  'forward': 'attacker',
+  'midfielder': 'midfield master',
+  'defender': 'backline boss',
   'goalkeeper': 'keeper',
   'official': 'confirmed',
+  'departure': 'as e comot',
+  'need to find': 'must find sharp sharp',
+  'following': 'after',
+  'victory': 'sweet win',
+  'defeat': 'painful loss',
+  'fans': 'supporters',
+  'match': 'match',
+  'fixtures': 'matches wey dey come',
+  'crucial': 'very important',
+  'impressive': 'fantastic',
+  'incredible': 'mad performance',
 };
 
 function translateToPidgin(text: string): string {
+  if (!text) return '';
   let res = text;
   Object.entries(PIDGIN_REPLACEMENTS).forEach(([en, pidgin]) => {
     const reg = new RegExp(`\\b${en}\\b`, 'gi');
     res = res.replace(reg, pidgin);
   });
-  return res;
+  return res
+    .replace(/\bis going to\b/gi, 'dey go')
+    .replace(/\bgoing to\b/gi, 'dey go')
+    .replace(/\bis not\b/gi, 'no be')
+    .replace(/\bis\b/gi, 'dey')
+    .replace(/\bare\b/gi, 'dey')
+    .replace(/\bwas\b/gi, 'bin dey')
+    .replace(/\bwere\b/gi, 'bin dey')
+    .replace(/\bhave to\b/gi, 'must')
+    .replace(/\bhas been\b/gi, 'don')
+    .replace(/\bhave been\b/gi, 'don')
+    .replace(/\bcan not\b/gi, 'no fit')
+    .replace(/\bcan't\b/gi, 'no fit')
+    .replace(/\bdon't\b/gi, 'no')
+    .replace(/\bvery\b/gi, 'well well')
+    .replace(/\bthem\b/gi, 'dem')
+    .replace(/\btheir\b/gi, 'dem')
+    .replace(/\babout\b/gi, 'concerning');
 }
 
 export async function batchTranslateArticles(
