@@ -16,6 +16,7 @@ export const API_KEYS = {
   THE_ODDS_API: process.env.THE_ODDS_API_KEY || '',
   SPORTSGAMEODDS: process.env.SPORTSGAMEODDS_API_KEY || '9da047a46b4f39256679050043bbf23c',
   SPORTMONKS: process.env.SPORTMONKS_API_TOKEN || 'm5o9FlRT6EG2xHicDH8TnC2ueWRUZ4GqJCPIDUh7BJ4SpoJBFPiYVFkaoDU3',
+  SHARPAPI: process.env.SHARPAPI_KEY || 'sk_live_SrE4v2Ncyu9x41LqajCyZz',
 };
 
 // 1. Geoapify Real Location & Timezone Tracker

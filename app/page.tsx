@@ -67,6 +67,7 @@ export default function Home() {
   const { t } = useTranslation();
   const [matches, setMatches] = useState<MatchData[]>([]);
   const [loadingMatches, setLoadingMatches] = useState(true);
+  const [hasAutoSwitchedTab, setHasAutoSwitchedTab] = useState(false);
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('LIVE');
@@ -143,6 +144,13 @@ export default function Home() {
     try {
       const data = await fetchLiveMatches();
       setMatches(data);
+      if (!hasAutoSwitchedTab && data.length > 0) {
+        const liveGames = data.filter((m: any) => m.status === 'LIVE');
+        if (liveGames.length === 0) {
+          setActiveFilter('UPCOMING');
+        }
+        setHasAutoSwitchedTab(true);
+      }
       setLastSynced(new Date());
       MatchAlertScheduler.checkAndTriggerLiveAlerts(data);
     } catch (err) {
