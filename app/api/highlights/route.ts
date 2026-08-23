@@ -14,8 +14,8 @@ let lastFetchTime = 0;
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const home = (searchParams.get('home') || '').toLowerCase();
-  const away = (searchParams.get('away') || '').toLowerCase();
+  const home = (searchParams.get('home') || '').toLowerCase().trim();
+  const away = (searchParams.get('away') || '').toLowerCase().trim();
 
   try {
     const now = Date.now();
@@ -33,9 +33,17 @@ export async function GET(request: Request) {
     }
 
     if (cachedScoreBat && (home || away)) {
+      const homeToken = home.replace(/(fc|cf|club|united|city)/gi, '').trim();
+      const awayToken = away.replace(/(fc|cf|club|united|city)/gi, '').trim();
+
       const match = cachedScoreBat.find((item) => {
         const title = item.title.toLowerCase();
-        return (home && title.includes(home)) || (away && title.includes(away));
+        return (
+          (home && title.includes(home)) ||
+          (away && title.includes(away)) ||
+          (homeToken.length > 3 && title.includes(homeToken)) ||
+          (awayToken.length > 3 && title.includes(awayToken))
+        );
       });
 
       if (match && match.videos && match.videos.length > 0) {
@@ -45,12 +53,11 @@ export async function GET(request: Request) {
         return NextResponse.json({
           success: true,
           found: true,
-          source: 'scorebat_official',
+          source: 'scorebat_official_clean',
           title: match.title,
           competition: match.competition,
           thumbnail: match.thumbnail,
           embedUrl: embedUrl || '',
-          rawEmbed: match.videos[0].embed,
         });
       }
     }
@@ -58,10 +65,9 @@ export async function GET(request: Request) {
     console.warn('ScoreBat highlights fetch error:', err);
   }
 
-  // If no exact match found, do NOT return unrelated recommendations
   return NextResponse.json({
     success: true,
     found: false,
-    message: 'Official match video will be available once uploaded by broadcasters.',
+    source: 'clean_stadium_summary',
   });
 }

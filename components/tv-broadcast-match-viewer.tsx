@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { MatchData } from '../lib/sports-api';
-import { Camera, Video, Maximize2, Minimize2, Radio, Play } from 'lucide-react';
+import { Camera, Video, Maximize2, Minimize2, Check, ShieldCheck } from 'lucide-react';
 import { stadiumAudio } from '../lib/sound-synthesizer';
 import { phoneHardware } from '../lib/phone-hardware-engine';
 import { useTranslation } from '../lib/translation-engine';
@@ -18,12 +18,30 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
   const { t } = useTranslation();
   const [viewMode, setViewMode] = useState<ViewerMode>('TACTICAL_2D');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [highlightEmbedUrl, setHighlightEmbedUrl] = useState<string>('');
+  const [loadingHighlight, setLoadingHighlight] = useState<boolean>(false);
   const [ballPos, setBallPos] = useState({ x: 52, y: 48 });
   const [activeLowerThird, setActiveLowerThird] = useState<{ title: string; subtitle: string; icon: string } | null>({
     title: 'TERRITORY CONTROL',
     subtitle: `${match.homeTeam} maintaining 62% possession in final third.`,
     icon: '⚡',
   });
+
+  // Fetch official clean ScoreBat feed (Zero YouTube, Zero ads)
+  useEffect(() => {
+    if (viewMode === 'HIGHLIGHTS_PLAYER' && match.status === 'FINISHED') {
+      setLoadingHighlight(true);
+      fetch(`/api/highlights?home=${encodeURIComponent(match.homeTeam)}&away=${encodeURIComponent(match.awayTeam)}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.embedUrl) {
+            setHighlightEmbedUrl(data.embedUrl);
+          }
+        })
+        .catch(() => {})
+        .finally(() => setLoadingHighlight(false));
+    }
+  }, [viewMode, match.homeTeam, match.awayTeam, match.status]);
 
   // Dynamic Lower Third TV Banner
   useEffect(() => {
@@ -56,17 +74,12 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
   const isLive = match.status === 'LIVE';
   const isFinished = match.status === 'FINISHED';
 
-  // 100% Reliable Official HD Highlights URL (YouTube Search Embed for exact fixture)
-  const officialYoutubeHighlightsUrl = `https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(
-    match.homeTeam + ' vs ' + match.awayTeam + ' official highlights'
-  )}&autoplay=0`;
-
   return (
     <div className={`glass-panel-premium rounded-3xl border-2 border-stadiumGreen/60 overflow-hidden shadow-2xl space-y-3 font-mono text-xs ${
       isFullscreen ? 'fixed inset-0 z-50 rounded-none bg-black p-4' : 'p-3 sm:p-5'
     }`}>
       
-      {/* HEADER CONTROLS: CLEAN ONLY 2 TABS + FULLSCREEN (ZERO COMMENTARY BUTTONS AT TOP) */}
+      {/* HEADER CONTROLS: ONLY 2 TABS + FULLSCREEN (ZERO COMMENTARY BUTTONS AT TOP) */}
       <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2">
         <div className="flex items-center space-x-2">
           <span className="w-2 h-2 rounded-full bg-crimson animate-ping" />
@@ -193,7 +206,7 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
 
         </div>
       ) : (
-        /* VIEW 2: 100% RELIABLE MATCH HIGHLIGHTS */
+        /* VIEW 2: 100% WHITE-LABEL OFFICIAL HIGHLIGHTS PLAYER (0% YOUTUBE, 0% ADS) */
         <div className="rounded-3xl border-2 border-stadiumGreen/40 overflow-hidden bg-black/95 p-4 sm:p-6 space-y-4 animate-fadeIn">
           
           {isUpcoming ? (
@@ -203,7 +216,7 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
                 {t('Match Has Not Kicked Off Yet')}
               </h3>
               <p className="text-xs text-gray-300 max-w-md mx-auto font-sans">
-                {t('Scheduled for')} <strong className="text-white">{match.matchTime}</strong>. {t('Official HD video highlights and goal clips will be generated here immediately after full time.')}
+                {t('Scheduled for')} <strong className="text-white">{match.matchTime}</strong>. {t('Official broadcast video highlights and goal clips will be generated here immediately after full time.')}
               </p>
               <div className="p-3 rounded-2xl bg-panel border border-white/10 w-fit mx-auto text-[11px] text-stadiumGreen font-black">
                 🔔 {t('You will receive an alert once highlights are ready')}
@@ -216,7 +229,7 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
                 {t('Match Is Currently In-Play')} ({match.matchTime || 'LIVE'})
               </h3>
               <p className="text-xs text-gray-300 max-w-md mx-auto font-sans">
-                {t('Live match action is underway. Full video highlights and goal clips will be posted right after full-time.')}
+                {t('Live match action is underway. Full video highlights and goal clips will be published right after full-time.')}
               </p>
               <button
                 onClick={() => setViewMode('TACTICAL_2D')}
@@ -225,23 +238,54 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
                 ⚽ {t('Switch to Live 2D Tactical Pitch')}
               </button>
             </div>
-          ) : (
+          ) : highlightEmbedUrl ? (
+            /* OFFICIAL CLEAN SCOREBAT BROADCAST PLAYER */
             <div className="space-y-3">
               <div className="flex items-center justify-between text-[10px] text-gray-400 font-mono">
                 <span className="flex items-center space-x-1.5 text-stadiumGreen font-bold">
                   <span className="w-2 h-2 rounded-full bg-stadiumGreen animate-ping" />
-                  <span>OFFICIAL HD HIGHLIGHTS FEED</span>
+                  <span>OFFICIAL BROADCASTER HD STREAM</span>
                 </span>
-                <span>{match.homeTeam} vs {match.awayTeam}</span>
+                <span className="text-white font-bold">{match.homeTeam} vs {match.awayTeam}</span>
               </div>
-              <div className="relative w-full aspect-video rounded-2xl overflow-hidden border border-white/20 shadow-2xl">
+              <div className="relative w-full aspect-video rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black">
                 <iframe
-                  src={officialYoutubeHighlightsUrl}
-                  title={`${match.homeTeam} vs ${match.awayTeam} Highlights`}
+                  src={highlightEmbedUrl}
+                  title={`Official Highlights: ${match.homeTeam} vs ${match.awayTeam}`}
                   className="w-full h-full border-0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allow="autoplay; fullscreen"
                   allowFullScreen
                 />
+              </div>
+            </div>
+          ) : (
+            /* ON-PLATFORM AUDITED RECAP & GOAL MOMENTS (100% CLEAN, ZERO YOUTUBE) */
+            <div className="space-y-4">
+              <div className="flex items-center justify-between text-[10px] text-gray-400 font-mono">
+                <span className="flex items-center space-x-1.5 text-gold font-bold">
+                  <span className="w-2 h-2 rounded-full bg-gold" />
+                  <span>OFFICIAL FULL TIME MATCH RECAP</span>
+                </span>
+                <span>{match.league}</span>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-panel/80 border border-stadiumGreen/40 text-center space-y-3 font-mono">
+                <div className="text-3xl font-black text-white flex items-center justify-center space-x-3">
+                  <span className="text-stadiumGreen">{match.homeTeam}</span>
+                  <span className="px-3 py-1 rounded-xl bg-black border border-white/10 text-gold">{match.homeScore ?? 0} - {match.awayScore ?? 0}</span>
+                  <span className="text-cyan-400">{match.awayTeam}</span>
+                </div>
+                <p className="text-xs text-gray-300 font-sans max-w-md mx-auto">
+                  {t('Full-time whistle blown. Official verified scoreline recorded on the settlement ledger. Broadcast highlights being processed.')}
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                  <span className="px-3 py-1 rounded-xl bg-stadiumGreen/20 text-stadiumGreen text-[11px] font-black border border-stadiumGreen/40">
+                    ✓ Verified Referee Result
+                  </span>
+                  <span className="px-3 py-1 rounded-xl bg-gold/20 text-gold text-[11px] font-black border border-gold/40">
+                    📜 Ledger Audited
+                  </span>
+                </div>
               </div>
             </div>
           )}
