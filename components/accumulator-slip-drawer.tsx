@@ -5,6 +5,7 @@ import { MatchData } from '../lib/sports-api';
 import { X, Trash2, Zap, ExternalLink, Check, ChevronUp, ChevronDown } from 'lucide-react';
 import { useTranslation } from '../lib/translation-engine';
 import { phoneHardware } from '../lib/phone-hardware-engine';
+import { NIGERIAN_BOOKMAKERS_REGISTRY, universalBookmakerBridge } from '../lib/universal-bookmaker-registry';
 import confetti from 'canvas-confetti';
 
 export interface SelectedSlipPick {
@@ -32,13 +33,30 @@ export const AccumulatorSlipDrawer: React.FC<AccumulatorSlipDrawerProps> = ({
 
   const totalOdds = picks.reduce((acc, p) => acc * p.odds, 1);
 
-  const handleExport = (bookmaker: string, codePrefix: string) => {
+  const handleExport = (bookmakerId: string) => {
     phoneHardware.triggerHaptic('SUCCESS');
-    const code = codePrefix + Math.random().toString(36).substring(2, 7).toUpperCase();
-    navigator.clipboard.writeText(code);
-    setCopiedBookie(bookmaker);
     confetti({ particleCount: 30, spread: 50 });
-    setTimeout(() => setCopiedBookie(null), 2500);
+    
+    // Format full accumulator slip for all games
+    const bookie = NIGERIAN_BOOKMAKERS_REGISTRY.find(b => b.id === bookmakerId) || NIGERIAN_BOOKMAKERS_REGISTRY[0];
+    const accCode = bookie.generateBookingCode(picks.map(p => p.match.id).join('-'), 'ACC');
+    
+    const summaryList = picks
+      .map((p, idx) => `${idx + 1}. ${p.match.homeTeam} vs ${p.match.awayTeam} -> ${p.selection} (@${p.odds.toFixed(2)})`)
+      .join('\n');
+
+    const slipPayload = `🔥 AuraScore Multi-Banker Accumulator\n\n${summaryList}\n\n📊 Total Odds: @${totalOdds.toFixed(2)}\n🎫 ${bookie.name} Code: ${accCode}\n📱 Load: ${bookie.domain}`;
+
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(slipPayload).catch(() => {});
+    }
+
+    if (typeof window !== 'undefined') {
+      window.open(bookie.domain, '_blank', 'noopener,noreferrer');
+    }
+
+    setCopiedBookie(bookmakerId);
+    setTimeout(() => setCopiedBookie(null), 3000);
   };
 
   return (
@@ -98,26 +116,24 @@ export const AccumulatorSlipDrawer: React.FC<AccumulatorSlipDrawerProps> = ({
               ))}
             </div>
 
-            {/* 1-CLICK BOOKMAKER EXPORTS */}
+            {/* 1-CLICK ALL NIGERIAN BOOKMAKERS EXPORT */}
             <div className="pt-2 border-t border-white/10 space-y-2">
               <span className="text-[10px] text-gray-400 font-bold block">{t('1-Click Export to Bookmaker:')}</span>
               <div className="grid grid-cols-2 gap-2">
-                {[
-                  { name: 'SportyBet', prefix: 'SB-' },
-                  { name: 'Bet9ja',    prefix: 'B9-' },
-                  { name: '1xBet',     prefix: '1X-' },
-                  { name: 'BetKing',   prefix: 'BK-' },
-                ].map((b) => (
+                {NIGERIAN_BOOKMAKERS_REGISTRY.slice(0, 6).map((b) => (
                   <button
-                    key={b.name}
-                    onClick={() => handleExport(b.name, b.prefix)}
-                    className="p-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-white font-bold text-[11px] flex items-center justify-between transition-all"
+                    key={b.id}
+                    onClick={() => handleExport(b.id)}
+                    className="p-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-white font-bold text-[11px] flex items-center justify-between transition-all active:scale-95"
                   >
-                    <span>{b.name}</span>
-                    {copiedBookie === b.name ? (
+                    <div className="flex items-center space-x-1.5 truncate">
+                      <span>{b.logoEmoji}</span>
+                      <span className="truncate">{b.name}</span>
+                    </div>
+                    {copiedBookie === b.id ? (
                       <span className="text-[9px] text-stadiumGreen flex items-center space-x-0.5">
                         <Check className="w-3 h-3" />
-                        <span>Copied!</span>
+                        <span>Code!</span>
                       </span>
                     ) : (
                       <ExternalLink className="w-3 h-3 text-gold" />
