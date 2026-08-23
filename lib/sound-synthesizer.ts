@@ -54,17 +54,19 @@ class StadiumAudioEngine {
       const utter = new SpeechSynthesisUtterance(text);
       const voices = window.speechSynthesis.getVoices();
 
-      // Prioritize authentic Nigerian voice profile
+      // Prioritize authentic MALE Nigerian voice profile
+      const isFemale = (n: string) => /female|ezinne|ada|zira|hazel|susan|samantha|victoria/.test(n.toLowerCase());
       const ngVoice =
-        voices.find((v) => v.lang.toLowerCase().includes('ng') || v.name.toLowerCase().includes('nigeria')) ||
-        voices.find((v) => v.lang.toLowerCase().includes('en-za') || v.name.toLowerCase().includes('africa')) ||
-        voices.find((v) => v.lang.toLowerCase().includes('en-gb')) ||
+        voices.find((v) => (v.lang.toLowerCase().includes('ng') || v.name.toLowerCase().includes('nigeria')) && !isFemale(v.name)) ||
+        voices.find((v) => (v.lang.toLowerCase().includes('en-za') || v.name.toLowerCase().includes('africa')) && !isFemale(v.name)) ||
+        voices.find((v) => v.lang.toLowerCase().includes('en-gb') && !isFemale(v.name)) ||
+        voices.find((v) => !isFemale(v.name)) ||
         voices[0];
 
       if (ngVoice) utter.voice = ngVoice;
-      utter.rate = 1.0;
-      utter.pitch = 1.15;
-      utter.volume = 0.95;
+      utter.rate = 1.04;
+      utter.pitch = 0.92; // Deep resonant male commentator pitch
+      utter.volume = 1.0;
       window.speechSynthesis.speak(utter);
     } catch {
       /* noop */

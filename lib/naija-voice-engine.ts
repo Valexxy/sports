@@ -54,24 +54,35 @@ export const UNIVERSAL_NAIJA_VOCABULARY: Record<string, string> = {
   'danger': 'Danger dey inside the 18-yard box now now!',
 };
 
-function pickUniversalNaijaVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
+function pickUniversalNaijaMaleVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
   const lower = (s: string) => s.toLowerCase();
-  
-  // 1. Check for installed native Nigerian voice
-  const isNaija = (v: SpeechSynthesisVoice) =>
-    lower(v.lang).startsWith('en-ng') ||
-    /nigeria|nigerian|naija|chinedu|ezinne|onyeka|tunde|ada/.test(lower(v.name));
-  const native = voices.find(isNaija);
-  if (native) return native;
+  const isFemale = (name: string) => /female|ezinne|ada|zira|hazel|susan|samantha|victoria|katherine|linda|heather|catherine|jenny|amber|sonia/.test(name);
 
-  // 2. Universal fallback: English voices tuned with Nigerian acoustic formant
-  return (
-    voices.find((v) => lower(v.lang).startsWith('en-za') || lower(v.name).includes('africa')) ||
-    voices.find((v) => lower(v.lang).startsWith('en-gb')) ||
-    voices.find((v) => lower(v.lang).startsWith('en-')) ||
-    voices[0] ||
-    null
-  );
+  // 1. Prioritize installed Nigerian English MALE voices
+  const ngMale = voices.find((v) => {
+    const name = lower(v.name);
+    const lang = lower(v.lang);
+    return (lang.startsWith('en-ng') || /nigeria|naija/.test(name)) && !isFemale(name);
+  });
+  if (ngMale) return ngMale;
+
+  // 2. Prioritize African MALE voices
+  const afMale = voices.find((v) => {
+    const name = lower(v.name);
+    const lang = lower(v.lang);
+    return (lang.startsWith('en-za') || /africa/.test(name)) && !isFemale(name);
+  });
+  if (afMale) return afMale;
+
+  // 3. Prioritize Deep British / International English MALE voices
+  const brMale = voices.find((v) => {
+    const name = lower(v.name);
+    const lang = lower(v.lang);
+    return (lang.startsWith('en-gb') || lang.startsWith('en-')) && !isFemale(name);
+  });
+  if (brMale) return brMale;
+
+  return voices.find((v) => !isFemale(lower(v.name))) || voices[0] || null;
 }
 
 export interface NaijaSpeakOptions {
@@ -104,7 +115,7 @@ export function speakNaija(
     synth.resume();
 
     const voiceList = synth.getVoices();
-    const voice = pickUniversalNaijaVoice(voiceList);
+    const voice = pickUniversalNaijaMaleVoice(voiceList);
 
     // Format text with authentic Naija transliteration if using neutral voice
     const isNative = voice && voice.lang.toLowerCase().startsWith('en-ng');
@@ -114,8 +125,9 @@ export function speakNaija(
     if (voice) utterance.voice = voice;
 
     // Nigerian pitch & tempo acoustic formant parameters
-    const rateFor: Record<NaijaTone, number> = { normal: 1.0, hyped: 1.14, shock: 1.25, calm: 0.9 };
-    const pitchFor: Record<NaijaTone, number> = { normal: 1.15, hyped: 1.25, shock: 1.35, calm: 1.0 };
+    // Deep, authoritative male Nigerian sports commentator resonance
+    const rateFor: Record<NaijaTone, number> = { normal: 1.04, hyped: 1.12, shock: 1.18, calm: 0.95 };
+    const pitchFor: Record<NaijaTone, number> = { normal: 0.92, hyped: 0.96, shock: 1.05, calm: 0.88 };
 
     utterance.rate = opts.rate ?? rateFor[tone];
     utterance.pitch = opts.pitch ?? pitchFor[tone];
