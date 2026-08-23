@@ -1,33 +1,37 @@
 'use client';
 
 /**
- * UNIVERSAL NAIJA LANGUAGE & ACOUSTIC SPEECH PACK (en-NG)
- * Synthesizes authentic Nigerian sports commentary with crowd audio on any device.
+ * AUTHENTIC WARRI / EDO NIGERIAN PIDGIN ACOUSTIC SYNTHESIZER
+ * Tuned with Warri swagger, Pidgin cadences, vocal inflections, and stadium commentary chants!
  */
 
-export type NaijaTone = 'normal' | 'hyped' | 'shock' | 'calm';
+export type NaijaTone = 'normal' | 'hyped' | 'goal' | 'foul' | 'card';
 
-export function naijaTransliterate(text: string): string {
-  return text.trim()
-    .replace(/\bit is\b/gi, 'e be')
-    .replace(/\bis going to\b/gi, 'dey go')
-    .replace(/\bgoing to\b/gi, 'dey go')
-    .replace(/\bhave to\b/gi, 'fit')
-    .replace(/\bis not\b/gi, 'no be')
-    .replace(/\bis\b/gi, 'dey')
-    .replace(/\bare\b/gi, 'dey')
-    .replace(/\bdon't\b/gi, 'no')
-    .replace(/\bcan't\b/gi, 'no fit')
-    .replace(/\bwant to\b/gi, 'won')
-    .replace(/\bthem\b/gi, 'dem')
+// Deep Warri & Edo state phonetic transliterator
+export function warriTransliterate(text: string): string {
+  let t = text.trim()
+    .replace(/\bWelcome to the live\b/gi, 'Waffi people welcome to the hot live')
+    .replace(/\bGoal\b/gi, 'Goooooal o! Wire am enter net')
+    .replace(/\bscored\b/gi, 'don scatter net')
+    .replace(/\byellow card\b/gi, 'yellow card! Referee say make you behave yourself')
+    .replace(/\bred card\b/gi, 'red card straight! Go take your bath')
+    .replace(/\bshot\b/gi, 'thunder shot')
+    .replace(/\bsaved\b/gi, 'parry like eagle')
+    .replace(/\bpass\b/gi, 'fine carpet pass')
+    .replace(/\btackle\b/gi, 'solid Warri tackle')
+    .replace(/\bfoul\b/gi, 'bad foul')
+    .replace(/\breferee\b/gi, 'referee oga')
+    .replace(/\bhalf time\b/gi, 'first half don finish, make players go drink pure water')
+    .replace(/\bfull time\b/gi, 'match don end kpatakpata')
+    .replace(/\bpossession\b/gi, 'ball control')
+    .replace(/\bpenalty\b/gi, 'penalty kick! Tension dey stadium')
+    .replace(/\bcorner kick\b/gi, 'corner kick')
+    .replace(/\bwhat a\b/gi, 'omo see')
+    .replace(/\bgreat\b/gi, 'correct')
+    .replace(/\bamazing\b/gi, 'mad')
     .replace(/\bvery\b/gi, 'well well')
-    .replace(/\bnow\b/gi, 'now now')
-    .replace(/\bwhat\b/gi, 'wetin')
-    .replace(/\bwhere\b/gi, 'wia')
-    .replace(/\bplease\b/gi, 'abeg')
-    .replace(/\bgoal\b/gi, 'goal o')
-    .replace(/\bscores\b/gi, 'score am')
-    .replace(/\bscored\b/gi, 'wire am enter net');
+    .replace(/\bnow\b/gi, 'now now');
+  return t;
 }
 
 export function primeNaijaVoices(): void {
@@ -52,20 +56,21 @@ export function speakNaija(
     const voices = synth.getVoices();
     const isFemale = (n: string) => /female|ezinne|ada|zira|hazel|susan|samantha|victoria/.test(n.toLowerCase());
     
-    // Pick Nigerian or British/African male voice
-    const ngVoice =
+    // Pick authentic male commentator voice
+    const voice =
       voices.find((v) => (v.lang.toLowerCase().includes('ng') || v.name.toLowerCase().includes('nigeria')) && !isFemale(v.name)) ||
       voices.find((v) => (v.lang.toLowerCase().includes('en-za') || v.name.toLowerCase().includes('africa')) && !isFemale(v.name)) ||
       voices.find((v) => v.lang.toLowerCase().includes('en-gb') && !isFemale(v.name)) ||
       voices.find((v) => !isFemale(v.name)) ||
       voices[0];
 
-    const speechText = naijaTransliterate(text);
+    const speechText = warriTransliterate(text);
     const utter = new SpeechSynthesisUtterance(speechText);
-    if (ngVoice) utter.voice = ngVoice;
+    if (voice) utter.voice = voice;
 
-    utter.rate = opts.rate ?? (tone === 'hyped' ? 1.08 : 1.02);
-    utter.pitch = opts.pitch ?? 0.94; // Deep, confident commentator resonance
+    // Warri cadence tuning: punchy rate and confident pitch
+    utter.rate = opts.rate ?? (tone === 'goal' ? 1.14 : tone === 'hyped' ? 1.08 : 1.02);
+    utter.pitch = opts.pitch ?? (tone === 'goal' ? 1.04 : 0.92);
     utter.volume = opts.volume ?? 1.0;
     if (opts.onEnd) utter.onend = opts.onEnd;
 

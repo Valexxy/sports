@@ -411,7 +411,7 @@ export default function Home() {
 
         <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 py-4 space-y-4">
 
-          <GoogleDateNavigator onSelectDate={(dateStr, label, isToday) => { setSelectedDateStr(dateStr); setSelectedDateLabel(label); setIsViewingToday(isToday); setActiveFilter('ALL'); setSearchQuery(''); setVisibleCount(12); }} />
+          <GoogleDateNavigator onSelectDate={(dateStr, label, isToday, isPast) => { setSelectedDateStr(dateStr); setSelectedDateLabel(label); setIsViewingToday(isToday); if (isPast) { setActiveFilter('PLAYED'); } else if (isToday) { setActiveFilter('LIVE'); } else { setActiveFilter('UPCOMING'); } setSearchQuery(''); setVisibleCount(12); }} />
 
           {/* COLLAPSIBLE STADIUM HUB & NJA LIVE SUITES */}
           <CollapsibleStadiumHub
