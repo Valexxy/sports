@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { X, ShieldCheck, CheckCircle2, TrendingUp } from 'lucide-react';
 
 interface LedgerModalProps {

@@ -29,18 +29,22 @@ class StadiumAudioEngine {
   }
 
   private tone(freq: number, type: OscillatorType, startAt: number, duration: number, peakGain: number) {
-    if (!this.audioCtx) return;
-    const osc = this.audioCtx.createOscillator();
-    const gain = this.audioCtx.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, startAt);
-    gain.gain.setValueAtTime(0.0001, startAt);
-    gain.gain.linearRampToValueAtTime(peakGain, startAt + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
-    osc.connect(gain);
-    gain.connect(this.audioCtx.destination);
-    osc.start(startAt);
-    osc.stop(startAt + duration + 0.05);
+    try {
+      if (!this.audioCtx || this.audioCtx.state === 'closed') return;
+      const osc = this.audioCtx.createOscillator();
+      const gain = this.audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, startAt);
+      gain.gain.setValueAtTime(0.0001, startAt);
+      gain.gain.linearRampToValueAtTime(peakGain, startAt + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+      osc.connect(gain);
+      gain.connect(this.audioCtx.destination);
+      osc.start(startAt);
+      osc.stop(startAt + duration + 0.05);
+    } catch (e) {
+      // Graceful audio failover
+    }
   }
 
   public speakNigerian(text: string) {
