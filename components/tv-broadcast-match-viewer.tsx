@@ -2,11 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { MatchData } from '../lib/sports-api';
-import { Camera, Video, Maximize2, Minimize2, Play, Volume2, Sparkles, ExternalLink, ShieldCheck } from 'lucide-react';
+import { Camera, Video, Maximize2, Minimize2 } from 'lucide-react';
 import { stadiumAudio } from '../lib/sound-synthesizer';
 import { phoneHardware } from '../lib/phone-hardware-engine';
 import { useTranslation } from '../lib/translation-engine';
-import confetti from 'canvas-confetti';
 
 interface TvBroadcastMatchViewerProps {
   match: MatchData;
@@ -28,7 +27,6 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
   const [videoClips, setVideoClips] = useState<VideoClip[]>([]);
   const [loadingHighlight, setLoadingHighlight] = useState<boolean>(false);
   const [ballPos, setBallPos] = useState({ x: 52, y: 48 });
-  const [replayingGoal, setReplayingGoal] = useState<string | null>(null);
 
   const [activeLowerThird, setActiveLowerThird] = useState<{ title: string; subtitle: string; icon: string } | null>({
     title: 'TERRITORY CONTROL',
@@ -48,12 +46,16 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
             if (data.videos && Array.isArray(data.videos)) {
               setVideoClips(data.videos);
             }
+          } else {
+            setHighlightEmbedUrl('');
           }
         })
-        .catch(() => {})
+        .catch(() => {
+          setHighlightEmbedUrl('');
+        })
         .finally(() => setLoadingHighlight(false));
     }
-  }, [viewMode, match.homeTeam, match.awayTeam, match.status]);
+  }, [viewMode, match.homeTeam, match.awayTeam, match.status, match.matchTime]);
 
   // Dynamic Lower Third TV Banner
   useEffect(() => {
@@ -84,24 +86,6 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
 
   const isUpcoming = match.status === 'SCHEDULED';
   const isLive = match.status === 'LIVE';
-  const isFinished = match.status === 'FINISHED' || match.matchTime === 'FT';
-
-  const handleSimulateGoalReplay = (goalLabel: string) => {
-    setReplayingGoal(goalLabel);
-    setViewMode('TACTICAL_2D');
-    phoneHardware.triggerHaptic('GOAL');
-    try {
-      stadiumAudio.enableOnUserClick();
-      stadiumAudio.playGoalCelebration();
-    } catch {}
-    confetti({ particleCount: 40, spread: 70 });
-
-    // Animate ball directly into the net
-    setBallPos({ x: 92, y: 50 });
-    setTimeout(() => {
-      setReplayingGoal(null);
-    }, 4500);
-  };
 
   return (
     <div className={`glass-panel-premium rounded-3xl border-2 border-stadiumGreen/60 overflow-hidden shadow-2xl space-y-3 font-mono text-xs ${
@@ -164,14 +148,6 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
       {viewMode === 'TACTICAL_2D' ? (
         <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] rounded-2xl bg-gradient-to-b from-emerald-950 via-green-950 to-emerald-950 border-2 border-emerald-500/40 overflow-hidden shadow-inner flex items-center justify-center select-none">
           
-          {/* Replaying Goal Overlay Notification */}
-          {replayingGoal && (
-            <div className="absolute top-4 z-40 px-4 py-2 rounded-2xl bg-gold text-black font-black text-xs shadow-2xl animate-bounce flex items-center space-x-2">
-              <span>⚽ REPLAYING GOAL:</span>
-              <span>{replayingGoal}</span>
-            </div>
-          )}
-
           {/* Pitch Markings */}
           <div className="absolute inset-2 border-2 border-white/20 rounded-xl pointer-events-none" />
           <div className="absolute top-2 bottom-2 left-1/2 -translate-x-1/2 w-0.5 border-l-2 border-dashed border-white/20" />
@@ -243,21 +219,25 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
 
         </div>
       ) : (
-        /* VIEW 2: 100% RELIABLE MATCH HIGHLIGHTS & REPLAY STUDIO (ZERO BLANK SCREENS) */
+        /* VIEW 2: CLEAN DIRECT HIGHLIGHTS VIEW */
         <div className="rounded-3xl border-2 border-stadiumGreen/40 overflow-hidden bg-black/95 p-4 sm:p-6 space-y-4 animate-fadeIn">
           
-          {isUpcoming ? (
+          {loadingHighlight ? (
+            <div className="py-12 px-4 text-center space-y-3 font-mono">
+              <span className="w-8 h-8 rounded-full border-2 border-stadiumGreen border-t-transparent animate-spin inline-block" />
+              <h3 className="font-black text-xs text-stadiumGreen uppercase tracking-wider">
+                {t('Tuning official broadcast highlight feed...')}
+              </h3>
+            </div>
+          ) : isUpcoming ? (
             <div className="py-12 px-4 text-center space-y-3 font-mono">
               <span className="text-4xl block animate-bounce">⏳</span>
               <h3 className="font-black text-base text-gold uppercase tracking-wider">
                 {t('Match Has Not Kicked Off Yet')}
               </h3>
               <p className="text-xs text-gray-300 max-w-md mx-auto font-sans">
-                {t('Scheduled for')} <strong className="text-white">{match.matchTime}</strong>. {t('Official broadcast video highlights and goal clips will be generated here immediately after full time.')}
+                {t('Scheduled for')} <strong className="text-white">{match.matchTime}</strong>. {t('Official broadcast video highlights will be generated here immediately after full time.')}
               </p>
-              <div className="p-3 rounded-2xl bg-panel border border-white/10 w-fit mx-auto text-[11px] text-stadiumGreen font-black">
-                🔔 {t('You will receive an alert once highlights are ready')}
-              </div>
             </div>
           ) : isLive ? (
             <div className="py-12 px-4 text-center space-y-3 font-mono">
@@ -286,7 +266,7 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
                 <span className="text-white font-bold">{match.homeTeam} vs {match.awayTeam}</span>
               </div>
 
-              {/* Multi-Clip Switcher (e.g. Goal 1, Goal 2, Full Highlights) */}
+              {/* Multi-Clip Switcher */}
               {videoClips.length > 1 && (
                 <div className="flex flex-wrap items-center gap-1.5 pb-1">
                   {videoClips.map((clip, idx) => (
@@ -316,88 +296,15 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
               </div>
             </div>
           ) : (
-            /* INTERACTIVE FULL-TIME REPLAY STUDIO (100% RELIABLE FOR ALL PLAYED MATCHES) */
-            <div className="space-y-4">
-              <div className="flex items-center justify-between text-[10px] text-gray-400 font-mono border-b border-white/10 pb-2">
-                <span className="flex items-center space-x-1.5 text-stadiumGreen font-black">
-                  <span className="w-2 h-2 rounded-full bg-stadiumGreen" />
-                  <span>OFFICIAL MATCH HIGHLIGHTS STUDIO</span>
-                </span>
-                <span className="text-white font-bold">{match.league}</span>
-              </div>
-
-              {/* Scorecard Hero */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-panel/90 border border-stadiumGreen/40 text-center space-y-2 font-mono">
-                <div className="text-2xl sm:text-3xl font-black text-white flex items-center justify-center space-x-3">
-                  <span className="text-stadiumGreen">{match.homeTeam}</span>
-                  <span className="px-3.5 py-1 rounded-xl bg-black border border-white/20 text-gold shadow-inner">
-                    {match.homeScore ?? 0} - {match.awayScore ?? 0}
-                  </span>
-                  <span className="text-cyan-400">{match.awayTeam}</span>
-                </div>
-                <p className="text-xs text-gray-300 font-sans max-w-md mx-auto">
-                  Official full-time result recorded on the settlement ledger. Verified by league match referee.
-                </p>
-              </div>
-
-              {/* Interactive Goal Moments & Tactical Replays */}
-              <div className="space-y-2">
-                <span className="text-[11px] font-black text-gold uppercase tracking-wider block">
-                  ⚡ Interactive Goal Moments & 2D Tactical Replays:
-                </span>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <button
-                    onClick={() => handleSimulateGoalReplay(`${match.homeTeam} Goal (24')`)}
-                    className="p-3 rounded-2xl bg-black/60 border border-white/10 hover:border-stadiumGreen/50 text-left flex items-center justify-between transition-all group"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <span className="p-1.5 rounded-lg bg-stadiumGreen/20 text-stadiumGreen text-xs">⚽</span>
-                      <div>
-                        <span className="font-black text-white text-xs block group-hover:text-stadiumGreen">
-                          Goal 1: Breakthrough Strike
-                        </span>
-                        <span className="text-[10px] text-gray-400 font-sans">Tactical curved shot past keeper (24')</span>
-                      </div>
-                    </div>
-                    <span className="px-2 py-1 rounded-lg bg-stadiumGreen/20 text-stadiumGreen text-[9px] font-black">
-                      ▶️ Replay
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => handleSimulateGoalReplay(`${match.awayTeam || match.homeTeam} Goal (68')`)}
-                    className="p-3 rounded-2xl bg-black/60 border border-white/10 hover:border-stadiumGreen/50 text-left flex items-center justify-between transition-all group"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <span className="p-1.5 rounded-lg bg-gold/20 text-gold text-xs">🎯</span>
-                      <div>
-                        <span className="font-black text-white text-xs block group-hover:text-gold">
-                          Goal 2: Thunderous Volley
-                        </span>
-                        <span className="text-[10px] text-gray-400 font-sans">Top-corner upper 90 finish (68')</span>
-                      </div>
-                    </div>
-                    <span className="px-2 py-1 rounded-lg bg-gold/20 text-gold text-[9px] font-black">
-                      ▶️ Replay
-                    </span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Certified Ledger Badges */}
-              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-white/10 text-[10px] font-mono">
-                <span className="text-gray-400">STATUS: AUDITED & SETTLED</span>
-                <div className="flex items-center space-x-2">
-                  <span className="px-2.5 py-0.5 rounded-lg bg-stadiumGreen/20 text-stadiumGreen font-black border border-stadiumGreen/30">
-                    ✓ Full Time Whistle
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-lg bg-gold/20 text-gold font-black border border-gold/30">
-                    📜 Ledger Verified
-                  </span>
-                </div>
-              </div>
-
+            /* SIMPLE DIRECT CLEAN "NO HIGHLIGHTS" MESSAGE */
+            <div className="py-12 px-4 text-center space-y-2 font-mono">
+              <span className="text-3xl block">🎬</span>
+              <h3 className="font-black text-sm text-gray-300 uppercase tracking-wider">
+                {t('No official match highlights available for this fixture.')}
+              </h3>
+              <p className="text-[11px] text-gray-500 font-sans">
+                {t('Official broadcaster video highlights are not indexed for this league or match.')}
+              </p>
             </div>
           )}
 
