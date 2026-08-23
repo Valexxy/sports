@@ -150,14 +150,14 @@ interface LanguageContextType {
 }
 
 const LanguageContext = createContext<LanguageContextType>({
-  lang: 'en',
+  lang: 'pidgin',
   setLang: () => {},
   t: (k) => k,
-  meta: SUPPORTED_LANGUAGES[0],
+  meta: SUPPORTED_LANGUAGES[1],
 });
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [lang, setLangState] = useState<LanguageCode>('en');
+  const [lang, setLangState] = useState<LanguageCode>('pidgin');
 
   useEffect(() => {
     if (typeof window === 'undefined') return;

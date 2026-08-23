@@ -2,9 +2,7 @@
 
 /**
  * STADIUM BROADCAST AUDIO ENGINE
- * Generates continuous live stadium crowd ambience, realistic fan murmur,
- * dynamic match cheer surges, and synchronized play-by-play TV commentary
- * with pause/resume timeline tracking.
+ * Continuous stadium crowd ambience + synchronized Nigerian play-by-play TV voice commentary
  */
 
 import { speakNaija } from './naija-voice-engine';
@@ -19,8 +17,9 @@ class StadiumBroadcastAudioEngine {
   private currentSecond: number = 24;
   private timelineTimer: NodeJS.Timeout | null = null;
   private commentaryTimer: NodeJS.Timeout | null = null;
-  private crowdVolume: number = 0.25;
+  private crowdVolume: number = 0.35;
   private voiceVolume: number = 1.0;
+  private activeChannel: 'ENGLISH' | 'PIDGIN' = 'PIDGIN';
 
   public init() {
     if (typeof window === 'undefined') return;
@@ -35,13 +34,10 @@ class StadiumBroadcastAudioEngine {
     }
   }
 
-  /**
-   * Generates an 8-second looping buffer of authentic low-rumble stadium crowd ambience
-   */
   private createCrowdNoiseBuffer(): AudioBuffer | null {
     if (!this.audioCtx) return null;
     const sampleRate = this.audioCtx.sampleRate;
-    const bufferSize = sampleRate * 8; // 8 seconds buffer
+    const bufferSize = sampleRate * 8;
     const buffer = this.audioCtx.createBuffer(2, bufferSize, sampleRate);
     const left = buffer.getChannelData(0);
     const right = buffer.getChannelData(1);
@@ -52,14 +48,9 @@ class StadiumBroadcastAudioEngine {
     for (let i = 0; i < bufferSize; i++) {
       const whiteL = Math.random() * 2 - 1;
       const whiteR = Math.random() * 2 - 1;
-
-      // Brownian / Pink low-pass filter for rich stadium murmur
       lastOutL = (lastOutL + (0.02 * whiteL)) / 1.02;
       lastOutR = (lastOutR + (0.02 * whiteR)) / 1.02;
-
-      // Add gentle sinusoidal cheering swell
       const wave = Math.sin((i / sampleRate) * Math.PI * 0.5) * 0.15;
-
       left[i] = (lastOutL * 2.8 + wave) * 0.35;
       right[i] = (lastOutR * 2.8 + wave) * 0.35;
     }
@@ -67,27 +58,40 @@ class StadiumBroadcastAudioEngine {
     return buffer;
   }
 
-  /**
-   * Start Live Stadium Broadcast (Crowd Ambience + TV Commentary Stream)
-   */
-  public startBroadcast(
+  public startEnglishBroadcast(
     homeTeam: string,
     awayTeam: string,
-    initialMinute: number = 64,
-    onTick?: (timeStr: string, isPlaying: boolean) => void,
-    channel: 'ENGLISH' | 'PIDGIN' = 'ENGLISH',
-    langCode: string = 'en'
+    initialMinute: number = 15,
+    onTick?: (timeStr: string, isPlaying: boolean) => void
   ) {
-    this.activeChannel = channel;
-    this.activeLanguage = langCode;
-    this.init();
-    if (!this.audioCtx) return;
+    this.activeChannel = 'ENGLISH';
+    this.startBroadcastInternal(homeTeam, awayTeam, initialMinute, onTick);
+    this.speakTvCommentary(`Welcome to the live stadium broadcast. ${homeTeam} vs ${awayTeam} at minute ${this.currentMinute}. The stadium is rocking!`);
+  }
 
+  public startPidginBroadcast(
+    homeTeam: string,
+    awayTeam: string,
+    initialMinute: number = 15,
+    onTick?: (timeStr: string, isPlaying: boolean) => void,
+    localLang: string = 'pidgin'
+  ) {
+    this.activeChannel = 'PIDGIN';
+    this.startBroadcastInternal(homeTeam, awayTeam, initialMinute, onTick);
+    this.speakTvCommentary(`Oya welcome to the live match o! ${homeTeam} and ${awayTeam} dey tear pitch for minute ${this.currentMinute}! Stadium don bubble!`);
+  }
+
+  private startBroadcastInternal(
+    homeTeam: string,
+    awayTeam: string,
+    initialMinute: number,
+    onTick?: (timeStr: string, isPlaying: boolean) => void
+  ) {
+    this.init();
     this.isPaused = false;
     this.currentMinute = initialMinute;
     this.startCrowdAmbience();
 
-    // Start timeline clock
     if (this.timelineTimer) clearInterval(this.timelineTimer);
     this.timelineTimer = setInterval(() => {
       if (!this.isPaused) {
@@ -101,23 +105,14 @@ class StadiumBroadcastAudioEngine {
       }
     }, 1000);
 
-    // Initial broadcast commentary line
-    this.speakTvCommentary(
-      `Live from the stadium. ${homeTeam} vs ${awayTeam}, minute ${this.currentMinute}. The crowd is roaring!`
-    );
-
-    // Stream regular commentary every 14 seconds
     if (this.commentaryTimer) clearInterval(this.commentaryTimer);
     this.commentaryTimer = setInterval(() => {
       if (!this.isPaused) {
         this.triggerDynamicTvAction(homeTeam, awayTeam);
       }
-    }, 14000);
+    }, 12000);
   }
 
-  /**
-   * Trigger continuous crowd ambient noise
-   */
   public startCrowdAmbience() {
     this.init();
     if (!this.audioCtx || this.isCrowdPlaying) return;
@@ -129,7 +124,6 @@ class StadiumBroadcastAudioEngine {
     this.crowdSourceNode.buffer = buffer;
     this.crowdSourceNode.loop = true;
 
-    // Filter to give that authentic outdoor stadium acoustic
     const filter = this.audioCtx.createBiquadFilter();
     filter.type = 'lowpass';
     filter.frequency.setValueAtTime(650, this.audioCtx.currentTime);
@@ -145,22 +139,16 @@ class StadiumBroadcastAudioEngine {
     this.isCrowdPlaying = true;
   }
 
-  /**
-   * Pause the match broadcast exactly where it is
-   */
   public pauseBroadcast() {
     this.isPaused = true;
     if (this.crowdGainNode && this.audioCtx) {
       this.crowdGainNode.gain.linearRampToValueAtTime(0.0001, this.audioCtx.currentTime + 0.3);
     }
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.pause();
+      window.speechSynthesis.cancel();
     }
   }
 
-  /**
-   * Resume match broadcast from the exact minute/second
-   */
   public resumeBroadcast(homeTeam: string, awayTeam: string) {
     this.init();
     this.isPaused = false;
@@ -169,26 +157,19 @@ class StadiumBroadcastAudioEngine {
     } else {
       this.startCrowdAmbience();
     }
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      if (window.speechSynthesis.paused) {
-        window.speechSynthesis.resume();
-      } else {
-        this.speakTvCommentary(
-          `Resuming match broadcast at ${this.currentMinute} minutes. Possession contested between ${homeTeam} and ${awayTeam}.`
-        );
-      }
-    }
+    this.speakTvCommentary(
+      this.activeChannel === 'PIDGIN'
+        ? `Match dey resume for minute ${this.currentMinute}! ${homeTeam} and ${awayTeam} dey contest ball!`
+        : `Resuming live match at ${this.currentMinute} minutes. ${homeTeam} in possession.`
+    );
   }
 
-  /**
-   * Stop broadcast completely
-   */
   public stopBroadcast() {
     this.isPaused = false;
     if (this.timelineTimer) clearInterval(this.timelineTimer);
     if (this.commentaryTimer) clearInterval(this.commentaryTimer);
     if (this.crowdSourceNode) {
-      try { this.crowdSourceNode.stop(); } catch { /* noop */ }
+      try { this.crowdSourceNode.stop(); } catch {}
       this.crowdSourceNode = null;
     }
     this.isCrowdPlaying = false;
@@ -197,65 +178,43 @@ class StadiumBroadcastAudioEngine {
     }
   }
 
-  /**
-   * Surge the crowd roar (e.g. on shot on target or near goal)
-   */
-  public surgeCrowdRoar(intensity: 'high' | 'goal' | 'foul' | 'shot' = 'high') {
+  public surgeCrowdRoar(intensity: 'high' | 'goal' | 'shot' = 'high') {
     if (!this.crowdGainNode || !this.audioCtx) return;
     const now = this.audioCtx.currentTime;
-    
-    // Dynamically modulate crowd audience acoustic pitch and intensity
-    const randomShift = (Math.random() * 0.15) - 0.07;
-    const targetGain = intensity === 'goal' ? 0.72 + randomShift : intensity === 'shot' ? 0.52 + randomShift : 0.42 + randomShift;
-    
+    const targetGain = intensity === 'goal' ? 0.75 : intensity === 'shot' ? 0.55 : 0.45;
     this.crowdGainNode.gain.cancelScheduledValues(now);
     this.crowdGainNode.gain.linearRampToValueAtTime(targetGain, now + 0.18);
-    this.crowdGainNode.gain.exponentialRampToValueAtTime(this.crowdVolume, now + (intensity === 'goal' ? 4.5 : 2.6));
+    this.crowdGainNode.gain.exponentialRampToValueAtTime(this.crowdVolume, now + (intensity === 'goal' ? 4.5 : 2.5));
   }
 
-  /**
-   * Speaks TV commentary with smart dynamic vocal modulation (no 2 lines sound the same)
-   */
   public speakTvCommentary(text: string) {
     if (typeof window === 'undefined' || this.isPaused) return;
     this.surgeCrowdRoar('high');
-    
-    // Dynamic human voice pitch and tempo variation
-    const dynamicPitch = 0.90 + (Math.random() * 0.14); // 0.90 - 1.04
-    const dynamicRate = 1.01 + (Math.random() * 0.08);  // 1.01 - 1.09
-
     speakNaija(text, 'hyped', {
-      rate: dynamicRate,
-      pitch: dynamicPitch,
+      rate: 1.05,
+      pitch: 0.94,
       volume: this.voiceVolume,
     });
   }
 
-  /**
-   * Generates dynamic in-play television commentary moments
-   */
   private triggerDynamicTvAction(home: string, away: string) {
-    const actions = [
-      `${home} pushing forward into the final third. Beautiful passing exchange!`,
-      `Crucial tackle by ${away} defense to stop the counter attack!`,
-      `Dangerous cross delivered into the penalty box! Goalkeeper comes out to punch!`,
-      `${home} maintaining high press, looking for an opening in the penalty area.`,
-      `Shot from distance! Just wide of the top right corner! Crowd is up on their feet!`,
+    const pidginActions = [
+      `${home} boys dey push enter final third! Correct passing exchange!`,
+      `Crucial tackle by ${away} defender, e clear ball go corner!`,
+      `Dangerous cross enter 18 yard box! Goalkeeper fly catch am!`,
+      `${home} dey press high, dem wan score by all means!`,
+      `Omo see thunder strike from outside box! E shave the goal post bar!`,
     ];
-    const phrase = actions[Math.floor(Math.random() * actions.length)];
+    const englishActions = [
+      `${home} advancing smoothly down the left wing with precision passes.`,
+      `Superb defensive interception by ${away} to stop the danger.`,
+      `Curling cross whipped into the penalty box! Goalkeeper punches clear!`,
+      `${home} dominating territory control with high pressing.`,
+      `Long range shot fired on target! Ball flies inches over the crossbar!`,
+    ];
+    const pool = this.activeChannel === 'PIDGIN' ? pidginActions : englishActions;
+    const phrase = pool[Math.floor(Math.random() * pool.length)];
     this.speakTvCommentary(`Minute ${this.currentMinute}: ${phrase}`);
-  }
-
-  public getTimeString(): string {
-    return `${this.currentMinute}:${this.currentSecond < 10 ? '0' + this.currentSecond : this.currentSecond}`;
-  }
-
-  public getIsPaused(): boolean {
-    return this.isPaused;
-  }
-
-  public getIsPlaying(): boolean {
-    return this.isCrowdPlaying && !this.isPaused;
   }
 }
 

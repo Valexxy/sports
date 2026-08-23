@@ -376,8 +376,8 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
             </div>
           </button>
 
-          {/* Center: Live Score / Time */}
-          <div className="flex flex-col items-center justify-center px-1.5 flex-shrink-0 min-w-[76px] text-center">
+          {/* Center: Live Score / Time (100% UNIFIED FORMAT ACROSS ALL MATCHES) */}
+          <div className="flex flex-col items-center justify-center px-1.5 flex-shrink-0 min-w-[80px] text-center">
             {isLive ? (
               <>
                 <div className="font-mono font-black text-sm sm:text-base text-emerald-400 animate-pulse whitespace-nowrap flex items-center space-x-1">
@@ -385,9 +385,11 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
                   <span className="text-gray-500">-</span>
                   <span>{match.awayScore ?? 0}</span>
                 </div>
-                <span className="text-[9px] font-mono text-stadiumGreen font-black mt-0.5 whitespace-nowrap">
-                  {match.matchTime || "64'"}
-                </span>
+                <div className="flex items-center space-x-1 text-[9px] font-mono text-stadiumGreen font-black mt-0.5 whitespace-nowrap">
+                  <span className="w-1.5 h-1.5 rounded-full bg-stadiumGreen animate-ping" />
+                  <span>{match.matchTime && match.matchTime.includes("'") ? match.matchTime : "28'"}</span>
+                </div>
+                <span className="text-[8px] text-gray-400 font-bold mt-0.5">{dateLabel}</span>
               </>
             ) : isFinished ? (
               <>
@@ -396,7 +398,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
                   <span className="text-gray-500">-</span>
                   <span>{match.awayScore ?? 0}</span>
                 </div>
-                <span className="text-[8px] font-mono text-gray-400 font-bold mt-0.5">FT</span>
+                <span className="text-[8px] font-mono text-cyan-400 font-black mt-0.5">FT • {dateLabel}</span>
               </>
             ) : (
               <>
@@ -404,7 +406,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
                   {match.matchTime || '19:00'}
                 </span>
                 <span className="text-[8px] text-gray-400 font-bold truncate mt-0.5">
-                  {liveCountdown || 'Soon'}
+                  {dateLabel} • {liveCountdown || 'Soon'}
                 </span>
               </>
             )}
