@@ -120,14 +120,14 @@ export const COMPREHENSIVE_DICTIONARY: Record<string, Record<LanguageCode, strin
   'Ƙasa da ƙwallo 2.5': { en: 'Under 2.5 Goals', pidgin: 'Under 2.5 Goals', yoruba: 'Goolu tí kò ju 2.5 lọ', igbo: 'Goolu na-erughị 2.5', hausa: 'Ƙasa da ƙwallo 2.5' },
   'Dukkan Ƙungiyoyin Za Su Ci Ƙwallo': { en: 'Both Teams to Score (GG)', pidgin: 'Both Teams Go Score (GG)', yoruba: 'Àwọn Ẹgbẹ́ Méjèèjì Yóò Gba Goolu', igbo: 'Otu Abụọ Ga-agba Goolu', hausa: 'Dukkan Ƙungiyoyin Za Su Ci Ƙwallo' },
 
-  // Status Filter Tabs
-  'Live': { en: 'Live', pidgin: 'Live Now 🔴', yoruba: 'Láyé 🔴', igbo: 'Ndụ Ugbu A 🔴', hausa: 'Raye Yanzu 🔴' },
-  'Upcoming': { en: 'Upcoming', pidgin: 'Coming Up 🟡', yoruba: 'Tó Ń Bọ̀ 🟡', igbo: 'Na-abịa 🟡', hausa: 'Mai Zuwa 🟡' },
-  'Played': { en: 'Played', pidgin: 'Don Finish ✅', yoruba: 'Ti Ṣeré ✅', igbo: 'Emechara ✅', hausa: 'An Kammala ✅' },
-  'Following': { en: 'Following', pidgin: 'Following ⭐', yoruba: 'Tẹ̀lé ⭐', igbo: 'Na-eso ⭐', hausa: 'Masu Bi ⭐' },
-  'All Leagues': { en: 'All Leagues', pidgin: 'All Leagues 🌍', yoruba: 'Gbogbo Liigi 🌍', igbo: 'Liigi Niile 🌍', hausa: 'Duk Gasanni 🌍' },
-  'High Guarantees': { en: 'High Guarantees', pidgin: 'Sure Bankers 👑', yoruba: 'Ìdánilójú Gíga 👑', igbo: 'Eziokwu Nwere Nkwa 👑', hausa: 'Tabbaci Mai Yawa 👑' },
-  '👑 70%+ Bankers': { en: '👑 70%+ Bankers', pidgin: '👑 70%+ Sure Bankers', yoruba: '👑 Ìdánilójú 70%+', igbo: '👑 Eziokwu 70%+', hausa: '👑 70%+ Masu Tabbaci' },
+  // Status Filter Tabs (Pure Text — Zero Double Icons)
+  'Live': { en: 'Live', pidgin: 'Live', yoruba: 'Láyé', igbo: 'Ndụ Ugbu A', hausa: 'Raye' },
+  'Upcoming': { en: 'Upcoming', pidgin: 'Coming Up', yoruba: 'Tó Ń Bọ̀', igbo: 'Na-abịa', hausa: 'Mai Zuwa' },
+  'Played': { en: 'Played', pidgin: 'Don Finish', yoruba: 'Ti Ṣeré', igbo: 'Emechara', hausa: 'An Kammala' },
+  'Following': { en: 'Following', pidgin: 'Following', yoruba: 'Tẹ̀lé', igbo: 'Na-eso', hausa: 'Masu Bi' },
+  'All Leagues': { en: 'All Leagues', pidgin: 'All Leagues', yoruba: 'Gbogbo Liigi', igbo: 'Liigi Niile', hausa: 'Duk Gasanni' },
+  'Bankers': { en: 'Bankers', pidgin: 'Bankers', yoruba: 'Ìdánilójú', igbo: 'Eziokwu', hausa: 'Tabbaci' },
+  'High Guarantees': { en: 'Bankers', pidgin: 'Bankers', yoruba: 'Ìdánilójú', igbo: 'Eziokwu', hausa: 'Tabbaci' },
 
   // Actions & Buttons
   'Sauke Manhaja': { en: 'Download App', pidgin: 'Download App 📲', yoruba: 'Gba Ohun Èlò 📲', igbo: 'Budata Ngwa 📲', hausa: 'Sauke Manhaja 📲' },

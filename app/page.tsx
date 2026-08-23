@@ -428,7 +428,7 @@ export default function Home() {
                       <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 flex-shrink-0" />
                     )}
                     <span className="font-extrabold">
-                      {pill.key === 'LIVE' ? 'Live' : pill.key === 'UPCOMING' ? 'Upcoming' : 'Played'}
+                      {pill.key === 'LIVE' ? t('Live') : pill.key === 'UPCOMING' ? t('Upcoming') : t('Played')}
                     </span>
                     {pill.count > 0 && (
                       <span className={'px-2 py-0.5 rounded-full text-[10px] font-mono font-black ' + (activeFilter === pill.key ? 'bg-black/50 text-white' : 'bg-white/10 text-gray-300')}>
@@ -482,19 +482,13 @@ export default function Home() {
                       ? 'bg-stadiumGreen/25 border-stadiumGreen text-stadiumGreen shadow-stadiumGreen/20'
                       : 'border-white/10 text-gray-400 bg-panel hover:text-white hover:border-white/20')}
                 >
-                  <span>👑</span>
-                  <span className="truncate">👑 70%+ Bankers</span>
+                  <span className="text-sm">👑</span>
+                  <span className="truncate">{t('Bankers')}</span>
                 </button>
               </div>
             </div>
 
-            {/* 100% Pure Football Guarantee Banner */}
-            <div className="flex items-center space-x-2">
-              <span className="px-3 py-1.5 rounded-xl bg-stadiumGreen/20 border border-stadiumGreen/40 text-stadiumGreen font-black text-xs flex items-center space-x-1.5 shadow-md">
-                <span>{t('100% Pure Football Stadium')}</span>
-                <span className="w-2 h-2 rounded-full bg-stadiumGreen animate-ping" />
-              </span>
-            </div>
+
 
             {/* Match grid */}
             {loadingMatches ? (
