@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { stadiumAudio } from '../lib/sound-synthesizer';
 import { stadiumBroadcastAudio } from '../lib/stadium-broadcast-audio-engine';
+import { allowSpeechOnUserGesture, speakNaija } from '../lib/naija-voice-engine';
 import { phoneHardware } from '../lib/phone-hardware-engine';
 import { useTranslation } from '../lib/translation-engine';
 
@@ -188,35 +189,56 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
             <span>🎬 Match Highlights</span>
           </button>
 
-          {/* Standard Live TV Broadcast Commentary + Crowd Ambience (Play / Pause / Resume) */}
-          <button
-            onClick={handleToggleBroadcast}
-            className={`px-3 py-1.5 rounded-xl border text-xs font-black transition-all flex items-center space-x-1.5 flex-shrink-0 shadow-md ${
-              isAudioCommentaryPlaying && !isBroadcastPaused
-                ? 'bg-stadiumGreen text-black border-stadiumGreen shadow-stadiumGreen/40 animate-pulse'
-                : isBroadcastPaused
-                ? 'bg-gold text-black border-gold shadow-gold/30'
-                : 'bg-white/5 border-white/10 text-stadiumGreen hover:bg-stadiumGreen/20'
-            }`}
-            title="Live Stadium TV Commentary & Crowd Ambience"
-          >
-            {isAudioCommentaryPlaying && !isBroadcastPaused ? (
-              <>
-                <Volume2 className="w-3.5 h-3.5" />
-                <span>⏸️ PAUSE ({broadcastClock})</span>
-              </>
-            ) : isBroadcastPaused ? (
-              <>
-                <Play className="w-3.5 h-3.5 fill-current" />
-                <span>▶️ RESUME ({broadcastClock})</span>
-              </>
-            ) : (
-              <>
-                <Radio className="w-3.5 h-3.5 text-crimson animate-pulse" />
-                <span>🎙️ TV CROWD & AUDIO</span>
-              </>
-            )}
-          </button>
+          {/* Side-by-Side Dual Broadcast Controls: English & Pure Pidgin */}
+          <div className="flex items-center space-x-1.5 flex-shrink-0">
+            {/* English Broadcast Control */}
+            <button
+              onClick={handleToggleBroadcast}
+              className={`px-2.5 py-1.5 rounded-xl border text-xs font-black transition-all flex items-center space-x-1 shadow-md ${
+                isAudioCommentaryPlaying && !isBroadcastPaused
+                  ? 'bg-stadiumGreen text-black border-stadiumGreen shadow-stadiumGreen/40 animate-pulse'
+                  : isBroadcastPaused
+                  ? 'bg-gold text-black border-gold shadow-gold/30'
+                  : 'bg-white/5 border-white/10 text-stadiumGreen hover:bg-stadiumGreen/20'
+              }`}
+              title="Live English TV Commentary & Crowd"
+            >
+              {isAudioCommentaryPlaying && !isBroadcastPaused ? (
+                <>
+                  <Volume2 className="w-3 h-3" />
+                  <span>⏸️ EN ({broadcastClock})</span>
+                </>
+              ) : isBroadcastPaused ? (
+                <>
+                  <Play className="w-3 h-3 fill-current" />
+                  <span>▶️ RESUME ({broadcastClock})</span>
+                </>
+              ) : (
+                <>
+                  <Radio className="w-3 h-3 text-gold" />
+                  <span>🇬🇧 EN Audio</span>
+                </>
+              )}
+            </button>
+
+            {/* Pure Pidgin Broadcast Control */}
+            <button
+              onClick={() => {
+                phoneHardware.triggerHaptic('SELECTION');
+                stadiumAudio.enableOnUserClick();
+                allowSpeechOnUserGesture();
+                stadiumBroadcastAudio.surgeCrowdRoar('goal');
+                const pidginLine = `Omo see live match between ${match.homeTeam} and ${match.awayTeam}! Score na ${match.homeScore ?? 0} to ${match.awayScore ?? 0}. Action dey heavy for pitch now now!`;
+                stadiumAudio.speakNigerian(pidginLine);
+                speakNaija(pidginLine, 'hyped');
+              }}
+              className="px-2.5 py-1.5 rounded-xl bg-stadiumGreen/20 hover:bg-stadiumGreen/30 border border-stadiumGreen/40 text-stadiumGreen font-black text-xs transition-all flex items-center space-x-1 shadow"
+              title="Pure Nigerian Pidgin Commentary"
+            >
+              <Volume2 className="w-3 h-3 text-stadiumGreen" />
+              <span>🇳🇬 Pidgin Voice</span>
+            </button>
+          </div>
 
           {/* Fullscreen Toggle */}
           <button

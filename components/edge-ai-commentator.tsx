@@ -10,7 +10,7 @@ function extractMinuteNum(m?: string): number {
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Volume2, Radio, Loader2, RefreshCw } from 'lucide-react';
 import { speakStadiumCommentary } from '../lib/voice-engine';
-import { speakNaija, naijaMomentLine, primeNaijaVoices, allowSpeechOnUserGesture } from '../lib/naija-voice-engine';
+import { speakNaija, naijaMomentLine, primeNaijaVoices, allowSpeechOnUserGesture, naijaTransliterate } from '../lib/naija-voice-engine';
 import { stadiumAudio } from '../lib/sound-synthesizer';
 import { stadiumBroadcastAudio } from '../lib/stadium-broadcast-audio-engine';
 import { getEventEffect, playEventSound, eventDedupeKey, EventEffect } from '../lib/event-effects-engine';
@@ -199,11 +199,8 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
     allowSpeechOnUserGesture();
     stadiumAudio.playBookmarkSound();
     
-    // Pick the most impactful live moment
-    const target =
-      events.find((e) => e.kind === 'GOAL') ||
-      events.find((e) => e.kind === 'FULLTIME') ||
-      events[0];
+    // Pick the latest chronological event in the match stream
+    const target = events[0];
 
     const text = target
       ? target.kind === 'GOAL' && target.scorer
