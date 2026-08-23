@@ -1,15 +1,15 @@
 'use client';
 
 /**
- * AUTHENTIC WARRI / EDO NIGERIAN PIDGIN ACOUSTIC SYNTHESIZER
- * Tuned with Warri swagger, Pidgin cadences, vocal inflections, and stadium commentary chants!
+ * AUTHENTIC AFRICAN & NIGERIAN VOICE AUDIO ENGINE
+ * Streams real native Nigerian human voice MP3 audio via /api/tts?lang=en-NG
+ * with automatic fallback to Web Speech API.
  */
 
-export type NaijaTone = 'normal' | 'hyped' | 'goal' | 'foul' | 'card';
+let currentAudio: HTMLAudioElement | null = null;
 
-// Deep Warri & Edo state phonetic transliterator
 export function warriTransliterate(text: string): string {
-  let t = text.trim()
+  return text.trim()
     .replace(/\bWelcome to the live\b/gi, 'Waffi people welcome to the hot live')
     .replace(/\bGoal\b/gi, 'Goooooal o! Wire am enter net')
     .replace(/\bscored\b/gi, 'don scatter net')
@@ -31,53 +31,78 @@ export function warriTransliterate(text: string): string {
     .replace(/\bamazing\b/gi, 'mad')
     .replace(/\bvery\b/gi, 'well well')
     .replace(/\bnow\b/gi, 'now now');
-  return t;
 }
 
 export function primeNaijaVoices(): void {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+  if (typeof window === 'undefined') return;
   try {
-    window.speechSynthesis.getVoices();
-    window.speechSynthesis.resume();
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.resume();
+    }
   } catch {}
+}
+
+export function stopNaijaAudio(): void {
+  if (currentAudio) {
+    try {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    } catch {}
+    currentAudio = null;
+  }
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
 }
 
 export function speakNaija(
   text: string,
-  tone: NaijaTone = 'hyped',
-  opts: { rate?: number; pitch?: number; volume?: number; onEnd?: () => void } = {}
+  tone: 'normal' | 'hyped' | 'goal' | 'card' = 'hyped',
+  opts: { lang?: string; onEnd?: () => void } = {}
 ): void {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+  if (typeof window === 'undefined') return;
 
+  const targetLang = opts.lang || 'en-NG';
+  const speechText = targetLang === 'en-NG' ? warriTransliterate(text) : text;
+
+  stopNaijaAudio();
+
+  // TIER 1: Real Native Nigerian Cloud MP3 Audio Stream
+  try {
+    const audioUrl = `/api/tts?lang=${targetLang}&text=${encodeURIComponent(speechText)}`;
+    const audio = new Audio(audioUrl);
+    currentAudio = audio;
+    audio.volume = 1.0;
+
+    audio.onended = () => {
+      currentAudio = null;
+      if (opts.onEnd) opts.onEnd();
+    };
+
+    audio.onerror = () => {
+      // TIER 2: Fallback to Local Web Speech API if network audio fails
+      playLocalSpeechFallback(speechText, opts);
+    };
+
+    audio.play().catch(() => {
+      playLocalSpeechFallback(speechText, opts);
+    });
+  } catch {
+    playLocalSpeechFallback(speechText, opts);
+  }
+}
+
+function playLocalSpeechFallback(text: string, opts: { onEnd?: () => void } = {}): void {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
   try {
     const synth = window.speechSynthesis;
     synth.resume();
-
-    const voices = synth.getVoices();
-    const isFemale = (n: string) => /female|ezinne|ada|zira|hazel|susan|samantha|victoria/.test(n.toLowerCase());
-    
-    // Pick authentic male commentator voice
-    const voice =
-      voices.find((v) => (v.lang.toLowerCase().includes('ng') || v.name.toLowerCase().includes('nigeria')) && !isFemale(v.name)) ||
-      voices.find((v) => (v.lang.toLowerCase().includes('en-za') || v.name.toLowerCase().includes('africa')) && !isFemale(v.name)) ||
-      voices.find((v) => v.lang.toLowerCase().includes('en-gb') && !isFemale(v.name)) ||
-      voices.find((v) => !isFemale(v.name)) ||
-      voices[0];
-
-    const speechText = warriTransliterate(text);
-    const utter = new SpeechSynthesisUtterance(speechText);
-    if (voice) utter.voice = voice;
-
-    // Warri cadence tuning: punchy rate and confident pitch
-    utter.rate = opts.rate ?? (tone === 'goal' ? 1.14 : tone === 'hyped' ? 1.08 : 1.02);
-    utter.pitch = opts.pitch ?? (tone === 'goal' ? 1.04 : 0.92);
-    utter.volume = opts.volume ?? 1.0;
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.rate = 1.05;
+    utter.pitch = 0.94;
+    utter.volume = 1.0;
     if (opts.onEnd) utter.onend = opts.onEnd;
-
-    synth.cancel();
-    synth.resume();
     synth.speak(utter);
-  } catch (err) {
-    console.warn('SpeechSynthesis error:', err);
-  }
+  } catch {}
 }
