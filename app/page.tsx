@@ -51,6 +51,8 @@ import { MatchAlertScheduler } from '../lib/match-alert-scheduler';
 import { sortMatchesByClosestKickoff } from '../lib/match-sorter';
 import { Sparkles, Search, ChevronDown, RefreshCw, Radio, Calendar, Clock, Zap } from 'lucide-react';
 import { GlobalLanguageSwitcher } from '../components/global-language-switcher';
+import { DailyBankerAccumulatorCard } from '../components/daily-banker-accumulator-card';
+import { AccumulatorSlipDrawer, SelectedSlipPick } from '../components/accumulator-slip-drawer';
 import { ViralFeaturesGrid } from '../components/viral-features-grid';
 import { StadiumUserWeatherPanel } from '../components/stadium-user-weather-panel';
 import { registerPushClient, pushClientId } from '../lib/push-client';
@@ -94,6 +96,19 @@ export default function Home() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [savedMatches, setSavedMatches] = useState<MatchData[]>([]);
   const [betSlipItems, setBetSlipItems] = useState<BetItem[]>([]);
+  const [accumulatorPicks, setAccumulatorPicks] = useState<SelectedSlipPick[]>([]);
+
+  const handleAddMultiPicks = (picks: SelectedSlipPick[]) => {
+    setAccumulatorPicks(prev => {
+      const existingIds = new Set(prev.map(p => p.match.id));
+      const newPicks = picks.filter(p => !existingIds.has(p.match.id));
+      return [...prev, ...newPicks];
+    });
+  };
+
+  const handleRemoveAccumulatorPick = (matchId: string) => {
+    setAccumulatorPicks(prev => prev.filter(p => p.match.id !== matchId));
+  };
   const [selectedMatchForReceipt, setSelectedMatchForReceipt] = useState<MatchData | null>(null);
   const [selectedMatchForInsights, setSelectedMatchForInsights] = useState<MatchData | null>(null);
   const [showLedger, setShowLedger] = useState(false);
@@ -136,6 +151,32 @@ export default function Home() {
   };
 
   useEffect(() => { loadMatches(); }, []);
+
+  // Robust Browser Back Button & Refresh State Restoration
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const restoreFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      const matchId = params.get('match');
+      const tab = params.get('tab');
+
+      if (matchId && matches.length > 0) {
+        const found = matches.find(m => m.id === matchId);
+        if (found) setSelectedMatchForInsights(found);
+      } else if (!matchId) {
+        setSelectedMatchForInsights(null);
+      }
+
+      if (tab && ['LIVE', 'UPCOMING', 'PLAYED', 'FOLLOWING'].includes(tab.toUpperCase())) {
+        setActiveFilter(tab.toUpperCase() as FilterType);
+      }
+    };
+
+    restoreFromUrl();
+    window.addEventListener('popstate', restoreFromUrl);
+    return () => window.removeEventListener('popstate', restoreFromUrl);
+  }, [matches]);
 
   // Auto-refresh every 3 minutes
   useEffect(() => {
@@ -408,7 +449,16 @@ export default function Home() {
 
             {/* Filter pills with counts */}
             <div className="space-y-2">
-              {/* Line 1: ONLY 3 Complete Match Statuses (Distinct Colors, Single Clean Icon) */}
+              {/* Daily Safe 3-Game Banker Accumulator */}
+            <div className="mb-4">
+              <DailyBankerAccumulatorCard
+                matches={matches}
+                onAddMultiPick={handleAddMultiPicks}
+                onOpenMatch={setSelectedMatchForInsights}
+              />
+            </div>
+
+            {/* Line 1: ONLY 3 Complete Match Statuses (Distinct Colors, Single Clean Icon) */}
               <div className="grid grid-cols-3 gap-2">
                 {filterPills.map(pill => (
                   <button
