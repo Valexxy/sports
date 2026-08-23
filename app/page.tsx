@@ -1,3 +1,4 @@
+import { SecurityHealthBadge } from '../components/security-health-badge';
 import { ViralArcadeHubModal } from '../components/viral-arcade-hub-modal';
 import { backgroundGoalChimes } from '../lib/background-goal-chimes';
 'use client';
