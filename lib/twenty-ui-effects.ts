@@ -27,7 +27,7 @@ export const TWENTY_UI_EFFECTS_REGISTRY: UiEffectDefinition[] = [
   { id: 13, name: 'Google Sports Date Navigator Bar', category: 'INTERACTION', description: 'Segmented date scroller (Yesterday, Today, Tomorrow, Calendar Picker).', status: 'ACTIVE_AND_LIVE ⚡' },
   { id: 14, name: 'Timezone-Localized Bookmakers Engine', category: 'DATA_VIZ', description: 'Pairs sports fans with local sportsbooks (SportyBet 🇳🇬, Bet365 🇬🇧, FanDuel 🇺🇸).', status: 'ACTIVE_AND_LIVE ⚡' },
   { id: 15, name: 'Opta-Grade Match Momentum Barometer', category: 'DATA_VIZ', description: 'Live 0-100 pressure index tracking stadium territorial control.', status: 'ACTIVE_AND_LIVE ⚡' },
-  { id: 16, name: 'Poisson Dixon-Coles xG Goal Power Matrix', category: 'DATA_VIZ', description: 'Calculated expected goals and Kelly Criterion safety stake percentages.', status: 'ACTIVE_AND_LIVE ⚡' },
+  { id: 16, name: 'Poisson Dixon-Coles xG Goal Power Matrix', category: 'DATA_VIZ', description: 'Calculated expected goals and Stake Size safety stake percentages.', status: 'ACTIVE_AND_LIVE ⚡' },
   { id: 17, name: 'Dynamic Verified Win Rate Ledger Engine', category: 'DATA_VIZ', description: 'Calculates exact platform win rate % dynamically from audited ledger.', status: 'ACTIVE_AND_LIVE ⚡' },
   { id: 18, name: 'ESPN BottomLine Broadcast Ticker', category: 'ANIMATION', description: 'High-contrast sticking ticker stream broadcasting goal alerts and banker picks.', status: 'ACTIVE_AND_LIVE ⚡' },
   { id: 19, name: 'Compact vs Detailed View Mode Toggle', category: 'INTERACTION', description: 'Swaps between high-density compact list view and detailed stadium cards.', status: 'ACTIVE_AND_LIVE ⚡' },

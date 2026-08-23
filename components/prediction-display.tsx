@@ -168,7 +168,7 @@ export function PredictionDisplay() {
 
           {/* Model Info */}
           <div className="text-xs text-gray-500 text-center">
-            Powered by Dixon-Coles Poisson Model • Free Open Data • No API Limits
+            Powered by Dixon-Coles MATCH FORECAST • Free Open Data • No API Limits
           </div>
         </div>
       )}

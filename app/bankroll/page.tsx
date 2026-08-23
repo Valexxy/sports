@@ -29,14 +29,14 @@ export default function BankrollPage() {
           </Link>
 
           <span className="px-3 py-1 rounded-full bg-cyberPurple/20 text-cyberPurple border border-cyberPurple/40 text-xs font-bold">
-            🛡️ KELLY STAKE OPTIMIZER
+            🛡️ Stake OPTIMIZER
           </span>
         </div>
 
         {/* Hero Banner */}
         <div className="glass-panel-premium rounded-3xl p-6 border border-cyberPurple/30 space-y-2">
           <h1 className="text-2xl sm:text-4xl font-black text-white">
-            Kelly Criterion <span className="text-cyberPurple">Bankroll Optimizer</span>
+            Stake Size <span className="text-cyberPurple">Bankroll Optimizer</span>
           </h1>
           <p className="text-xs text-gray-300 font-sans leading-relaxed">
             Calculates mathematical safety stake allocation to protect your capital against variance.

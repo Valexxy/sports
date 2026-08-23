@@ -57,9 +57,9 @@ export const MatchAnalyticsHub: React.FC<MatchAnalyticsHubProps> = ({
         <div className="flex items-center justify-between border-b border-white/10 pb-2">
           <div className="flex items-center space-x-2">
             <Target className="w-4 h-4 text-gold" />
-            <span className="font-black text-white text-xs">EXACT CORRECT SCORE PROBABILITIES</span>
+            <span className="font-black text-white text-xs">CORRECT SCORE ODDS</span>
           </div>
-          <span className="text-[9px] text-gray-400 font-bold">POISSON MODEL</span>
+          <span className="text-[9px] text-gray-400 font-bold">MATCH FORECAST</span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">

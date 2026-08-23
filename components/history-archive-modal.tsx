@@ -118,7 +118,7 @@ export const HistoryArchiveModal: React.FC<HistoryModalProps> = ({ onClose }) =>
               Confidence Accuracy
             </span>
             <span className="text-2xl font-black text-gold block">9.6 / 10.0</span>
-            <span className="text-[9px] text-gray-400 font-sans block">Dixon-Coles Poisson Model</span>
+            <span className="text-[9px] text-gray-400 font-sans block">Dixon-Coles MATCH FORECAST</span>
           </div>
 
           <div className="p-3.5 rounded-2xl bg-black/60 border border-white/10 flex flex-col justify-between">

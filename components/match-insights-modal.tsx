@@ -259,9 +259,9 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
         {/* Top Pick Banner */}
         <div className="p-4 rounded-2xl bg-gradient-to-r from-stadiumGreen/20 via-panel to-gold/10 border border-stadiumGreen/40 flex flex-col sm:flex-row items-center justify-between gap-3 mb-5">
           <div>
-            <span className="text-[10px] text-stadiumGreen uppercase tracking-wider block font-bold font-mono">VERIFIED TOP MATCH PICK</span>
+            <span className="text-[10px] text-stadiumGreen uppercase tracking-wider block font-bold font-mono">TOP BANKER PICK</span>
             <span className="text-base font-extrabold text-white font-mono">{p.topPick.market}: <strong className="text-gold">{p.topPick.selection}</strong></span>
-            <span className="text-xs text-gray-300 block mt-0.5 font-mono">{p.topPick.probability}% Winning Chance | Recommended Stake: {p.topPick.kellyStake}%</span>
+            <span className="text-xs text-gray-300 block mt-0.5 font-mono">{p.topPick.probability}% Win Chance | Recommended Stake: {p.topPick.kellyStake}%</span>
           </div>
           <button
             onClick={() => onSelectOdds(match, p.topPick.selection, p.topPick.odds)}

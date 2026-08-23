@@ -177,7 +177,7 @@ export const NaijaBanterLoungeModal: React.FC<BanterModalProps> = ({ onClose }) 
                 <span>NAIJA GEN-Z ROAST & BANTER LOUNGE 🎙️🔥</span>
               </h2>
               <p className="text-[10px] text-gray-400 font-sans">
-                AI-Powered Nigerian club banter, viral football slander, and locker room drama.
+                Live Nigerian club banter, viral football slander, and locker room drama.
               </p>
             </div>
           </div>

@@ -24,7 +24,7 @@ export const ViralArcadeHubModal: React.FC<ViralArcadeHubModalProps> = ({ onClos
 
   const VIRAL_TILES = [
     { id: 'voice_gist', title: '🎙️ 15-Sec WhatsApp Voice Gist', desc: 'Generate high-energy Nigerian audio note for WhatsApp groups', color: 'border-stadiumGreen/40 bg-stadiumGreen/10 hover:border-stadiumGreen' },
-    { id: 'cut_one', title: '🛡️ "Cut-1" Slip Insurance', desc: 'Monte Carlo danger-leg detector & safety hedge calculator', color: 'border-crimson/40 bg-crimson/10 hover:border-crimson' },
+    { id: 'cut_one', title: '🛡️ "Cut-1" Slip Insurance', desc: 'Danger-leg slip detector & safety hedge calculator', color: 'border-crimson/40 bg-crimson/10 hover:border-crimson' },
     { id: 'tribe_wars', title: '⚔️ Club Tribe Wars & Aura Meter', desc: 'Rapid-tap fan battle with stadium horn acoustic sound effects', color: 'border-gold/40 bg-gold/10 hover:border-gold' },
     { id: 'lucky_wheel', title: '🎰 Daily Oracle Lucky Wheel', desc: 'Spin daily for VIP banker slips & clout point jackpots', color: 'border-amber-400/40 bg-amber-400/10 hover:border-amber-400' },
     { id: 'anti_jinx', title: '🛡️ Anti-Jinx Match Shield', desc: 'Cancel rival curses with certified jinx insurance blessing', color: 'border-stadiumGreen/40 bg-stadiumGreen/10 hover:border-stadiumGreen' },

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     default: 'AuraScore Stadium 2.0 | World-First Live Sports Analytics & Matchday Super-App',
     template: '%s | AuraScore Stadium 2.0',
   },
-  description: 'Real-time live scores, Poisson expected goals (xG), referee-verified match settlement ledger, and Gen-Z stadium atmosphere across 12 top leagues.',
+  description: 'Real-time live scores, Expected goals (xG), referee-verified match settlement ledger, and Gen-Z stadium atmosphere across 12 top leagues.',
   keywords: [
     'Live sports scores',
     'Football predictions',
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'AuraScore Stadium 2.0 | World-First Live Sports Analytics & Matchday Super-App',
-    description: 'Sub-second live scores, verified referee settlement ledger, Poisson goal power curves, and viral social flex slip generator.',
+    description: 'Sub-second live scores, verified referee settlement ledger, Goal Power curves, and viral social flex slip generator.',
     url: 'https://aurascore.stadium.app',
     siteName: 'AuraScore Stadium 2.0',
     images: [

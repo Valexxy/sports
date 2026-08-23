@@ -83,7 +83,7 @@ export const CollapsibleStadiumHub: React.FC<CollapsibleHubProps> = ({
     },
     {
       id: 'bankroll',
-      title: 'Kelly Criterion Bankroll Calculator 💰',
+      title: 'Stake Size Bankroll Calculator 💰',
       tag: 'PRO STAKING',
       tagColor: 'bg-cyberPurple text-white',
       desc: 'Mathematical position-sizing and bankroll risk management based on live Poisson probabilities.',

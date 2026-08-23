@@ -26,7 +26,7 @@ export const CutOneInsuranceModal: React.FC<{ onClose: () => void }> = ({ onClos
           <div className="p-3 rounded-xl bg-crimson/20 border border-crimson/50 space-y-1">
             <span className="text-[10px] text-crimson font-black uppercase">⚠️ High Hazard Danger Leg Detected:</span>
             <div className="text-sm font-black text-white">Lazio vs Roma &bull; Selection: Lazio Win (@2.30)</div>
-            <p className="text-[10px] text-gray-300">Derby tension is 92%. Monte Carlo shows 54% draw probability.</p>
+            <p className="text-[10px] text-gray-300">Derby tension is 92%. Match stats show 54% draw probability.</p>
           </div>
           <div className="p-3 rounded-xl bg-stadiumGreen/20 border border-stadiumGreen/50 space-y-1">
             <span className="text-[10px] text-stadiumGreen font-black uppercase">🛡️ Recommended Slip Insurance Hedge:</span>
