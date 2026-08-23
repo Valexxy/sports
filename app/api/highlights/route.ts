@@ -58,6 +58,7 @@ export async function GET(request: Request) {
       });
 
       if (match && match.videos && match.videos.length > 0) {
+        // Extract embed URL and ensure it's a clean stream
         const videoList = match.videos.map((v) => {
           const matchSrc = v.embed.match(/src=['"]([^'"]+)['"]/);
           return {
@@ -76,7 +77,6 @@ export async function GET(request: Request) {
             thumbnail: match.thumbnail,
             embedUrl: videoList[0].embedUrl,
             videos: videoList,
-            matchviewUrl: match.matchviewUrl,
           });
         }
       }
@@ -85,11 +85,10 @@ export async function GET(request: Request) {
     console.warn('ScoreBat highlights fetch error:', err);
   }
 
-  // Pure on-platform match replay & goal moments studio fallback
+  // If no embed found, return found: false
   return NextResponse.json({
     success: true,
     found: false,
-    source: 'interactive_replay_studio',
     title: `${rawHome} vs ${rawAway} Match Highlights`,
   });
 }
