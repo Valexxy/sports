@@ -275,9 +275,9 @@ export default function Home() {
 
   type PillDef = { key: FilterType; emoji: string; label: string; count: number; activeClass: string };
   const filterPills: PillDef[] = [
-    { key: 'LIVE',     emoji: '🟢', label: t('Live'),     count: liveCount,     activeClass: 'bg-stadiumGreen/25 border-stadiumGreen text-stadiumGreen font-black shadow-lg shadow-stadiumGreen/30' },
-    { key: 'UPCOMING', emoji: '🟡', label: t('Upcoming'), count: upcomingCount, activeClass: 'bg-gold/25 border-gold text-gold font-black shadow-lg shadow-gold/20' },
-    { key: 'PLAYED',   emoji: '✅', label: t('Played'),   count: playedCount,   activeClass: 'bg-stadiumGreen/25 border-stadiumGreen text-stadiumGreen font-black shadow-lg shadow-stadiumGreen/20' },
+    { key: 'LIVE',     emoji: '', label: t('Live'),     count: liveCount,     activeClass: 'bg-stadiumGreen/20 border-stadiumGreen text-stadiumGreen font-black shadow-lg shadow-stadiumGreen/30' },
+    { key: 'UPCOMING', emoji: '', label: t('Upcoming'), count: upcomingCount, activeClass: 'bg-amber-500/20 border-amber-500 text-amber-400 font-black shadow-lg shadow-amber-500/30' },
+    { key: 'PLAYED',   emoji: '', label: t('Played'),   count: playedCount,   activeClass: 'bg-cyan-500/20 border-cyan-500 text-cyan-400 font-black shadow-lg shadow-cyan-500/30' },
   ];
   const followingCount = sportMatches.filter(m => followedMatchIds.includes(m.id) || followedLeagues.some(l => m.league.toLowerCase().includes(l.toLowerCase()))).length;
 
@@ -376,7 +376,7 @@ export default function Home() {
 
             {/* Filter pills with counts */}
             <div className="space-y-2">
-              {/* Line 1: ONLY 3 Complete Match Statuses (Live, Upcoming, Played) */}
+              {/* Line 1: ONLY 3 Complete Match Statuses (Distinct Colors, Single Clean Icon) */}
               <div className="grid grid-cols-3 gap-2">
                 {filterPills.map(pill => (
                   <button
@@ -392,11 +392,13 @@ export default function Home() {
                     {pill.key === 'LIVE' ? (
                       <span className="w-2.5 h-2.5 rounded-full bg-stadiumGreen animate-ping flex-shrink-0" />
                     ) : pill.key === 'UPCOMING' ? (
-                      <span className="w-2.5 h-2.5 rounded-full bg-gold flex-shrink-0" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-400 flex-shrink-0" />
                     ) : (
-                      <span className="w-2.5 h-2.5 rounded-full bg-stadiumGreen flex-shrink-0" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 flex-shrink-0" />
                     )}
-                    <span className="font-extrabold">{pill.label}</span>
+                    <span className="font-extrabold">
+                      {pill.key === 'LIVE' ? 'Live' : pill.key === 'UPCOMING' ? 'Upcoming' : 'Played'}
+                    </span>
                     {pill.count > 0 && (
                       <span className={'px-2 py-0.5 rounded-full text-[10px] font-mono font-black ' + (activeFilter === pill.key ? 'bg-black/50 text-white' : 'bg-white/10 text-gray-300')}>
                         {pill.count}

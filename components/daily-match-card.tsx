@@ -239,20 +239,21 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
               </span>
             </button>
 
-            {/* Status Badge */}
+            {/* Status Badge (Single Clean Dot, Distinct Vibrant Colors) */}
             {isLive ? (
-              <span className="flex-shrink-0 flex items-center space-x-1 px-2 py-0.5 rounded-full bg-emerald-500/30 border border-emerald-500/70 text-emerald-400 text-[9px] font-black animate-pulse">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                <span>{t("Live")}</span>
+              <span className="flex-shrink-0 flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-stadiumGreen/20 border border-stadiumGreen/50 text-stadiumGreen text-[9px] font-black shadow-sm shadow-stadiumGreen/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-stadiumGreen animate-ping" />
+                <span>Live {match.matchTime ? match.matchTime : ''}</span>
               </span>
             ) : isFinished ? (
-              <span className={'flex-shrink-0 flex items-center space-x-1 px-2 py-0.5 rounded-full text-[9px] font-black border ' + (outcome?.won ? 'bg-stadiumGreen/25 border-stadiumGreen text-stadiumGreen' : 'bg-emerald-500/25 border-emerald-500 text-emerald-400')}>
-                {outcome?.won ? <CheckCircle2 className="w-2.5 h-2.5" /> : <XCircle className="w-2.5 h-2.5" />}
-                <span>{outcome?.won ? t('WON') : t('LOST')}</span>
+              <span className="flex-shrink-0 flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 text-[9px] font-black shadow-sm shadow-cyan-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                <span>FT • {outcome?.won ? 'WON ✓' : 'FT'}</span>
               </span>
             ) : (
-              <span className="flex-shrink-0 px-2 py-0.5 rounded-full bg-gold/20 border border-gold/40 text-gold text-[9px] font-black">
-                {dateLabel}
+              <span className="flex-shrink-0 flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/50 text-amber-400 text-[9px] font-black shadow-sm shadow-amber-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                <span>{dateLabel}</span>
               </span>
             )}
           </div>
