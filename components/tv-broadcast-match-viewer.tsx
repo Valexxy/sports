@@ -216,7 +216,7 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
               ) : (
                 <>
                   <Radio className="w-3 h-3 text-gold" />
-                  <span>🇬🇧 EN Audio</span>
+                  <span>🇬🇧 English Commentary</span>
                 </>
               )}
             </button>
@@ -236,7 +236,7 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
               title="Pure Nigerian Pidgin Commentary"
             >
               <Volume2 className="w-3 h-3 text-stadiumGreen" />
-              <span>🇳🇬 Pidgin Voice</span>
+              <span>🇳🇬 Pidgin Commentary</span>
             </button>
           </div>
 

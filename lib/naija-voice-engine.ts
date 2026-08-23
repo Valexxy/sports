@@ -129,8 +129,10 @@ export function speakNaija(
     const rateFor: Record<NaijaTone, number> = { normal: 1.04, hyped: 1.12, shock: 1.18, calm: 0.95 };
     const pitchFor: Record<NaijaTone, number> = { normal: 0.92, hyped: 0.96, shock: 1.05, calm: 0.88 };
 
-    utterance.rate = opts.rate ?? rateFor[tone];
-    utterance.pitch = opts.pitch ?? pitchFor[tone];
+    // Smart dynamic pitch variation so voice pitch and cadence are natural and varied
+    const randomVocalShift = (Math.random() * 0.08) - 0.04;
+    utterance.rate = opts.rate ?? (rateFor[tone] + randomVocalShift);
+    utterance.pitch = opts.pitch ?? (pitchFor[tone] + randomVocalShift);
     utterance.volume = opts.volume ?? 1.0;
     if (opts.onEnd) utterance.onend = opts.onEnd;
 

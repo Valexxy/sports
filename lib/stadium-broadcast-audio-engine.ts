@@ -196,24 +196,33 @@ class StadiumBroadcastAudioEngine {
   /**
    * Surge the crowd roar (e.g. on shot on target or near goal)
    */
-  public surgeCrowdRoar(intensity: 'high' | 'goal' = 'high') {
+  public surgeCrowdRoar(intensity: 'high' | 'goal' | 'foul' | 'shot' = 'high') {
     if (!this.crowdGainNode || !this.audioCtx) return;
     const now = this.audioCtx.currentTime;
-    const targetGain = intensity === 'goal' ? 0.7 : 0.45;
+    
+    // Dynamically modulate crowd audience acoustic pitch and intensity
+    const randomShift = (Math.random() * 0.15) - 0.07;
+    const targetGain = intensity === 'goal' ? 0.72 + randomShift : intensity === 'shot' ? 0.52 + randomShift : 0.42 + randomShift;
+    
     this.crowdGainNode.gain.cancelScheduledValues(now);
-    this.crowdGainNode.gain.linearRampToValueAtTime(targetGain, now + 0.2);
-    this.crowdGainNode.gain.exponentialRampToValueAtTime(this.crowdVolume, now + 3.0);
+    this.crowdGainNode.gain.linearRampToValueAtTime(targetGain, now + 0.18);
+    this.crowdGainNode.gain.exponentialRampToValueAtTime(this.crowdVolume, now + (intensity === 'goal' ? 4.5 : 2.6));
   }
 
   /**
-   * Speaks TV commentary
+   * Speaks TV commentary with smart dynamic vocal modulation (no 2 lines sound the same)
    */
   public speakTvCommentary(text: string) {
     if (typeof window === 'undefined' || this.isPaused) return;
     this.surgeCrowdRoar('high');
+    
+    // Dynamic human voice pitch and tempo variation
+    const dynamicPitch = 0.90 + (Math.random() * 0.14); // 0.90 - 1.04
+    const dynamicRate = 1.01 + (Math.random() * 0.08);  // 1.01 - 1.09
+
     speakNaija(text, 'hyped', {
-      rate: 1.02,
-      pitch: 1.12,
+      rate: dynamicRate,
+      pitch: dynamicPitch,
       volume: this.voiceVolume,
     });
   }
