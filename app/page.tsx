@@ -300,13 +300,10 @@ export default function Home() {
 
   const filteredMatches = React.useMemo(() => {
     const base = matches.filter(m => {
-      // Filter by Date (Match utcDate ISO YYYY-MM-DD vs selectedDateStr)
-      if (selectedDateStr) {
-        // Accurate date matching
-        const matchDate = m.utcDate ? new Date(m.utcDate).toLocaleDateString('en-CA') : new Date().toISOString().split('T')[0];
-        if (isViewingToday && m.status === 'LIVE') {
-          // Keep live matches on today
-        } else if (matchDate !== selectedDateStr) {
+      // Filter by Date (Resilient timezone matching)
+      if (selectedDateStr && !isViewingToday) {
+        const matchDate = m.utcDate ? new Date(m.utcDate).toLocaleDateString('en-CA') : '';
+        if (matchDate && matchDate !== selectedDateStr) {
           return false;
         }
       }
@@ -488,7 +485,7 @@ export default function Home() {
                     onClick={() => {
                       setActiveFilter(pill.key);
                       setVisibleCount(12);
-                      stadiumAudio.playTabClickSound();
+                      try { stadiumAudio.playTabClickSound(); } catch (e) {}
                       if (typeof window !== 'undefined') {
                         const url = new URL(window.location.href);
                         url.searchParams.set('tab', pill.key.toLowerCase());
