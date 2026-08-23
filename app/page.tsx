@@ -1,3 +1,4 @@
+import { ViralArcadeHubModal } from '../components/viral-arcade-hub-modal';
 import { backgroundGoalChimes } from '../lib/background-goal-chimes';
 'use client';
 
@@ -124,6 +125,7 @@ export default function Home() {
   const [showReverseJinxModal, setShowReverseJinxModal] = useState(false);
   const [showRotatingPoolModal, setShowRotatingPoolModal] = useState(false);
   const [showSuitesMenu, setShowSuitesMenu] = useState(false);
+  const [showViralArcade, setShowViralArcade] = useState(false);
   const [showBanterModal, setShowBanterModal] = useState(false);
   const [showGrassrootsModal, setShowGrassrootsModal] = useState(false);
   const [showStandingsModal, setShowStandingsModal] = useState(false);
@@ -424,11 +426,10 @@ export default function Home() {
                   className="p-2 rounded-xl bg-panel border border-white/10 text-stadiumGreen hover:bg-stadiumGreen/20 transition-all disabled:opacity-50">
                   <RefreshCw className={loadingMatches ? 'w-3.5 h-3.5 animate-spin' : 'w-3.5 h-3.5'} />
                 </button>
-                <button onClick={() => setShowSuitesMenu(true)}
-                  className="px-3 py-2 rounded-xl bg-gradient-to-r from-stadiumGreen/20 to-gold/20 border border-stadiumGreen/40 text-stadiumGreen font-black text-xs flex items-center space-x-1.5 hover:scale-105 transition-all">
-                  <Sparkles className="w-3.5 h-3.5 text-gold animate-pulse" />
-                  <span className="hidden sm:inline">Stadium Hub ⚡</span>
-                  <span className="sm:hidden">Hub ⚡</span>
+                <button onClick={() => setShowViralArcade(true)}
+                  className="px-3 py-2 rounded-xl bg-gradient-to-r from-stadiumGreen/25 via-panel to-gold/25 border-2 border-gold/60 text-gold font-black text-xs flex items-center space-x-1.5 hover:scale-105 transition-all shadow-lg glow-emerald">
+                  <Sparkles className="w-3.5 h-3.5 text-gold animate-spin" />
+                  <span>Viral Hub ⚡</span>
                 </button>
               </div>
             </div>
