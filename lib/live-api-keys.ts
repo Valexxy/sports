@@ -8,11 +8,11 @@ import { SmartApiThrottler } from './smart-api-throttler';
 
 export const API_KEYS = {
   MEDIASTACK: process.env.MEDIASTACK_API_KEY || '',
-  NEWSDATA: process.env.NEWSDATA_API_KEY || '',
+  NEWSDATA: process.env.NEWSDATA_API_KEY || 'pub_625fe9ca7be54774a6ce0f13aaa8f7e1',
   GEOAPIFY: process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY || '',
   EXCHANGE_RATE: process.env.EXCHANGE_RATE_API_KEY || '',
   API_FOOTBALL: process.env.API_FOOTBALL_KEY || '',
-  FOOTBALL_DATA: process.env.FOOTBALL_DATA_TOKEN || '',
+  FOOTBALL_DATA: process.env.FOOTBALL_DATA_TOKEN || 'a981804ab6084434ba7ba719625ec403',
   THE_ODDS_API: process.env.THE_ODDS_API_KEY || '',
 };
 

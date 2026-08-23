@@ -214,6 +214,35 @@ function parseRss(xml: string): { title: string; link: string; description: stri
 
 let cachedNews: { articles: SportsArticle[]; timestamp: number } | null = null;
 
+
+async function fetchNewsDataLiveArticles(): Promise<SportsArticle[]> {
+  const apiKey = process.env.NEWSDATA_API_KEY || 'pub_625fe9ca7be54774a6ce0f13aaa8f7e1';
+  try {
+    const res = await fetch(`https://newsdata.io/api/1/latest?apikey=${apiKey}&q=football%20OR%20soccer&language=en&category=sports`, {
+      next: { revalidate: 300 }
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (data && Array.isArray(data.results)) {
+      return data.results.slice(0, 10).map((item: any, i: number) => ({
+        id: `newsdata-${i}-${Date.now()}`,
+        title: item.title || 'Breaking Football Update',
+        description: item.description || item.content || 'Latest live football updates and match coverage.',
+        link: item.link || 'https://sports-teal-psi.vercel.app/',
+        pubDate: item.pubDate || new Date().toISOString(),
+        source: item.source_id ? item.source_id.toUpperCase() : 'NewsData Sport',
+        category: 'GLOBAL FOOTBALL',
+        categoryBadge: '⚡ GLOBAL',
+        imageUrl: item.image_url || DEFAULT_FOOTBALL_IMAGE,
+        fullContent: item.content || item.description || '',
+      }));
+    }
+  } catch (err) {
+    console.warn('NewsData.io fetch fallback active.');
+  }
+  return [];
+}
+
 export async function GET() {
   const now = Date.now();
   if (cachedNews && (now - cachedNews.timestamp) < 30000) {
