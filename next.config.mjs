@@ -1,11 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: false,
   typescript: {
     ignoreBuildErrors: true,
   },
   eslint: {
     ignoreDuringBuilds: true,
+  },
+  images: {
+    unoptimized: true,
+    remotePatterns: [
+      { protocol: 'https', hostname: '**' },
+    ],
   },
   async headers() {
     return [
@@ -14,7 +20,7 @@ const nextConfig = {
         headers: [
           {
             key: 'X-Frame-Options',
-            value: 'DENY',
+            value: 'SAMEORIGIN',
           },
           {
             key: 'X-Content-Type-Options',
@@ -25,7 +31,6 @@ const nextConfig = {
             value: 'origin-when-cross-origin',
           },
           {
-            // Allow phone hardware features (camera, mic, geolocation, notifications, vibration)
             key: 'Permissions-Policy',
             value: 'camera=(self), microphone=(self), geolocation=(self), notifications=(self), vibrate=(self)',
           },
