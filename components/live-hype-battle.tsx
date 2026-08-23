@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import { Flame, Zap, ShieldAlert, Award, Activity } from 'lucide-react';
 import confetti from 'canvas-confetti';

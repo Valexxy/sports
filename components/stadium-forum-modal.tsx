@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { X, MessageSquare, ThumbsUp, Send, Zap } from 'lucide-react';
 

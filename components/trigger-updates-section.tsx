@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { generateDynamicTriggerUpdates, TriggerUpdate } from './broadcast-ticker';
 import { MatchData } from '../lib/sports-api';

@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { MatchData } from '../lib/sports-api';
 import { X, Trash2, Zap, ExternalLink, Check, ChevronUp, ChevronDown } from 'lucide-react';

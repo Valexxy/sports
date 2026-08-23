@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { X, Flame, Share2, Send, Shuffle, Bot } from 'lucide-react';
 import confetti from 'canvas-confetti';

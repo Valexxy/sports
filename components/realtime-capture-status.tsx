@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { useRealtimeCapture } from '../lib/use-realtime-capture';
 import { Radio, Activity, Cpu, Zap, Wifi, ShieldCheck, ChevronDown, ChevronUp, BatteryCharging, Battery, Smartphone, Gauge } from 'lucide-react';

@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { Coins, Flame, Sparkles, CheckCircle2 } from 'lucide-react';
 import confetti from 'canvas-confetti';

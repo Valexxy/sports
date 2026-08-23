@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   X, Cake, Sparkles, Heart, Trophy, Share2, Calendar, Award, ChevronRight,

@@ -1,5 +1,4 @@
 'use client';
-
 import React from 'react';
 import { X, ShieldCheck, CheckCircle2, TrendingUp } from 'lucide-react';
 

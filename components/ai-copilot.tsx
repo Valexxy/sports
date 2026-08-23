@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { askAuraAICopilot, AICopilotResponse } from '../lib/gemini-ai';
 import { MatchData } from '../lib/sports-api';

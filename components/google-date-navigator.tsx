@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Calendar, Sparkles } from 'lucide-react';
 import { useTranslation } from '../lib/translation-engine';

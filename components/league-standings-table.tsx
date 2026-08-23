@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import { Trophy, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 

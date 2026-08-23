@@ -1,6 +1,4 @@
-
 'use client';
-
 function extractMinuteNum(m?: string): number {
   if (!m) return 0;
   const match = m.match(/(\d+)/);

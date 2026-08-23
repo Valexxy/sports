@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import { MatchData } from '../lib/sports-api';
 import { Flame, ChevronDown, ChevronUp, ExternalLink, Sparkles, Brain, Plus, Zap, Star, Bell, ShieldCheck, Target, Activity, ShieldAlert, CheckCircle2, Timer } from 'lucide-react';

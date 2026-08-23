@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import { MatchData } from '../lib/sports-api';
 import { Flame, Volume2 } from 'lucide-react';

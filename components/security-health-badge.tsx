@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Lock, Activity, Zap, Server } from 'lucide-react';
 import { useTranslation } from '../lib/translation-engine';

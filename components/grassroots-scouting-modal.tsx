@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { X, Trophy, Star, Video, Play, Upload, CheckCircle2, FileText, Image as ImageIcon, Send } from 'lucide-react';
 import confetti from 'canvas-confetti';

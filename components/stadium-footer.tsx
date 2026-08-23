@@ -1,5 +1,4 @@
 'use client';
-
 import React from 'react';
 import { GlobalLanguageSwitcher } from './global-language-switcher';
 import { ShieldCheck, Zap, Globe, Trophy, Heart, Activity } from 'lucide-react';

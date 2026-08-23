@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { X, CheckCircle2, XCircle, Trophy, Bookmark, Calendar, TrendingUp } from 'lucide-react';
 

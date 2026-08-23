@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { Music, Radio, Flame, Sparkles, Volume2 } from 'lucide-react';
 import { playSynthesizedStadiumRoar } from '../lib/stadium-audio';

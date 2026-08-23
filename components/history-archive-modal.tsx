@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import { ArchivedMatch } from '../lib/prediction-archive-engine';
 import { detectUserLocationTimezone } from '../lib/timezone-engine';

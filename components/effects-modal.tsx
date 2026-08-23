@@ -1,5 +1,4 @@
 'use client';
-
 import React from 'react';
 import { TWENTY_UI_EFFECTS_REGISTRY } from '../lib/twenty-ui-effects';
 import { getEventEffect, playEventSound, MatchEventKind } from '../lib/event-effects-engine';

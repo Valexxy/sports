@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import { getSmartVisitorDetails, SmartVisitorData } from '../lib/smart-visitor-engine';
 import { MapPin, Navigation, RefreshCw, Sparkles, Clock, ChevronDown, ChevronUp } from 'lucide-react';

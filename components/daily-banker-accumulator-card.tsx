@@ -1,5 +1,4 @@
 'use client';
-
 import React from 'react';
 import { MatchData } from '../lib/sports-api';
 import { Sparkles, Trophy, Plus, Check, ArrowRight } from 'lucide-react';

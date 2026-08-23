@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { useTranslation, SUPPORTED_LANGUAGES, LanguageCode } from '../lib/translation-engine';
 import { Globe, Check } from 'lucide-react';

@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { Zap, Pause, Play } from 'lucide-react';
 import { MatchData } from '../lib/sports-api';

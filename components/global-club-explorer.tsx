@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { Globe, Trophy, Users, MapPin, Activity, Flame, Shield, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 

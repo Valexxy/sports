@@ -1,5 +1,4 @@
 'use client';
-
 import React from 'react';
 import { TWENTY_FREE_APIS_REGISTRY } from '../lib/twenty-free-apis';
 import { X, ExternalLink, ShieldCheck, Database, Cpu, Globe } from 'lucide-react';

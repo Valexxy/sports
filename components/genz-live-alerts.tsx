@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../lib/translation-engine';
 import { stadiumAudio } from '../lib/sound-synthesizer';

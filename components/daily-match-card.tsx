@@ -1,6 +1,5 @@
-import { LockScreenMatchTracker } from '../lib/lockscreen-live-score-tracker';
 'use client';
-
+import { LockScreenMatchTracker } from '../lib/lockscreen-live-score-tracker';
 import React, { useState, useEffect } from 'react';
 import { PersistentStorage } from '../lib/persistent-storage-engine';
 import { getClubCrest } from '../lib/club-crest-engine';

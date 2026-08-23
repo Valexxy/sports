@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { RotatingApiPoolEngine, RotatingPoolResponse } from '../lib/rotating-api-pool';
 import { X, Cpu, Sparkles, RefreshCw, Zap, ShieldCheck } from 'lucide-react';

@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { TEAMS_DATABASE, TeamInfo } from '../lib/teams-database';
 import { fetchFreeTeamMetadata } from '../lib/free-open-data';

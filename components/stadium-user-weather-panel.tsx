@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import { getDualContext, DualContext } from '../lib/stadium-weather-engine';
 import { MapPin, Navigation, Landmark, Wind, Droplets, RefreshCw, Compass } from 'lucide-react';

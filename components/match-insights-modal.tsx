@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import { LockScreenMatchTracker } from '../lib/lockscreen-live-score-tracker';
 import { MatchData } from '../lib/sports-api';

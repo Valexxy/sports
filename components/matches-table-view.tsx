@@ -1,5 +1,4 @@
 'use client';
-
 import React from 'react';
 import { MatchData } from '../lib/sports-api';
 import { Zap, CheckCircle2, Plus, Brain, Sparkles, Star } from 'lucide-react';

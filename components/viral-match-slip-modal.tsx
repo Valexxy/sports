@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { MatchData } from '../lib/sports-api';
 import { X, Share2, Copy, Check, Sparkles, MessageCircle, Twitter, Send } from 'lucide-react';

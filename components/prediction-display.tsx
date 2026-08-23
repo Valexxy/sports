@@ -1,9 +1,8 @@
+'use client';
 /**
  * PREDICTION DISPLAY COMPONENT
  * Shows match predictions with confidence levels
  */
-
-'use client';
 
 import { useState } from 'react';
 import { usePredictions } from '@/lib/use-predictions';

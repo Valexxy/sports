@@ -1,5 +1,4 @@
 'use client';
-
 import React from 'react';
 import { Globe, DollarSign, Activity } from 'lucide-react';
 

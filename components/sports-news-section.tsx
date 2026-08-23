@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from '../lib/translation-engine';
 import { batchTranslateArticles } from '../lib/news-translator';

@@ -1,5 +1,4 @@
 'use client';
-
 import React from 'react';
 import { Home, Star, User } from 'lucide-react';
 import { phoneHardware } from '../lib/phone-hardware-engine';

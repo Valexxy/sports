@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { X, Sparkles, Mic, ShieldAlert, Flame, Trophy, ShieldCheck, Award, Activity, Cookie, Zap, Radio, Volume2 } from 'lucide-react';
 import { ViralVoiceGistModal } from './viral/viral-voice-gist-modal';

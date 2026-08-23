@@ -1,5 +1,4 @@
 'use client';
-
 import React from 'react';
 import { X, Rocket, TrendingUp, Users, Cpu, ShieldCheck, Flame, Coins } from 'lucide-react';
 
