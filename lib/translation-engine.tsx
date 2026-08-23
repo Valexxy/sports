@@ -176,6 +176,25 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       localStorage.setItem(STORAGE_KEY, code);
       if (typeof document !== 'undefined') {
         document.documentElement.lang = code;
+        
+        // Universal Google Translate Sync (100% Page Translation)
+        const gLangMap: Record<LanguageCode, string> = {
+          en: 'en',
+          hausa: 'ha',
+          yoruba: 'yo',
+          igbo: 'ig',
+          pidgin: 'en',
+        };
+        const targetGoogle = gLangMap[code] || 'en';
+        document.cookie = `googtrans=/en/${targetGoogle}; path=/; domain=${window.location.hostname}`;
+        document.cookie = `googtrans=/en/${targetGoogle}; path=/`;
+
+        // Trigger Google Translate dropdown programmatically
+        const select = document.querySelector<HTMLSelectElement>('.goog-te-combo');
+        if (select) {
+          select.value = targetGoogle;
+          select.dispatchEvent(new Event('change'));
+        }
       }
     } catch { /* noop */ }
   };

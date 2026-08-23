@@ -12,6 +12,7 @@ import { Volume2, Radio, Loader2, RefreshCw } from 'lucide-react';
 import { speakStadiumCommentary } from '../lib/voice-engine';
 import { speakNaija, naijaMomentLine, primeNaijaVoices, allowSpeechOnUserGesture } from '../lib/naija-voice-engine';
 import { stadiumAudio } from '../lib/sound-synthesizer';
+import { stadiumBroadcastAudio } from '../lib/stadium-broadcast-audio-engine';
 import { getEventEffect, playEventSound, eventDedupeKey, EventEffect } from '../lib/event-effects-engine';
 import { fetchRealLiveCommentary, RealCommentaryEvent, extractEspnEventId } from '../lib/real-live-commentary';
 import { MatchData } from '../lib/sports-api';
@@ -212,6 +213,7 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
       ? `Omo see ball! ${resolvedHome} ${resolvedScore} ${resolvedAway}. Action dey heavy on pitch right now!`
       : `${resolvedHome} vs ${resolvedAway}. Kickoff time is ${resolvedTime}. Game go hot!`;
 
+    stadiumBroadcastAudio.surgeCrowdRoar('goal');
     stadiumAudio.speakNigerian(text);
     speakNaija(text, 'hyped');
   };

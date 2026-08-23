@@ -1,5 +1,11 @@
 'use client';
 
+function extractMinuteNum(m?: string): number {
+  if (!m) return 64;
+  const match = m.match(/(\d+)/);
+  return match ? parseInt(match[1], 10) : 64;
+}
+
 import React, { useState, useEffect } from 'react';
 import { MatchData } from '../lib/sports-api';
 import { 
@@ -20,6 +26,7 @@ import {
   Video
 } from 'lucide-react';
 import { stadiumAudio } from '../lib/sound-synthesizer';
+import { stadiumBroadcastAudio } from '../lib/stadium-broadcast-audio-engine';
 import { phoneHardware } from '../lib/phone-hardware-engine';
 import { useTranslation } from '../lib/translation-engine';
 
@@ -88,17 +95,28 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
     return () => clearInterval(interval);
   }, [match]);
 
-  const handleToggleAudio = () => {
+  const [broadcastClock, setBroadcastClock] = useState<string>('64:24');
+  const [isBroadcastPaused, setIsBroadcastPaused] = useState(false);
+
+  const handleToggleBroadcast = () => {
     phoneHardware.triggerHaptic('SELECTION');
+    stadiumAudio.enableOnUserClick();
+
     if (!isAudioCommentaryPlaying) {
       setIsAudioCommentaryPlaying(true);
-      stadiumAudio.enableOnUserClick();
-      stadiumAudio.speakNigerian(`Live match commentary: ${match.homeTeam} ${match.homeScore ?? 0}, ${match.awayTeam} ${match.awayScore ?? 0}. Action: ${actionPhase}`);
+      setIsBroadcastPaused(false);
+      stadiumBroadcastAudio.startBroadcast(
+        match.homeTeam,
+        match.awayTeam,
+        extractMinuteNum(match.matchTime) || 64,
+        (timeStr) => setBroadcastClock(timeStr)
+      );
+    } else if (!isBroadcastPaused) {
+      setIsBroadcastPaused(true);
+      stadiumBroadcastAudio.pauseBroadcast();
     } else {
-      setIsAudioCommentaryPlaying(false);
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
+      setIsBroadcastPaused(false);
+      stadiumBroadcastAudio.resumeBroadcast(match.homeTeam, match.awayTeam);
     }
   };
 
@@ -152,17 +170,34 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
             <span>🎬 Match Highlights</span>
           </button>
 
-          {/* Audio Commentary Button */}
+          {/* Standard Live TV Broadcast Commentary + Crowd Ambience (Play / Pause / Resume) */}
           <button
-            onClick={handleToggleAudio}
-            className={`p-1.5 rounded-xl border transition-all flex items-center space-x-1 flex-shrink-0 ${
-              isAudioCommentaryPlaying
-                ? 'bg-gold text-black border-gold shadow-md'
+            onClick={handleToggleBroadcast}
+            className={`px-3 py-1.5 rounded-xl border text-xs font-black transition-all flex items-center space-x-1.5 flex-shrink-0 shadow-md ${
+              isAudioCommentaryPlaying && !isBroadcastPaused
+                ? 'bg-stadiumGreen text-black border-stadiumGreen shadow-stadiumGreen/40 animate-pulse'
+                : isBroadcastPaused
+                ? 'bg-gold text-black border-gold shadow-gold/30'
                 : 'bg-white/5 border-white/10 text-stadiumGreen hover:bg-stadiumGreen/20'
             }`}
-            title="Listen Live Audio Commentary"
+            title="Live Stadium TV Commentary & Crowd Ambience"
           >
-            {isAudioCommentaryPlaying ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+            {isAudioCommentaryPlaying && !isBroadcastPaused ? (
+              <>
+                <Volume2 className="w-3.5 h-3.5" />
+                <span>⏸️ PAUSE ({broadcastClock})</span>
+              </>
+            ) : isBroadcastPaused ? (
+              <>
+                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>▶️ RESUME ({broadcastClock})</span>
+              </>
+            ) : (
+              <>
+                <Radio className="w-3.5 h-3.5 text-crimson animate-pulse" />
+                <span>🎙️ TV CROWD & AUDIO</span>
+              </>
+            )}
           </button>
 
           {/* Fullscreen Toggle */}
@@ -297,47 +332,35 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
 
         </div>
       ) : (
-        /* MODE 2: MATCH HIGHLIGHTS VIDEO PLAYER WITH DIRECT EXTERNAL SOURCES */
+        /* MODE 2: 100% ON-PLATFORM EMBEDDED MATCH HIGHLIGHTS PLAYER (ZERO REDIRECTS) */
         <div className="space-y-3">
           <div className="relative w-full aspect-video rounded-3xl bg-black border-2 border-stadiumGreen/40 overflow-hidden shadow-2xl flex flex-col items-center justify-center">
             <iframe
-              src={`https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(match.homeTeam + ' vs ' + match.awayTeam + ' match highlights ' + match.league)}&autoplay=1&mute=1&controls=1&modestbranding=1&rel=0`}
+              src={`https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(match.homeTeam + ' vs ' + match.awayTeam + ' match highlights ' + match.league)}&autoplay=1&mute=1&controls=1&modestbranding=1&rel=0&playsinline=1`}
               title={`Match Highlights: ${match.homeTeam} vs ${match.awayTeam}`}
               className="w-full h-full border-0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
             />
-            <div className="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-xl bg-black/85 border border-white/10 text-[9px] text-stadiumGreen font-black backdrop-blur-md flex items-center space-x-1.5 shadow-lg">
+            
+            {/* Live On-Platform In-Video Badge */}
+            <div className="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-xl bg-black/90 border border-white/10 text-[9px] text-stadiumGreen font-black backdrop-blur-md flex items-center space-x-1.5 shadow-lg">
               <span className="w-2 h-2 rounded-full bg-crimson animate-ping" />
-              <span>OFFICIAL HIGHLIGHTS STREAM</span>
+              <span>ON-PLATFORM OFFICIAL MATCH HIGHLIGHTS (HD)</span>
             </div>
           </div>
 
-          {/* DIRECT EXTERNAL HIGHLIGHT SOURCES */}
-          <div className="p-3 rounded-2xl bg-black/60 border border-white/10 flex flex-wrap items-center justify-between gap-2">
-            <span className="text-[10px] text-gray-400 font-bold">
-              Watch direct replay on verified partner channels:
-            </span>
+          {/* On-Platform Channel Selector */}
+          <div className="p-3 rounded-2xl bg-black/70 border border-white/10 flex items-center justify-between gap-2">
             <div className="flex items-center space-x-2">
-              <a
-                href={`https://www.scorebat.com/search/?q=${encodeURIComponent(match.homeTeam + ' ' + match.awayTeam)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3 py-1.5 rounded-xl bg-stadiumGreen text-black font-black text-[10px] flex items-center space-x-1 hover:scale-105 transition-all shadow"
-              >
-                <span>ScoreBat HD ➔</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-              <a
-                href={`https://www.youtube.com/results?search_query=${encodeURIComponent(match.homeTeam + ' vs ' + match.awayTeam + ' match highlights ' + match.league)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3 py-1.5 rounded-xl bg-crimson text-white font-black text-[10px] flex items-center space-x-1 hover:scale-105 transition-all shadow"
-              >
-                <span>YouTube Replay ➔</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
+              <span className="w-2 h-2 rounded-full bg-stadiumGreen animate-pulse" />
+              <span className="text-[11px] text-white font-black">
+                {match.homeTeam} vs {match.awayTeam} • Full Highlights & Goals
+              </span>
             </div>
+            <span className="px-2.5 py-1 rounded-xl bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/40 text-[9px] font-black">
+              DIRECT ON-PLATFORM REPLAY ✓
+            </span>
           </div>
         </div>
       )}

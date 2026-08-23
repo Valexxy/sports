@@ -120,6 +120,26 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-void text-white min-h-screen antialiased selection:bg-stadiumGreen selection:text-black">
+        
+        {/* OFFICIAL GOOGLE TRANSLATE ENGINE (100% UNIVERSAL COVERAGE) */}
+        <div id="google_translate_element" style={{ display: 'none' }} />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              function googleTranslateElementInit() {
+                if (window.google && window.google.translate) {
+                  new window.google.translate.TranslateElement({
+                    pageLanguage: 'en',
+                    includedLanguages: 'en,ha,yo,ig,fr,es,de,ar,pt,sw',
+                    autoDisplay: false
+                  }, 'google_translate_element');
+                }
+              }
+            `,
+          }}
+        />
+        <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async />
+
         <LanguageProvider>{children}</LanguageProvider>
         <script
           dangerouslySetInnerHTML={{
