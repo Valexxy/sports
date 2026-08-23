@@ -303,46 +303,6 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
           {/* RIGHT 5 COLS: Country Bookmakers, Dynamic Fan Chat & Verified Media Hype */}
           <div className="lg:col-span-5 space-y-4">
             
-            {/* 4. Country-Specific Real-Time Bookmakers */}
-            <div className="p-4 rounded-3xl bg-panel border border-stadiumGreen/30 space-y-3">
-              <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                <div className="flex items-center space-x-2">
-                  <span className="text-stadiumGreen font-black text-xs">LOCAL BOOKMAKERS ({visitorData?.country || 'Nigeria'})</span>
-                  <span className="px-1.5 py-0.2 rounded bg-stadiumGreen text-black text-[9px] font-black">
-                    {visitorData?.countryCode || 'NG'}
-                  </span>
-                </div>
-                <span className="text-[10px] text-gold font-bold">Per-Second Live</span>
-              </div>
-
-              <div className="space-y-2">
-                {bookmakers.map((b) => {
-                  const baseOdds = (match.odds && match.odds[0] && match.odds[0].homeWin) || p.topPick.odds;
-                  const calculatedOdds = Math.round(baseOdds * b.homeMultiplier * 100) / 100;
-                  return (
-                    <div key={b.id} className="p-3 rounded-2xl bg-black/60 border border-white/10 flex items-center justify-between">
-                      <div>
-                        <div className="flex items-center space-x-1.5">
-                          <span className="font-extrabold text-white text-xs">{b.name}</span>
-                          <span className="text-[9px] px-1.5 py-0.2 rounded bg-white/10 text-gray-300 font-bold">{b.badge}</span>
-                        </div>
-                        <span className="text-[10px] text-gray-400 font-sans block">{b.bonusText}</span>
-                      </div>
-
-                      <div className="flex items-center space-x-1.5">
-                        <button
-                          onClick={() => onSelectOdds(match, `${match.homeTeam} Win (${b.name})`, calculatedOdds)}
-                          className="px-2.5 py-1.5 rounded-xl bg-panel hover:bg-stadiumGreen hover:text-black font-bold text-[11px] transition-all border border-white/10"
-                        >
-                          1 @ {calculatedOdds}
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
             {/* 5. Live Stadium Fan Chat Room (Dynamic per Match) */}
             <div className="p-4 rounded-3xl bg-panel border border-white/10 space-y-3">
               <div className="flex justify-between items-center border-b border-white/10 pb-2">

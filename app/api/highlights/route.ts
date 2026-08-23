@@ -44,11 +44,12 @@ export async function GET(request: Request) {
 
         return NextResponse.json({
           success: true,
+          found: true,
           source: 'scorebat_official',
           title: match.title,
           competition: match.competition,
           thumbnail: match.thumbnail,
-          embedUrl: embedUrl || 'https://www.scorebat.com/embed/',
+          embedUrl: embedUrl || '',
           rawEmbed: match.videos[0].embed,
         });
       }
@@ -57,12 +58,10 @@ export async function GET(request: Request) {
     console.warn('ScoreBat highlights fetch error:', err);
   }
 
-  // Fallback direct sports highlights player
+  // If no exact match found, do NOT return unrelated recommendations
   return NextResponse.json({
     success: true,
-    source: 'sports_video_stream',
-    embedUrl: 'https://www.dailymotion.com/embed/video/x8o7v4o?autoplay=1&mute=1',
-    thumbnail: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=800&q=80',
-    title: `${home || 'Home'} vs ${away || 'Away'} Official Match Highlights`,
+    found: false,
+    message: 'Official match video will be available once uploaded by broadcasters.',
   });
 }

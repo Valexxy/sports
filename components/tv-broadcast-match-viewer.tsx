@@ -239,7 +239,7 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
             <span>🎬 Match Highlights</span>
           </button>
 
-          {/* SPLIT DUAL-CHANNEL COMMENTARY SECTION (ENGLISH & PIDGIN/LOCAL WITH PAUSE/RESUME) */}
+          {/* Fullscreen Toggle */}
           <div className="flex flex-wrap items-center gap-1.5 flex-shrink-0">
             {/* SIDE 1: ENGLISH BROADCAST */}
             <button
