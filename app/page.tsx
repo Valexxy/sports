@@ -1,8 +1,8 @@
+'use client';
+
 import { SecurityHealthBadge } from '../components/security-health-badge';
 import { ViralArcadeHubModal } from '../components/viral-arcade-hub-modal';
 import { backgroundGoalChimes } from '../lib/background-goal-chimes';
-'use client';
-
 import React, { useState, useEffect } from 'react';
 import { StadiumFooter } from '../components/stadium-footer';
 import { PersistentStorage } from '../lib/persistent-storage-engine';
