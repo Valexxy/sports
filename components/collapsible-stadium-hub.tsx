@@ -45,9 +45,9 @@ export const CollapsibleStadiumHub: React.FC<CollapsibleHubProps> = ({
     {
       id: 'banter',
       title: 'Gen-Z Roast & Banter Lounge 🔥',
-      tag: 'AI POWERED',
+      tag: ' POWERED',
       tagColor: 'bg-crimson text-white',
-      desc: 'Dynamic AI Nigerian football slander, spicy locker-room burns, club memes, and viral roasts.',
+      desc: 'Dynamic  Nigerian football slander, spicy locker-room burns, club memes, and viral roasts.',
       icon: '🎙️',
       action: onOpenBanter,
       btnLabel: 'Enter Banter Lounge ➔',
@@ -110,14 +110,14 @@ export const CollapsibleStadiumHub: React.FC<CollapsibleHubProps> = ({
           <div>
             <div className="flex items-center space-x-2">
               <h2 className="font-black text-white text-sm sm:text-base">
-                STADIUM HUB & NAIJA LIVE SUITES ⚡🇳🇬
+                STADIUM HUB & NJA LIVE SUITES ⚡🇳🇬
               </h2>
               <span className="px-2 py-0.5 rounded-full bg-stadiumGreen text-black font-black text-[9px]">
                 {hubFeatures.length} SUITES
               </span>
             </div>
             <p className="text-[10px] text-gray-400 font-sans mt-0.5 hidden sm:block">
-              Everything in the Stadium Hub brought out live: Scouting, AI Roasts, Birthdays, Leaderboard & Bankroll.
+              Everything in the Stadium Hub brought out live: Scouting,  Roasts, Birthdays, Leaderboard & Bankroll.
             </p>
           </div>
         </div>

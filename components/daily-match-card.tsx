@@ -175,11 +175,11 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   const outcome = isFinished ? evaluatePickOutcome(p.topPick.selection, match.homeTeam, match.awayTeam, match.homeScore, match.awayScore) : null;
 
   const cardAuraClass = isLive
-    ? 'border-crimson/70 bg-gradient-to-br from-crimson/15 via-panel/95 to-panel shadow-xl shadow-crimson/20 ring-1 ring-crimson/30'
+    ? 'border-emerald-500/70 bg-gradient-to-br from-crimson/15 via-panel/95 to-panel shadow-xl shadow-crimson/20 ring-1 ring-crimson/30'
     : isFinished
     ? (outcome?.won
       ? 'border-stadiumGreen/60 bg-gradient-to-br from-stadiumGreen/10 via-panel/95 to-panel shadow-lg shadow-stadiumGreen/15 ring-1 ring-stadiumGreen/20'
-      : 'border-crimson/50 bg-gradient-to-br from-crimson/10 via-panel/95 to-panel shadow-md shadow-crimson/10 ring-1 ring-crimson/20')
+      : 'border-emerald-500/50 bg-gradient-to-br from-crimson/10 via-panel/95 to-panel shadow-md shadow-crimson/10 ring-1 ring-crimson/20')
     : 'border-gold/40 bg-gradient-to-br from-gold/10 via-panel/95 to-panel shadow-lg shadow-gold/10 ring-1 ring-gold/20 hover:border-gold/60';
 
   const handleBookmark = (e: React.MouseEvent) => {
@@ -241,12 +241,12 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
 
             {/* Status Badge */}
             {isLive ? (
-              <span className="flex-shrink-0 flex items-center space-x-1 px-2 py-0.5 rounded-full bg-crimson/30 border border-crimson/70 text-crimson text-[9px] font-black animate-pulse">
-                <span className="w-1.5 h-1.5 rounded-full bg-crimson animate-ping" />
+              <span className="flex-shrink-0 flex items-center space-x-1 px-2 py-0.5 rounded-full bg-emerald-500/30 border border-emerald-500/70 text-emerald-400 text-[9px] font-black animate-pulse">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
                 <span>{t("Live")}</span>
               </span>
             ) : isFinished ? (
-              <span className={'flex-shrink-0 flex items-center space-x-1 px-2 py-0.5 rounded-full text-[9px] font-black border ' + (outcome?.won ? 'bg-stadiumGreen/25 border-stadiumGreen text-stadiumGreen' : 'bg-crimson/25 border-crimson text-crimson')}>
+              <span className={'flex-shrink-0 flex items-center space-x-1 px-2 py-0.5 rounded-full text-[9px] font-black border ' + (outcome?.won ? 'bg-stadiumGreen/25 border-stadiumGreen text-stadiumGreen' : 'bg-emerald-500/25 border-emerald-500 text-emerald-400')}>
                 {outcome?.won ? <CheckCircle2 className="w-2.5 h-2.5" /> : <XCircle className="w-2.5 h-2.5" />}
                 <span>{outcome?.won ? t('WON') : t('LOST')}</span>
               </span>
@@ -317,7 +317,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
           <div className="flex flex-col items-center justify-center px-1.5 flex-shrink-0 min-w-[76px] text-center">
             {isLive ? (
               <>
-                <div className="font-mono font-black text-sm sm:text-base text-crimson animate-pulse whitespace-nowrap flex items-center space-x-1">
+                <div className="font-mono font-black text-sm sm:text-base text-emerald-400 animate-pulse whitespace-nowrap flex items-center space-x-1">
                   <span>{match.homeScore ?? 0}</span>
                   <span className="text-gray-500">-</span>
                   <span>{match.awayScore ?? 0}</span>
@@ -377,12 +377,12 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
           <div className="flex justify-between text-[9px] font-bold text-gray-400">
             <span className="text-stadiumGreen">{homeW}% {t('Home')}</span>
             <span>{drawW}% {t('Draw')}</span>
-            <span className="text-crimson">{awayW}% {t('Away')}</span>
+            <span className="text-emerald-400">{awayW}% {t('Away')}</span>
           </div>
           <div className="h-1.5 w-full bg-black/70 rounded-full overflow-hidden flex">
             <div style={{ width: homeW + '%' }} className="bg-stadiumGreen h-full" />
             <div style={{ width: drawW + '%' }} className="bg-gray-600 h-full" />
-            <div style={{ width: awayW + '%' }} className="bg-crimson h-full" />
+            <div style={{ width: awayW + '%' }} className="bg-emerald-500 h-full" />
           </div>
         </div>
 

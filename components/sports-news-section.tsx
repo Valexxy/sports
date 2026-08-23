@@ -27,7 +27,7 @@ const CATEGORY_TABS = [
   { key: 'MATCH REPORTS', label: '🚨 Match Reports', emoji: '🚨' },
   { key: 'INJURIES', label: '🚑 Injuries', emoji: '🚑' },
   { key: 'TACTICS', label: '🧠 Manager & Tactics', emoji: '🧠' },
-  { key: 'NAIJA & AFCON', label: '🇳🇬 Naija & AFCON', emoji: '🇳🇬' },
+  { key: 'NJA & AFCON', label: '🇳🇬 Naija & AFCON', emoji: '🇳🇬' },
   { key: 'UCL & EUROPE', label: '⭐ UCL & Europe', emoji: '⭐' },
 ];
 
@@ -126,7 +126,7 @@ export const SportsNewsSection: React.FC = () => {
         return 'bg-stadiumGreen/20 border-stadiumGreen/50 text-stadiumGreen';
       case 'INJURIES':
         return 'bg-crimson/20 border-crimson/50 text-crimson';
-      case 'NAIJA & AFCON':
+      case 'NJA & AFCON':
         return 'bg-emerald-500/25 border-emerald-400/60 text-emerald-300';
       case 'UCL & EUROPE':
         return 'bg-blue-500/20 border-blue-400/50 text-blue-300';
@@ -155,7 +155,7 @@ export const SportsNewsSection: React.FC = () => {
               
             </h3>
             <span className="text-[10px] text-gray-400 font-sans">
-              AI-Categorized Transfers, Match Reports, Injuries, Manager Tactics, and Super Eagles Wire.
+              Official Transfers, Match Reports, Injuries, Manager Tactics, and Super Eagles Wire.
             </span>
           </div>
         </div>

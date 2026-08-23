@@ -43,7 +43,7 @@ export const StadiumFooter: React.FC<StadiumFooterProps> = ({ onOpenLedger, onOp
         <div className="flex flex-wrap items-center justify-between gap-3 text-[11px] border-b border-white/5 pb-4">
           <div className="flex items-center space-x-2 text-gray-300">
             <span className="w-2 h-2 rounded-full bg-stadiumGreen animate-pulse" />
-            <span className="font-bold text-white">AuraScore AI</span>
+            <span className="font-bold text-white">AuraScore </span>
             <span>• 100% Free Live Football Match Center & Predictions</span>
           </div>
 
@@ -63,7 +63,7 @@ export const StadiumFooter: React.FC<StadiumFooterProps> = ({ onOpenLedger, onOp
 
         {/* Bottom Notice */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-[10px] text-gray-500 font-sans">
-          <span>© 2026 AuraScore AI. All live football match data & standings sourced legally via public feeds.</span>
+          <span>© 2026 AuraScore . All live football match data & standings sourced legally via public feeds.</span>
           <span className="flex items-center space-x-1 text-stadiumGreen font-mono">
             <span>Powered by Dixon-Coles Poisson Engine</span>
             <Zap className="w-3 h-3 text-gold" />

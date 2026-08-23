@@ -275,7 +275,7 @@ export default function Home() {
 
   type PillDef = { key: FilterType; emoji: string; label: string; count: number; activeClass: string };
   const filterPills: PillDef[] = [
-    { key: 'LIVE',     emoji: '🔴', label: t('Live'),     count: liveCount,     activeClass: 'bg-crimson/25 border-crimson text-crimson font-black shadow-lg shadow-crimson/20' },
+    { key: 'LIVE',     emoji: '🟢', label: t('Live'),     count: liveCount,     activeClass: 'bg-stadiumGreen/25 border-stadiumGreen text-stadiumGreen font-black shadow-lg shadow-stadiumGreen/30' },
     { key: 'UPCOMING', emoji: '🟡', label: t('Upcoming'), count: upcomingCount, activeClass: 'bg-gold/25 border-gold text-gold font-black shadow-lg shadow-gold/20' },
     { key: 'PLAYED',   emoji: '✅', label: t('Played'),   count: playedCount,   activeClass: 'bg-stadiumGreen/25 border-stadiumGreen text-stadiumGreen font-black shadow-lg shadow-stadiumGreen/20' },
   ];
@@ -309,7 +309,7 @@ export default function Home() {
 
           <GoogleDateNavigator onSelectDate={(dateStr, label, isToday) => { setSelectedDateStr(dateStr); setSelectedDateLabel(label); setIsViewingToday(isToday); setActiveFilter('ALL'); setSearchQuery(''); setVisibleCount(12); }} />
 
-          {/* COLLAPSIBLE STADIUM HUB & NAIJA LIVE SUITES */}
+          {/* COLLAPSIBLE STADIUM HUB & NJA LIVE SUITES */}
           <CollapsibleStadiumHub
             onOpenGrassroots={() => setShowGrassrootsModal(true)}
             onOpenBanter={() => setShowBanterModal(true)}
@@ -320,7 +320,7 @@ export default function Home() {
             onOpenReceipt={() => matches.length > 0 && setSelectedMatchForReceipt(matches[0])}
           />
 
-          {/* DAILY MATCHES SECTION */}
+          {/* DLY MATCHES SECTION */}
           <div className="space-y-3">
 
             {/* Section header */}
@@ -390,7 +390,7 @@ export default function Home() {
                       (activeFilter === pill.key ? pill.activeClass + ' scale-105 shadow-md' : 'border-white/10 text-gray-400 bg-panel hover:text-white hover:border-white/20')}
                   >
                     {pill.key === 'LIVE' ? (
-                      <span className="w-2.5 h-2.5 rounded-full bg-crimson animate-ping flex-shrink-0" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-stadiumGreen animate-ping flex-shrink-0" />
                     ) : pill.key === 'UPCOMING' ? (
                       <span className="w-2.5 h-2.5 rounded-full bg-gold flex-shrink-0" />
                     ) : (

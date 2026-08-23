@@ -130,9 +130,14 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
               <span className="font-black text-xs sm:text-sm text-white tracking-wider">AURASCORE</span>
               <span className="px-1.5 py-0.2 rounded bg-stadiumGreen text-black font-black text-[9px]">2.0</span>
             </div>
-            <span className="text-[10px] text-gray-400 font-sans hidden md:block">World-First Live Prediction & Stadium Atmosphere</span>
+            <span className="text-[10px] text-gray-400 font-sans hidden md:block">Official Live Match Center & Stadium Atmosphere</span>
           </div>
         </Link>
+
+        {/* Central Language Switcher & Navigation */}
+        <div className="flex items-center space-x-2">
+          <GlobalLanguageSwitcher />
+        </div>
 
         {/* Desktop Navigation Menu */}
         <nav className="hidden lg:flex items-center space-x-1 bg-black/60 p-1.5 rounded-2xl border border-white/10">
