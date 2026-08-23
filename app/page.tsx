@@ -269,6 +269,37 @@ export default function Home() {
     return sortMatchesByClosestKickoff(base, activeFilter);
   }, [matches, selectedDateStr, isViewingToday, searchQuery, activeFilter, highGuaranteesOnly, followedMatchIds, followedLeagues]);
 
+
+  // Sync URL search params with Matches for Browser Back Button and Page Refresh Continuity
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const matchId = params.get('match');
+      if (matchId && matches.length > 0) {
+        const found = matches.find((m) => m.id === matchId);
+        setSelectedMatchForInsights(found || null);
+      } else if (!matchId) {
+        setSelectedMatchForInsights(null);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [matches]);
+
+  // Initial load check for ?match=id
+  useEffect(() => {
+    if (typeof window === 'undefined' || matches.length === 0) return;
+    const params = new URLSearchParams(window.location.search);
+    const matchId = params.get('match');
+    if (matchId) {
+      const found = matches.find((m) => m.id === matchId);
+      if (found) setSelectedMatchForInsights(found);
+    }
+  }, [matches]);
+
   const displayedMatches = filteredMatches.slice(0, visibleCount);
 
   const todayLabel = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' });
