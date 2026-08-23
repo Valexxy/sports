@@ -1,3 +1,4 @@
+import { EnterpriseErrorBoundary } from '../components/enterprise-error-boundary';
 import './globals.css';
 import { LanguageProvider } from '../lib/translation-engine';
 import type { Metadata } from 'next';
@@ -140,7 +141,7 @@ export default function RootLayout({
         />
         <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async />
 
-        <LanguageProvider>{children}</LanguageProvider>
+        <LanguageProvider><EnterpriseErrorBoundary>{children}</EnterpriseErrorBoundary></LanguageProvider>
         <script
           dangerouslySetInnerHTML={{
             __html: `
