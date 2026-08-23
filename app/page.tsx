@@ -1,3 +1,4 @@
+import { backgroundGoalChimes } from '../lib/background-goal-chimes';
 'use client';
 
 import React, { useState, useEffect } from 'react';

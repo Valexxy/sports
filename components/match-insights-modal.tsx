@@ -9,6 +9,9 @@ import { getCountrySpecificBookmakers, CountryBookmaker } from '../lib/country-b
 import { getSmartVisitorDetails, SmartVisitorData } from '../lib/smart-visitor-engine';
 import { LiveStadiumMatchViewer } from './live-stadium-match-viewer';
 import { TvBroadcastMatchViewer } from './tv-broadcast-match-viewer';
+import { ViralMatchSlipModal } from './viral-match-slip-modal';
+import { BookmakerSlipExporter } from './bookmaker-slip-exporter';
+import { H2HTacticalRadar } from './h2h-tactical-radar';
 import { MatchAlertScheduler } from '../lib/match-alert-scheduler';
 import { X, Send, MessageSquare, Flame, Trophy, ExternalLink, Zap, Activity, Radio, Sun, Heart, Plus, ShieldCheck, Newspaper, ThumbsUp, Bell, BellRing, Volume2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -29,6 +32,7 @@ interface MatchComment {
 
 export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClose, onSelectOdds }) => {
   const [chatMessage, setChatMessage] = useState('');
+  const [showViralSlip, setShowViralSlip] = useState(false);
   const [visitorData, setVisitorData] = useState<SmartVisitorData | null>(null);
   const [bookmakers, setBookmakers] = useState<CountryBookmaker[]>([]);
   const [chatFeed, setChatFeed] = useState<MatchComment[]>([]);
@@ -202,6 +206,15 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
             </button>
 
             <button
+              onClick={() => setShowViralSlip(true)}
+              className="px-3.5 py-2 rounded-xl text-xs font-mono font-black flex items-center space-x-2 transition-all shadow-md bg-gold/20 hover:bg-gold/30 text-gold border border-gold/40"
+              title="Share Viral Matchday Slip on WhatsApp/Twitter"
+            >
+              <span>⚡</span>
+              <span>Share Viral Slip</span>
+            </button>
+
+            <button
               onClick={handleToggleFollow}
               className={`px-3.5 py-2 rounded-xl text-xs font-mono font-black flex items-center space-x-2 transition-all shadow-md ${
                 isFollowed
@@ -232,6 +245,16 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
           
           {/* Live Play-by-Play & Naija Audio Commentary directly under 2D field */}
           <EdgeAiCommentator match={match} />
+        </div>
+
+        {/* 1-Click Bookmaker Slip Exporter */}
+        <div className="mb-4">
+          <BookmakerSlipExporter match={match} />
+        </div>
+
+        {/* H2H Tactical Radar & Power Curves */}
+        <div className="mb-4">
+          <H2HTacticalRadar match={match} />
         </div>
 
         {/* Top Pick Banner */}
@@ -378,6 +401,9 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
         </div>
 
       </div>
+      {showViralSlip && (
+        <ViralMatchSlipModal match={match} onClose={() => setShowViralSlip(false)} />
+      )}
     </div>
   );
 };
