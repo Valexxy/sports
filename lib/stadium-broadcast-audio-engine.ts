@@ -74,8 +74,12 @@ class StadiumBroadcastAudioEngine {
     homeTeam: string,
     awayTeam: string,
     initialMinute: number = 64,
-    onTick?: (timeStr: string, isPlaying: boolean) => void
+    onTick?: (timeStr: string, isPlaying: boolean) => void,
+    channel: 'ENGLISH' | 'PIDGIN' = 'ENGLISH',
+    langCode: string = 'en'
   ) {
+    this.activeChannel = channel;
+    this.activeLanguage = langCode;
     this.init();
     if (!this.audioCtx) return;
 

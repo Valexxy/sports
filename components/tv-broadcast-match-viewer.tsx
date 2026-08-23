@@ -116,6 +116,57 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
 
   const [broadcastClock, setBroadcastClock] = useState<string>('64:24');
   const [isBroadcastPaused, setIsBroadcastPaused] = useState(false);
+  const [activeAudioChannel, setActiveAudioChannel] = useState<'NONE' | 'ENGLISH' | 'PIDGIN'>('NONE');
+  const [selectedLocalLang, setSelectedLocalLang] = useState<string>('pidgin');
+
+  const handleToggleEnglish = () => {
+    phoneHardware.triggerHaptic('SELECTION');
+    stadiumAudio.enableOnUserClick();
+
+    if (activeAudioChannel !== 'ENGLISH') {
+      setActiveAudioChannel('ENGLISH');
+      setIsBroadcastPaused(false);
+      stadiumBroadcastAudio.startBroadcast(
+        match.homeTeam,
+        match.awayTeam,
+        extractMinuteNum(match.matchTime) || 64,
+        (timeStr) => setBroadcastClock(timeStr),
+        'ENGLISH',
+        'en'
+      );
+    } else if (!isBroadcastPaused) {
+      setIsBroadcastPaused(true);
+      stadiumBroadcastAudio.pauseBroadcast();
+    } else {
+      setIsBroadcastPaused(false);
+      stadiumBroadcastAudio.resumeBroadcast(match.homeTeam, match.awayTeam);
+    }
+  };
+
+  const handleTogglePidgin = () => {
+    phoneHardware.triggerHaptic('SELECTION');
+    stadiumAudio.enableOnUserClick();
+    allowSpeechOnUserGesture();
+
+    if (activeAudioChannel !== 'PIDGIN') {
+      setActiveAudioChannel('PIDGIN');
+      setIsBroadcastPaused(false);
+      stadiumBroadcastAudio.startBroadcast(
+        match.homeTeam,
+        match.awayTeam,
+        extractMinuteNum(match.matchTime) || 64,
+        (timeStr) => setBroadcastClock(timeStr),
+        'PIDGIN',
+        selectedLocalLang
+      );
+    } else if (!isBroadcastPaused) {
+      setIsBroadcastPaused(true);
+      stadiumBroadcastAudio.pauseBroadcast();
+    } else {
+      setIsBroadcastPaused(false);
+      stadiumBroadcastAudio.resumeBroadcast(match.homeTeam, match.awayTeam);
+    }
+  };
 
   const handleToggleBroadcast = () => {
     phoneHardware.triggerHaptic('SELECTION');
@@ -189,26 +240,26 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
             <span>🎬 Match Highlights</span>
           </button>
 
-          {/* Side-by-Side Dual Broadcast Controls: English & Pure Pidgin */}
-          <div className="flex items-center space-x-1.5 flex-shrink-0">
-            {/* English Broadcast Control */}
+          {/* SPLIT DUAL-CHANNEL COMMENTARY SECTION (ENGLISH & PIDGIN/LOCAL WITH PAUSE/RESUME) */}
+          <div className="flex flex-wrap items-center gap-1.5 flex-shrink-0">
+            {/* SIDE 1: ENGLISH BROADCAST */}
             <button
-              onClick={handleToggleBroadcast}
+              onClick={handleToggleEnglish}
               className={`px-2.5 py-1.5 rounded-xl border text-xs font-black transition-all flex items-center space-x-1 shadow-md ${
-                isAudioCommentaryPlaying && !isBroadcastPaused
+                activeAudioChannel === 'ENGLISH' && !isBroadcastPaused
                   ? 'bg-stadiumGreen text-black border-stadiumGreen shadow-stadiumGreen/40 animate-pulse'
-                  : isBroadcastPaused
+                  : activeAudioChannel === 'ENGLISH' && isBroadcastPaused
                   ? 'bg-gold text-black border-gold shadow-gold/30'
-                  : 'bg-white/5 border-white/10 text-stadiumGreen hover:bg-stadiumGreen/20'
+                  : 'bg-white/5 border-white/10 text-gray-300 hover:text-white'
               }`}
-              title="Live English TV Commentary & Crowd"
+              title="English TV Commentary with Stadium Crowd"
             >
-              {isAudioCommentaryPlaying && !isBroadcastPaused ? (
+              {activeAudioChannel === 'ENGLISH' && !isBroadcastPaused ? (
                 <>
                   <Volume2 className="w-3 h-3" />
                   <span>⏸️ EN ({broadcastClock})</span>
                 </>
-              ) : isBroadcastPaused ? (
+              ) : activeAudioChannel === 'ENGLISH' && isBroadcastPaused ? (
                 <>
                   <Play className="w-3 h-3 fill-current" />
                   <span>▶️ RESUME ({broadcastClock})</span>
@@ -216,28 +267,54 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
               ) : (
                 <>
                   <Radio className="w-3 h-3 text-gold" />
-                  <span>🇬🇧 English Commentary</span>
+                  <span>🇬🇧 English</span>
                 </>
               )}
             </button>
 
-            {/* Pure Pidgin Broadcast Control */}
-            <button
-              onClick={() => {
-                phoneHardware.triggerHaptic('SELECTION');
-                stadiumAudio.enableOnUserClick();
-                allowSpeechOnUserGesture();
-                stadiumBroadcastAudio.surgeCrowdRoar('goal');
-                const pidginLine = `Omo see live match between ${match.homeTeam} and ${match.awayTeam}! Score na ${match.homeScore ?? 0} to ${match.awayScore ?? 0}. Action dey heavy for pitch now now!`;
-                stadiumAudio.speakNigerian(pidginLine);
-                speakNaija(pidginLine, 'hyped');
-              }}
-              className="px-2.5 py-1.5 rounded-xl bg-stadiumGreen/20 hover:bg-stadiumGreen/30 border border-stadiumGreen/40 text-stadiumGreen font-black text-xs transition-all flex items-center space-x-1 shadow"
-              title="Pure Nigerian Pidgin Commentary"
-            >
-              <Volume2 className="w-3 h-3 text-stadiumGreen" />
-              <span>🇳🇬 Pidgin Commentary</span>
-            </button>
+            {/* SIDE 2: PIDGIN / TRANSLATED LOCAL LANGUAGE BROADCAST WITH DROPDOWN */}
+            <div className="flex items-center space-x-1 bg-black/60 p-0.5 rounded-xl border border-white/10">
+              <select
+                value={selectedLocalLang}
+                onChange={(e) => setSelectedLocalLang(e.target.value)}
+                className="bg-transparent text-[10px] font-black text-stadiumGreen outline-none cursor-pointer pl-1"
+                title="Select Commentary Dialect"
+              >
+                <option value="pidgin" className="bg-black text-white">🇳🇬 Pidgin</option>
+                <option value="yoruba" className="bg-black text-white">🇳🇬 Yorùbá</option>
+                <option value="igbo" className="bg-black text-white">🇳🇬 Igbo</option>
+                <option value="hausa" className="bg-black text-white">🇳🇬 Hausa</option>
+              </select>
+
+              <button
+                onClick={handleTogglePidgin}
+                className={`px-2 py-1 rounded-lg text-xs font-black transition-all flex items-center space-x-1 shadow ${
+                  activeAudioChannel === 'PIDGIN' && !isBroadcastPaused
+                    ? 'bg-stadiumGreen text-black font-black animate-pulse'
+                    : activeAudioChannel === 'PIDGIN' && isBroadcastPaused
+                    ? 'bg-gold text-black'
+                    : 'bg-stadiumGreen/20 text-stadiumGreen hover:bg-stadiumGreen/30'
+                }`}
+                title="Play/Pause Local Dialect Commentary"
+              >
+                {activeAudioChannel === 'PIDGIN' && !isBroadcastPaused ? (
+                  <>
+                    <Volume2 className="w-3 h-3" />
+                    <span>⏸️ ({broadcastClock})</span>
+                  </>
+                ) : activeAudioChannel === 'PIDGIN' && isBroadcastPaused ? (
+                  <>
+                    <Play className="w-3 h-3 fill-current" />
+                    <span>▶️ ({broadcastClock})</span>
+                  </>
+                ) : (
+                  <>
+                    <Volume2 className="w-3 h-3 text-stadiumGreen" />
+                    <span>▶️ Play</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Fullscreen Toggle */}

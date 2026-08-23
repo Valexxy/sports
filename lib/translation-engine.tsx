@@ -104,7 +104,7 @@ export const COMPREHENSIVE_DICTIONARY: Record<string, Record<LanguageCode, strin
   'VERIFIED OFFICIAL REPORT ✓': { en: 'VERIFIED OFFICIAL REPORT ✓', pidgin: 'TRUE OFFICIAL GIST ✓', yoruba: 'ÌRÒYÌN GIDI TÍ A YẸ̀WÒ ✓', igbo: 'EZI AKỤKỌ ENYOCHARA ✓', hausa: 'CIKAKKEN LABARI MAI INGANCI ✓' },
 
   // Match Cards, Actions & Predictions
-  '+ Bet Tips': { en: '+ Bet Tips', pidgin: '+ Bet Tips 🎯', yoruba: '+ Ìmọ̀ràn Kalokalo 🎯', igbo: '+ Ndụmọdụ Nzọ 🎯', hausa: '+ Shawarar Caca 🎯' },
+  '+ Bet Tips': { en: '+ Bet Tips', pidgin: '+ Bet Tips', yoruba: '+ Ìmọ̀ràn Kalokalo', igbo: '+ Ndụmọdụ Nzọ', hausa: '+ Shawarar Caca' },
   'Shawarar Caca': { en: 'Bet Tips', pidgin: 'Bet Tips', yoruba: 'Ìmọ̀ràn Kalokalo', igbo: 'Ndụmọdụ Nzọ', hausa: 'Shawarar Caca' },
   'Table ➔': { en: 'Table ➔', pidgin: 'Table ➔', yoruba: 'Tábìlì ➔', igbo: 'Tebụl ➔', hausa: 'Tebur ➔' },
   'win confidence': { en: 'win confidence', pidgin: 'sure confidence', yoruba: 'ìdánilójú ìṣẹ́gun', igbo: 'ntụkwasị obi mmeri', hausa: 'tabbacin nasara' },
@@ -114,7 +114,7 @@ export const COMPREHENSIVE_DICTIONARY: Record<string, Record<LanguageCode, strin
   'Gida': { en: 'Home', pidgin: 'Home', yoruba: 'Ilé', igbo: 'Ụlọ', hausa: 'Gida' },
   'Canjaras': { en: 'Draw', pidgin: 'Draw', yoruba: 'Dọ́gba', igbo: 'Jikọọ', hausa: 'Canjaras' },
   'Waje': { en: 'Away', pidgin: 'Away', yoruba: 'Àbẹ̀wò', igbo: 'Nleta', hausa: 'Waje' },
-  'CIKAKKEN TABBACI': { en: 'ULTRA-BANKER', pidgin: 'PURE BANKER 🔥', yoruba: 'ÌDÁNILÓJÚ PÍPÉ 🔥', igbo: 'EZIOKWU 100% 🔥', hausa: 'CIKAKKEN TABBACI 🔥' },
+  'CIKAKKEN TABBACI': { en: 'ULTRA-BANKER', pidgin: 'PURE BANKER', yoruba: 'ÌDÁNILÓJÚ PÍPÉ', igbo: 'EZIOKWU 100%', hausa: 'CIKAKKEN TABBACI' },
   'Sama da ƙwallo 1.5': { en: 'Over 1.5 Goals', pidgin: 'Over 1.5 Goals', yoruba: 'Goolu tó ju 1.5 lọ', igbo: 'Ihe karịrị goolu 1.5', hausa: 'Sama da ƙwallo 1.5' },
   'Sama da ƙwallo 2.5': { en: 'Over 2.5 Goals', pidgin: 'Over 2.5 Goals', yoruba: 'Goolu tó ju 2.5 lọ', igbo: 'Ihe karịrị goolu 2.5', hausa: 'Sama da ƙwallo 2.5' },
   'Ƙasa da ƙwallo 2.5': { en: 'Under 2.5 Goals', pidgin: 'Under 2.5 Goals', yoruba: 'Goolu tí kò ju 2.5 lọ', igbo: 'Goolu na-erughị 2.5', hausa: 'Ƙasa da ƙwallo 2.5' },
@@ -131,10 +131,10 @@ export const COMPREHENSIVE_DICTIONARY: Record<string, Record<LanguageCode, strin
 
   // Actions & Buttons
   'Sauke Manhaja': { en: 'Download App', pidgin: 'Download App 📲', yoruba: 'Gba Ohun Èlò 📲', igbo: 'Budata Ngwa 📲', hausa: 'Sauke Manhaja 📲' },
-  'Manyan Yan Wasa': { en: 'Star Players', pidgin: 'Star Players ⭐', yoruba: 'Àwọn Gbajúmọ̀ ⭐', igbo: 'Ndị Ama Ama ⭐', hausa: 'Manyan Yan Wasa ⭐' },
-  'Wasannin Raye': { en: 'Live Matches', pidgin: 'Live Matches ⚡', yoruba: 'Àwọn Eré Láyé ⚡', igbo: 'Egwuregwu Ndụ ⚡', hausa: 'Wasannin Raye ⚡' },
-  'Teburin Jagorori': { en: 'Leaderboard', pidgin: 'Leaderboard 🏆', yoruba: 'Àkójọ Olórí 🏆', igbo: 'Ndị Isi Oche 🏆', hausa: 'Teburin Jagorori 🏆' },
-  'Ranar Haihuwa': { en: 'Birthdays', pidgin: 'Birthdays 🎂', yoruba: 'Ọjọ́ Ìbí 🎂', igbo: 'Ụbọchị Ọmụmụ 🎂', hausa: 'Ranar Haihuwa 🎂' },
+  'Manyan Yan Wasa': { en: 'Star Players', pidgin: 'Star Players', yoruba: 'Àwọn Gbajúmọ̀', igbo: 'Ndị Ama Ama', hausa: 'Manyan Yan Wasa' },
+  'Wasannin Raye': { en: 'Live Matches', pidgin: 'Live Matches', yoruba: 'Àwọn Eré Láyé', igbo: 'Egwuregwu Ndụ', hausa: 'Wasannin Raye' },
+  'Teburin Jagorori': { en: 'Leaderboard', pidgin: 'Leaderboard', yoruba: 'Àkójọ Olórí', igbo: 'Ndị Isi Oche', hausa: 'Teburin Jagorori' },
+  'Ranar Haihuwa': { en: 'Birthdays', pidgin: 'Birthdays', yoruba: 'Ọjọ́ Ìbí', igbo: 'Ụbọchị Ọmụmụ', hausa: 'Ranar Haihuwa' },
   'Sauke': { en: 'Download', pidgin: 'Download', yoruba: 'Gba Sílẹ̀', igbo: 'Budata', hausa: 'Sauke' },
   'Karanta Labari': { en: 'Read Story', pidgin: 'Read Full Gist ➔', yoruba: 'Ka Ìròyìn ➔', igbo: 'Gụọ Akụkọ ➔', hausa: 'Karanta Labari ➔' },
   'Karanta Labari ➔': { en: 'Read Story ➔', pidgin: 'Read Full Gist ➔', yoruba: 'Ka Ìròyìn ➔', igbo: 'Gụọ Akụkọ ➔', hausa: 'Karanta Labari ➔' },
