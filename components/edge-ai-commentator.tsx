@@ -207,7 +207,7 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
       );
     } else {
       setIsBroadcastPaused(false);
-      stadiumBroadcastAudio.seekToMinute(targetMin);
+      stadiumBroadcastAudio.seekToMinute(targetMin, currentMin);
     }
   };
 
