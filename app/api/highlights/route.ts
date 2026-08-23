@@ -1,19 +1,24 @@
 import { NextResponse } from 'next/server';
 
+interface ScoreBatVideo {
+  title: string;
+  embed: string;
+}
+
 interface ScoreBatItem {
   title: string;
-  competition: string;
+  competition: { name: string; id: number };
   matchviewUrl: string;
   thumbnail: string;
   date: string;
-  videos: { title: string; embed: string }[];
+  videos: ScoreBatVideo[];
 }
 
 let cachedScoreBat: ScoreBatItem[] | null = null;
 let lastFetchTime = 0;
 
 function cleanName(name: string): string {
-  return name.toLowerCase().replace(/\b(fc|cf|club|united|city|hotspur|town|athletic|rovers)\b/gi, '').trim();
+  return name.toLowerCase().replace(/\b(fc|cf|club|united|city|hotspur|town|athletic|rovers|cp)\b/gi, '').trim();
 }
 
 export async function GET(request: Request) {
@@ -26,13 +31,13 @@ export async function GET(request: Request) {
   try {
     const now = Date.now();
     if (!cachedScoreBat || now - lastFetchTime > 60000) {
-      const res = await fetch('https://www.scorebat.com/video-api/v3/feed/', {
+      const res = await fetch('https://www.scorebat.com/video-api/v1/', {
         next: { revalidate: 60 },
       });
       if (res.ok) {
         const data = await res.json();
-        if (data.response && Array.isArray(data.response)) {
-          cachedScoreBat = data.response;
+        if (Array.isArray(data)) {
+          cachedScoreBat = data;
           lastFetchTime = now;
         }
       }
@@ -53,34 +58,38 @@ export async function GET(request: Request) {
       });
 
       if (match && match.videos && match.videos.length > 0) {
-        const embedMatch = match.videos[0].embed.match(/src=['"]([^'"]+)['"]/);
-        const embedUrl = embedMatch ? embedMatch[1] : '';
+        const videoList = match.videos.map((v) => {
+          const matchSrc = v.embed.match(/src=['"]([^'"]+)['"]/);
+          return {
+            title: v.title,
+            embedUrl: matchSrc ? matchSrc[1] : '',
+          };
+        }).filter((v) => v.embedUrl);
 
-        return NextResponse.json({
-          success: true,
-          found: true,
-          source: 'scorebat_official_clean',
-          title: match.title,
-          competition: match.competition,
-          thumbnail: match.thumbnail,
-          embedUrl: embedUrl || '',
-        });
+        if (videoList.length > 0) {
+          return NextResponse.json({
+            success: true,
+            found: true,
+            source: 'scorebat_official',
+            title: match.title,
+            competition: match.competition?.name || '',
+            thumbnail: match.thumbnail,
+            embedUrl: videoList[0].embedUrl,
+            videos: videoList,
+            matchviewUrl: match.matchviewUrl,
+          });
+        }
       }
     }
   } catch (err) {
     console.warn('ScoreBat highlights fetch error:', err);
   }
 
-  // High-Quality Clean Match Reel Fallback (Dailymotion Clean Match Archive Player)
-  const cleanDailymotionSearchUrl = `https://www.dailymotion.com/embed/search/${encodeURIComponent(
-    rawHome + ' ' + rawAway + ' highlights'
-  )}?autoplay=0&mute=0&ui-logo=0&sharing-enable=0&queue-enable=0`;
-
+  // Pure on-platform match replay & goal moments studio fallback
   return NextResponse.json({
     success: true,
-    found: true,
-    source: 'clean_dailymotion_archive',
+    found: false,
+    source: 'interactive_replay_studio',
     title: `${rawHome} vs ${rawAway} Match Highlights`,
-    embedUrl: cleanDailymotionSearchUrl,
   });
 }
