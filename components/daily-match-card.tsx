@@ -137,6 +137,19 @@ function translatePick(selection: string, tFunc: (k: string) => string): string 
   return tFunc(selection);
 }
 
+function calculateRealisticPins(match: MatchData): number {
+  const str = match.homeTeam + match.awayTeam + (match.league || '');
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  const absHash = Math.abs(hash);
+  // Realistic diverse spread across matches: e.g. 420, 1,840, 3,290, 890
+  const base = (absHash % 3900) + 380;
+  return base;
+}
+
 export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   match,
   onOpenInsights,
@@ -148,8 +161,13 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   onOpenTeam,
 }) => {
   const { t } = useTranslation();
-  const [bookmarked, setBookmarked] = useState(false);
-  const basePins = Math.round((match.prediction?.topPick?.probability || 75) * 14.2 + (parseInt(match.id.replace(/[^0-9]/g, '') || '42', 10) % 320));
+  const basePins = useMemo(() => calculateRealisticPins(match), [match.id, match.homeTeam, match.awayTeam]);
+  const [bookmarked, setBookmarked] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return PersistentStorage.getBookmarks().includes(match.id);
+    }
+    return false;
+  });
   const [pinCount, setPinCount] = useState<number>(() => {
     if (typeof window !== 'undefined') {
       const isPinned = PersistentStorage.getBookmarks().includes(match.id);
@@ -183,9 +201,17 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
     : 'border-gold/40 bg-gradient-to-br from-gold/10 via-panel/95 to-panel shadow-lg shadow-gold/10 ring-1 ring-gold/20 hover:border-gold/60';
 
   const handleBookmark = (e: React.MouseEvent) => {
-    stadiumAudio.playBookmarkSound();
     e.stopPropagation();
-    setBookmarked(b => !b);
+    const nextState = !bookmarked;
+    setBookmarked(nextState);
+    setPinCount(prev => (nextState ? prev + 1 : Math.max(0, prev - 1)));
+    
+    if (nextState) {
+      setJustPinnedEffect(true);
+      setTimeout(() => setJustPinnedEffect(false), 1400);
+    }
+    
+    PersistentStorage.toggleBookmark(match.id);
     stadiumAudio.playBookmarkSound();
     if (onBookmarkMatch) onBookmarkMatch(match);
     phoneHardware.triggerHaptic('SELECTION');
@@ -274,7 +300,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
             >
               <Star className={'w-3.5 h-3.5 ' + (bookmarked ? 'fill-current text-gold animate-pulse' : '')} />
               <span className="text-[10px] font-mono font-black">
-                {pinCount >= 1000 ? (pinCount / 1000).toFixed(1) + 'k' : pinCount}
+                {pinCount.toLocaleString()}
               </span>
               
               {/* Floating +1 Animation Badge */}
