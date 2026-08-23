@@ -38,8 +38,8 @@ export const DailyBankerAccumulatorCard: React.FC<DailyBankerAccumulatorCardProp
     if (onAddMultiPick) {
       const picks = topBankers.map((m) => ({
         match: m,
-        selection: m.prediction.topPick.selection,
-        odds: m.prediction.topPick.odds,
+        selection: (m.prediction?.topPick || { selection: "1X", odds: 1.25, probability: 75 }).selection,
+        odds: (m.prediction?.topPick || { selection: "1X", odds: 1.25, probability: 75 }).odds,
       }));
       onAddMultiPick(picks);
     }
@@ -90,8 +90,8 @@ export const DailyBankerAccumulatorCard: React.FC<DailyBankerAccumulatorCardProp
               {m.homeTeam} vs {m.awayTeam}
             </div>
             <div className="flex items-center justify-between text-[10px] pt-0.5">
-              <span className="text-stadiumGreen font-bold truncate">{m.prediction.topPick.selection}</span>
-              <span className="text-gold font-mono font-black">@{m.prediction.topPick.odds.toFixed(2)}</span>
+              <span className="text-stadiumGreen font-bold truncate">{(m.prediction?.topPick || { selection: "1X", odds: 1.25, probability: 75 }).selection}</span>
+              <span className="text-gold font-mono font-black">@{(m.prediction?.topPick || { selection: "1X", odds: 1.25, probability: 75 }).odds.toFixed(2)}</span>
             </div>
           </div>
         ))}
