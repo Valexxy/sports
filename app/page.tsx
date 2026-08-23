@@ -1,4 +1,5 @@
 'use client';
+import { ScreenPinnedMatchWidget } from '../components/screen-pinned-match-widget';
 import { SecurityHealthBadge } from '../components/security-health-badge';
 import { StadiumSmartPreloader } from '../components/stadium-smart-preloader';
 import { ViralArcadeHubModal } from '../components/viral-arcade-hub-modal';
@@ -629,7 +630,8 @@ export default function Home() {
             onOpenLegal={() => setShowLegalModal(true)}
           />
 
-        </main>
+          <ScreenPinnedMatchWidget />
+    </main>
 
         <BetSlipDrawer items={betSlipItems} onRemoveItem={handleRemoveBetItem} onClearAll={() => setBetSlipItems([])}
           isOpenControlled={showBetSlipDrawer} onToggleControlled={() => setShowBetSlipDrawer(!showBetSlipDrawer)} />

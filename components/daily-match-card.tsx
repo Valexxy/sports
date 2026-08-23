@@ -1,4 +1,6 @@
 'use client';
+import { screenPinEngine } from '../lib/screen-pin-engine';
+import { Pin } from 'lucide-react';
 import { LockScreenMatchTracker } from '../lib/lockscreen-live-score-tracker';
 import React, { useState, useEffect, useMemo } from 'react';
 import { PersistentStorage } from '../lib/persistent-storage-engine';
@@ -290,7 +292,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
             {isLive ? (
               <span className="flex-shrink-0 flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-stadiumGreen/20 border border-stadiumGreen/50 text-stadiumGreen text-[9px] font-black shadow-sm shadow-stadiumGreen/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-stadiumGreen animate-ping" />
-                <span>Live {match.matchTime ? match.matchTime : ''}</span>
+                <span>LIVE 🔴 {match.matchTime ? match.matchTime : ''}</span>
               </span>
             ) : isFinished ? (
               <span className="flex-shrink-0 flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 text-[9px] font-black shadow-sm shadow-cyan-500/20">
@@ -307,6 +309,19 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
 
           {/* Action Icons */}
           <div className="flex items-center space-x-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
+            {isLive && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  screenPinEngine.pinMatch(match);
+                }}
+                className="px-2 py-1 rounded-xl bg-stadiumGreen/20 border border-stadiumGreen/40 text-stadiumGreen hover:bg-stadiumGreen hover:text-black transition-all flex items-center space-x-1 text-[10px] font-black"
+                title="📌 Pin Match to Screen (Always on top with live commentary, scores & sound effects)"
+              >
+                <Pin className="w-3 h-3 fill-current" />
+                <span className="hidden sm:inline">Pin</span>
+              </button>
+            )}
             <button 
               onClick={handleAlert}
               className={'p-1.5 rounded-xl border transition-all ' + (isFollowed ? 'bg-stadiumGreen/20 border-stadiumGreen text-stadiumGreen shadow-md shadow-stadiumGreen/20' : 'bg-black/40 border-white/10 text-gray-400 hover:text-stadiumGreen')}
