@@ -1,0 +1,38 @@
+name: Parallel Multi-League Live Sync & Settlement
+
+on:
+  schedule:
+    - cron: '*/15 * * * *' # Every 15 minutes
+  workflow_dispatch:
+
+jobs:
+  sync-league:
+    name: Sync & Settle League
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        league:
+          - 'premier-league'
+          - 'la-liga'
+          - 'serie-a'
+          - 'bundesliga'
+          - 'champions-league'
+          - 'mls'
+          - 'nigeria-npfl'
+      fail-fast: false
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Trigger Settlement & Live Cache Sync
+        run: |
+          echo "⚡ Running automated live score sync and settlement for league: ${{ matrix.league }}"
+          curl -s -X POST "https://sports-teal-psi.vercel.app/api/cron/update-data" || true
+          curl -s -X POST "https://sports-teal-psi.vercel.app/api/settlement" || true

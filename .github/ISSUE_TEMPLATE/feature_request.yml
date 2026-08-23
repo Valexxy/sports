@@ -1,0 +1,18 @@
+name: 💡 Feature or New League Request
+description: Propose a new league, commentary dialect, or analytics tool.
+labels: ["enhancement", "feature-request"]
+body:
+  - type: input
+    id: title
+    attributes:
+      label: Feature Summary
+      placeholder: e.g. Add Saudi Pro League or French Audio Accent
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature Description
+      description: Why would this improve the AuraScore matchday experience?
+    validations:
+      required: true

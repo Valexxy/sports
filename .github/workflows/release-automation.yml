@@ -1,0 +1,36 @@
+name: Automated Production Release & Changelog
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  create-release:
+    name: Tag & Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate Semantic Version Tag
+        id: tag_version
+        run: |
+          DATE_TAG="v2.$(date +'%Y%m%d.%H%M')"
+          echo "tag=$DATE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag_version.outputs.tag }}
+          name: "AuraScore Stadium 2.0 ${{ steps.tag_version.outputs.tag }}"
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

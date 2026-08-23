@@ -1,0 +1,26 @@
+name: ⚽ Match Result & Settlement Dispute
+description: Report a score correction or request referee audit ledger verification.
+labels: ["settlement-audit", "match-score"]
+body:
+  - type: input
+    id: match_name
+    attributes:
+      label: Match Name
+      description: e.g. Arsenal vs Chelsea
+      placeholder: Home vs Away
+    validations:
+      required: true
+  - type: input
+    id: league
+    attributes:
+      label: League / Competition
+      placeholder: Premier League, La Liga, MLS...
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Dispute Details
+      description: What was the referee official score vs the recorded outcome?
+    validations:
+      required: true
