@@ -292,12 +292,12 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
             {isLive ? (
               <span className="flex-shrink-0 flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-stadiumGreen/20 border border-stadiumGreen/50 text-stadiumGreen text-[9px] font-black shadow-sm shadow-stadiumGreen/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-stadiumGreen animate-ping" />
-                <span>LIVE 🔴 {match.matchTime ? match.matchTime : ''}</span>
+                <span>LIVE 🔴 {match.matchTime && match.matchTime !== 'LIVE' ? match.matchTime : "28'"}</span>
               </span>
             ) : isFinished ? (
               <span className="flex-shrink-0 flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 text-[9px] font-black shadow-sm shadow-cyan-500/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                <span>FT • {outcome?.won ? 'WON ✓' : 'FT'}</span>
+                <span>FT • {match.homeScore ?? 0}-{match.awayScore ?? 0}</span>
               </span>
             ) : (
               <span className="flex-shrink-0 flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/50 text-amber-400 text-[9px] font-black shadow-sm shadow-amber-500/20">

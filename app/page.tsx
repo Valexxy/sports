@@ -467,16 +467,8 @@ export default function Home() {
               )}
             </div>
 
-            {/* Filter pills with counts */}
+            {/* Filter pills with counts (Immediately below Search Bar) */}
             <div className="space-y-2">
-              {/* Daily Safe 3-Game Banker Accumulator */}
-            <div className="mb-4">
-              <DailyBankerAccumulatorCard
-                matches={matches}
-                onAddMultiPick={handleAddMultiPicks}
-                onOpenMatch={setSelectedMatchForInsights}
-              />
-            </div>
 
             {/* Line 1: ONLY 3 Complete Match Statuses (Distinct Colors, Single Clean Icon) */}
               <div className="grid grid-cols-3 gap-2">
@@ -613,13 +605,13 @@ export default function Home() {
             )}
           </div>
 
-          {/* Viral world-first features */}
-          <div className="pt-4 space-y-3 border-t border-white/5">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black text-gray-400 uppercase tracking-wider">⚡ World-First Features</span>
-              <button onClick={() => setShowSuitesMenu(true)} className="text-[10px] text-stadiumGreen font-bold hover:underline">Open Full Menu</button>
-            </div>
-            <ViralFeaturesGrid matches={matches} onSelectMatch={(m) => setSelectedMatchForInsights(m)} />
+          {/* Daily 3-Game Safe Accumulator & Ledger Summary */}
+          <div className="pt-4 space-y-4 border-t border-white/10">
+            <DailyBankerAccumulatorCard
+              matches={matches}
+              onAddMultiPick={handleAddMultiPicks}
+              onOpenMatch={setSelectedMatchForInsights}
+            />
             <SettlementLedgerSection onOpenAuditModal={() => setShowHistoryModal(true)} />
             <SportsNewsSection />
           </div>

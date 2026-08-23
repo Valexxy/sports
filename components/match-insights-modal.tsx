@@ -182,9 +182,15 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
         <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-4 mb-4 gap-2">
           <div>
             <span className="text-xs font-mono text-gray-400">{match.leagueFlag} {match.league} • 🏟️ {match.venue || `${match.homeTeam} Stadium`}</span>
-            <h2 className="text-xl sm:text-3xl font-black text-white flex items-center space-x-2 mt-0.5">
+            <h2 className="text-xl sm:text-3xl font-black text-white flex flex-wrap items-center gap-2 sm:gap-3 mt-0.5">
               <span>{match.homeTeam}</span>
-              <span className="text-stadiumGreen font-mono">VS</span>
+              {match.status === 'FINISHED' || match.status === 'LIVE' ? (
+                <span className="px-3.5 py-1 rounded-xl bg-black border-2 border-stadiumGreen text-stadiumGreen font-mono font-black text-lg sm:text-2xl shadow-inner">
+                  {match.homeScore ?? 0} - {match.awayScore ?? 0}
+                </span>
+              ) : (
+                <span className="text-stadiumGreen font-mono">VS</span>
+              )}
               <span>{match.awayTeam}</span>
             </h2>
           </div>
