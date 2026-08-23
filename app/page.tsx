@@ -1,5 +1,6 @@
 'use client';
 import { SecurityHealthBadge } from '../components/security-health-badge';
+import { StadiumSmartPreloader } from '../components/stadium-smart-preloader';
 import { ViralArcadeHubModal } from '../components/viral-arcade-hub-modal';
 import { backgroundGoalChimes } from '../lib/background-goal-chimes';
 import React, { useState, useEffect, useMemo } from 'react';
@@ -166,10 +167,11 @@ export default function Home() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const restoreFromUrl = () => {
+        const restoreFromUrl = () => {
       const params = new URLSearchParams(window.location.search);
       const matchId = params.get('match');
       const tab = params.get('tab');
+      const modal = params.get('modal');
 
       if (matchId && matches.length > 0) {
         const found = matches.find(m => m.id === matchId);
@@ -178,9 +180,20 @@ export default function Home() {
         setSelectedMatchForInsights(null);
       }
 
-      if (tab && ['LIVE', 'UPCOMING', 'PLAYED', 'FOLLOWING'].includes(tab.toUpperCase())) {
+      if (tab && ['LIVE', 'UPCOMING', 'PLAYED', 'FOLLOWING', 'ALL'].includes(tab.toUpperCase())) {
         setActiveFilter(tab.toUpperCase() as FilterType);
       }
+
+      // Restore Modals on Refresh
+      if (modal === 'bankroll') setShowBankroll(true);
+      if (modal === 'ledger') setShowTrackRecord(true);
+      if (modal === 'leaderboard') setShowLeaderboardModal(true);
+      if (modal === 'viral') setShowViralArcade(true);
+      if (modal === 'banter') setShowBanterModal(true);
+      if (modal === 'birthdays') setShowBirthdaysModal(true);
+      if (modal === 'grassroots') setShowGrassrootsModal(true);
+      if (modal === 'profile') setShowProfile(true);
+      if (modal === 'leagues') setShowLeagueBrowser(true);
     };
 
     restoreFromUrl();
@@ -476,6 +489,11 @@ export default function Home() {
                       setActiveFilter(pill.key);
                       setVisibleCount(12);
                       stadiumAudio.playTabClickSound();
+                      if (typeof window !== 'undefined') {
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('tab', pill.key.toLowerCase());
+                        window.history.pushState({ tab: pill.key }, '', url.toString());
+                      }
                     }}
                     className={'flex items-center justify-center space-x-2 py-3 px-3 rounded-2xl border text-xs font-black transition-all ' +
                       (activeFilter === pill.key ? pill.activeClass + ' scale-105 shadow-md' : 'border-white/10 text-gray-400 bg-panel hover:text-white hover:border-white/20')}
@@ -552,11 +570,7 @@ export default function Home() {
 
             {/* Match grid */}
             {loadingMatches ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {[0,1,2,3,4,5].map(i => (
-                  <div key={i} className="h-72 rounded-3xl bg-panel/60 border border-white/5 animate-pulse" />
-                ))}
-              </div>
+              <StadiumSmartPreloader />
             ) : filteredMatches.length > 0 ? (
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
