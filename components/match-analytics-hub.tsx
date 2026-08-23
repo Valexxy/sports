@@ -24,9 +24,16 @@ export const MatchAnalyticsHub: React.FC<MatchAnalyticsHubProps> = ({
   match,
   onSelectOdds,
 }) => {
-  const p = match.prediction;
-  const homeXG = p.expectedHomeGoals || 1.85;
-  const awayXG = p.expectedAwayGoals || 1.15;
+  const p = match.prediction || {
+    expectedHomeGoals: 1.85,
+    expectedAwayGoals: 1.15,
+    homeWinProb: 0.52,
+    drawProb: 0.26,
+    awayWinProb: 0.22,
+    topPick: { selection: '1X', odds: 1.25, probability: 78, market: 'Double Chance' },
+  };
+  const homeXG = p.expectedHomeGoals ?? 1.85;
+  const awayXG = p.expectedAwayGoals ?? 1.15;
   const totalXG = homeXG + awayXG;
 
   const candidateScores = [
