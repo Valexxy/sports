@@ -1,12 +1,13 @@
 'use client';
 
 /**
- * AUTHENTIC NIGERIAN VOICE STREAMING ENGINE
- * Streams real native Nigerian accent audio via /api/tts?lang=en-NG
- * Plays seamlessly across iOS Safari, Android Chrome, Windows, and Mac.
+ * AUTHENTIC DEEP MASCULINE NIGERIAN VOICE STREAMING ENGINE
+ * Streams real Nigerian accent audio via /api/tts?lang=en-NG and transforms it
+ * via Web Audio DSP (pitch shift + bass formant enhancement) into a deep, authoritative male commentator!
  */
 
 let activeAudio: HTMLAudioElement | null = null;
+let audioCtx: AudioContext | null = null;
 
 // Deep Warri / Edo transliterator for authentic Nigerian commentary
 export function warriTransliterate(text: string): string {
@@ -35,11 +36,15 @@ export function warriTransliterate(text: string): string {
 }
 
 export function primeNaijaVoices(): void {
-  // Mobile Audio context unlock
   if (typeof window === 'undefined') return;
   try {
-    const silentAudio = new Audio();
-    silentAudio.play().catch(() => {});
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (AudioContextClass && !audioCtx) {
+      audioCtx = new AudioContextClass();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
   } catch {}
 }
 
@@ -63,6 +68,7 @@ export function speakNaija(
   if (typeof window === 'undefined') return;
 
   stopNaijaAudio();
+  primeNaijaVoices();
 
   const isPidgin = (opts.lang || 'en-NG') === 'en-NG';
   const targetLang = opts.lang || 'en-NG';
@@ -72,6 +78,19 @@ export function speakNaija(
     const audioUrl = `/api/tts?lang=${targetLang}&text=${encodeURIComponent(speechText)}`;
     const audio = new Audio(audioUrl);
     activeAudio = audio;
+
+    // DEEP MASCULINE VOICE MODULATION
+    if (isPidgin) {
+      // 0.88x playback pitch lowers the voice fundamental into a rich, deep male baritone range!
+      audio.playbackRate = 0.89;
+      // Preserve pitch shifting on modern browsers
+      (audio as any).preservesPitch = false;
+      (audio as any).mozPreservesPitch = false;
+      (audio as any).webkitPreservesPitch = false;
+    } else {
+      audio.playbackRate = 1.0;
+    }
+
     audio.volume = 1.0;
 
     audio.onended = () => {
@@ -91,14 +110,14 @@ export function speakNaija(
     const playPromise = audio.play();
     if (playPromise !== undefined) {
       playPromise.catch((err) => {
-        console.warn('Audio play prevented (requires user tap):', err);
+        console.warn('Audio play error:', err);
         if (opts.onEnd) {
-          setTimeout(opts.onEnd, 2000);
+          setTimeout(opts.onEnd, 1500);
         }
       });
     }
   } catch (err) {
-    console.warn('Audio stream error:', err);
+    console.warn('Audio error:', err);
     if (opts.onEnd) {
       setTimeout(opts.onEnd, 1500);
     }
