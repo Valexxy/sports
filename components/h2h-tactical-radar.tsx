@@ -26,7 +26,7 @@ export const H2HTacticalRadar: React.FC<H2HTacticalRadarProps> = ({ match }) => 
           <Activity className="w-4 h-4 text-stadiumGreen animate-pulse" />
           <span className="font-black text-white text-xs">{t('Tactical Radar & Poisson Power Curve')}</span>
         </div>
-        <span className="text-[10px] text-gold font-bold">Opta & Poisson v2.0</span>
+        <span className="text-[10px] text-gold font-bold">Mivaj Match AI & Poisson v2.0</span>
       </div>
 
       {/* Expected Goals (xG) Comparison */}

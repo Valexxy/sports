@@ -31,6 +31,9 @@ import { ReverseJinxModal } from '../components/reverse-jinx-modal';
 import { OfflineBanner } from '../components/offline-banner';
 import { ErrorBoundary } from '../components/error-boundary';
 import { BroadcastTicker, TriggerUpdate } from '../components/broadcast-ticker';
+import { OfficialMatchHighlightsHub } from '../components/official-match-highlights-hub';
+import { GenZOnboardingModal } from '../components/genz-onboarding-modal';
+import { FooterComplianceDisclaimer } from '../components/footer-disclaimer';
 import { SportsNewsSection } from '../components/sports-news-section';
 import { BetSlipDrawer, BetItem } from '../components/bet-slip-drawer';
 import { MobileAppDock } from '../components/mobile-app-dock';
@@ -55,6 +58,16 @@ import { sortMatchesByClosestKickoff } from '../lib/match-sorter';
 import { Sparkles, Search, ChevronDown, RefreshCw, Radio, Calendar, Clock, Zap } from 'lucide-react';
 import { GlobalLanguageSwitcher } from '../components/global-language-switcher';
 import { DailyBankerAccumulatorCard } from '../components/daily-banker-accumulator-card';
+import { Daily10OddsAccumulator } from '../components/daily-10-odds-accumulator';
+import { GenZFomoOddsUnlocker } from '../components/genz-fomo-odds-unlocker';
+import { SwipeToPredictGame } from '../components/swipe-to-predict-game';
+import { LiveAuraMomentumMeter } from '../components/live-aura-momentum-meter';
+import { AIMemeSlanderGenerator } from '../components/ai-meme-slander-generator';
+import { WhatsAppStatusSlipFlexer } from '../components/whatsapp-status-slip-flexer';
+import { P2PSocialWagers } from '../components/p2p-social-wagers';
+import { WonderkidStockMarket } from '../components/wonderkid-stock-market';
+import { SocialCommunityBroadcastHub } from '../components/social-community-broadcast-hub';
+import { CrossPlatformConverterModal } from '../components/cross-platform-code-converter-modal';
 import { AccumulatorSlipDrawer, SelectedSlipPick } from '../components/accumulator-slip-drawer';
 import { ViralFeaturesGrid } from '../components/viral-features-grid';
 import { StadiumUserWeatherPanel } from '../components/stadium-user-weather-panel';
@@ -129,6 +142,7 @@ export default function Home() {
   const [showRotatingPoolModal, setShowRotatingPoolModal] = useState(false);
   const [showSuitesMenu, setShowSuitesMenu] = useState(false);
   const [showViralArcade, setShowViralArcade] = useState(false);
+  const [showConverterModal, setShowConverterModal] = useState(false);
   const [showBanterModal, setShowBanterModal] = useState(false);
   const [showGrassrootsModal, setShowGrassrootsModal] = useState(false);
   const [showStandingsModal, setShowStandingsModal] = useState(false);
@@ -271,6 +285,21 @@ export default function Home() {
     });
   };
 
+  const handleAddMultiBetItems = (picks: Array<{ match: MatchData; selection: string; odds: number }>) => {
+    setBetSlipItems(prev => {
+      const matchIds = new Set(picks.map(p => p.match.id));
+      const filtered = prev.filter(item => !matchIds.has(item.matchId));
+      const newItems: BetItem[] = picks.map(p => ({
+        matchId: p.match.id,
+        matchTitle: p.match.homeTeam + ' vs ' + p.match.awayTeam,
+        selection: p.selection,
+        odds: p.odds,
+      }));
+      return [...filtered, ...newItems];
+    });
+    if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate([80, 40, 80]);
+  };
+
   const handleAddBetItem = (match: MatchData, selection: string, odds: number) => {
     const newItem: BetItem = {
       matchId: match.id,
@@ -322,10 +351,18 @@ export default function Home() {
     const base = dayMatches.filter(m => {
       const q = searchQuery.toLowerCase();
       if (q && !m.homeTeam.toLowerCase().includes(q) && !m.awayTeam.toLowerCase().includes(q) && !m.league.toLowerCase().includes(q)) return false;
+      
+      // CRITICAL: Apply Correct Banker filter first
+      if (highGuaranteesOnly) {
+        const prob = m.prediction?.topPick?.probability || 0;
+        const tier = m.prediction?.topPick?.confidenceTier || '';
+        const isBanker = prob >= 65 || tier.includes('BANKER');
+        if (!isBanker) return false;
+      }
+
       if (activeFilter === 'LIVE') return m.status === 'LIVE';
       if (activeFilter === 'UPCOMING') {
         if (m.status !== 'SCHEDULED') return false;
-        // Verify kickoff is not in the past
         if (m.utcDate) {
           const matchKickoff = new Date(m.utcDate).getTime();
           if (!isNaN(matchKickoff) && matchKickoff < Date.now() - 30 * 60 * 1000) {
@@ -336,7 +373,6 @@ export default function Home() {
       }
       if (activeFilter === 'PLAYED') return m.status === 'FINISHED';
       if (activeFilter === 'FOLLOWING') return followedMatchIds.includes(m.id) || followedLeagues.some(l => m.league.toLowerCase().includes(l.toLowerCase()));
-      if (highGuaranteesOnly && (m.prediction?.topPick?.probability || 0) < 70 && m.prediction?.topPick?.confidenceTier !== 'ULTRA-BANKER') return false;
       return true;
     });
     return sortMatchesByClosestKickoff(base, activeFilter);
@@ -409,25 +445,13 @@ export default function Home() {
           onOpenSuitesMenu={() => setShowSuitesMenu(true)}
         />
 
-        <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 py-4 space-y-4">
+        <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 py-4 space-y-5">
 
-          <GoogleDateNavigator onSelectDate={(dateStr, label, isToday, isPast) => { setSelectedDateStr(dateStr); setSelectedDateLabel(label); setIsViewingToday(isToday); if (isPast) { setActiveFilter('PLAYED'); } else if (isToday) { setActiveFilter('LIVE'); } else { setActiveFilter('UPCOMING'); } setSearchQuery(''); setVisibleCount(12); }} />
+          {/* 1. GOOGLE DATE NAVIGATOR */}
+          <GoogleDateNavigator onSelectDate={(dateStr, label, isToday, isPast) => { setSelectedDateStr(dateStr); setSelectedDateLabel(label); setIsViewingToday(isToday); if (isPast) { setActiveFilter('PLAYED'); } else if (isToday) { setActiveFilter('LIVE'); } else { setActiveFilter('UPCOMING'); } setSearchQuery(''); setVisibleCount(6); }} />
 
-          {/* COLLAPSIBLE STADIUM HUB & NJA LIVE SUITES */}
-          <CollapsibleStadiumHub
-            onOpenGrassroots={() => setShowGrassrootsModal(true)}
-            onOpenBanter={() => setShowBanterModal(true)}
-            onOpenBirthdays={() => setShowBirthdaysModal(true)}
-            onOpenLeaderboard={() => setShowLeaderboardModal(true)}
-            onOpenLedger={() => setShowTrackRecord(true)}
-            onOpenBankroll={() => setShowBankroll(true)}
-            onOpenReceipt={() => matches.length > 0 && setSelectedMatchForReceipt(matches[0])}
-          />
-
-          {/* DLY MATCHES SECTION */}
+          {/* 2. MATCHES & PREDICTIONS HERO */}
           <div className="space-y-3">
-
-            {/* Section header */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
               <div className="flex items-center space-x-2">
                 <div className="w-1 h-8 rounded-full bg-stadiumGreen flex-shrink-0" />
@@ -455,10 +479,9 @@ export default function Home() {
                   className="p-2 rounded-xl bg-panel border border-white/10 text-stadiumGreen hover:bg-stadiumGreen/20 transition-all disabled:opacity-50">
                   <RefreshCw className={loadingMatches ? 'w-3.5 h-3.5 animate-spin' : 'w-3.5 h-3.5'} />
                 </button>
-                <button onClick={() => setShowViralArcade(true)}
-                  className="px-3 py-2 rounded-xl bg-gradient-to-r from-stadiumGreen/25 via-panel to-gold/25 border-2 border-gold/60 text-gold font-black text-xs flex items-center space-x-1.5 hover:scale-105 transition-all shadow-lg glow-emerald">
-                  <Sparkles className="w-3.5 h-3.5 text-gold animate-spin" />
-                  <span>Viral Hub ⚡</span>
+                <button onClick={() => setShowConverterModal(true)}
+                  className="px-3 py-2 rounded-xl bg-panel hover:bg-white/10 border border-white/20 text-white font-black text-xs flex items-center space-x-1.5 transition-all shadow-md">
+                  <span>Code Converter 🔄</span>
                 </button>
               </div>
             </div>
@@ -477,74 +500,52 @@ export default function Home() {
               )}
             </div>
 
-            {/* Filter pills with counts (Immediately below Search Bar) */}
+            {/* Status filter pills */}
             <div className="space-y-2">
-
-            {/* Line 1: ONLY 3 Complete Match Statuses (Distinct Colors, Single Clean Icon) */}
               <div className="grid grid-cols-3 gap-2">
                 {filterPills.map(pill => (
                   <button
                     key={pill.key}
                     onClick={() => {
                       setActiveFilter(pill.key);
-                      setVisibleCount(12);
+                      setVisibleCount(6);
                       try { stadiumAudio.playTabClickSound(); } catch (e) {}
-                      if (typeof window !== 'undefined') {
-                        const url = new URL(window.location.href);
-                        url.searchParams.set('tab', pill.key.toLowerCase());
-                        window.history.pushState({ tab: pill.key }, '', url.toString());
-                      }
                     }}
-                    className={'flex items-center justify-center space-x-2 py-3 px-3 rounded-2xl border text-xs font-black transition-all ' +
-                      (activeFilter === pill.key ? pill.activeClass + ' scale-105 shadow-md' : 'border-white/10 text-gray-400 bg-panel hover:text-white hover:border-white/20')}
+                    className={`py-3 px-2 rounded-2xl border text-xs font-black transition-all flex items-center justify-center space-x-1.5 ${
+                      activeFilter === pill.key ? pill.activeClass : 'border-white/10 text-gray-400 bg-panel hover:text-white'
+                    }`}
                   >
-                    {pill.key === 'LIVE' ? (
-                      <span className="w-2.5 h-2.5 rounded-full bg-stadiumGreen animate-ping flex-shrink-0" />
-                    ) : pill.key === 'UPCOMING' ? (
-                      <span className="w-2.5 h-2.5 rounded-full bg-amber-400 flex-shrink-0" />
-                    ) : (
-                      <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 flex-shrink-0" />
-                    )}
-                    <span className="font-extrabold">
-                      {pill.key === 'LIVE' ? t('Live') : pill.key === 'UPCOMING' ? t('Upcoming') : t('Played')}
-                    </span>
+                    <span>{pill.label}</span>
                     {pill.count > 0 && (
-                      <span className={'px-2 py-0.5 rounded-full text-[10px] font-mono font-black ' + (activeFilter === pill.key ? 'bg-black/50 text-white' : 'bg-white/10 text-gray-300')}>
-                        {pill.count}
-                      </span>
+                      <span className="px-1.5 py-0.5 rounded-full bg-white/10 text-[10px]">{pill.count}</span>
                     )}
                   </button>
                 ))}
               </div>
 
-              {/* Line 2: Following (Pinned), 35+ Leagues & High Guarantees (Clean 3-Button Balanced Grid) */}
               <div className="grid grid-cols-3 gap-2">
                 <button
                   onClick={() => {
                     setActiveFilter('FOLLOWING');
-                    setVisibleCount(12);
-                    stadiumAudio.playTabClickSound();
+                    setVisibleCount(6);
+                    try { stadiumAudio.playTabClickSound(); } catch (e) {}
                   }}
-                  className={'py-2.5 px-2 rounded-2xl border text-xs font-black transition-all flex items-center justify-center space-x-1.5 shadow-md hover:scale-[1.02] ' +
-                    (activeFilter === 'FOLLOWING'
-                      ? 'bg-gold text-black border-gold font-black shadow-gold/30'
-                      : 'border-white/10 text-gray-400 bg-panel hover:text-gold hover:border-gold/30')}
+                  className={`py-2.5 px-2 rounded-2xl border text-xs font-black transition-all flex items-center justify-center space-x-1.5 ${
+                    activeFilter === 'FOLLOWING' ? 'bg-gold/20 border-gold text-gold shadow-lg shadow-gold/30' : 'border-white/10 text-gray-400 bg-panel hover:text-white'
+                  }`}
                 >
-                  <span className="text-sm">⭐</span>
+                  <span>⭐</span>
                   <span className="truncate">{t('Following')}</span>
-                  {followingCount > 0 && (
-                    <span className={'px-1.5 py-0.2 rounded-full text-[9px] font-black ' + (activeFilter === 'FOLLOWING' ? 'bg-black/40 text-white' : 'bg-white/10 text-gold')}>
-                      {followingCount}
-                    </span>
-                  )}
+                  {followingCount > 0 && <span className="px-1.5 py-0.5 rounded-full bg-white/10 text-[10px]">{followingCount}</span>}
                 </button>
 
                 <button
                   onClick={() => {
-                    setShowLeagueBrowser(true);
-                    stadiumAudio.playTabClickSound();
+                    setActiveFilter('ALL');
+                    setVisibleCount(6);
+                    try { stadiumAudio.playTabClickSound(); } catch (e) {}
                   }}
-                  className="py-2.5 px-2 rounded-2xl border border-stadiumGreen/40 bg-stadiumGreen/15 hover:bg-stadiumGreen/25 text-stadiumGreen text-xs font-black transition-all flex items-center justify-center space-x-1.5 shadow-md hover:scale-[1.02]"
+                  className="py-2.5 px-2 rounded-2xl border border-stadiumGreen/40 bg-stadiumGreen/15 hover:bg-stadiumGreen/25 text-stadiumGreen text-xs font-black transition-all flex items-center justify-center space-x-1.5 shadow-md"
                 >
                   <span>🌍</span>
                   <span className="truncate">{t('All Leagues')}</span>
@@ -553,22 +554,21 @@ export default function Home() {
                 <button
                   onClick={() => {
                     setHighGuaranteesOnly(!highGuaranteesOnly);
-                    stadiumAudio.playTabClickSound();
+                    try { stadiumAudio.playTabClickSound(); } catch (e) {}
                   }}
-                  className={'py-2.5 px-2 rounded-2xl border text-xs font-black transition-all flex items-center justify-center space-x-1.5 shadow-md hover:scale-[1.02] ' +
-                    (highGuaranteesOnly
+                  className={`py-2.5 px-2 rounded-2xl border text-xs font-black transition-all flex items-center justify-center space-x-1.5 shadow-md ${
+                    highGuaranteesOnly
                       ? 'bg-stadiumGreen/25 border-stadiumGreen text-stadiumGreen shadow-stadiumGreen/20'
-                      : 'border-white/10 text-gray-400 bg-panel hover:text-white hover:border-white/20')}
+                      : 'border-white/10 text-gray-400 bg-panel hover:text-white'
+                  }`}
                 >
-                  <span className="text-sm">👑</span>
+                  <span>👑</span>
                   <span className="truncate">{t('Bankers')}</span>
                 </button>
               </div>
             </div>
 
-
-
-            {/* Match grid */}
+            {/* Matches Grid */}
             {loadingMatches ? (
               <StadiumSmartPreloader />
             ) : filteredMatches.length > 0 ? (
@@ -593,10 +593,10 @@ export default function Home() {
                 </div>
                 {filteredMatches.length > visibleCount && (
                   <div className="text-center pt-2">
-                    <button onClick={() => setVisibleCount(prev => prev + 9)}
+                    <button onClick={() => setVisibleCount(prev => prev + 6)}
                       className="px-6 py-3 rounded-2xl bg-stadiumGreen/20 hover:bg-stadiumGreen/30 border border-stadiumGreen/40 text-stadiumGreen font-black text-sm inline-flex items-center space-x-2 transition-all hover:scale-105">
                       <Zap className="w-4 h-4" />
-                      <span>Show {filteredMatches.length - visibleCount} More Matches</span>
+                      <span>Show 6 More Matches</span>
                       <ChevronDown className="w-4 h-4" />
                     </button>
                   </div>
@@ -606,7 +606,7 @@ export default function Home() {
               <div className="p-10 text-center rounded-3xl glass-panel border border-white/10 space-y-3">
                 <Radio className="w-8 h-8 text-gold mx-auto" />
                 <h3 className="text-white font-black text-sm">No matches found</h3>
-                <p className="text-xs text-gray-400">Try switching to All Matches or Upcoming to see today fixtures.</p>
+                <p className="text-xs text-gray-400">Try selecting another date or switching filters.</p>
                 <button onClick={() => { setActiveFilter('ALL'); setSearchQuery(''); loadMatches(); }}
                   className="px-4 py-2 rounded-xl bg-stadiumGreen text-black font-black text-xs">
                   Reset and Reload
@@ -615,25 +615,59 @@ export default function Home() {
             )}
           </div>
 
-          {/* Daily 3-Game Safe Accumulator & Ledger Summary */}
-          <div className="pt-4 space-y-4 border-t border-white/10">
-            <DailyBankerAccumulatorCard
-              matches={matches}
-              onAddMultiPick={handleAddMultiPicks}
-              onOpenMatch={setSelectedMatchForInsights}
-            />
-            <SettlementLedgerSection onOpenAuditModal={() => setShowHistoryModal(true)} />
-            <SportsNewsSection />
-          </div>
+          {/* 3. TINDER-STYLE SWIPE-TO-PREDICT GAME */}
+          <SwipeToPredictGame matches={matches} />
 
-          {/* STADIUM FOOTER WITH PROMINENT LANGUAGE SWITCHER */}
-          <StadiumFooter
-            onOpenLedger={() => setShowHistoryModal(true)}
-            onOpenLegal={() => setShowLegalModal(true)}
+          {/* 4. REAL-TIME PHYSICS AURA MOMENTUM METER */}
+          <LiveAuraMomentumMeter match={matches.find(m => m.status === 'LIVE') || matches[0]} />
+
+          {/* 5. PAYSTACK GEN-Z FOMO MICRO-ODDS UNLOCKER (₦200, ₦300, ₦500) */}
+          <GenZFomoOddsUnlocker matches={matches} />
+
+          {/* 6. DAILY 10.00 ODDS ACCUMULATOR & CUT-1 SHIELD */}
+          <Daily10OddsAccumulator
+            matches={matches}
+            onAddMultiPick={handleAddMultiBetItems}
+            onOpenMatch={setSelectedMatchForInsights}
           />
 
-          <ScreenPinnedMatchWidget />
-    </main>
+          {/* 7. INSTANT AI MEME & SLANDER CARD CREATOR */}
+          <AIMemeSlanderGenerator />
+
+          {/* 8. WHATSAPP STATUS 9:16 TICKET FLEXER */}
+          <WhatsAppStatusSlipFlexer />
+
+          {/* 9. 1v1 P2P SOCIAL WAGERS */}
+          <P2PSocialWagers matches={matches} />
+
+          {/* 10. WONDERKID AURA STOCK EXCHANGE */}
+          <WonderkidStockMarket />
+
+          {/* 11. TOP 3 STADIUM & VIRAL HUB */}
+          <CollapsibleStadiumHub
+            onOpenGrassroots={() => setShowGrassrootsModal(true)}
+            onOpenBanter={() => setShowBanterModal(true)}
+            onOpenBirthdays={() => setShowBirthdaysModal(true)}
+            onOpenLeaderboard={() => setShowLeaderboardModal(true)}
+            onOpenLedger={() => setShowTrackRecord(true)}
+            onOpenBankroll={() => setShowBankroll(true)}
+            onOpenReceipt={() => matches.length > 0 && setSelectedMatchForReceipt(matches[0])}
+          />
+
+          {/* 12. TELEGRAM & WHATSAPP 24/7 BROADCAST BOT HUB */}
+          <OfficialMatchHighlightsHub />
+
+          <SocialCommunityBroadcastHub matches={matches} />
+
+          {/* 13. SPORTS NEWS SECTION */}
+          <SportsNewsSection />
+
+          {/* REGULATORY COMPLIANCE DISCLAIMER */}
+          <GenZOnboardingModal />
+
+          <FooterComplianceDisclaimer />
+
+        </main>
 
         <BetSlipDrawer items={betSlipItems} onRemoveItem={handleRemoveBetItem} onClearAll={() => setBetSlipItems([])}
           isOpenControlled={showBetSlipDrawer} onToggleControlled={() => setShowBetSlipDrawer(!showBetSlipDrawer)} />

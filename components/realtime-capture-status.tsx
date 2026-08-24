@@ -111,7 +111,7 @@ export const RealtimeCaptureStatus: React.FC = () => {
           {/* Ingestion Stream Feeds */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <div className="p-2 rounded-xl bg-black/40 border border-white/5 space-y-0.5">
-              <span className="text-gray-400 block font-bold">1. ESPN AKAMAI CDN</span>
+              <span className="text-gray-400 block font-bold">1. Mivaj Sports Center AKAMAI CDN</span>
               <span className="text-stadiumGreen font-bold flex items-center space-x-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-stadiumGreen"></span>
                 <span>10s Ingest • 0 Quota Loss</span>

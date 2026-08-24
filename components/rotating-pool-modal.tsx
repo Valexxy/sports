@@ -36,7 +36,7 @@ export const RotatingPoolModal: React.FC<RotatingPoolModalProps> = ({ onClose })
             <Cpu className="w-6 h-6 text-stadiumGreen" />
           </div>
           <div>
-            <h2 className="font-extrabold text-xl text-white">INTERNATIONAL ROTATING API POOL SYSTEM ⚡</h2>
+            <h2 className="font-extrabold text-xl text-white">INTERNATIONAL ROTATING Engine POOL SYSTEM ⚡</h2>
             <p className="text-xs text-gray-400">Multi-Provider Failover: Groq AI ➔ Google Gemini ➔ HuggingFace ➔ Dixon-Coles</p>
           </div>
         </div>

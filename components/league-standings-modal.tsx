@@ -292,7 +292,7 @@ export const LeagueStandingsModal: React.FC<LeagueStandingsModalProps> = ({
             <div className="p-16 text-center text-gray-400 flex flex-col items-center justify-center space-y-3">
               <RefreshCw className="w-8 h-8 text-stadiumGreen animate-spin" />
               <span className="font-black text-sm text-white">Loading Official {currentLeagueObj.label} Table...</span>
-              <p className="text-xs text-gray-500 font-sans">Syncing Opta points, goal difference records & form sequences</p>
+              <p className="text-xs text-gray-500 font-sans">Syncing Mivaj Match AI points, goal difference records & form sequences</p>
             </div>
           ) : filteredRows.length === 0 ? (
             <div className="p-12 text-center text-gray-400">No clubs matching &quot;{searchQuery}&quot; found.</div>

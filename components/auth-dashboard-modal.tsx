@@ -1,30 +1,15 @@
 'use client';
+
 import React, { useState, useEffect } from 'react';
-import { 
-  User, 
-  X, 
-  ShieldCheck, 
-  Zap, 
-  Star, 
-  Trophy, 
-  Sparkles, 
-  Ticket, 
-  Sun, 
-  Moon, 
-  LogOut, 
-  Check, 
-  Lock, 
-  Mail, 
-  Phone,
-  Flame,
-  Award,
-  Bell,
-  Settings
+import {
+  User, X, ShieldCheck, Zap, Star, Trophy, Sparkles, Ticket, Sun, Moon,
+  LogOut, Check, Lock, Mail, Phone, Flame, Award, Bell, Settings,
+  Gift, Share2, Copy, ExternalLink, QrCode, ArrowRight, Chrome
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { stadiumAudio } from '../lib/sound-synthesizer';
 import { phoneHardware } from '../lib/phone-hardware-engine';
-import { useTranslation } from '../lib/translation-engine';
+import { ReferralEngine, UserReferralStats } from '../lib/referral-engine';
 
 interface AuthDashboardModalProps {
   isOpen: boolean;
@@ -38,14 +23,26 @@ interface AuthDashboardModalProps {
 export interface UserSession {
   isLoggedIn: boolean;
   username: string;
+  avatar: string;
+  club: string;
   email: string;
   phone: string;
-  vipTier: 'VIP MASTER 👑' | 'PRO TIPSTER ⚡' | 'STADIUM MEMBER';
+  auraBalance: number;
+  vipTier: 'DIAMOND PRODIGY 👑' | 'GOLD INFLUENCER ⚡' | 'STADIUM MEMBER';
   memberSince: string;
   winRate: number;
   totalPicks: number;
-  bankroll: number;
 }
+
+const AVATARS = ['⚡', '👑', '🦁', '🦅', '🐐', '🔥', '💎', '🚀'];
+const CLUBS = [
+  { name: 'Arsenal', flag: '🔴⚪' },
+  { name: 'Chelsea', flag: '🔵🦁' },
+  { name: 'Man United', flag: '🔴👹' },
+  { name: 'Real Madrid', flag: '⚪👑' },
+  { name: 'Barcelona', flag: '🔵🔴' },
+  { name: 'Super Eagles', flag: '🇳🇬🦅' },
+];
 
 export const AuthDashboardModal: React.FC<AuthDashboardModalProps> = ({
   isOpen,
@@ -55,344 +52,473 @@ export const AuthDashboardModal: React.FC<AuthDashboardModalProps> = ({
   currentTheme = 'dark',
   onToggleTheme,
 }) => {
-  const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'DASHBOARD' | 'FOLLOWED' | 'SLIPS' | 'SETTINGS'>('DASHBOARD');
-  
-  // Auth state
-  const [session, setSession] = useState<UserSession>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('aurascore_user_session');
-      if (stored) {
-        try { return JSON.parse(stored); } catch {}
-      }
-    }
-    return {
-      isLoggedIn: true,
-      username: 'CyberStriker_99',
-      email: 'striker99@aurascore.ai',
-      phone: '+234 803 888 2400',
-      vipTier: 'VIP MASTER 👑',
-      memberSince: 'Aug 2026',
-      winRate: 88.4,
-      totalPicks: 142,
-      bankroll: 3850,
-    };
-  });
+  const [authMode, setAuthMode] = useState<'LOGIN' | 'REGISTER'>('REGISTER');
+  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'REFERRALS' | 'AURA_VAULT' | 'PERFORMANCE' | 'SETTINGS'>('OVERVIEW');
 
-  // Login form state
-  const [isLoginMode, setIsLoginMode] = useState(true);
+  // Input states
+  const [selectedAvatar, setSelectedAvatar] = useState('⚡');
+  const [selectedClub, setSelectedClub] = useState('Arsenal');
   const [inputUsername, setInputUsername] = useState('');
   const [inputEmail, setInputEmail] = useState('');
   const [inputPhone, setInputPhone] = useState('');
   const [inputPassword, setInputPassword] = useState('');
-  const [authSuccess, setAuthSuccess] = useState(false);
+  const [referralCode, setReferralCode] = useState('');
+  const [copiedRef, setCopiedRef] = useState(false);
+
+  // Session state with localStorage persistence
+  const [session, setSession] = useState<UserSession>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('mivaj_user_session');
+      if (stored) {
+        try {
+          return JSON.parse(stored);
+        } catch {}
+      }
+    }
+    return {
+      isLoggedIn: false,
+      username: '',
+      avatar: '⚡',
+      club: 'Arsenal',
+      email: '',
+      phone: '',
+      auraBalance: 0,
+      vipTier: 'STADIUM MEMBER',
+      memberSince: 'Aug 2026',
+      winRate: 94.8,
+      totalPicks: 24,
+    };
+  });
+
+  const [refStats, setRefStats] = useState<UserReferralStats | null>(null);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('aurascore_user_session', JSON.stringify(session));
+    if (session.username) {
+      setRefStats(ReferralEngine.getStats(session.username));
     }
-  }, [session]);
+  }, [session.username]);
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    phoneHardware.triggerHaptic('SELECTION');
-    stadiumAudio.playWonTicketSound();
-    
+    const uname = inputUsername.trim() || `Striker_${Math.floor(100 + Math.random() * 900)}`;
+    const uemail = inputEmail.trim() || `${uname.toLowerCase()}@mivaj.com`;
+
     const newSession: UserSession = {
       isLoggedIn: true,
-      username: inputUsername || 'CyberStriker_99',
-      email: inputEmail || 'fan@aurascore.ai',
-      phone: inputPhone || '+234 800 000 0000',
-      vipTier: 'VIP MASTER 👑',
+      username: uname,
+      avatar: selectedAvatar,
+      club: selectedClub,
+      email: uemail,
+      phone: inputPhone,
+      auraBalance: 500, // Instant Welcome Bounty
+      vipTier: 'GOLD INFLUENCER ⚡',
       memberSince: 'Aug 2026',
-      winRate: 88.4,
-      totalPicks: 142,
-      bankroll: 5000,
+      winRate: 94.8,
+      totalPicks: 24,
     };
 
     setSession(newSession);
-    setAuthSuccess(true);
-    confetti({ particleCount: 70, spread: 80, origin: { y: 0.5 } });
-    setTimeout(() => {
-      setAuthSuccess(false);
-    }, 2000);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('mivaj_user_session', JSON.stringify(newSession));
+      localStorage.setItem('mivaj_onboarding_completed', 'true');
+    }
+
+    phoneHardware.triggerHaptic('GOAL');
+    stadiumAudio.playGoalCelebration();
+    confetti({ particleCount: 80, spread: 80, origin: { y: 0.5 } });
+  };
+
+  const handleLoginSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const uname = inputUsername.trim() || 'CyberStriker_99';
+    const uemail = inputEmail.trim() || 'striker@mivaj.com';
+
+    const newSession: UserSession = {
+      isLoggedIn: true,
+      username: uname,
+      avatar: selectedAvatar,
+      club: selectedClub,
+      email: uemail,
+      phone: inputPhone || '+234 807 201 5725',
+      auraBalance: 1450,
+      vipTier: 'DIAMOND PRODIGY 👑',
+      memberSince: 'Aug 2026',
+      winRate: 94.8,
+      totalPicks: 42,
+    };
+
+    setSession(newSession);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('mivaj_user_session', JSON.stringify(newSession));
+    }
+
+    phoneHardware.triggerHaptic('AFRO_BEAT');
+    stadiumAudio.playAfrobeatVictory();
+    confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+  };
+
+  const handleSocial1Tap = (provider: string) => {
+    const uname = `${provider}_Punter`;
+    const newSession: UserSession = {
+      isLoggedIn: true,
+      username: uname,
+      avatar: '🚀',
+      club: 'Arsenal',
+      email: `${uname.toLowerCase()}@gmail.com`,
+      phone: '',
+      auraBalance: 500,
+      vipTier: 'GOLD INFLUENCER ⚡',
+      memberSince: 'Aug 2026',
+      winRate: 94.8,
+      totalPicks: 18,
+    };
+    setSession(newSession);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('mivaj_user_session', JSON.stringify(newSession));
+    }
+    phoneHardware.triggerHaptic('SUCCESS');
+    stadiumAudio.playSuccessSound();
+    confetti({ particleCount: 60, spread: 70, origin: { y: 0.5 } });
   };
 
   const handleLogout = () => {
-    phoneHardware.triggerHaptic('SELECTION');
-    setSession({
+    const reset: UserSession = {
       isLoggedIn: false,
-      username: 'Guest Fan',
+      username: '',
+      avatar: '⚡',
+      club: 'Arsenal',
       email: '',
       phone: '',
+      auraBalance: 0,
       vipTier: 'STADIUM MEMBER',
-      memberSince: 'Today',
+      memberSince: 'Aug 2026',
       winRate: 0,
       totalPicks: 0,
-      bankroll: 0,
-    });
+    };
+    setSession(reset);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('mivaj_user_session');
+    }
+    phoneHardware.triggerHaptic('WARNING');
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-2xl flex items-center justify-center p-2 sm:p-5 animate-fadeIn font-mono text-xs">
-      <div className="relative w-full max-w-3xl glass-panel-premium rounded-3xl border-2 border-stadiumGreen/60 p-4 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/90 backdrop-blur-2xl animate-fadeIn font-mono text-xs text-white">
+      <div className="glass-panel-premium max-w-2xl w-full rounded-3xl border-2 border-stadiumGreen/60 p-4 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto glow-emerald">
         
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-2xl bg-panel text-gray-400 hover:text-white border border-white/10 hover:border-stadiumGreen transition-all z-20"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        {/* Modal Header */}
-        <div className="flex items-center space-x-3 border-b border-white/10 pb-4">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-stadiumGreen via-gold to-cyberPurple p-0.5 shadow-lg flex items-center justify-center flex-shrink-0">
-            <div className="w-full h-full bg-void rounded-[14px] flex items-center justify-center text-xl">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-white/10 pb-3">
+          <div className="flex items-center space-x-2.5">
+            <span className="p-2 rounded-xl bg-gradient-to-tr from-stadiumGreen via-gold to-cyan-400 text-black font-black text-base shadow-lg">
               ⚡
-            </div>
-          </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <h2 className="font-black text-base sm:text-lg text-white">
-                {session.isLoggedIn ? `@${session.username}` : 'USER AUTHENTICATION & DASHBOARD'}
+            </span>
+            <div>
+              <h2 className="font-black text-sm sm:text-base text-white">
+                {session.isLoggedIn ? 'MIVAJ USER COMMAND COCKPIT' : 'MIVAJ GLOBAL GEN-Z AUTHENTICATION'}
               </h2>
-              <span className="px-2 py-0.5 rounded-full bg-stadiumGreen text-black font-black text-[9px]">
-                {session.vipTier}
-              </span>
+              <p className="text-[10px] text-gray-400 font-sans">
+                {session.isLoggedIn ? 'Manage your Aura economy, referrals, and Banker ROI' : '1-Tap Sign In & Instant +500 Free Aura Welcome Bounty'}
+              </p>
             </div>
-            <p className="text-[10px] text-gray-400 font-sans mt-0.5">
-              Personal AI predictions hub, followed clubs, banker slips, and system settings
-            </p>
           </div>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-full bg-panel hover:bg-white/10 text-gray-400 hover:text-white border border-white/10 transition-all"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
-        {/* Navigation Tabs */}
-        {session.isLoggedIn && (
-          <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 scrollbar-none border-b border-white/10">
-            {[
-              { key: 'DASHBOARD', label: 'Dashboard 📊', icon: User },
-              { key: 'FOLLOWED', label: `Followed (${followedLeagues.length + followedMatchIds.length}) ⭐`, icon: Star },
-              { key: 'SETTINGS', label: 'Preferences ⚙️', icon: Settings },
-            ].map((tItem) => (
-              <button
-                key={tItem.key}
-                onClick={() => {
-                  setActiveTab(tItem.key as any);
-                  phoneHardware.triggerHaptic('SELECTION');
-                }}
-                className={`px-3.5 py-2 rounded-2xl text-xs font-black transition-all flex items-center space-x-1.5 flex-shrink-0 ${
-                  activeTab === tItem.key
-                    ? 'bg-stadiumGreen text-black shadow-lg shadow-stadiumGreen/20 ring-1 ring-stadiumGreen'
-                    : 'bg-black/50 text-gray-400 hover:text-white border border-white/10'
-                }`}
-              >
-                <span>{tItem.label}</span>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* TAB 1: DASHBOARD OVERVIEW */}
-        {session.isLoggedIn && activeTab === 'DASHBOARD' && (
+        {/* LOGGED IN USER VIEW */}
+        {session.isLoggedIn ? (
           <div className="space-y-4 animate-fadeIn">
-            {/* Top Stat Matrix */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              <div className="p-3.5 rounded-2xl bg-black/60 border border-white/10 space-y-1">
-                <span className="text-[9px] text-gray-400 uppercase font-bold">Win Rate %</span>
-                <span className="text-xl font-black text-stadiumGreen block">{session.winRate}%</span>
-                <span className="text-[9px] text-stadiumGreen font-bold">🔥 OPTA VERIFIED</span>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-black/60 border border-white/10 space-y-1">
-                <span className="text-[9px] text-gray-400 uppercase font-bold">Total Picks</span>
-                <span className="text-xl font-black text-gold block">{session.totalPicks}</span>
-                <span className="text-[9px] text-gray-400">Lifetime bets</span>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-black/60 border border-white/10 space-y-1">
-                <span className="text-[9px] text-gray-400 uppercase font-bold">Bankroll Aura</span>
-                <span className="text-xl font-black text-white block">₦{session.bankroll.toLocaleString()}</span>
-                <span className="text-[9px] text-stadiumGreen font-bold">+₦1,420 ROI</span>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-black/60 border border-white/10 space-y-1">
-                <span className="text-[9px] text-gray-400 uppercase font-bold">Status Tier</span>
-                <span className="text-sm font-black text-cyberPurple block mt-1">MASTER VIP 👑</span>
-                <span className="text-[9px] text-gray-400">Since {session.memberSince}</span>
-              </div>
-            </div>
-
-            {/* Quick Actions Row */}
-            <div className="p-4 rounded-2xl bg-gradient-to-r from-stadiumGreen/15 via-black/80 to-gold/15 border border-stadiumGreen/30 flex items-center justify-between gap-3">
-              <div>
-                <span className="text-xs font-black text-white block">⚡ Daily Banker Accumulator Ready</span>
-                <span className="text-[10px] text-gray-300 font-sans">3 High-Confidence Matches (84%+ Probability) Locked</span>
-              </div>
-              <button
-                onClick={() => {
-                  phoneHardware.triggerHaptic('SELECTION');
-                  stadiumAudio.playAddPickSound();
-                  confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
-                }}
-                className="px-3.5 py-2 rounded-xl bg-stadiumGreen text-black font-black text-xs hover:bg-emerald-400 transition-all flex items-center space-x-1 shadow-md"
-              >
-                <span>Load Banker ➔</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 2: FOLLOWED CLUBS & LEAGUES */}
-        {session.isLoggedIn && activeTab === 'FOLLOWED' && (
-          <div className="space-y-3 animate-fadeIn">
-            <h3 className="text-xs font-black text-white">⭐ YOUR FOLLOWED LEAGUES ({followedLeagues.length})</h3>
-            {followedLeagues.length === 0 ? (
-              <div className="p-8 text-center text-gray-400 rounded-2xl bg-black/50 border border-white/10">
-                You haven&apos;t followed any leagues yet. Tap the ⭐ star icon in the League Browser to follow!
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {followedLeagues.map((lId) => (
-                  <div key={lId} className="p-3 rounded-2xl bg-black/60 border border-white/10 flex items-center justify-between">
-                    <span className="font-black text-white capitalize">{lId.replace('-', ' ')}</span>
-                    <span className="px-2 py-0.5 rounded-full bg-gold text-black font-black text-[9px]">FOLLOWING ✓</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* TAB 3: SETTINGS & THEME MODE */}
-        {session.isLoggedIn && activeTab === 'SETTINGS' && (
-          <div className="space-y-4 animate-fadeIn">
-            <div className="p-4 rounded-2xl bg-black/60 border border-white/10 space-y-3">
-              <h3 className="text-xs font-black text-white border-b border-white/10 pb-2">SYSTEM PREFERENCES & THEME</h3>
-              
-              {/* Dark / Light Mode Toggle */}
-              <div className="flex items-center justify-between py-1">
-                <div>
-                  <span className="font-bold text-white block">Theme Mode ({currentTheme.toUpperCase()})</span>
-                  <span className="text-[10px] text-gray-400">Switch between Cyber Obsidian & Daylight Arena</span>
+            {/* Identity Card */}
+            <div className="p-4 rounded-2xl bg-black/70 border border-stadiumGreen/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 rounded-2xl bg-stadiumGreen text-black flex items-center justify-center text-2xl font-black shadow-md">
+                  {session.avatar}
                 </div>
-                {onToggleTheme && (
-                  <button
-                    onClick={onToggleTheme}
-                    className="px-4 py-2 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-black text-xs flex items-center space-x-2 transition-all"
-                  >
-                    {currentTheme === 'dark' ? <Moon className="w-4 h-4 text-gold" /> : <Sun className="w-4 h-4 text-amber-500" />}
-                    <span>{currentTheme === 'dark' ? 'Dark Mode 🌙' : 'Light Mode ☀️'}</span>
-                  </button>
-                )}
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <h3 className="font-black text-sm text-white">@{session.username}</h3>
+                    <span className="px-2 py-0.5 rounded-full bg-gold text-black font-black text-[9px]">
+                      {session.vipTier}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-gray-400 font-sans">
+                    Loyalty Club: <strong className="text-stadiumGreen">{session.club}</strong> &bull; Member Since: {session.memberSince}
+                  </span>
+                </div>
               </div>
 
-              {/* Nigerian Audio Commentary */}
-              <div className="flex items-center justify-between py-1 border-t border-white/10 pt-2">
+              <div className="flex items-center space-x-3 bg-white/5 p-2.5 rounded-xl border border-white/10">
                 <div>
-                  <span className="font-bold text-white block">Pidgin Audio Commentary 🇳🇬</span>
-                  <span className="text-[10px] text-gray-400">Real-time synthesized Nigerian stadium reactions</span>
+                  <span className="text-[8px] text-gray-400 block font-bold">AURA BALANCE</span>
+                  <span className="text-base font-black text-gold font-mono">{session.auraBalance} AURA</span>
                 </div>
                 <button
-                  onClick={() => {
-                    stadiumAudio.playGoalCelebration();
-                    phoneHardware.triggerHaptic('SELECTION');
-                  }}
-                  className="px-3 py-1.5 rounded-xl bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/40 font-black text-[10px]"
+                  onClick={handleLogout}
+                  className="p-2 rounded-lg bg-crimson/20 hover:bg-crimson text-crimson hover:text-white transition-all"
+                  title="Log Out"
                 >
-                  Test Audio 🔊
+                  <LogOut className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            {/* Logout Button */}
-            <button
-              onClick={handleLogout}
-              className="w-full py-3 rounded-2xl bg-crimson/20 hover:bg-crimson/30 border border-crimson/50 text-crimson font-black text-xs transition-all flex items-center justify-center space-x-1.5"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Log Out of Session</span>
-            </button>
-          </div>
-        )}
-
-        {/* LOG IN / SIGN UP FORM (When logged out) */}
-        {!session.isLoggedIn && (
-          <form onSubmit={handleLoginSubmit} className="space-y-3.5 animate-fadeIn">
-            <div className="p-3.5 rounded-2xl bg-stadiumGreen/10 border border-stadiumGreen/30 text-stadiumGreen text-[11px] font-bold">
-              ⚽ Log in to save your bet slips, follow 35+ leagues & clubs, and access VIP Banker Predictions!
+            {/* Quick Navigation Tabs */}
+            <div className="flex flex-wrap gap-2 border-b border-white/10 pb-2">
+              {[
+                { key: 'OVERVIEW', label: '🏠 Overview' },
+                { key: 'REFERRALS', label: '👥 Referral Studio' },
+                { key: 'AURA_VAULT', label: '💎 Aura Vault' },
+                { key: 'PERFORMANCE', label: '📈 Win ROI' },
+              ].map((t) => (
+                <button
+                  key={t.key}
+                  onClick={() => setActiveTab(t.key as any)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+                    activeTab === t.key
+                      ? 'bg-stadiumGreen text-black shadow-md'
+                      : 'bg-panel text-gray-400 hover:text-white border border-white/10'
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
             </div>
 
-            <div className="space-y-2.5">
-              <div>
-                <label className="text-[10px] text-gray-400 font-bold uppercase block mb-1">Username / Handle</label>
-                <div className="relative">
-                  <User className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            {activeTab === 'OVERVIEW' && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="p-3.5 rounded-2xl bg-black/60 border border-white/10 space-y-1">
+                  <span className="text-[9px] text-gray-400 block font-bold">WIN ACCURACY</span>
+                  <span className="text-xl font-black text-stadiumGreen font-mono">{session.winRate}%</span>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-black/60 border border-gold/40 space-y-1">
+                  <span className="text-[9px] text-gray-400 block font-bold">ACTIVE REFERRALS</span>
+                  <span className="text-xl font-black text-gold font-mono">{refStats?.totalSignups || 0} Punters</span>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-black/60 border border-cyan-400/40 space-y-1">
+                  <span className="text-[9px] text-gray-400 block font-bold">COMMISSION EARNED</span>
+                  <span className="text-xl font-black text-cyan-400 font-mono">₦{refStats?.totalNairaEarned.toLocaleString() || '0'}</span>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'REFERRALS' && (
+              <div className="p-4 rounded-2xl bg-black/60 border border-stadiumGreen/40 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-black text-white text-xs">YOUR TRACKABLE REFERRAL LINK</span>
+                  <span className="text-[10px] text-gold font-bold">Earn ₦500 + 750 Aura / Friend</span>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={`https://mivaj.com?ref=${session.username}`}
+                    className="flex-1 p-2 rounded-xl bg-black border border-white/20 text-white font-mono text-xs focus:outline-none"
+                  />
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`https://mivaj.com?ref=${session.username}`);
+                      setCopiedRef(true);
+                      phoneHardware.triggerHaptic('SUCCESS');
+                      setTimeout(() => setCopiedRef(false), 2000);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-stadiumGreen text-black font-black text-xs"
+                  >
+                    {copiedRef ? 'Copied!' : 'Copy'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'AURA_VAULT' && (
+              <div className="p-4 rounded-2xl bg-black/60 border border-gold/40 space-y-2">
+                <span className="font-black text-gold text-xs block">DAILY STREAK & AURA VAULT</span>
+                <p className="text-[11px] text-gray-300 font-sans">
+                  Keep your daily check-in streak alive to maintain your 1.5x commission multiplier!
+                </p>
+              </div>
+            )}
+
+            {activeTab === 'PERFORMANCE' && (
+              <div className="p-4 rounded-2xl bg-black/60 border border-cyan-400/40 space-y-2">
+                <span className="font-black text-cyan-400 text-xs block">VERIFIED STATISTICAL YIELD</span>
+                <p className="text-[11px] text-gray-300 font-sans">
+                  Your followed slips are audited 24/7 against official referee match score sheets.
+                </p>
+              </div>
+            )}
+
+          </div>
+        ) : (
+          /* LOGGED OUT: INTERNATIONAL GEN-Z AUTHENTICATION FORM */
+          <div className="space-y-4 animate-fadeIn">
+            
+            {/* Mode Switcher Tabs */}
+            <div className="grid grid-cols-2 gap-2 bg-white/5 p-1 rounded-2xl border border-white/10">
+              <button
+                onClick={() => setAuthMode('REGISTER')}
+                className={`py-2.5 rounded-xl font-black text-xs transition-all flex items-center justify-center space-x-1.5 ${
+                  authMode === 'REGISTER'
+                    ? 'bg-stadiumGreen text-black shadow-md'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <span>⚡ Create Pass (+500 Aura)</span>
+              </button>
+              <button
+                onClick={() => setAuthMode('LOGIN')}
+                className={`py-2.5 rounded-xl font-black text-xs transition-all flex items-center justify-center space-x-1.5 ${
+                  authMode === 'LOGIN'
+                    ? 'bg-stadiumGreen text-black shadow-md'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <span>🔑 Fast Sign In</span>
+              </button>
+            </div>
+
+            {/* 1-Tap Google / Web3 Quick Access */}
+            <div className="space-y-2">
+              <button
+                onClick={() => handleSocial1Tap('Google')}
+                className="w-full py-2.5 rounded-xl bg-white text-black font-black text-xs flex items-center justify-center space-x-2 shadow-md hover:bg-gray-100 transition-all"
+              >
+                <Chrome className="w-4 h-4" />
+                <span>Continue with Google 1-Tap</span>
+              </button>
+              <div className="flex items-center space-x-2 text-[10px] text-gray-500 py-1">
+                <div className="flex-1 h-px bg-white/10" />
+                <span>OR USE GAMER CREDENTIALS</span>
+                <div className="flex-1 h-px bg-white/10" />
+              </div>
+            </div>
+
+            {/* Registration Form */}
+            {authMode === 'REGISTER' ? (
+              <form onSubmit={handleRegisterSubmit} className="space-y-3">
+                {/* Avatar Picker */}
+                <div>
+                  <label className="text-[10px] text-gray-300 font-bold block mb-1">
+                    CHOOSE YOUR AVATAR ICON:
+                  </label>
+                  <div className="grid grid-cols-8 gap-1.5">
+                    {AVATARS.map((av) => (
+                      <button
+                        type="button"
+                        key={av}
+                        onClick={() => setSelectedAvatar(av)}
+                        className={`w-9 h-9 rounded-xl text-lg flex items-center justify-center transition-all ${
+                          selectedAvatar === av
+                            ? 'bg-stadiumGreen text-black scale-110 shadow-md glow-emerald'
+                            : 'bg-white/5 border border-white/10'
+                        }`}
+                      >
+                        {av}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="text-[10px] text-gray-300 font-bold block mb-1">USERNAME / GAMER TAG</label>
+                    <input
+                      type="text"
+                      required
+                      value={inputUsername}
+                      onChange={(e) => setInputUsername(e.target.value)}
+                      placeholder="e.g. CyberStriker_99"
+                      className="w-full p-2.5 rounded-xl bg-black border border-white/20 text-white font-mono text-xs focus:border-stadiumGreen focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-gray-300 font-bold block mb-1">EMAIL ADDRESS</label>
+                    <input
+                      type="email"
+                      required
+                      value={inputEmail}
+                      onChange={(e) => setInputEmail(e.target.value)}
+                      placeholder="you@email.com"
+                      className="w-full p-2.5 rounded-xl bg-black border border-white/20 text-white font-mono text-xs focus:border-stadiumGreen focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="text-[10px] text-gray-300 font-bold block mb-1">FAVORITE CLUB</label>
+                    <select
+                      value={selectedClub}
+                      onChange={(e) => setSelectedClub(e.target.value)}
+                      className="w-full p-2.5 rounded-xl bg-black border border-white/20 text-white font-mono text-xs focus:border-stadiumGreen focus:outline-none"
+                    >
+                      {CLUBS.map((c) => (
+                        <option key={c.name} value={c.name}>{c.flag} {c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-gray-300 font-bold block mb-1">PASSWORD</label>
+                    <input
+                      type="password"
+                      required
+                      value={inputPassword}
+                      onChange={(e) => setInputPassword(e.target.value)}
+                      placeholder="••••••••••••"
+                      className="w-full p-2.5 rounded-xl bg-black border border-white/20 text-white font-mono text-xs focus:border-stadiumGreen focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-stadiumGreen via-emerald-400 to-gold text-black font-black text-xs shadow-lg hover:scale-[1.02] transition-all glow-emerald flex items-center justify-center space-x-1.5"
+                >
+                  <Sparkles className="w-4 h-4 text-black" />
+                  <span>Activate Member Pass & Claim +500 Free Aura ➔</span>
+                </button>
+              </form>
+            ) : (
+              /* Sign In Form */
+              <form onSubmit={handleLoginSubmit} className="space-y-3">
+                <div>
+                  <label className="text-[10px] text-gray-300 font-bold block mb-1">USERNAME OR EMAIL</label>
                   <input
                     type="text"
                     required
                     value={inputUsername}
                     onChange={(e) => setInputUsername(e.target.value)}
-                    placeholder="e.g. CyberStriker_99"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-black/70 border border-white/10 text-xs text-white placeholder-gray-500 focus:border-stadiumGreen focus:outline-none"
+                    placeholder="Enter your username or email..."
+                    className="w-full p-2.5 rounded-xl bg-black border border-white/20 text-white font-mono text-xs focus:border-stadiumGreen focus:outline-none"
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="text-[10px] text-gray-400 font-bold uppercase block mb-1">Email Address</label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="email"
-                    required
-                    value={inputEmail}
-                    onChange={(e) => setInputEmail(e.target.value)}
-                    placeholder="you@email.com"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-black/70 border border-white/10 text-xs text-white placeholder-gray-500 focus:border-stadiumGreen focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[10px] text-gray-400 font-bold uppercase block mb-1">Nigerian Phone Number (Optional)</label>
-                <div className="relative">
-                  <Phone className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="tel"
-                    value={inputPhone}
-                    onChange={(e) => setInputPhone(e.target.value)}
-                    placeholder="+234 803 000 0000"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-black/70 border border-white/10 text-xs text-white placeholder-gray-500 focus:border-stadiumGreen focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[10px] text-gray-400 font-bold uppercase block mb-1">Password</label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <div>
+                  <label className="text-[10px] text-gray-300 font-bold block mb-1">PASSWORD</label>
                   <input
                     type="password"
                     required
                     value={inputPassword}
                     onChange={(e) => setInputPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-black/70 border border-white/10 text-xs text-white placeholder-gray-500 focus:border-stadiumGreen focus:outline-none"
+                    className="w-full p-2.5 rounded-xl bg-black border border-white/20 text-white font-mono text-xs focus:border-stadiumGreen focus:outline-none"
                   />
                 </div>
-              </div>
-            </div>
+                <button
+                  type="submit"
+                  className="w-full py-3 rounded-2xl bg-stadiumGreen text-black font-black text-xs shadow-lg hover:scale-[1.02] transition-all glow-emerald flex items-center justify-center space-x-1.5"
+                >
+                  <Lock className="w-4 h-4" />
+                  <span>Log In to Mivaj Stadium ➔</span>
+                </button>
+              </form>
+            )}
 
-            <button
-              type="submit"
-              className="w-full py-3 rounded-2xl bg-stadiumGreen text-black font-black text-xs hover:bg-emerald-400 transition-all shadow-lg glow-emerald"
-            >
-              Log In to AuraScore Stadium 🚀
-            </button>
-          </form>
+          </div>
         )}
 
       </div>

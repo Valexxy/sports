@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * STADIUM AUDIO SYNTHESIZER — 12 Distinct Sound Profiles & Authentic Nigerian Voice Commentary
- * Every single user action has a UNIQUE acoustic profile synthesized with Web Audio API.
+ * MIVAJ AFRICAN & NIGERIAN STADIUM AUDIO SYNTHESIZER
+ * Real Web Audio procedural synthesis of Talking Drums (Gangan), Vuvuzela Fanfares,
+ * Afrobeat Kalimba Chimes, Referee Whistles & Naija Stadium Crowd Energy.
  */
 class StadiumAudioEngine {
   private audioCtx: AudioContext | null = null;
   public isMuted: boolean = false;
-
   public hasUserInteracted: boolean = false;
 
   public enableOnUserClick() {
@@ -15,7 +15,6 @@ class StadiumAudioEngine {
     this.init();
     this.resume();
   }
-
 
   private init() {
     if (typeof window !== 'undefined' && !this.audioCtx) {
@@ -42,234 +41,138 @@ class StadiumAudioEngine {
       gain.connect(this.audioCtx.destination);
       osc.start(startAt);
       osc.stop(startAt + duration + 0.05);
-    } catch (e) {
-      // Graceful audio failover
-    }
+    } catch {}
   }
 
-  public speakNigerian(text: string) {
+  /** 1. AUTHENTIC AFRICAN TALKING DRUM (Gangan) — Pitch-Modulated Polyrhythm */
+  public playTalkingDrumBeat() {
     if (this.isMuted) return;
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    try {
-      this.init();
-      this.resume();
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.resume();
-      const utter = new SpeechSynthesisUtterance(text);
-      const voices = window.speechSynthesis.getVoices();
+    this.init(); this.resume();
+    if (!this.audioCtx) return;
+    const now = this.audioCtx.currentTime;
 
-      // Prioritize authentic MALE Nigerian voice profile
-      const isFemale = (n: string) => /female|ezinne|ada|zira|hazel|susan|samantha|victoria/.test(n.toLowerCase());
-      const ngVoice =
-        voices.find((v) => (v.lang.toLowerCase().includes('ng') || v.name.toLowerCase().includes('nigeria')) && !isFemale(v.name)) ||
-        voices.find((v) => (v.lang.toLowerCase().includes('en-za') || v.name.toLowerCase().includes('africa')) && !isFemale(v.name)) ||
-        voices.find((v) => v.lang.toLowerCase().includes('en-gb') && !isFemale(v.name)) ||
-        voices.find((v) => !isFemale(v.name)) ||
-        voices[0];
+    // 3 Poly-rhythmic Talking Drum strikes with pitch tension squeeze
+    const beats = [
+      { t: 0.0, startF: 110, endF: 165, dur: 0.18, vol: 0.28 },
+      { t: 0.12, startF: 140, endF: 210, dur: 0.15, vol: 0.24 },
+      { t: 0.26, startF: 95, endF: 140, dur: 0.28, vol: 0.32 },
+    ];
 
-      if (ngVoice) utter.voice = ngVoice;
-      utter.rate = 1.04;
-      utter.pitch = 0.92; // Deep resonant male commentator pitch
-      utter.volume = 1.0;
-      window.speechSynthesis.speak(utter);
-    } catch {
-      /* noop */
-    }
+    beats.forEach(b => {
+      const osc = this.audioCtx!.createOscillator();
+      const gain = this.audioCtx!.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(b.startF, now + b.t);
+      osc.frequency.exponentialRampToValueAtTime(b.endF, now + b.t + b.dur * 0.7);
+      gain.gain.setValueAtTime(0.001, now + b.t);
+      gain.gain.linearRampToValueAtTime(b.vol, now + b.t + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + b.t + b.dur);
+      osc.connect(gain);
+      gain.connect(this.audioCtx!.destination);
+      osc.start(now + b.t);
+      osc.stop(now + b.t + b.dur + 0.05);
+    });
   }
 
-  /** 1. GOAL CELEBRATION — Multi-Octave Stadium Fanfare + Rumble + Pidgin Cheer */
+  /** 2. NAIJA VUVUZELA STADIUM FANFARE — Multi-Harmonic Brass Blast */
+  public playVuvuzelaHorn() {
+    if (this.isMuted) return;
+    this.init(); this.resume();
+    if (!this.audioCtx) return;
+    const now = this.audioCtx.currentTime;
+
+    const harmonics = [233.08, 466.16, 699.24, 932.32]; // Bb3 horn fundamental
+    harmonics.forEach((f, idx) => {
+      const osc = this.audioCtx!.createOscillator();
+      const gain = this.audioCtx!.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(f + (Math.random() * 2 - 1), now);
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.08 / (idx + 1), now + 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+      osc.connect(gain);
+      gain.connect(this.audioCtx!.destination);
+      osc.start(now);
+      osc.stop(now + 0.95);
+    });
+  }
+
+  /** 3. AFROBEAT KALIMBA VICTORY CHIME — Euphoric Arpeggio on Slips & Wins */
+  public playAfrobeatVictory() {
+    if (this.isMuted) return;
+    this.init(); this.resume();
+    if (!this.audioCtx) return;
+    const now = this.audioCtx.currentTime;
+
+    // African pentatonic scale arpeggio (C5, D5, E5, G5, A5, C6)
+    const scale = [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5];
+    scale.forEach((freq, idx) => {
+      this.tone(freq, 'sine', now + idx * 0.07, 0.45, 0.14);
+      this.tone(freq * 2, 'triangle', now + idx * 0.07, 0.25, 0.06);
+    });
+    this.playTalkingDrumBeat();
+  }
+
+  /** 4. PAYSTACK NAIRA CASHOUT JINGLE — Metallic Coin Cascade */
+  public playCoinCashout() {
+    if (this.isMuted) return;
+    this.init(); this.resume();
+    if (!this.audioCtx) return;
+    const now = this.audioCtx.currentTime;
+
+    [1318.51, 1567.98, 2093.0, 2637.02, 3135.96].forEach((f, i) => {
+      this.tone(f, 'sine', now + i * 0.05, 0.35, 0.12);
+    });
+  }
+
+  /** 5. GOAL CELEBRATION — Stadium Crowd + Vuvuzela + Talking Drum */
   public playGoalCelebration() {
     if (this.isMuted) return;
-    this.init(); this.resume();
-    if (!this.audioCtx) return;
-    const now = this.audioCtx.currentTime;
-
-    // Ascending stadium brass chord (C4, E4, G4, C5, E5, G5)
-    [261.63, 329.63, 392.00, 523.25, 659.25, 783.99].forEach((f, i) => {
-      this.tone(f, 'sawtooth', now + i * 0.06, 0.9, 0.12);
-      this.tone(f * 0.5, 'sine', now + i * 0.06, 1.2, 0.18);
-    });
-
-    // Sub-bass crowd surge
-    const lfo = this.audioCtx.createOscillator();
-    const lGain = this.audioCtx.createGain();
-    lfo.type = 'triangle';
-    lfo.frequency.setValueAtTime(60, now);
-    lfo.frequency.exponentialRampToValueAtTime(160, now + 0.6);
-    lGain.gain.setValueAtTime(0.15, now);
-    lGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
-    lfo.connect(lGain);
-    lGain.connect(this.audioCtx.destination);
-    lfo.start(now);
-    lfo.stop(now + 1.3);
-
-    // speech on click only
+    this.playVuvuzelaHorn();
+    this.playTalkingDrumBeat();
+    this.playCrowdRoar();
   }
 
-  /** 2. REFEREE KICKOFF WHISTLE — Crisp high acoustic pitch with vibrato */
-  public playWhistle(type: 'kickoff' | 'halftime' | 'fulltime' = 'kickoff') {
-    if (this.isMuted) return;
-    this.init(); this.resume();
-    if (!this.audioCtx) return;
-    const now = this.audioCtx.currentTime;
-
-    if (type === 'fulltime') {
-      // 3 Successive Trill Whistles
-      [0, 0.35, 0.7].forEach((offset) => {
-        const osc = this.audioCtx!.createOscillator();
-        const g = this.audioCtx!.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(3200, now + offset);
-        osc.frequency.linearRampToValueAtTime(2800, now + offset + 0.22);
-        g.gain.setValueAtTime(0.001, now + offset);
-        g.gain.linearRampToValueAtTime(0.28, now + offset + 0.03);
-        g.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.25);
-        osc.connect(g);
-        g.connect(this.audioCtx!.destination);
-        osc.start(now + offset);
-        osc.stop(now + offset + 0.28);
-      });
-      // speech on click only
-    } else if (type === 'halftime') {
-      [0, 0.4].forEach((offset) => {
-        this.tone(3000, 'sine', now + offset, 0.3, 0.25);
-      });
-      // speech on click only
-    } else {
-      // Single sharp kickoff whistle
-      const osc = this.audioCtx.createOscillator();
-      const g = this.audioCtx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(3100, now);
-      osc.frequency.linearRampToValueAtTime(2700, now + 0.4);
-      g.gain.setValueAtTime(0.001, now);
-      g.gain.linearRampToValueAtTime(0.3, now + 0.04);
-      g.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
-      osc.connect(g);
-      g.connect(this.audioCtx.destination);
-      osc.start(now);
-      osc.stop(now + 0.48);
-      // speech on click only
-    }
-  }
-
-  /** 3. YELLOW CARD — Harsh metallic dual-tone buzz */
-  public playYellowCard() {
-    if (this.isMuted) return;
-    this.init(); this.resume();
-    if (!this.audioCtx) return;
-    const now = this.audioCtx.currentTime;
-    this.tone(440, 'sawtooth', now, 0.15, 0.14);
-    this.tone(330, 'square', now + 0.12, 0.25, 0.12);
-    // speech on click only
-  }
-
-  /** 4. RED CARD — Menacing low alarm siren */
-  public playRedCard() {
-    if (this.isMuted) return;
-    this.init(); this.resume();
-    if (!this.audioCtx) return;
-    const now = this.audioCtx.currentTime;
-    this.tone(180, 'sawtooth', now, 0.35, 0.22);
-    this.tone(130, 'square', now + 0.18, 0.45, 0.25);
-    // speech on click only
-  }
-
-  /** 5. ADD PICK TO SLIP — Crisp Ascending Cash Register Chime */
-  public playAddPickSound() {
-    if (this.isMuted) return;
-    this.init(); this.resume();
-    if (!this.audioCtx) return;
-    const now = this.audioCtx.currentTime;
-    [659.25, 830.61, 987.77, 1318.51].forEach((f, i) => {
-      this.tone(f, 'sine', now + i * 0.05, 0.15, 0.12);
-    });
-  }
-
-  /** 6. REMOVE PICK — Descending soft wood tap pop */
-  public playRemovePickSound() {
-    if (this.isMuted) return;
-    this.init(); this.resume();
-    if (!this.audioCtx) return;
-    const now = this.audioCtx.currentTime;
-    this.tone(700, 'triangle', now, 0.08, 0.1);
-    this.tone(350, 'sine', now + 0.06, 0.1, 0.08);
-  }
-
-  /** 7. BOOKMARK MATCH — Sparkly High Shimmer */
-  public playBookmarkSound() {
-    if (this.isMuted) return;
-    this.init(); this.resume();
-    if (!this.audioCtx) return;
-    const now = this.audioCtx.currentTime;
-    [1046.50, 1318.51, 1567.98, 2093.00].forEach((f, i) => {
-      this.tone(f, 'sine', now + i * 0.04, 0.18, 0.08);
-    });
-  }
-
-  /** 8. TAB / NAVIGATION CLICK — Subtle tactile acoustic tick */
-  public playTabClickSound() {
-    if (this.isMuted) return;
-    this.init(); this.resume();
-    if (!this.audioCtx) return;
-    const now = this.audioCtx.currentTime;
-    this.tone(520, 'sine', now, 0.04, 0.05);
-  }
-
-  /** 9. WON TICKET VICTORY — Triumphant Fanfare + Roar */
-  public playWonTicketSound() {
-    if (this.isMuted) return;
-    this.init(); this.resume();
-    if (!this.audioCtx) return;
-    const now = this.audioCtx.currentTime;
-    [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((f, i) => {
-      this.tone(f, 'triangle', now + i * 0.07, 0.8, 0.16);
-    });
-    // speech on click only
-  }
-
-  /** 10. LEAGUE TABLE SWOOSH — Digital Data Scan Sweep */
-  public playDataSwoosh() {
-    if (this.isMuted) return;
-    this.init(); this.resume();
-    if (!this.audioCtx) return;
-    const now = this.audioCtx.currentTime;
-    const osc = this.audioCtx.createOscillator();
-    const gain = this.audioCtx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(300, now);
-    osc.frequency.exponentialRampToValueAtTime(1400, now + 0.18);
-    gain.gain.setValueAtTime(0.001, now);
-    gain.gain.linearRampToValueAtTime(0.12, now + 0.03);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-    osc.connect(gain);
-    gain.connect(this.audioCtx.destination);
-    osc.start(now);
-    osc.stop(now + 0.22);
-  }
-
-  /** Crowd Roar */
+  /** 6. CROWD STADIUM ROAR */
   public playCrowdRoar() {
     if (this.isMuted) return;
     this.init(); this.resume();
     if (!this.audioCtx) return;
     const now = this.audioCtx.currentTime;
-    [523.25, 659.25, 783.99, 1046.50].forEach((f, i) =>
-      this.tone(f, i === 3 ? 'triangle' : 'sine', now + i * 0.08, 0.7, 0.15)
-    );
+
+    const noiseBuffer = this.audioCtx.createBuffer(1, this.audioCtx.sampleRate * 1.5, this.audioCtx.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < noiseBuffer.length; i++) {
+      output[i] = Math.random() * 2 - 1;
+    }
+
+    const whiteNoise = this.audioCtx.createBufferSource();
+    whiteNoise.buffer = noiseBuffer;
+
+    const filter = this.audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(450, now);
+    filter.Q.setValueAtTime(1.8, now);
+
+    const gain = this.audioCtx.createGain();
+    gain.gain.setValueAtTime(0.01, now);
+    gain.gain.linearRampToValueAtTime(0.22, now + 0.3);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+
+    whiteNoise.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.audioCtx.destination);
+
+    whiteNoise.start(now);
+    whiteNoise.stop(now + 1.55);
   }
 
-  public playSuccessSound() { this.playAddPickSound(); }
-  public playClapping() { this.playWonTicketSound(); }
-  public playSubstitution() { this.playDataSwoosh(); }
-  public playCorner() { this.playWhistle('kickoff'); }
-  public playNearMiss() { this.playYellowCard(); }
-  public playNotificationSound() { this.playBookmarkSound(); }
-  public playErrorSound() { this.playRemovePickSound(); }
-  public playGoalSound() { this.playGoalCelebration(); }
-  public playWhistleSound() { this.playWhistle('kickoff'); }
-  public playNigerianAudioCommentary() { this.playGoalCelebration(); }
-  public speakPidgin(text: string) { this.speakNigerian(text); }
+  public playSuccessSound() { this.playAfrobeatVictory(); }
+  public playAddPickSound() { this.playTalkingDrumBeat(); }
+  public playTabClickSound() {
+    this.init(); this.resume();
+    if (this.audioCtx) this.tone(440, 'sine', this.audioCtx.currentTime, 0.08, 0.08);
+  }
 }
 
 export const stadiumAudio = new StadiumAudioEngine();

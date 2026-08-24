@@ -1,18 +1,26 @@
 {
-  "name": "AuraScore Stadium 2.0",
+  "name": "AuraScore Stadium 2.0 | AI Sports & Live Prediction Super-App",
   "short_name": "AuraScore",
   "description": "World-First Offline-First Live Sports Analytics, Match Predictions & Stadium Atmosphere Super-App",
   "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
   "orientation": "portrait-primary",
-  "background_color": "#0a0f1d",
-  "theme_color": "#00ff87",
+  "background_color": "#05070B",
+  "theme_color": "#05070B",
   "lang": "en",
   "dir": "ltr",
-  "categories": ["sports", "entertainment", "news"],
+  "categories": [
+    "sports",
+    "entertainment",
+    "news"
+  ],
   "icons": [
     {
       "src": "/icons/icon-192.png",
@@ -41,18 +49,40 @@
   ],
   "shortcuts": [
     {
-      "name": "Live Matches",
-      "short_name": "Live",
-      "description": "Jump straight to live matches",
-      "url": "/?filter=LIVE",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+      "name": "Live Matches ⚡",
+      "short_name": "Matches",
+      "description": "Sub-second live match scores & goal power",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
-      "name": "Bankers",
-      "short_name": "Bankers",
-      "description": "View premium ultra-banker picks",
-      "url": "/?filter=BANKERS",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+      "name": "User Dashboard",
+      "short_name": "Dashboard",
+      "description": "Your Aura profile, prediction hub & banter",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "PAM Command Center",
+      "short_name": "Admin",
+      "description": "Privileged access management workstation",
+      "url": "/admin",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }

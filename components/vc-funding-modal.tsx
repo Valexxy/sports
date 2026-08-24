@@ -9,7 +9,7 @@ interface VcFundingModalProps {
 // Startup pitch metrics — the "billion-dollar" story for a zero-budget system.
 const METRICS = [
   { icon: Users, label: 'Addressable Users', value: '4.5B', sub: 'Global football fans × betting market' },
-  { icon: Coins, label: 'Operating Cost', value: '$0/mo', sub: '100% free API stack + edge caching' },
+  { icon: Coins, label: 'Operating Cost', value: '$0/mo', sub: '100% free Engine stack + edge caching' },
   { icon: Flame, label: 'Moats', value: '7', sub: 'Settlement oracle, FX, Naija voice, live feed' },
   { icon: Cpu, label: 'AI Predictor', value: '7-Factor', sub: 'World-class Dixon-Coles + momentum' },
   { icon: TrendingUp, label: 'Projected ARR', value: '$2.4M', sub: 'At 0.05% conversion, $4 avg order' },
@@ -52,7 +52,7 @@ export const VcFundingModal: React.FC<VcFundingModalProps> = ({ onClose }) => {
             AURASCORE turns the world's most popular sport into a real-time, voice-announced, stat-packed fan experience.
             Every goal, card, kickoff and whistle gets a premium popup FX + Naija Vibe voice commentary — powered entirely by
             free public sports data, client-side WebAudio, and a mathematically audited settlement oracle. Zero server costs,
-            zero API bills, infinite ceiling.
+            zero Engine bills, infinite ceiling.
           </p>
         </div>
 
@@ -92,7 +92,7 @@ export const VcFundingModal: React.FC<VcFundingModalProps> = ({ onClose }) => {
         <div className="p-4 rounded-2xl bg-stadiumGreen/10 border border-stadiumGreen/30">
           <span className="text-[10px] font-black text-stadiumGreen uppercase tracking-wider">The 100% Free Stack</span>
           <div className="flex flex-wrap gap-1.5 mt-2">
-            {['ESPN Public Scoreboard', 'Google Web Speech', 'WebAudio SFX', 'LocalStorage Cache', 'Vercel Free Tier', 'RSS News Feeds', 'CSS/Canvas FX', 'Service Worker PWA'].map((t) => (
+            {['Mivaj Sports Center Public Scoreboard', 'Google Web Speech', 'WebAudio SFX', 'LocalStorage Cache', 'Vercel Free Tier', 'RSS News Feeds', 'CSS/Canvas FX', 'Service Worker PWA'].map((t) => (
               <span key={t} className="px-2 py-1 rounded-lg bg-black/40 border border-stadiumGreen/30 text-stadiumGreen font-bold text-[10px]">
                 ✓ {t}
               </span>

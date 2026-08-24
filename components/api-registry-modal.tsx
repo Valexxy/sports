@@ -1,13 +1,13 @@
 'use client';
 import React from 'react';
-import { TWENTY_FREE_APIS_REGISTRY } from '../lib/twenty-free-apis';
+import { TWENTY_FREE_EngineS_REGISTRY } from '../lib/twenty-free-apis';
 import { X, ExternalLink, ShieldCheck, Database, Cpu, Globe } from 'lucide-react';
 
-interface ApiRegistryModalProps {
+interface EngineRegistryModalProps {
   onClose: () => void;
 }
 
-export const ApiRegistryModal: React.FC<ApiRegistryModalProps> = ({ onClose }) => {
+export const EngineRegistryModal: React.FC<EngineRegistryModalProps> = ({ onClose }) => {
   return (
     <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn overflow-y-auto">
       <div className="relative w-full max-w-3xl glass-panel rounded-3xl border border-stadiumGreen/50 p-6 shadow-2xl my-8 font-mono text-xs">
@@ -26,14 +26,14 @@ export const ApiRegistryModal: React.FC<ApiRegistryModalProps> = ({ onClose }) =
             <Database className="w-6 h-6 text-stadiumGreen" />
           </div>
           <div>
-            <h2 className="font-extrabold text-xl text-white">22+ FREE OPEN-SOURCE APIS & ENGINES DIRECTORY</h2>
-            <p className="text-xs text-gray-400">100% Free APIs, Zero Billing, and Open Data Pipelines</p>
+            <h2 className="font-extrabold text-xl text-white">22+ FREE OPEN-SOURCE EngineS & ENGINES DIRECTORY</h2>
+            <p className="text-xs text-gray-400">100% Free Engines, Zero Billing, and Open Data Pipelines</p>
           </div>
         </div>
 
-        {/* API Registry Table */}
+        {/* Engine Registry Table */}
         <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
-          {TWENTY_FREE_APIS_REGISTRY.map((api) => (
+          {TWENTY_FREE_EngineS_REGISTRY.map((api) => (
             <div key={api.id} className="p-3.5 rounded-2xl bg-panel/90 border border-white/10 hover:border-stadiumGreen/40 transition-all flex items-center justify-between">
               <div className="space-y-0.5">
                 <div className="flex items-center space-x-2">

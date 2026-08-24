@@ -39,7 +39,7 @@ export const StadiumSmartPreloader: React.FC = () => {
       <div className="flex items-center space-x-3 text-[10px] text-gray-500">
         <span className="flex items-center space-x-1 text-stadiumGreen font-bold">
           <Radio className="w-3 h-3 animate-pulse" />
-          <span>ESPN In-Play: ACTIVE</span>
+          <span>Mivaj Sports Center In-Play: ACTIVE</span>
         </span>
         <span>&bull;</span>
         <span className="flex items-center space-x-1 text-gold font-bold">

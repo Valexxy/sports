@@ -1,12 +1,25 @@
+import { PwaRegister } from '../components/pwa-register';
 import './globals.css';
 import { LanguageProvider } from '../lib/translation-engine';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
+
+
+import type { Viewport } from 'next';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+  themeColor: '#05070B',
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://aurascore.stadium.app'),
   title: {
-    default: 'AuraScore Stadium 2.0 | World-First Live Sports Analytics & Matchday Super-App',
-    template: '%s | AuraScore Stadium 2.0',
+    default: 'Mivaj Sports | 100% Free Football Predictions & Live Match Center | World-First Live Sports Analytics & Matchday Super-App',
+    template: '%s | Mivaj Sports | 100% Free Football Predictions & Live Match Center',
   },
   description: 'Real-time live scores, Expected goals (xG), referee-verified match settlement ledger, and Gen-Z stadium atmosphere across 12 top leagues.',
   keywords: [
@@ -33,16 +46,16 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: 'AuraScore Stadium 2.0 | World-First Live Sports Analytics & Matchday Super-App',
+    title: 'Mivaj Sports | 100% Free Football Predictions & Live Match Center | World-First Live Sports Analytics & Matchday Super-App',
     description: 'Sub-second live scores, verified referee settlement ledger, Goal Power curves, and viral social flex slip generator.',
     url: 'https://aurascore.stadium.app',
-    siteName: 'AuraScore Stadium 2.0',
+    siteName: 'Mivaj Sports | 100% Free Football Predictions & Live Match Center',
     images: [
       {
         url: '/favicon.ico',
         width: 512,
         height: 512,
-        alt: 'AuraScore Stadium 2.0 Banner',
+        alt: 'Mivaj Sports | 100% Free Football Predictions & Live Match Center Banner',
       },
     ],
     locale: 'en_US',
@@ -50,7 +63,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'AuraScore Stadium 2.0 | Live Sports Analytics & Matchday Super-App',
+    title: 'Mivaj Sports | 100% Free Football Predictions & Live Match Center | Live Sports Analytics & Matchday Super-App',
     description: 'Real-time live scores, verified referee match settlement ledger, and viral social flex slips.',
     images: ['/favicon.ico'],
     creator: '@AuraScoreStadium',
@@ -87,7 +100,7 @@ export default function RootLayout({
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'SportsOrganization',
-    name: 'AuraScore Stadium 2.0',
+    name: 'Mivaj Sports | 100% Free Football Predictions & Live Match Center',
     url: 'https://aurascore.stadium.app',
     logo: 'https://aurascore.stadium.app/favicon.ico',
     description: 'World-First Live Sports Analytics, Match Predictions & Stadium Crowd Atmosphere Super-App',
@@ -140,7 +153,8 @@ export default function RootLayout({
         />
         <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async />
 
-        <LanguageProvider>{children}</LanguageProvider>
+        <LanguageProvider><PwaRegister />
+        {children}</LanguageProvider>
         <script
           dangerouslySetInnerHTML={{
             __html: `

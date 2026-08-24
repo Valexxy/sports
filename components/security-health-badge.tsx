@@ -27,7 +27,7 @@ export const SecurityHealthBadge: React.FC = () => {
         <div className="flex items-center space-x-3 text-[10px] text-gray-400">
           <span className="flex items-center space-x-1">
             <Activity className="w-3 h-3 text-stadiumGreen animate-pulse" />
-            <span>API Latency: <strong className="text-white">{latency}ms</strong></span>
+            <span>Engine Latency: <strong className="text-white">{latency}ms</strong></span>
           </span>
           <span className="flex items-center space-x-1">
             <Server className="w-3 h-3 text-gold" />

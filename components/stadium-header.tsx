@@ -43,6 +43,24 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
   onOpenSuitesMenu,
 }) => {
   const { t } = useTranslation();
+
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.authenticated && data.user) {
+          setCurrentUser(data.user);
+        } else {
+          setCurrentUser(null);
+        }
+      })
+      .catch(() => setCurrentUser(null))
+      .finally(() => setAuthChecked(true));
+  }, []);
+
   const [isInstalled, setIsInstalled] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -200,18 +218,31 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
             </button>
           )}
 
-          {/* Digital Avatar & Handle */}
-          <button
-            onClick={onOpenProfile}
-            className="p-1 sm:px-2.5 sm:py-1.5 rounded-2xl bg-panel border border-white/10 hover:border-gold/40 text-gold flex items-center space-x-1 sm:space-x-1.5 transition-all hover:scale-105 active:scale-95"
-            title="Admin Dashboard and Profile"
-          >
-            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-tr from-gold to-stadiumGreen flex items-center justify-center text-black font-black text-[10px]">
-              ⚡
-            </div>
-            <span className="hidden md:inline font-bold text-xs text-white">CyberStriker_99</span>
-            <span className="text-[9px] px-1.5 py-0.5 rounded bg-gold/20 text-gold font-bold">3.8k</span>
-          </button>
+          {/* Dynamic Guest / User Profile Button */}
+          {currentUser ? (
+            <button
+              onClick={onOpenProfile}
+              className="p-1 sm:px-2.5 sm:py-1.5 rounded-2xl bg-panel border border-stadiumGreen/40 text-stadiumGreen flex items-center space-x-1 sm:space-x-1.5 transition-all hover:scale-105 active:scale-95 glow-emerald"
+              title="Your Player Profile & Dashboard"
+            >
+              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-tr from-stadiumGreen to-gold flex items-center justify-center text-black font-black text-[10px]">
+                {currentUser.avatar || '⚡'}
+              </div>
+              <span className="hidden md:inline font-bold text-xs text-white">@{currentUser.username}</span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-gold/20 text-gold font-bold">
+                {(currentUser.aura_balance || 500).toLocaleString()} AURA
+              </span>
+            </button>
+          ) : (
+            <button
+              onClick={onOpenProfile}
+              className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-2xl bg-gradient-to-r from-stadiumGreen via-emerald-400 to-gold text-black font-black text-xs flex items-center space-x-1 shadow-lg glow-emerald hover:scale-105 active:scale-95 transition-all"
+              title="Sign In / Fast-Track Onboarding"
+            >
+              <Zap className="w-3.5 h-3.5 fill-black" />
+              <span>Join Arena (+500 Aura)</span>
+            </button>
+          )}
 
           
 

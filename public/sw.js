@@ -1,130 +1,96 @@
-// AuraScore Stadium 2.0 - Service Worker (PWA + Native Lock Screen Notifications + Offline)
-const CACHE_NAME = 'aurascore-stadium-v4';
-const STATIC_ASSETS = [
+// AuraScore Stadium 2.0 Production Service Worker
+const CACHE_NAME = 'aurascore-v2.4-cache';
+const OFFLINE_FALLBACK_URL = '/offline.html';
+
+const STATIC_PRECACHE = [
   '/',
+  '/dashboard',
   '/manifest.json',
+  '/favicon.ico',
   '/logo.svg',
-  '/favicon.svg',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
-  '/icons/badge-96.png',
+  '/offline.html'
 ];
 
-// Install: pre-cache app shell
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS).catch(() => {}))
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(STATIC_PRECACHE).catch((err) => {
+        console.warn('Pre-cache warning (some assets cached on demand):', err);
+      });
+    }).then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
-// Activate: clean old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
-      return Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)));
-    })
+      return Promise.all(
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// Fetch: stale-while-revalidate for static, network-first for API
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
+  const request = event.request;
+  const url = new URL(request.url);
 
-  const url = new URL(event.request.url);
+  // Ignore non-GET and API mutation requests
+  if (request.method !== 'GET') return;
 
-  // Never cache API calls — always try network first
-  if (url.pathname.includes('/api/')) {
+  // Stale-While-Revalidate for API reads and match streams
+  if (url.pathname.startsWith('/api/matches') || url.pathname.startsWith('/api/predictions')) {
     event.respondWith(
-      fetch(event.request)
-        .then((res) => {
-          const clone = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          return res;
-        })
-        .catch(() => caches.match(event.request))
+      caches.open(CACHE_NAME).then((cache) => {
+        return fetch(request)
+          .then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              cache.put(request, networkResponse.clone());
+            }
+            return networkResponse;
+          })
+          .catch(() => cache.match(request));
+      })
     );
     return;
   }
 
-  // Static assets: cache-first then network fallback
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const fetchPromise = fetch(event.request)
-        .then((res) => {
-          if (res && res.status === 200) {
-            const clone = res.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+  // Cache-First for static assets (scripts, styles, icons, fonts)
+  if (
+    url.pathname.startsWith('/_next/static/') ||
+    url.pathname.startsWith('/icons/') ||
+    url.pathname.endsWith('.svg') ||
+    url.pathname.endsWith('.png') ||
+    url.pathname.endsWith('.ico')
+  ) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        return cached || fetch(request).then((response) => {
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
           }
-          return res;
-        })
-        .catch(() => cached);
-      return cached || fetchPromise;
-    })
-  );
-});
-
-// NATIVE LOCK SCREEN PUSH NOTIFICATIONS (Wakes phone when locked)
-self.addEventListener('push', (event) => {
-  let payload = {
-    title: '⚽ AuraScore Live Match Alert',
-    body: 'Live in-play event detected in your followed player/match.',
-    icon: '/logo.svg',
-    badge: '/favicon.svg',
-    tag: 'live-match-lockscreen-alert',
-    data: { url: '/' },
-  };
-
-  if (event.data) {
-    try {
-      const parsed = event.data.json();
-      payload = { ...payload, ...parsed };
-    } catch (e) {
-      payload.body = event.data.text();
-    }
+          return response;
+        });
+      })
+    );
+    return;
   }
 
-  const options = {
-    body: payload.body,
-    icon: payload.icon || '/logo.svg',
-    badge: payload.badge || '/favicon.svg',
-    vibrate: [300, 100, 300, 100, 500],
-    data: payload.data || { url: '/' },
-    tag: payload.tag || 'live-match-lockscreen-alert',
-    renotify: true,
-    requireInteraction: true, // REMAINS ON LOCK SCREEN UNTIL USER TAPS
-    actions: [
-      { action: 'open_match', title: '⚽ View Live Match' },
-      { action: 'listen_commentary', title: '🎙️ Listen Audio' },
-    ],
-  };
-
-  event.waitUntil(self.registration.showNotification(payload.title, options));
-});
-
-// Notification click handler with Lock Screen Auto Commentary Play
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-  const matchId = event.notification.data?.matchId || '';
-  const action = event.action || 'open_match';
-  const targetUrl = `/?openMatch=${encodeURIComponent(matchId)}&autoCommentary=1`;
-
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      for (const client of clientList) {
-        if (client.url.includes(self.origin) && 'focus' in client) {
-          client.postMessage({
-            type: 'LOCKSCREEN_AUTO_PLAY_COMMENTARY',
-            matchId: matchId,
-            action: action,
-          });
-          return client.focus();
-        }
-      }
-      if (clients.openWindow) {
-        return clients.openWindow(targetUrl);
-      }
-    })
-  );
+  // Network-first with Offline Fallback for HTML pages
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request).catch(() => {
+        return caches.match(request).then((cached) => {
+          return cached || caches.match(OFFLINE_FALLBACK_URL);
+        });
+      })
+    );
+  }
 });

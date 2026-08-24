@@ -180,7 +180,7 @@ export const LiveStadiumMatchViewer: React.FC<LiveStadiumMatchViewerProps> = ({ 
           { key: 'RADAR', label: '2D Pitch Radar 🏟️' },
           { key: 'STREAM', label: 'Match Highlights & Stream 🎬' },
           { key: 'TIMELINE', label: 'Timeline & Events ⏱️' },
-          { key: 'STATS', label: 'Live Opta Stats 📊' },
+          { key: 'STATS', label: 'Live Mivaj Match AI Stats 📊' },
           { key: 'LINEUPS', label: 'Formations & Lineups 👥' },
         ].map((tab) => (
           <button

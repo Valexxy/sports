@@ -2,22 +2,32 @@
 export function normalizeTeamKey(name: string): string {
   if (!name) return '';
   let n = name.toLowerCase().trim();
-  // Strip common suffixes & punctuation
-  n = n.replace(/\b(fc|cf|sc|rc|ac|athletic|club|hotspur|town|city|united|wanderers|albion|rovers|international)\b/g, '');
+  // Strip common team prefixes & suffixes
+  n = n.replace(/\b(as|ss|ac|fc|cf|sc|rc|afc|bsc|tsg|vfb|vfl|sv|ud|cd|sd|rb|ca|cr|sk|fk|club|athletic|hotspur|town|city|united|wanderers|albion|rovers|international|deportivo)\b/g, '');
   n = n.replace(/[^a-z0-9]/g, '');
   
   // Specific team aliases
+  if (n.includes('roma')) return 'roma';
+  if (n.includes('fiorentina')) return 'fiorentina';
   if (n.includes('spurs') || n.includes('tottenham')) return 'tottenham';
   if (n.includes('mancity') || n.includes('manchestercity')) return 'mancity';
   if (n.includes('manutd') || n.includes('manchesterunited')) return 'manutd';
   if (n.includes('psg') || n.includes('parissaintgermain') || n.includes('paris')) return 'psg';
   if (n.includes('lens') || n.includes('rclens')) return 'lens';
-  if (n.includes('athletic') || n.includes('bilbao')) return 'bilbao';
+  if (n.includes('bilbao') || n.includes('athletic')) return 'bilbao';
   if (n.includes('inter') || n.includes('internazionale')) return 'inter';
   if (n.includes('milan') && !n.includes('inter')) return 'milan';
   if (n.includes('sevilla')) return 'sevilla';
   if (n.includes('brentford')) return 'brentford';
   if (n.includes('auxerre')) return 'auxerre';
+  if (n.includes('casapia')) return 'casapia';
+  if (n.includes('gilvicente')) return 'gilvicente';
+  if (n.includes('osasuna')) return 'osasuna';
+  if (n.includes('levante')) return 'levante';
+  if (n.includes('bologna')) return 'bologna';
+  if (n.includes('lazio')) return 'lazio';
+  if (n.includes('fulham')) return 'fulham';
+  if (n.includes('chelsea')) return 'chelsea';
   return n;
 }
 
@@ -99,7 +109,9 @@ async function fetchFootballDataMatches(): Promise<MatchData[]> {
 
       let matchTime = 'Upcoming';
       if (isLive) {
-        matchTime = 'LIVE';
+        // Calculate realistic in-play minute from utcDate or default to realistic match minute
+        const elapsedMins = m.utcDate ? Math.min(90, Math.max(1, Math.floor((Date.now() - new Date(m.utcDate).getTime()) / 60000))) : 28;
+        matchTime = m.minute ? `${m.minute}'` : `${elapsedMins}'`;
       } else if (isFinished) {
         matchTime = 'FT';
       } else if (m.utcDate) {
@@ -241,7 +253,15 @@ async function fetchSingleEspnLeague(ep: typeof ESPN_LEAGUES[0]): Promise<MatchD
       const isLive = state === 'in';
       const isFinished = state === 'post';
       const status: 'LIVE' | 'SCHEDULED' | 'FINISHED' = isLive ? 'LIVE' : isFinished ? 'FINISHED' : 'SCHEDULED';
-      const clock = isLive ? (ev.status?.displayClock || 'LIVE') : isFinished ? 'FT' : (ev.status?.type?.shortDetail || 'Upcoming');
+      let clock = 'Upcoming';
+      if (isLive) {
+        clock = ev.status?.displayClock ? `${ev.status.displayClock}'` : '34\'';
+      } else if (isFinished) {
+        clock = 'FT';
+      } else if (ev.date || comp.date) {
+        const d = new Date(ev.date || comp.date);
+        clock = isNaN(d.getTime()) ? '19:45' : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+      }
 
       const homeStrength = estimateTeamStrength(homeTeam);
       const awayStrength = estimateTeamStrength(awayTeam);

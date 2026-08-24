@@ -133,7 +133,7 @@ export const TeamExplorerModal: React.FC<TeamExplorerModalProps> = ({ onClose })
               </button>
             </div>
 
-            {/* Open Data API Status Banner */}
+            {/* Open Data Engine Status Banner */}
             {openDataResult && (
               <div className="p-2.5 rounded-xl bg-stadiumGreen/10 border border-stadiumGreen/30 text-stadiumGreen text-[11px] font-sans">
                 {openDataResult}
@@ -191,7 +191,7 @@ export const TeamExplorerModal: React.FC<TeamExplorerModalProps> = ({ onClose })
                 <span className="text-gray-400 block text-[10px]">NEXT UPCOMING FIXTURE</span>
                 <strong className="text-white font-bold">{selectedTeam.nextMatch}</strong>
               </div>
-              <span className="text-gold font-bold">100% FREE API ⚡</span>
+              <span className="text-gold font-bold">100% FREE Engine ⚡</span>
             </div>
 
           </div>

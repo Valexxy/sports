@@ -131,3 +131,46 @@ html, body {
 *, *:before, *:after {
   box-sizing: inherit !important;
 }
+
+/* Native Mobile App Touch & Safe-Area Constraints */
+html, body {
+  overscroll-behavior-y: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-bottom-dock {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
+}
+
+/* Neon Shimmer Gradient Animation */
+@keyframes neonShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.neon-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.02) 20%,
+    rgba(0, 230, 118, 0.15) 50%,
+    rgba(168, 85, 247, 0.15) 60%,
+    rgba(255, 255, 255, 0.02) 80%
+  );
+  background-size: 200% 100%;
+  animation: neonShimmer 2.2s infinite ease-in-out;
+}
+
+.expensive-tap {
+  transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.12s ease;
+}
+
+.expensive-tap:active {
+  transform: scale(0.95);
+}

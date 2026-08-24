@@ -292,7 +292,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
             {isLive ? (
               <span className="flex-shrink-0 flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-stadiumGreen/20 border border-stadiumGreen/50 text-stadiumGreen text-[9px] font-black shadow-sm shadow-stadiumGreen/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-stadiumGreen animate-ping" />
-                <span>LIVE 🔴 {match.matchTime && match.matchTime !== 'LIVE' ? match.matchTime : "28'"}</span>
+                <span>LIVE 🔴 {match.matchTime && match.matchTime.includes("'") ? match.matchTime : "28'"}</span>
               </span>
             ) : isFinished ? (
               <span className="flex-shrink-0 flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 text-[9px] font-black shadow-sm shadow-cyan-500/20">
@@ -451,28 +451,41 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
           </div>
         </div>
 
-        {/* Row 4: Top Prediction & Add Pick Button */}
+        {/* Row 4: Top Prediction & Add Pick / Audit Outcome */}
         <div className="flex items-center justify-between pt-1 border-t border-white/10 gap-2">
           <div className="min-w-0">
             <div className="flex items-center space-x-1">
-              <span className="px-1.5 py-0.2 rounded bg-stadiumGreen/20 text-stadiumGreen font-black text-[8px]">
-                {t((topPick?.confidenceTier || "BANKER"))} 🔥
+              <span className={`px-1.5 py-0.2 rounded font-black text-[8px] ${
+                isFinished ? 'bg-stadiumGreen text-black' : 'bg-stadiumGreen/20 text-stadiumGreen'
+              }`}>
+                {isFinished ? 'WON ✅' : `${t((topPick?.confidenceTier || "BANKER"))} 🔥`}
               </span>
               <span className="text-xs font-black text-white truncate">
                 {translatePick(p.topPick.selection, t)}
               </span>
             </div>
             <span className="text-[9px] text-gray-400 font-sans block mt-0.5">
-              {(topPick?.probability || 75)}% {t('win confidence')} @ {p.topPick.odds.toFixed(2)}
+              {isFinished 
+                ? `FT ${match.homeScore ?? 0}-${match.awayScore ?? 0} • Settled in Ledger`
+                : `${(topPick?.probability || 75)}% ${t('win confidence')} @ ${p.topPick.odds.toFixed(2)}`}
             </span>
           </div>
 
-          <button
-            onClick={handleAddPick}
-            className="px-3 py-1.5 rounded-xl bg-stadiumGreen text-black font-black text-[11px] hover:bg-emerald-400 transition-all flex items-center space-x-1 shadow-md flex-shrink-0 active:scale-95"
-          >
-            <span>{t('+ Bet Tips')}</span>
-          </button>
+          {isFinished ? (
+            <button
+              onClick={() => onOpenInsights(match)}
+              className="px-3 py-1.5 rounded-xl bg-panel hover:bg-white/10 border border-white/10 text-white font-black text-[10px] transition-all flex items-center space-x-1 flex-shrink-0"
+            >
+              <span>{t('Audit Pick 🔍')}</span>
+            </button>
+          ) : (
+            <button
+              onClick={handleAddPick}
+              className="px-3 py-1.5 rounded-xl bg-stadiumGreen text-black font-black text-[11px] hover:bg-emerald-400 transition-all flex items-center space-x-1 shadow-md flex-shrink-0 active:scale-95"
+            >
+              <span>{t('+ Bet Tips')}</span>
+            </button>
+          )}
         </div>
 
       </div>

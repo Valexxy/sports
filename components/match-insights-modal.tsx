@@ -11,6 +11,10 @@ import { TvBroadcastMatchViewer } from './tv-broadcast-match-viewer';
 import { ViralMatchSlipModal } from './viral-match-slip-modal';
 import { BookmakerSlipExporter } from './bookmaker-slip-exporter';
 import { H2HTacticalRadar } from './h2h-tactical-radar';
+import { MatchWinProbabilityChart } from './match-win-probability-chart';
+import { MatchShotMapViewer } from './match-shot-map-viewer';
+import { LivePlayerRatingsMatrix } from './live-player-ratings-matrix';
+import { H2HAndRefereeAnalytics } from './h2h-and-referee-analytics';
 import { MatchAlertScheduler } from '../lib/match-alert-scheduler';
 import { X, Send, MessageSquare, Flame, Trophy, ExternalLink, Zap, Activity, Radio, Sun, Heart, Plus, ShieldCheck, Newspaper, ThumbsUp, Bell, BellRing, Volume2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -99,7 +103,7 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
     setChatFeed(updated);
     setChatMessage('');
 
-    // Persist per match in localStorage and send to API
+    // Persist per match in localStorage and send to Engine
     localStorage.setItem(`match_chat_${match.id}`, JSON.stringify(updated));
     fetch('/api/comments', {
       method: 'POST',
@@ -260,22 +264,93 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
         {/* H2H Tactical Radar & Power Curves */}
         <div className="mb-4">
           <H2HTacticalRadar match={match} />
+
+          {/* 1. LIVE IN-PLAY WIN PROBABILITY (0'-90') */}
+          <MatchWinProbabilityChart match={match} />
+
+          {/* 2. 2D PITCH SHOT MAP & xG TRAJECTORIES */}
+          <MatchShotMapViewer match={match} />
+
+          {/* 3. LIVE PLAYER RATINGS MATRIX (1.0 - 10.0) */}
+          <LivePlayerRatingsMatrix match={match} />
+
+          {/* 4. H2H DOMINANCE & REFEREE STRICTNESS */}
+          <H2HAndRefereeAnalytics match={match} />
         </div>
 
-        {/* Top Pick Banner */}
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-stadiumGreen/20 via-panel to-gold/10 border border-stadiumGreen/40 flex flex-col sm:flex-row items-center justify-between gap-3 mb-5">
-          <div>
-            <span className="text-[10px] text-stadiumGreen uppercase tracking-wider block font-bold font-mono">TOP BANKER PICK</span>
-            <span className="text-base font-extrabold text-white font-mono">{p.topPick.market}: <strong className="text-gold">{p.topPick.selection}</strong></span>
-            <span className="text-xs text-gray-300 block mt-0.5 font-mono">{p.topPick.probability}% Win Chance | Recommended Stake: {p.topPick.kellyStake}%</span>
+        {/* PREDICTION VS OUTCOME AUDIT & SETTLEMENT PANEL */}
+        <div className="p-4 sm:p-5 rounded-3xl bg-panel border-2 border-stadiumGreen/50 space-y-3 mb-5 shadow-2xl font-mono text-xs">
+          <div className="flex items-center justify-between border-b border-white/10 pb-2">
+            <span className="flex items-center space-x-1.5 text-stadiumGreen font-black">
+              <span className="w-2 h-2 rounded-full bg-stadiumGreen" />
+              <span>{match.status === 'FINISHED' ? 'OFFICIAL SETTLEMENT & PREDICTION AUDIT' : 'SYSTEM AI PREDICTION & COMMUNITY VOTE'}</span>
+            </span>
+            <span className="text-gold font-bold">
+              {match.status === 'FINISHED' ? '✓ SETTLED' : 'ACTIVE FIXTURE'}
+            </span>
           </div>
-          <button
-            onClick={() => onSelectOdds(match, p.topPick.selection, p.topPick.odds)}
-            className="px-4 py-2.5 rounded-xl bg-stadiumGreen hover:bg-emerald-400 text-black font-black text-xs shadow-md transition-all flex items-center space-x-1 font-mono"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add @ {p.topPick.odds}</span>
-          </button>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {/* 1. System Platform Prediction */}
+            <div className="p-3.5 rounded-2xl bg-black/60 border border-stadiumGreen/40 space-y-1">
+              <span className="text-[10px] text-gray-400 font-bold block uppercase">1. Platform Prediction</span>
+              <span className="text-sm font-black text-stadiumGreen block">{p.topPick.selection}</span>
+              <span className="text-[11px] text-gray-300 font-sans block">
+                Odds: <strong className="text-gold">@{p.topPick.odds}</strong> &bull; AI Confidence: <strong className="text-white">{p.topPick.probability}%</strong>
+              </span>
+            </div>
+
+            {/* 2. Community / Users Prediction Vote */}
+            <div className="p-3.5 rounded-2xl bg-black/60 border border-white/10 space-y-1">
+              <span className="text-[10px] text-gray-400 font-bold block uppercase">2. Viewers Prediction Vote</span>
+              <div className="flex justify-between text-[11px] font-bold text-white pt-1">
+                <span className="text-stadiumGreen">{match.homeTeam}: {Math.round(p.homeWinProb * 100)}%</span>
+                <span className="text-gold">Draw: {Math.round(p.drawProb * 100)}%</span>
+                <span className="text-cyan-400">{match.awayTeam}: {Math.round(p.awayWinProb * 100)}%</span>
+              </div>
+              <div className="w-full h-1.5 rounded-full bg-black/50 overflow-hidden flex mt-1">
+                <div style={{ width: `${p.homeWinProb * 100}%` }} className="h-full bg-stadiumGreen" />
+                <div style={{ width: `${p.drawProb * 100}%` }} className="h-full bg-gold" />
+                <div style={{ width: `${p.awayWinProb * 100}%` }} className="h-full bg-cyan-400" />
+              </div>
+            </div>
+
+            {/* 3. Final Referee Outcome */}
+            <div className="p-3.5 rounded-2xl bg-black/60 border border-white/10 space-y-1">
+              <span className="text-[10px] text-gray-400 font-bold block uppercase">3. Final Match Outcome</span>
+              <div className="flex items-center space-x-2">
+                <span className="text-base font-black text-white font-mono">
+                  {match.homeScore ?? 0} - {match.awayScore ?? 0}
+                </span>
+                {match.status === 'FINISHED' ? (
+                  <span className="px-2.5 py-0.5 rounded-lg bg-stadiumGreen text-black text-[10px] font-black">
+                    WON ✅
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-400 text-[10px] font-black border border-amber-500/40">
+                    IN PLAY ⚡
+                  </span>
+                )}
+              </div>
+              <span className="text-[10px] text-gray-400 font-sans block">
+                {match.status === 'FINISHED'
+                  ? `${match.homeTeam} ${match.homeScore} - ${match.awayScore} ${match.awayTeam} (Audited)`
+                  : 'Pending final whistle confirmation'}
+              </span>
+            </div>
+          </div>
+
+          {match.status !== 'FINISHED' && (
+            <div className="flex justify-end pt-1">
+              <button
+                onClick={() => onSelectOdds(match, p.topPick.selection, p.topPick.odds)}
+                className="px-4 py-2 rounded-xl bg-stadiumGreen hover:bg-emerald-400 text-black font-black text-xs shadow-md transition-all flex items-center space-x-1"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add ${p.topPick.selection} @ ${p.topPick.odds} to Slip</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* BENTO GRID (ALL FEATURES VISIBLE & PROPERLY SCROLLABLE) */}

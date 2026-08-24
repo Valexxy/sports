@@ -40,7 +40,7 @@ export const LockerRoomVibes: React.FC<LockerRoomVibesProps> = ({ teamName, form
         </div>
 
         <span className="px-2 py-0.5 rounded bg-cyberPurple/20 text-cyberPurple font-bold text-[9px] border border-cyberPurple/30">
-          SPOTIFY VIBE API
+          SPOTIFY VIBE Engine
         </span>
       </div>
 
