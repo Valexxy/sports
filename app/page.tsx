@@ -65,7 +65,6 @@ import { LiveAuraMomentumMeter } from '../components/live-aura-momentum-meter';
 import { AIMemeSlanderGenerator } from '../components/ai-meme-slander-generator';
 import { WhatsAppStatusSlipFlexer } from '../components/whatsapp-status-slip-flexer';
 import { P2PSocialWagers } from '../components/p2p-social-wagers';
-import { WonderkidStockMarket } from '../components/wonderkid-stock-market';
 import { SocialCommunityBroadcastHub } from '../components/social-community-broadcast-hub';
 import { CrossPlatformConverterModal } from '../components/cross-platform-code-converter-modal';
 import { AccumulatorSlipDrawer, SelectedSlipPick } from '../components/accumulator-slip-drawer';
@@ -641,8 +640,7 @@ export default function Home() {
           <P2PSocialWagers matches={matches} />
 
           {/* 10. WONDERKID AURA STOCK EXCHANGE */}
-          <WonderkidStockMarket />
-
+          
           {/* 11. TOP 3 STADIUM & VIRAL HUB */}
           <CollapsibleStadiumHub
             onOpenGrassroots={() => setShowGrassrootsModal(true)}
