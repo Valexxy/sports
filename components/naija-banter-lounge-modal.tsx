@@ -143,7 +143,7 @@ export const NaijaBanterLoungeModal: React.FC<BanterModalProps> = ({ onClose }) 
     const newRoast: RoastItem = {
       id: 'r-' + Date.now(),
       club: selectedClub,
-      roaster: '@CyberStriker_99',
+      roaster: typeof window !== 'undefined' && localStorage.getItem('aurascore_user_name') ? '@' + localStorage.getItem('aurascore_user_name') : '@James_Baller',
       roast: userRoast.trim(),
       tag: 'Fresh Naija Burn 🔥',
       hype: 1,

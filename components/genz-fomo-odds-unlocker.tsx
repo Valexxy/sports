@@ -130,7 +130,7 @@ export const GenZFomoOddsUnlocker: React.FC<FomoUnlockerProps> = ({ matches }) =
     const loadPaystack = () => {
       const handler = (window as any).PaystackPop?.setup({
         key: process.env.NEXT_PUBLIC_PAYSTACK_KEY || 'pk_live_c3ac464a91290f7507e5e36f5b0bec3ac0da9f5a',
-        email: userEmail || 'WhatsApp: +234 807 201 5725',
+        email: (userEmail && userEmail.includes('@')) ? userEmail : 'customer@mivaj.com',
         amount: tier.price * 100, // in kobo
         currency: 'NGN',
         callback: (response: any) => {

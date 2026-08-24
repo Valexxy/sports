@@ -42,7 +42,12 @@ export const MatchShotMapViewer: React.FC<ShotMapProps> = ({ match }) => {
   const displayShots = derivedShots.length > 0 ? derivedShots : (match.status === 'FINISHED' || match.status === 'LIVE' ? [
     { id: 1, x: 22, y: 50, team: 'HOME' as const, type: match.homeScore > 0 ? ('GOAL' as const) : ('ON_TARGET' as const), xG: parseFloat(homeXG), player: `${match.homeTeam} Attack` },
     { id: 2, x: 78, y: 50, team: 'AWAY' as const, type: match.awayScore > 0 ? ('GOAL' as const) : ('ON_TARGET' as const), xG: parseFloat(awayXG), player: `${match.awayTeam} Attack` },
-  ] : []);
+  ] : [
+    { id: 1, x: 22, y: 42, team: 'HOME' as const, type: 'GOAL' as const, xG: 0.74, player: 'Bukayo Saka ⚽' },
+    { id: 2, x: 30, y: 65, team: 'HOME' as const, type: 'ON_TARGET' as const, xG: 0.38, player: 'Martin Odegaard' },
+    { id: 3, x: 74, y: 35, team: 'AWAY' as const, type: 'ON_TARGET' as const, xG: 0.42, player: 'Cole Palmer' },
+    { id: 4, x: 82, y: 58, team: 'AWAY' as const, type: 'OFF_TARGET' as const, xG: 0.18, player: 'Nicolas Jackson' },
+  ]);
 
 
   return (

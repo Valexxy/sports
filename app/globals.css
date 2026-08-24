@@ -134,8 +134,8 @@ html, body {
 
 /* Native Mobile App Touch & Safe-Area Constraints */
 html, body {
-  overscroll-behavior-y: none;
-  touch-action: manipulation;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   -webkit-tap-highlight-color: transparent;
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);

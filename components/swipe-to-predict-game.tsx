@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { MatchData } from '../lib/sports-api';
-import { Flame, Sparkles, Check, X, Trophy, Share2, Clock, Zap, Award, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Flame, Check, X, Trophy, Share2, Clock, Zap } from 'lucide-react';
 import { phoneHardware } from '../lib/phone-hardware-engine';
 import { stadiumAudio } from '../lib/sound-synthesizer';
 import confetti from 'canvas-confetti';
@@ -69,7 +69,7 @@ export const SwipeToPredictGame: React.FC<SwipeGameProps> = ({ matches }) => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          handleSwipe('left', false); // Timeout counts as pass
+          handleSwipe('left'); // Timeout counts as pass
           return 15;
         }
         return prev - 1;
@@ -78,7 +78,7 @@ export const SwipeToPredictGame: React.FC<SwipeGameProps> = ({ matches }) => {
     return () => clearInterval(timer);
   }, [currentIndex]);
 
-  const handleSwipe = (direction: 'left' | 'right', isWin: boolean = true) => {
+  const handleSwipe = (direction: 'left' | 'right') => {
     setSwipeDirection(direction);
     phoneHardware.triggerHaptic(direction === 'right' ? 'SUCCESS' : 'SELECTION');
 
@@ -152,58 +152,106 @@ export const SwipeToPredictGame: React.FC<SwipeGameProps> = ({ matches }) => {
         </div>
       </div>
 
-      {/* Swipe Interactive Card Container */}
-      <div className="flex flex-col items-center justify-center py-4">
-        <div
-          className={`w-full max-w-md p-6 rounded-3xl bg-gradient-to-b from-black/90 to-panel border-2 border-white/15 shadow-2xl relative transition-all duration-300 transform ${
-            swipeDirection === 'right'
-              ? 'translate-x-16 rotate-6 border-stadiumGreen bg-stadiumGreen/10'
-              : swipeDirection === 'left'
-              ? '-translate-x-16 -rotate-6 border-crimson bg-crimson/10'
-              : 'hover:scale-[1.01]'
-          }`}
-        >
-          {/* Top Progress & Timer */}
-          <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-4">
-            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-              {currentQ.league} &bull; {currentQ.matchTitle}
-            </span>
-            <span className="flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-crimson/20 text-crimson font-black text-[10px] animate-pulse">
-              <Clock className="w-3 h-3" />
-              <span>{timeLeft}s LEFT</span>
-            </span>
-          </div>
+      {/* Swipe Interactive Card Container - 2 Column Desktop Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center py-4">
+        
+        {/* Left / Center: Interactive Swipe Deck */}
+        <div className="lg:col-span-7 flex justify-center">
+          <div
+            className={`w-full max-w-md p-6 rounded-3xl bg-gradient-to-b from-black/90 to-panel border-2 border-white/15 shadow-2xl relative transition-all duration-300 transform ${
+              swipeDirection === 'right'
+                ? 'translate-x-16 rotate-6 border-stadiumGreen bg-stadiumGreen/10'
+                : swipeDirection === 'left'
+                ? '-translate-x-16 -rotate-6 border-crimson bg-crimson/10'
+                : 'hover:scale-[1.01]'
+            }`}
+          >
+            {/* Top Progress & Timer */}
+            <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-4">
+              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                {currentQ.league} &bull; {currentQ.matchTitle}
+              </span>
+              <span className="flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-crimson/20 text-crimson font-black text-[10px] animate-pulse">
+                <Clock className="w-3 h-3" />
+                <span>{timeLeft}s LEFT</span>
+              </span>
+            </div>
 
-          {/* Question Body */}
-          <div className="text-center py-6 space-y-3">
-            <span className="text-4xl block">⚽</span>
-            <h3 className="text-base sm:text-lg font-black text-white leading-tight">
-              {currentQ.question}
-            </h3>
-            <p className="text-[11px] text-stadiumGreen font-bold">
-              +{currentQ.rewardPoints} Aura Points on Correct Call
-            </p>
-          </div>
+            {/* Question Body */}
+            <div className="text-center py-6 space-y-3">
+              <span className="text-4xl block">⚽</span>
+              <h3 className="text-base sm:text-lg font-black text-white leading-tight">
+                {currentQ.question}
+              </h3>
+              <p className="text-[11px] text-stadiumGreen font-bold">
+                +{currentQ.rewardPoints} Aura Points on Correct Call
+              </p>
+            </div>
 
-          {/* Swipe Action Buttons */}
-          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
-            <button
-              onClick={() => handleSwipe('left')}
-              className="py-3 rounded-2xl bg-crimson/20 hover:bg-crimson text-crimson hover:text-white border border-crimson/50 font-black text-xs flex items-center justify-center space-x-2 transition-all active:scale-95 shadow-md"
-            >
-              <X className="w-4 h-4" />
-              <span>NO / CAP (Swipe Left)</span>
-            </button>
+            {/* Swipe Action Buttons */}
+            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
+              <button
+                onClick={() => handleSwipe('left')}
+                className="py-3 rounded-2xl bg-crimson/20 hover:bg-crimson text-crimson hover:text-white border border-crimson/50 font-black text-xs flex items-center justify-center space-x-2 transition-all active:scale-95 shadow-md"
+              >
+                <X className="w-4 h-4" />
+                <span>NO / CAP (Swipe Left)</span>
+              </button>
 
-            <button
-              onClick={() => handleSwipe('right')}
-              className="py-3 rounded-2xl bg-stadiumGreen text-black hover:bg-emerald-400 border border-stadiumGreen font-black text-xs flex items-center justify-center space-x-2 transition-all active:scale-95 shadow-lg glow-emerald"
-            >
-              <span>YES / LOCK (Swipe Right)</span>
-              <Check className="w-4 h-4" />
-            </button>
+              <button
+                onClick={() => handleSwipe('right')}
+                className="py-3 rounded-2xl bg-stadiumGreen text-black hover:bg-emerald-400 border border-stadiumGreen font-black text-xs flex items-center justify-center space-x-2 transition-all active:scale-95 shadow-lg glow-emerald"
+              >
+                <span>YES / LOCK (Swipe Right)</span>
+                <Check className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Right: Live Hype Leaderboard & Recent Streaks */}
+        <div className="lg:col-span-5 space-y-3 p-4 rounded-3xl bg-black/60 border border-white/10">
+          <div className="flex items-center justify-between border-b border-white/10 pb-2">
+            <span className="font-black text-xs text-gold flex items-center space-x-1.5">
+              <span>🏆</span>
+              <span>TOP STREAK KNOCKOUTS</span>
+            </span>
+            <span className="px-2 py-0.5 rounded-full bg-stadiumGreen/20 text-stadiumGreen text-[9px] font-bold">
+              LIVE ARENA
+            </span>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex items-center space-x-2">
+                <span className="w-5 h-5 rounded-full bg-gold text-black font-black flex items-center justify-center text-[10px]">1</span>
+                <span className="font-bold text-white">@james_baller</span>
+              </div>
+              <span className="text-crimson font-black">12X STREAK 🔥</span>
+            </div>
+
+            <div className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex items-center space-x-2">
+                <span className="w-5 h-5 rounded-full bg-slate-300 text-black font-black flex items-center justify-center text-[10px]">2</span>
+                <span className="font-bold text-white">@chidi_gunner</span>
+              </div>
+              <span className="text-crimson font-black">9X STREAK 🔥</span>
+            </div>
+
+            <div className="flex items-center justify-between p-2 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex items-center space-x-2">
+                <span className="w-5 h-5 rounded-full bg-amber-600 text-white font-black flex items-center justify-center text-[10px]">3</span>
+                <span className="font-bold text-white">@kalu_stamford</span>
+              </div>
+              <span className="text-crimson font-black">7X STREAK 🔥</span>
+            </div>
+          </div>
+
+          <div className="p-2.5 rounded-2xl bg-stadiumGreen/10 border border-stadiumGreen/30 text-[10px] text-stadiumGreen font-bold text-center">
+            ⚡ Predict 5 consecutive match events correctly to unlock VIP Banker Slips for free!
+          </div>
+        </div>
+
       </div>
 
       {/* Streak Celebration Modal */}
@@ -211,7 +259,7 @@ export const SwipeToPredictGame: React.FC<SwipeGameProps> = ({ matches }) => {
         <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn font-mono">
           <div className="glass-panel-premium max-w-sm w-full p-6 rounded-3xl border-2 border-gold text-center space-y-4 shadow-2xl">
             <span className="text-5xl block animate-bounce">🔥</span>
-            <h3 className="text-lg font-black text-gold">UNSTOPPABLE {streak}X STREAK!</h3>
+            <h3 className="text-lg font-black text-gold">UNSTOPPABLE ${streak}X STREAK!</h3>
             <p className="text-xs text-gray-300 font-sans">
               You are on fire! You unlocked the <strong>Certified Ball Knower 👑</strong> badge and +500 Bonus Aura.
             </p>
