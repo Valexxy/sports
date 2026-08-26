@@ -31,16 +31,7 @@ export const CollapsibleStadiumHub: React.FC<CollapsibleHubProps> = ({
   const [showAllSuites, setShowAllSuites] = useState(false);
 
   const allHubFeatures = [
-    {
-      id: 'grassroots',
-      title: 'Grassroots Scouting 🇳🇬⚽',
-      tag: 'PRO RADAR',
-      tagColor: 'bg-stadiumGreen text-black',
-      desc: 'Discover next Osimhen & Kanu. Watch scouting reels, vote wonderkids, and submit talent.',
-      icon: '⭐',
-      action: onOpenGrassroots,
-      btnLabel: 'Scouting Radar ➔',
-    },
+    
     {
       id: 'banter',
       title: 'Gen-Z Banter Lounge 🔥',
@@ -61,16 +52,7 @@ export const CollapsibleStadiumHub: React.FC<CollapsibleHubProps> = ({
       action: onOpenBirthdays,
       btnLabel: 'Send Wishes 🎉 ➔',
     },
-    {
-      id: 'leaderboard',
-      title: 'Golden Boy Leaderboard 🏆',
-      tag: 'TOP PUNTERS',
-      tagColor: 'bg-gold text-black',
-      desc: 'Official ranking of top Nigerian punters, highest win streaks, and wonderkid voting charts.',
-      icon: '🏆',
-      action: onOpenLeaderboard,
-      btnLabel: 'Leaderboard ➔',
-    },
+    
     {
       id: 'ledger',
       title: 'Settlement Ledger 📜',
@@ -81,16 +63,7 @@ export const CollapsibleStadiumHub: React.FC<CollapsibleHubProps> = ({
       action: onOpenLedger,
       btnLabel: 'Audit Ledger ➔',
     },
-    {
-      id: 'bankroll',
-      title: 'Bankroll & Staking Lab 💰',
-      tag: 'PRO STAKING',
-      tagColor: 'bg-cyberPurple text-white',
-      desc: 'Mathematical position-sizing and bankroll risk management based on live Poisson probabilities.',
-      icon: '💰',
-      action: onOpenBankroll,
-      btnLabel: 'Bankroll Lab ➔',
-    },
+    
   ];
 
   const displayedFeatures = showAllSuites ? allHubFeatures : allHubFeatures.slice(0, 3);

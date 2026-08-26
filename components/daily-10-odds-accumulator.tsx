@@ -45,6 +45,21 @@ export const Daily10OddsAccumulator: React.FC<Daily10OddsAccumulatorProps> = ({
   const finalOdds = parseFloat(currentOdds.toFixed(2));
   const potentialReturn = Math.round(stakeAmount * finalOdds);
   
+  // International Standard Acca Odds Booster ("Booter") Tier Engine:
+  // 3-4 legs: +10% | 5-7 legs: +25% | 8-11 legs: +45% | 12-16 legs: +75% | 17+ legs: +100% Super Booster
+  const legCount = matches.length > 0 ? matches.length : selectedPicks.length;
+  let boosterPercentage = 0;
+  if (legCount >= 17) boosterPercentage = 100;
+  else if (legCount >= 12) boosterPercentage = 75;
+  else if (legCount >= 8) boosterPercentage = 45;
+  else if (legCount >= 5) boosterPercentage = 25;
+  else if (legCount >= 3) boosterPercentage = 10;
+
+  const boostedOdds = parseFloat((finalOdds * (1 + boosterPercentage / 100)).toFixed(2));
+  const boostedReturn = Math.round(stakeAmount * boostedOdds);
+  const extraBonusCash = boostedReturn - potentialReturn;
+
+  
   // Cut-1 Assurance calculation:
   // If 1 game fails, payout is based on remaining legs * 0.85 Cut-1 bookie insurance factor
   const averageSingleOdd = Math.pow(finalOdds, 1 / selectedPicks.length);
@@ -67,17 +82,22 @@ export const Daily10OddsAccumulator: React.FC<Daily10OddsAccumulatorProps> = ({
     setTimeout(() => setCopiedCode(false), 2500);
   };
 
+  const [slipLoadedToast, setSlipLoadedToast] = useState(false);
+
   const handleLoadAllPicks = () => {
+    setSlipLoadedToast(true);
+    setTimeout(() => setSlipLoadedToast(false), 3000);
     if (onAddMultiPick) {
-      const picks = selectedPicks.map((m) => ({
+      const allPicksSource = matches.length > 0 ? matches : selectedPicks;
+      const picks = allPicksSource.map((m) => ({
         match: m,
-        selection: m.prediction?.topPick?.selection || '1X',
-        odds: m.prediction?.topPick?.odds || 1.35,
+        selection: m.prediction?.topPick?.selection || (m.homeWinProb > (m.awayWinProb || 0) ? (m.homeTeam + ' or Draw (1X)') : 'Over 1.5 Goals'),
+        odds: m.prediction?.topPick?.odds || (m.homeWinProb > (m.awayWinProb || 0) ? 1.25 : 1.35),
       }));
       onAddMultiPick(picks);
       phoneHardware.triggerHaptic('SUCCESS');
       stadiumAudio.playAddPickSound();
-      confetti({ particleCount: 40, spread: 60, origin: { y: 0.6 } });
+      confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
     }
   };
 
@@ -194,29 +214,10 @@ export const Daily10OddsAccumulator: React.FC<Daily10OddsAccumulatorProps> = ({
       {/* Action Footer: Cross-Bookmaker Booking Codes & 1-Tap Load */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
         <div className="flex items-center space-x-2 w-full sm:w-auto">
-          <div className="flex rounded-xl bg-black/60 border border-white/10 p-0.5">
-            {(['SportyBet', 'Bet9ja', '1xBet', 'BetKing'] as const).map((b) => (
-              <button
-                key={b}
-                onClick={() => setSelectedBookie(b)}
-                className={`px-2.5 py-1 rounded-lg text-[9px] font-black transition-all ${
-                  selectedBookie === b
-                    ? 'bg-stadiumGreen text-black shadow-sm'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                {b}
-              </button>
-            ))}
-          </div>
-
-          <button
-            onClick={handleCopyCode}
-            className="px-3 py-2 rounded-xl bg-panel hover:bg-white/10 border border-white/10 text-gold font-black text-[10px] flex items-center space-x-1.5 transition-all shadow-md active:scale-95"
-          >
-            {copiedCode ? <Check className="w-3.5 h-3.5 text-stadiumGreen" /> : <Copy className="w-3.5 h-3.5" />}
-            <span>{copiedCode ? 'Code Copied! ✓' : `Copy ${selectedBookie} Code`}</span>
-          </button>
+          <span className="text-[10px] text-stadiumGreen font-mono font-bold flex items-center space-x-1">
+            <ShieldCheck className="w-3.5 h-3.5 text-stadiumGreen inline" />
+            <span>AI Verified Matchday Accumulator</span>
+          </span>
         </div>
 
         <button

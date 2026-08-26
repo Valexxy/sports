@@ -123,6 +123,13 @@ export const GenZFomoOddsUnlocker: React.FC<FomoUnlockerProps> = ({ matches }) =
   };
 
   const handlePaystackUnlock = (tier: SlipTier) => {
+    // MEMBERS_ONLY_AUTH_CHECK: Require user to be logged in
+    const userName = typeof window !== 'undefined' ? localStorage.getItem('aurascore_user_name') : null;
+    if (!userName) {
+      setErrorMsg('🔒 Members Only: Please sign in or register your account to unlock VIP Banker Slips so your purchases are permanently saved to your profile!');
+      phoneHardware.triggerHaptic('WARNING');
+      return;
+    }
     setErrorMsg(null);
     setLoadingTier(tier.id);
     phoneHardware.triggerHaptic('SELECTION');

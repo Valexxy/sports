@@ -33,16 +33,21 @@ export const FooterComplianceDisclaimer: React.FC = () => {
           <Link href="/about" className="hover:text-stadiumGreen transition-colors">About Mivaj</Link>
         </div>
 
-        {/* Direct WhatsApp Contact Link */}
-        <a
-          href="https://wa.me/2348072015725"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[10px] font-black text-[#25D366] hover:underline flex items-center space-x-1"
-        >
-          <MessageCircle className="w-3.5 h-3.5 fill-[#25D366] text-black" />
-          <span>WhatsApp (+234 807 201 5725)</span>
-        </a>
+        {/* Official VIP Community Channel Link (Private & Secure) */}
+        <div className="flex items-center space-x-3">
+          <span className="text-[9px] px-2 py-0.5 rounded bg-emerald-950 border border-emerald-500/40 text-emerald-400 font-bold">
+            🔒 SSL 256-BIT ENCRYPTED
+          </span>
+          <a
+            href="https://wa.me/2348072015725"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[10px] font-black text-[#25D366] hover:underline flex items-center space-x-1.5"
+          >
+            <MessageCircle className="w-3.5 h-3.5 fill-[#25D366] text-black" />
+            <span>Official VIP Matchday Channel 🟢</span>
+          </a>
+        </div>
       </div>
 
       <div className="text-[9px] text-gray-500 border-t border-white/5 pt-2">

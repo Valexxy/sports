@@ -11,12 +11,14 @@ import { StadiumHeader } from '../components/stadium-header';
 import { DailyMatchCard } from '../components/daily-match-card';
 import { LeagueStandingsTable } from '../components/league-standings-table';
 import { ReceiptModal } from '../components/receipt-modal';
-import { BankrollCalculatorModal } from '../components/bankroll-calculator';
 import { PublicLedgerModal } from '../components/public-ledger';
 import { MatchInsightsModal } from '../components/match-insights-modal';
 import { UserProfileModal } from '../components/user-profile-modal';
 import { PredictionHistoryModal } from '../components/prediction-history-modal';
 import { TeamExplorerModal } from '../components/team-explorer-modal';
+import { DailyAuraHarvestModal } from '../components/daily-aura-harvest-modal';
+import { WhaleLeaderboardModal } from '../components/whale-leaderboard-modal';
+import { AdminChatDrawer } from '../components/admin-chat-drawer';
 import { BirthdayCenterModal } from '../components/birthday-center-modal';
 import { NaijaBanterLoungeModal } from '../components/naija-banter-lounge-modal';
 import { GrassrootsScoutingModal } from '../components/grassroots-scouting-modal';
@@ -31,7 +33,6 @@ import { ReverseJinxModal } from '../components/reverse-jinx-modal';
 import { OfflineBanner } from '../components/offline-banner';
 import { ErrorBoundary } from '../components/error-boundary';
 import { BroadcastTicker, TriggerUpdate } from '../components/broadcast-ticker';
-import { OfficialMatchHighlightsHub } from '../components/official-match-highlights-hub';
 import { GenZOnboardingModal } from '../components/genz-onboarding-modal';
 import { FooterComplianceDisclaimer } from '../components/footer-disclaimer';
 import { SportsNewsSection } from '../components/sports-news-section';
@@ -61,9 +62,6 @@ import { DailyBankerAccumulatorCard } from '../components/daily-banker-accumulat
 import { Daily10OddsAccumulator } from '../components/daily-10-odds-accumulator';
 import { GenZFomoOddsUnlocker } from '../components/genz-fomo-odds-unlocker';
 import { SwipeToPredictGame } from '../components/swipe-to-predict-game';
-import { LiveAuraMomentumMeter } from '../components/live-aura-momentum-meter';
-import { AIMemeSlanderGenerator } from '../components/ai-meme-slander-generator';
-import { WhatsAppStatusSlipFlexer } from '../components/whatsapp-status-slip-flexer';
 import { P2PSocialWagers } from '../components/p2p-social-wagers';
 import { SocialCommunityBroadcastHub } from '../components/social-community-broadcast-hub';
 import { CrossPlatformConverterModal } from '../components/cross-platform-code-converter-modal';
@@ -132,6 +130,9 @@ export default function Home() {
   const [showProfile, setShowProfile] = useState(false);
   const [showTrackRecord, setShowTrackRecord] = useState(false);
   const [showTeamsModal, setShowTeamsModal] = useState(false);
+  const [showHarvestModal, setShowHarvestModal] = useState(false);
+  const [showWhaleModal, setShowWhaleModal] = useState(false);
+  const [showAdminChatDrawer, setShowAdminChatDrawer] = useState(false);
   const [showBirthdaysModal, setShowBirthdaysModal] = useState(false);
   const [showLeaderboardModal, setShowLeaderboardModal] = useState(false);
   const [showLegalModal, setShowLegalModal] = useState(false);
@@ -285,17 +286,14 @@ export default function Home() {
   };
 
   const handleAddMultiBetItems = (picks: Array<{ match: MatchData; selection: string; odds: number }>) => {
-    setBetSlipItems(prev => {
-      const matchIds = new Set(picks.map(p => p.match.id));
-      const filtered = prev.filter(item => !matchIds.has(item.matchId));
-      const newItems: BetItem[] = picks.map(p => ({
-        matchId: p.match.id,
-        matchTitle: p.match.homeTeam + ' vs ' + p.match.awayTeam,
-        selection: p.selection,
-        odds: p.odds,
-      }));
-      return [...filtered, ...newItems];
-    });
+    setShowBetSlipDrawer(true);
+    const newItems: BetItem[] = picks.map(p => ({
+      matchId: p.match.id,
+      matchTitle: p.match.homeTeam + ' vs ' + p.match.awayTeam,
+      selection: p.selection,
+      odds: p.odds,
+    }));
+    setBetSlipItems(newItems);
     if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate([80, 40, 80]);
   };
 
@@ -618,7 +616,6 @@ export default function Home() {
           <SwipeToPredictGame matches={matches} />
 
           {/* 4. REAL-TIME PHYSICS AURA MOMENTUM METER */}
-          <LiveAuraMomentumMeter match={matches.find(m => m.status === 'LIVE') || matches[0]} />
 
           {/* 5. PAYSTACK GEN-Z FOMO MICRO-ODDS UNLOCKER (₦200, ₦300, ₦500) */}
           <GenZFomoOddsUnlocker matches={matches} />
@@ -631,11 +628,9 @@ export default function Home() {
           />
 
           {/* 7. INSTANT AI MEME & SLANDER CARD CREATOR */}
-          <AIMemeSlanderGenerator />
-
+          
           {/* 8. WHATSAPP STATUS 9:16 TICKET FLEXER */}
-          <WhatsAppStatusSlipFlexer />
-
+          
           {/* 9. 1v1 P2P SOCIAL WAGERS */}
           <P2PSocialWagers matches={matches} />
 
@@ -653,8 +648,7 @@ export default function Home() {
           />
 
           {/* 12. TELEGRAM & WHATSAPP 24/7 BROADCAST BOT HUB */}
-          <OfficialMatchHighlightsHub />
-
+          
           <SocialCommunityBroadcastHub matches={matches} />
 
           {/* 13. SPORTS NEWS SECTION */}
@@ -751,7 +745,6 @@ export default function Home() {
         {selectedMatchForReceipt && (
           <ReceiptModal match={selectedMatchForReceipt} onClose={() => setSelectedMatchForReceipt(null)} />
         )}
-        {showBankroll && <BankrollCalculatorModal onClose={() => setShowBankroll(false)} />}
         {showLedger && <PublicLedgerModal onClose={() => setShowLedger(false)} />}
         {showTrackRecord && <PredictionHistoryModal onClose={() => setShowTrackRecord(false)} savedBookmarkedMatches={savedMatches} />}
         {showProfile && (
@@ -763,6 +756,19 @@ export default function Home() {
           />
         )}
         {showTeamsModal && <TeamExplorerModal onClose={() => setShowTeamsModal(false)} />}
+        <DailyAuraHarvestModal isOpen={showHarvestModal} onClose={() => setShowHarvestModal(false)} />
+        <WhaleLeaderboardModal isOpen={showWhaleModal} onClose={() => setShowWhaleModal(false)} />
+        <AdminChatDrawer isOpen={showAdminChatDrawer} onClose={() => setShowAdminChatDrawer(false)} />
+
+        {/* Floating VIP Admin Chat Button */}
+        <button
+          onClick={() => setShowAdminChatDrawer(true)}
+          className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40 p-3 rounded-2xl bg-gradient-to-r from-cyan-400 to-blue-500 text-black font-black shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center space-x-2 glow-emerald"
+        >
+          <span className="text-lg">💬</span>
+          <span className="text-xs hidden sm:inline">Admin VIP Support</span>
+          <span className="w-2 h-2 rounded-full bg-stadiumGreen animate-ping" />
+        </button>
         {showBirthdaysModal && <BirthdayCenterModal onClose={() => setShowBirthdaysModal(false)} />}
         {showBanterModal && <NaijaBanterLoungeModal onClose={() => setShowBanterModal(false)} />}
         {showGrassrootsModal && <GrassrootsScoutingModal onClose={() => setShowGrassrootsModal(false)} />}
@@ -817,21 +823,7 @@ export default function Home() {
         )}
 
 
-        <footer className="glass-panel border-t border-white/10 py-6 px-4 mt-8 font-mono text-xs text-gray-400">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="text-center sm:text-left">
-              <p className="font-black text-white text-sm">AURASCORE STADIUM 2.0</p>
-              <p className="text-[10px] text-gray-500">Statistical intelligence engine. 18+ Please play responsibly.</p>
-            </div>
-            <div className="flex items-center gap-3 text-stadiumGreen font-bold text-[11px]">
-              <span>AES-256 Encrypted</span>
-              <span className="text-gray-600">|</span>
-              <button onClick={() => setShowLegalModal(true)} className="hover:text-gold transition-all">Legal & 18+ Terms</button>
-              <span className="text-gray-600">|</span>
-              <button onClick={() => setShowHistoryModal(true)} className="hover:text-gold transition-all">Settlement Ledger</button>
-            </div>
-          </div>
-        </footer>
+        
 
       </div>
     </ErrorBoundary>

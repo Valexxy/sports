@@ -1,11 +1,14 @@
 'use client';
-import React, { useState } from 'react';
-import { X, Flame, Share2, Send, Shuffle, Bot } from 'lucide-react';
+
+import React, { useState, useEffect } from 'react';
+import { X, Flame, Send, ShieldCheck, Lock, Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { stadiumAudio } from '../lib/sound-synthesizer';
+import { phoneHardware } from '../lib/phone-hardware-engine';
 
 interface BanterModalProps {
   onClose: () => void;
+  onOpenAuth?: () => void;
 }
 
 export interface RoastItem {
@@ -17,115 +20,109 @@ export interface RoastItem {
   hype: number;
 }
 
-const AI_ROAST_VAULT: RoastItem[] = [
+// Banned abusive words list for real-time AI moderation
+const BLOCKED_ABUSIVE_WORDS = [
+  'bastard', 'idiot', 'fool', 'mugu', 'ashewo', 'scam', 'hate', 'die', 'kill', 'stupid', 'curse'
+];
+
+const COMMUNITY_BANTER_FEED: RoastItem[] = [
   {
     id: 'r-1',
     club: 'Manchester United 🔴',
     roaster: '@Eze_Baller',
-    roast: 'Man United fans don start their weekly CPR and emergency prayer session. Defender pass ball go own net say na tactical buildup! 😭💀',
-    tag: 'Hospital FC',
+    roast: 'Defender pass ball go own net say na tactical buildup! Matchday high blood pressure never finishes. 😭⚽',
+    tag: 'Tactical Drama',
     hype: 1420,
   },
   {
     id: 'r-2',
     club: 'Chelsea 🔵',
     roaster: '@Tunde_Strikr',
-    roast: 'Boehly don sign 85 players with 9-year contracts, but match still end 1-1 with team wey just promote from Championship! Asylum FC 😂',
-    tag: 'Contract Asylum',
+    roast: '85 signings and 9-year contracts, but young squad is finally cooking with Cole Palmer cold ice celebration! 🥶⚽',
+    tag: 'Cold Palmer',
     hype: 1890,
   },
   {
     id: 'r-3',
     club: 'Arsenal 🔴⚪',
     roaster: '@NaijaGunner_99',
-    roast: 'December: "Trust the process, we are winning the quadruple!" May: "At least we scored the most corners in North London" 🍼',
-    tag: 'Corner Trophy',
+    roast: 'Set-piece masters of North London! If Gabriel nod corner ball, goalkeeper just look like statue! 🍼⚽',
+    tag: 'Set Piece FC',
     hype: 2150,
   },
   {
     id: 'r-4',
     club: 'Real Madrid ⚪',
     roaster: '@Chidi_Madrid',
-    roast: 'Real Madrid down 0-1 at 88th minute. Ref look watch, see say na Champions League, add 12 minutes extra time. Vini Jr score at 99th min. Pure Juju! 🧙‍♂️',
-    tag: 'Juju FC',
+    roast: 'Down 0-1 at 88th minute. Ref look watch, see say na Champions League. Vini Jr score at 94th min. DNA! 🧙‍♂️',
+    tag: 'UCL Royalty',
     hype: 3200,
   },
   {
     id: 'r-5',
-    club: 'Victor Osimhen & Galatasaray 🇹🇷',
+    club: 'Victor Osimhen & Super Eagles 🇳🇬',
     roaster: '@SuperEagle_Lover',
-    roast: 'Osimhen wear mask land Istanbul, Turkish defenders start dey call their herbalist and orthopedic surgeon before kickoff! Ball no go rest! 🚀🇳🇬',
-    tag: 'Masked Assassin',
+    roast: 'Osimhen wear mask land pitch, defenders start dey call their physiotherapist before kickoff! Pure power! 🚀🇳🇬',
+    tag: 'Masked Striker',
     hype: 4500,
   },
   {
     id: 'r-6',
     club: 'Barcelona 🔵🔴',
     roaster: '@Kalu_Catalan',
-    roast: 'Laporta don activate 18th economic lever to register ball boy and water bottle supplier. La Masia kids carry the whole defense on their shoulders! 👶',
-    tag: 'Economic Lever FC',
+    roast: 'La Masia teenagers carrying the whole team with silky tiki-taka passes! Yamal at 17 is pure joy to watch! 👶⚽',
+    tag: 'La Masia Pride',
     hype: 1980,
-  },
-  {
-    id: 'r-7',
-    club: 'Man City 🩵',
-    roaster: '@PepTactics_Naija',
-    roast: 'Haaland touch ball 3 times in 90 minutes and score 4 goals. Man is literally a robotic cheat code plugged into Etihad electricity grid! 🤖⚡',
-    tag: 'Robotic Cheat',
-    hype: 2800,
-  },
-  {
-    id: 'r-8',
-    club: 'Tottenham ⚪',
-    roaster: '@LondonBanter',
-    roast: 'Tottenham trophy cabinet is currently being rented out as a 2-bedroom self-contain apartment in Lekki Phase 1 for 4 million Naira! 🏠💀',
-    tag: 'Dusty Cabinet',
-    hype: 3100,
-  },
-  {
-    id: 'r-9',
-    club: 'Liverpool 🔴',
-    roaster: '@KloppVibes',
-    roast: 'Arne Slot come Anfield with glossy bald head, pass ball like prime Barca. Defense say no panic, na high line heavy metal rock and roll! 🎸',
-    tag: 'Gegenpress Heavy',
-    hype: 2450,
-  },
-  {
-    id: 'r-10',
-    club: 'Enyimba & NPFL 🇳🇬',
-    roaster: '@AbaBoy_NPFL',
-    roast: 'Aba stadium grass so green even cows want scholarship to graze there! Away team keeper dey catch cold because defense tight pass iron gate! 🛡️⚽',
-    tag: 'Peoples Elephant',
-    hype: 2900,
   },
 ];
 
-export const NaijaBanterLoungeModal: React.FC<BanterModalProps> = ({ onClose }) => {
-  const [feed, setFeed] = useState<RoastItem[]>(AI_ROAST_VAULT);
+export const NaijaBanterLoungeModal: React.FC<BanterModalProps> = ({ onClose, onOpenAuth }) => {
+  const [feed, setFeed] = useState<RoastItem[]>(COMMUNITY_BANTER_FEED);
   const [selectedClub, setSelectedClub] = useState('Man United');
   const [userRoast, setUserRoast] = useState('');
   const [hypes, setHypes] = useState<Record<string, boolean>>({});
-  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleGenerateAiRoast = () => {
-    setIsGeneratingAi(true);
-    stadiumAudio.playCrowdRoar();
+  // Check user authentication
+  const userName = typeof window !== 'undefined' ? localStorage.getItem('aurascore_user_name') : null;
+  const isAuthenticated = !!userName;
 
-    setTimeout(() => {
-      const randomRoast = AI_ROAST_VAULT[Math.floor(Math.random() * AI_ROAST_VAULT.length)];
-      const freshAiRoast: RoastItem = {
-        id: 'ai-' + Date.now(),
-        club: randomRoast.club,
-        roaster: '🤖 AuraAI Roaster',
-        roast: randomRoast.roast,
-        tag: '⚡ AI LIVE DROP',
-        hype: Math.floor(500 + Math.random() * 2500),
-      };
+  const handlePostRoast = () => {
+    setErrorMsg(null);
 
-      setFeed([freshAiRoast, ...feed]);
-      setIsGeneratingAi(false);
-      confetti({ particleCount: 40, spread: 50, origin: { y: 0.4 } });
-    }, 600);
+    // 1. Strict Auth Check
+    if (!isAuthenticated) {
+      setErrorMsg('🔒 Only signed-in members can post banter. Please sign in to join the conversation!');
+      if (onOpenAuth) onOpenAuth();
+      return;
+    }
+
+    const text = userRoast.trim();
+    if (!text) return;
+
+    // 2. Real-Time AI Abuse & Moderation Filter
+    const lower = text.toLowerCase();
+    const hasAbusiveWord = BLOCKED_ABUSIVE_WORDS.some((w) => lower.includes(w));
+    if (hasAbusiveWord) {
+      setErrorMsg('⚠️ AI Moderation Flag: Abusive words or insults are strictly prohibited. Keep banter respectful and fun!');
+      phoneHardware.triggerHaptic('WARNING');
+      return;
+    }
+
+    const newRoast: RoastItem = {
+      id: 'r-' + Date.now(),
+      club: selectedClub,
+      roaster: '@' + userName,
+      roast: text,
+      tag: 'Fresh Banter 🔥',
+      hype: 1,
+    };
+
+    setFeed([newRoast, ...feed]);
+    setUserRoast('');
+    phoneHardware.triggerHaptic('SUCCESS');
+    stadiumAudio.playAddPickSound();
+    confetti({ particleCount: 30, spread: 40, origin: { y: 0.6 } });
   };
 
   const handleHype = (id: string) => {
@@ -134,163 +131,127 @@ export const NaijaBanterLoungeModal: React.FC<BanterModalProps> = ({ onClose }) 
     setFeed((prev) =>
       prev.map((item) => (item.id === id ? { ...item, hype: item.hype + 1 } : item))
     );
+    phoneHardware.triggerHaptic('SUCCESS');
     stadiumAudio.playCrowdRoar();
-    confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
-  };
-
-  const handlePostRoast = () => {
-    if (!userRoast.trim()) return;
-    const newRoast: RoastItem = {
-      id: 'r-' + Date.now(),
-      club: selectedClub,
-      roaster: typeof window !== 'undefined' && localStorage.getItem('aurascore_user_name') ? '@' + localStorage.getItem('aurascore_user_name') : '@James_Baller',
-      roast: userRoast.trim(),
-      tag: 'Fresh Naija Burn 🔥',
-      hype: 1,
-    };
-    setFeed([newRoast, ...feed]);
-    setUserRoast('');
-    stadiumAudio.playCrowdRoar();
-    confetti({ particleCount: 40, spread: 50, origin: { y: 0.5 } });
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-fadeIn font-mono text-xs">
-      <div className="relative w-full max-w-2xl glass-panel-premium rounded-3xl border-2 border-crimson/50 p-5 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn font-mono">
+      <div className="glass-panel-premium max-w-2xl w-full p-5 sm:p-6 rounded-3xl border-2 border-gold/50 space-y-4 shadow-2xl relative text-white max-h-[90vh] flex flex-col">
         
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-full bg-panel text-gray-400 hover:text-white border border-white/10 hover:border-crimson transition-all hover:rotate-90 z-20"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-3 gap-2">
-          <div className="flex items-center space-x-3">
-            <div className="p-2.5 rounded-2xl bg-crimson/20 border border-crimson/40 text-crimson">
-              <Flame className="w-6 h-6 fill-current animate-pulse" />
+        <div className="flex items-center justify-between border-b border-white/10 pb-3 flex-shrink-0">
+          <div className="flex items-center space-x-2.5">
+            <div className="p-2 rounded-xl bg-gold text-black font-black text-lg shadow-md">
+              🔥
             </div>
             <div>
-              <h2 className="font-black text-white text-base flex items-center space-x-2">
-                <span>NAIJA GEN-Z ROAST & BANTER LOUNGE 🎙️🔥</span>
-              </h2>
+              <div className="flex items-center space-x-2">
+                <h3 className="font-black text-sm sm:text-base text-white">NAIJA GEN-Z ROAST & BANTER LOUNGE</h3>
+                <span className="px-2 py-0.5 rounded-full bg-stadiumGreen/20 text-stadiumGreen font-black text-[9px] flex items-center space-x-1">
+                  <ShieldCheck className="w-3 h-3 inline" />
+                  <span>AI MODERATED</span>
+                </span>
+              </div>
               <p className="text-[10px] text-gray-400 font-sans">
-                Live Nigerian club banter, viral football slander, and locker room drama.
+                Friendly sports banter &bull; Signed-in members only &bull; Zero insults allowed
               </p>
             </div>
           </div>
 
           <button
-            onClick={handleGenerateAiRoast}
-            disabled={isGeneratingAi}
-            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-crimson to-amber-600 hover:from-crimson hover:to-amber-500 text-white font-black text-[11px] shadow-lg shadow-crimson/30 transition-all flex items-center space-x-1.5 self-start sm:self-auto disabled:opacity-50"
+            onClick={onClose}
+            className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
           >
-            <Bot className="w-4 h-4 animate-bounce" />
-            <span>{isGeneratingAi ? 'Synthesizing Roast...' : '🤖 AI Random Roast Drop'}</span>
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Post Roast Box */}
-        <div className="p-4 rounded-2xl bg-crimson/10 border border-crimson/30 space-y-2.5">
-          <span className="text-[10px] text-crimson font-black uppercase tracking-wider block">
-            🔥 Drop Your Hot Club Roast
-          </span>
-          <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-hide">
-            {['Man United', 'Arsenal', 'Chelsea', 'Real Madrid', 'Barcelona', 'Man City', 'Liverpool', 'Tottenham', 'Osimhen 🇳🇬'].map((c) => (
-              <button
-                key={c}
-                onClick={() => setSelectedClub(c)}
-                className={'px-2.5 py-1 rounded-xl text-[10px] font-bold border transition-all flex-shrink-0 ' +
-                  (selectedClub === c
-                    ? 'bg-crimson text-white border-crimson shadow-md'
-                    : 'bg-black/50 text-gray-400 border-white/10 hover:text-white')}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <input
-              type="text"
-              value={userRoast}
-              onChange={(e) => setUserRoast(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handlePostRoast()}
-              placeholder={`Drop spicy ${selectedClub} slander or banter here...`}
-              className="flex-1 px-3.5 py-2 rounded-xl bg-black/70 border border-white/10 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-crimson font-mono"
-            />
-            <button
-              onClick={handlePostRoast}
-              className="px-4 py-2 rounded-xl bg-crimson hover:bg-rose-600 text-white font-black text-xs transition-all flex items-center space-x-1 shadow-md shadow-crimson/30"
+        {/* Banter Feed (Auto-scrolling clean community stream) */}
+        <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 max-h-[50vh]">
+          {feed.map((item) => (
+            <div
+              key={item.id}
+              className="p-3 rounded-2xl bg-black/70 border border-white/10 space-y-1.5 hover:border-gold/40 transition-colors"
             >
-              <Send className="w-3.5 h-3.5" />
-              <span>Roast</span>
-            </button>
-          </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <span className="font-black text-gold text-xs">{item.roaster}</span>
+                  <span className="px-2 py-0.2 rounded-full bg-white/5 text-[9px] text-gray-300">{item.club}</span>
+                </div>
+                <span className="text-[9px] text-stadiumGreen font-bold">{item.tag}</span>
+              </div>
+
+              <p className="text-xs text-gray-200 font-sans leading-relaxed">{item.roast}</p>
+
+              <div className="flex items-center justify-end pt-1">
+                <button
+                  onClick={() => handleHype(item.id)}
+                  className={`flex items-center space-x-1 px-2.5 py-1 rounded-xl text-[10px] font-black transition-all ${
+                    hypes[item.id] ? 'bg-gold text-black' : 'bg-white/5 text-gray-400 hover:text-gold'
+                  }`}
+                >
+                  <Flame className="w-3 h-3" />
+                  <span>{item.hype.toLocaleString()} Hypes</span>
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
 
-        {/* Roast Stream Feed */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-              🔥 LIVE BANTER FEED ({feed.length} Roasts)
-            </span>
-            <button
-              onClick={handleGenerateAiRoast}
-              className="text-[10px] text-gold hover:text-amber-300 font-bold flex items-center space-x-1"
-            >
-              <Shuffle className="w-3 h-3" />
-              <span>Shuffle AI Roasts</span>
-            </button>
-          </div>
+        {/* Input Area (Strict Auth & Moderation) */}
+        <div className="pt-2 border-t border-white/10 flex-shrink-0 space-y-2">
+          {errorMsg && (
+            <div className="p-2 rounded-xl bg-crimson/20 border border-crimson text-crimson text-[10px] font-bold">
+              {errorMsg}
+            </div>
+          )}
 
-          <div className="space-y-2.5">
-            {feed.map((item) => (
-              <div
-                key={item.id}
-                className="p-3.5 rounded-2xl bg-black/60 border border-white/10 hover:border-crimson/40 space-y-2 transition-all group"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-bold text-crimson text-xs">{item.club}</span>
-                    <span className="text-[10px] text-gray-400 font-sans">{item.roaster}</span>
-                  </div>
-                  <span className="px-2 py-0.5 rounded-full bg-crimson/20 text-crimson font-bold text-[9px]">
-                    {item.tag}
-                  </span>
-                </div>
-
-                <p className="text-white text-xs font-sans leading-relaxed">{item.roast}</p>
-
-                <div className="flex items-center justify-between pt-1 border-t border-white/5 text-[10px]">
-                  <button
-                    onClick={() => handleHype(item.id)}
-                    className={'flex items-center space-x-1 px-2.5 py-1 rounded-xl transition-all ' +
-                      (hypes[item.id]
-                        ? 'bg-crimson text-white font-black shadow-md'
-                        : 'bg-white/5 hover:bg-crimson/20 text-gray-400 hover:text-white')}
-                  >
-                    <Flame className={'w-3.5 h-3.5 ' + (hypes[item.id] ? 'fill-current' : '')} />
-                    <span>{item.hype.toLocaleString()} Hypes</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      if (navigator.share) {
-                        navigator.share({ title: item.club, text: item.roast, url: window.location.href });
-                      }
-                    }}
-                    className="text-gray-400 hover:text-white flex items-center space-x-1 p-1"
-                  >
-                    <Share2 className="w-3.5 h-3.5" />
-                    <span>Share</span>
-                  </button>
-                </div>
+          {!isAuthenticated ? (
+            <div className="p-3 rounded-2xl bg-black/80 border border-white/10 flex items-center justify-between">
+              <div className="flex items-center space-x-2 text-[11px] text-gray-300">
+                <Lock className="w-4 h-4 text-gold" />
+                <span>You must be signed in to drop banter in the lounge.</span>
               </div>
-            ))}
-          </div>
+              <button
+                onClick={onOpenAuth}
+                className="px-3.5 py-1.5 rounded-xl bg-gold text-black font-black text-xs shadow hover:scale-105 transition-all"
+              >
+                Sign In ➔
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <select
+                value={selectedClub}
+                onChange={(e) => setSelectedClub(e.target.value)}
+                className="p-2.5 rounded-2xl bg-black/80 border border-white/10 text-white font-mono text-xs focus:outline-none"
+              >
+                <option value="Arsenal">Arsenal</option>
+                <option value="Chelsea">Chelsea</option>
+                <option value="Man United">Man United</option>
+                <option value="Real Madrid">Real Madrid</option>
+                <option value="Barcelona">Barcelona</option>
+              </select>
+
+              <input
+                type="text"
+                placeholder="Drop respectful match banter..."
+                value={userRoast}
+                onChange={(e) => setUserRoast(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handlePostRoast()}
+                className="flex-1 px-4 py-2.5 rounded-2xl bg-black/80 border border-white/10 text-white placeholder-gray-500 font-mono text-xs focus:border-gold focus:outline-none"
+              />
+
+              <button
+                onClick={handlePostRoast}
+                className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-gold to-amber-500 text-black font-black text-xs flex items-center space-x-1 shadow active:scale-95 transition-all"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Drop Banter</span>
+              </button>
+            </div>
+          )}
         </div>
 
       </div>

@@ -1,26 +1,30 @@
 'use client';
+
 import React from 'react';
-import { Home, Star, User } from 'lucide-react';
+import { Home, Trophy, Gift, MessageSquare, User, Sparkles } from 'lucide-react';
 import { phoneHardware } from '../lib/phone-hardware-engine';
 import { stadiumAudio } from '../lib/sound-synthesizer';
 
 interface AppDockProps {
   activeTab: string;
   onSelectTab: (tab: string) => void;
-  betSlipCount?: number;
   onOpenProfile: () => void;
-  onOpenLedger?: () => void;
-  onOpenSuitesMenu?: () => void;
+  onOpenLeaderboard?: () => void;
+  onOpenHarvest?: () => void;
+  onOpenAdminChat?: () => void;
 }
 
 export const MobileAppDock: React.FC<AppDockProps> = ({
   activeTab,
   onSelectTab,
   onOpenProfile,
+  onOpenLeaderboard,
+  onOpenHarvest,
+  onOpenAdminChat,
 }) => {
   const handleTabClick = (tab: string, action?: () => void) => {
     phoneHardware.triggerHaptic('SELECTION');
-    stadiumAudio.playTabClickSound();
+    stadiumAudio.playAddPickSound();
     if (action) {
       action();
     } else {
@@ -29,43 +33,60 @@ export const MobileAppDock: React.FC<AppDockProps> = ({
   };
 
   return (
-    <div className="fixed bottom-3 left-4 right-4 z-50 lg:hidden">
-      <nav className="glass-panel-premium rounded-3xl border-2 border-stadiumGreen/40 px-3 py-2 shadow-2xl backdrop-blur-2xl bg-black/95 glow-emerald">
-        <div className="flex items-center justify-around">
+    <div className="fixed bottom-2 left-2 right-2 z-50 lg:hidden">
+      <nav className="glass-panel-premium rounded-2xl border border-stadiumGreen/40 px-2 py-1.5 shadow-2xl backdrop-blur-2xl bg-black/95 glow-emerald">
+        <div className="flex items-center justify-between gap-1">
           
           {/* Matches Tab */}
           <button
             onClick={() => handleTabClick('MATCHES')}
-            className={`flex items-center space-x-1.5 py-2 px-4 rounded-2xl transition-all duration-300 ${
+            className={`flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all ${
               activeTab === 'MATCHES'
-                ? 'bg-stadiumGreen text-black font-black shadow-lg shadow-stadiumGreen/30'
+                ? 'bg-stadiumGreen text-black font-black shadow'
                 : 'text-gray-400 hover:text-white'
             }`}
           >
-            <Home className="w-4 h-4" />
-            <span className="text-xs font-mono font-black">Matches</span>
+            <Home className="w-4 h-4 flex-shrink-0" />
+            <span className="text-[9px] font-mono font-bold mt-0.5">Matches</span>
           </button>
 
-          {/* Following Hub Tab (Single Unified Following & Pinned Matches) */}
+          {/* Leaderboard Tab */}
           <button
-            onClick={() => handleTabClick('FOLLOWING')}
-            className={`flex items-center space-x-1.5 py-2 px-4 rounded-2xl transition-all duration-300 ${
-              activeTab === 'FOLLOWING'
-                ? 'bg-gold text-black font-black shadow-lg shadow-gold/30'
-                : 'bg-gold/15 text-gold border border-gold/40 font-black text-xs hover:text-white'
-            }`}
+            onClick={() => handleTabClick('LEADERBOARD', onOpenLeaderboard)}
+            className="flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-gray-400 hover:text-gold transition-all"
           >
-            <Star className="w-4 h-4 text-gold fill-current" />
-            <span className="text-xs font-mono font-black">Following</span>
+            <Trophy className="w-4 h-4 text-gold flex-shrink-0" />
+            <span className="text-[9px] font-mono font-bold mt-0.5">Tipsters</span>
           </button>
 
-          {/* Profile */}
+          {/* Daily Harvest Tab */}
+          <button
+            onClick={() => handleTabClick('HARVEST', onOpenHarvest)}
+            className="flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-gray-400 hover:text-gold transition-all"
+          >
+            <Gift className="w-4 h-4 text-amber-400 flex-shrink-0" />
+            <span className="text-[9px] font-mono font-bold mt-0.5">Harvest</span>
+          </button>
+
+          {/* VIP Admin Chat Tab */}
+          <button
+            onClick={() => handleTabClick('CHAT', onOpenAdminChat)}
+            className="flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-gray-400 hover:text-cyan-300 transition-all relative"
+          >
+            <div className="relative">
+              <MessageSquare className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-stadiumGreen animate-ping absolute -top-0.5 -right-0.5" />
+            </div>
+            <span className="text-[9px] font-mono font-bold mt-0.5">Support</span>
+          </button>
+
+          {/* Profile Tab */}
           <button
             onClick={() => handleTabClick('PROFILE', onOpenProfile)}
-            className="flex items-center space-x-1.5 py-2 px-4 rounded-2xl text-gray-300 hover:text-gold transition-all"
+            className="flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-gray-300 hover:text-gold transition-all"
           >
-            <User className="w-4 h-4" />
-            <span className="text-xs font-mono font-bold">Profile</span>
+            <User className="w-4 h-4 flex-shrink-0" />
+            <span className="text-[9px] font-mono font-bold mt-0.5">Profile</span>
           </button>
 
         </div>
