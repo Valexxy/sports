@@ -1,57 +1,45 @@
 /**
- * AUTOMATIC GPS & IP LOCATION TIMEZONE CONVERTOR
- * Hydration-safe timezone detector for Next.js SSR & Client rendering.
+ * LOCATION-AWARE TIMEZONE & WAT MATCH TIMING ENGINE
+ * Automatically detects browser timezone with primary prioritization of West Africa Time (WAT / UTC+1).
  */
 
-export interface UserLocationTimezone {
-  timezone: string;
-  city: string;
-  country: string;
-  flag: string;
-  formattedOffset: string;
-}
-
-export function detectUserLocationTimezone(): UserLocationTimezone {
-  if (typeof window === 'undefined') {
-    return {
-      timezone: 'Africa/Lagos',
-      city: 'LAGOS',
-      country: 'Nigeria',
-      flag: '🇳🇬',
-      formattedOffset: 'UTC+1',
-    };
+export class TimezoneEngine {
+  /** Returns user local timezone or defaults to Africa/Lagos (WAT) */
+  static getUserTimezone(): string {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone || "Africa/Lagos";
+    } catch (e) {
+      return "Africa/Lagos";
+    }
   }
 
-  try {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Africa/Lagos';
-    const parts = tz.split('/');
-    const city = parts[parts.length - 1].replace('_', ' ').toUpperCase();
+  /** Converts UTC ISO date into localized WAT (e.g. 20:00 WAT) */
+  static formatKickoff(utcDateString?: string, defaultFallback = "19:00"): string {
+    if (!utcDateString) return defaultFallback + " WAT";
 
-    let flag = '🌍';
-    if (tz.includes('Lagos') || tz.includes('Africa')) flag = '🇳🇬';
-    else if (tz.includes('London') || tz.includes('Europe')) flag = '🇬🇧';
-    else if (tz.includes('New_York') || tz.includes('America')) flag = '🇺🇸';
-    else if (tz.includes('Tokyo') || tz.includes('Asia')) flag = '🇯🇵';
+    try {
+      const d = new Date(utcDateString);
+      if (isNaN(d.getTime())) return defaultFallback + " WAT";
 
-    const offsetMinutes = new Date().getTimezoneOffset();
-    const offsetHours = Math.abs(Math.floor(offsetMinutes / 60));
-    const offsetSign = offsetMinutes <= 0 ? '+' : '-';
-    const formattedOffset = `UTC${offsetSign}${offsetHours}`;
+      const tz = this.getUserTimezone();
+      const isWAT = tz.includes("Lagos") || tz.includes("Accra") || tz.includes("Luanda") || tz.includes("Africa");
+      const suffix = isWAT ? "WAT" : "WAT";
 
-    return {
-      timezone: tz,
-      city: city || 'LAGOS',
-      country: tz.includes('Lagos') ? 'Nigeria' : tz.includes('London') ? 'United Kingdom' : 'International',
-      flag,
-      formattedOffset,
-    };
-  } catch (e) {
-    return {
-      timezone: 'Africa/Lagos',
-      city: 'LAGOS',
-      country: 'Nigeria',
-      flag: '🇳🇬',
-      formattedOffset: 'UTC+1',
-    };
+      // Format in WAT (UTC+1 / Africa/Lagos)
+      const timeFormatted = new Intl.DateTimeFormat("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: "Africa/Lagos",
+      }).format(d);
+
+      return timeFormatted + " " + suffix;
+    } catch (err) {
+      return defaultFallback + " WAT";
+    }
   }
 }
+
+export const formatMatchKickoff = (utcDate?: string) => TimezoneEngine.formatKickoff(utcDate);
+export const detectUserLocationTimezone = () => TimezoneEngine.getUserTimezone();
+export const formatMatchTimeToUserTimezone = (utcDate?: string) => TimezoneEngine.formatKickoff(utcDate);

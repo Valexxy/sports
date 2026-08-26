@@ -1,3 +1,4 @@
+import { formatMatchKickoff } from '../lib/timezone-engine';
 'use client';
 import React, { useState, useEffect } from 'react';
 import { MatchData } from '../lib/sports-api';
@@ -56,6 +57,7 @@ function deriveForm(winProb: number): ('W' | 'D' | 'L')[] {
 
 
 interface MatchCardProps {
+  onSelectClub?: (clubName: string) => void;
   match: MatchData;
   onOpenReceipt: (match: MatchData) => void;
   onOpenInsights: (match: MatchData) => void;
@@ -63,7 +65,7 @@ interface MatchCardProps {
   onBookmarkMatch?: (match: MatchData) => void;
 }
 
-export const MatchCard: React.FC<MatchCardProps> = ({ match, onOpenReceipt, onOpenInsights, onSelectOdds, onBookmarkMatch }) => {
+export const MatchCard: React.FC<MatchCardProps> = ({ match, onOpenReceipt, onOpenInsights, onSelectOdds, onBookmarkMatch, onSelectClub }) => {
   const [expandedOdds, setExpandedOdds] = useState(false);
   const [flashVoted, setFlashVoted] = useState<string | null>(null);
   const [bookmarked, setBookmarked] = useState(false);

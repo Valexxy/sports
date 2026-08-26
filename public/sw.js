@@ -94,3 +94,20 @@ self.addEventListener('fetch', (event) => {
     );
   }
 });
+
+
+// SILENT DATA PUSH LISTENER & AUDIO PRE-CACHING
+self.addEventListener('push', function(event) {
+  if (!event.data) return;
+  try {
+    const payload = event.data.json();
+    if (payload.silent) {
+      event.waitUntil(
+        caches.open('mivaj_live_matches').then(cache => {
+          return cache.put('/api/live-state', new Response(JSON.stringify(payload)));
+        })
+      );
+      return;
+    }
+  } catch (e) {}
+});

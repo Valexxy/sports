@@ -201,6 +201,22 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
 
           <div className="flex flex-wrap items-center gap-2">
             <button
+              onClick={() => {
+                phoneHardware.triggerHaptic('SELECTION');
+                stadiumAudio.playAddPickSound();
+                confetti({ particleCount: 35, spread: 60, origin: { y: 0.5 } });
+                if (onSelectOdds && match.prediction?.topPick) {
+                  onSelectOdds(match, match.prediction.topPick.market || 'Match Winner', match.prediction.topPick.odds || 1.25);
+                }
+                alert('✅ Tip added to Accumulator Slip!');
+              }}
+              className="px-3.5 py-2 rounded-xl text-xs font-mono font-black bg-stadiumGreen/20 hover:bg-stadiumGreen/30 text-stadiumGreen border border-stadiumGreen/60 flex items-center space-x-1.5 transition-all shadow-md active:scale-95"
+            >
+              <span>🎟️</span>
+              <span>+ Add Tip to Slip</span>
+            </button>
+
+            <button
               onClick={async () => {
                 const pinned = await LockScreenMatchTracker.pinMatchToLockScreen(match);
                 if (pinned) {

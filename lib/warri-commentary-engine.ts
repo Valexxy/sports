@@ -1,3 +1,25 @@
+import { pitchMixer } from '../services/audio/PitchMixer';
+import { StemPlayerService, MatchEventType } from '../services/audio/StemPlayer';
+
+// Conversational Time Translation (Never read raw numerical minute numbers)
+export function formatConversationalMatchTime(minute: string | number): string {
+  const min = typeof minute === 'string' ? parseInt(minute.replace(/[^0-9]/g, ''), 10) || 0 : minute;
+  if (min <= 5) return 'Right off the opening whistle';
+  if (min <= 20) return 'Early in the first half';
+  if (min <= 40) return 'Approaching the halftime break';
+  if (min <= 45) return 'Just before the halftime whistle';
+  if (min <= 55) return 'Fresh out of the dressing room';
+  if (min <= 75) return 'Deep into the second half';
+  if (min <= 88) return 'In the dying minutes of regular time';
+  return 'Deep in stoppage time at the death';
+}
+
+export interface StructuredCommentaryPayload {
+  commentary_text: string;
+  emotion_intensity: 'LOW' | 'MEDIUM' | 'HIGH' | 'MAX_AURA';
+  match_event_type: MatchEventType;
+}
+
 /**
  * Pure Warri-Pidgin AI Audio, Commentary & Haptics Engine
  * Delivers ultra-fast, high-tempo street-smart Warri cruise (zero slow grammar),
@@ -154,6 +176,9 @@ export class WarriCommentaryEngine {
       utterance.rate = 1.28; // High tempo, snappy delivery (no slow grammar)
       utterance.pitch = 1.05;
       utterance.lang = 'en-NG'; // Nigerian accent if supported
+      pitchMixer.duckAmbient();
+      utterance.onend = () => { pitchMixer.restoreAmbient(); };
+      utterance.onerror = () => { pitchMixer.restoreAmbient(); };
       window.speechSynthesis.speak(utterance);
     } catch {}
   }

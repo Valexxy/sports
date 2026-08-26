@@ -1,5 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async redirects() {
+    return [
+      {
+        source: '/ads.txt',
+        destination: 'https://srv.adstxtmanager.com/19390/mivaj.com',
+        permanent: true,
+      },
+    ];
+  },
   reactStrictMode: false,
   typescript: {
     ignoreBuildErrors: true,

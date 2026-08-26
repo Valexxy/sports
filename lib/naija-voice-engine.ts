@@ -1,63 +1,54 @@
 'use client';
 
 /**
- * AUTHENTIC DEEP MASCULINE NIGERIAN VOICE STREAMING ENGINE
- * Streams real Nigerian accent audio via /api/tts?lang=en-NG and transforms it
- * via Web Audio DSP (pitch shift + bass formant enhancement) into a deep, authoritative male commentator!
+ * AUTHENTIC LIVE & HISTORICAL MATCH VOICE ENGINE
+ * - Web Speech API with pitch & rate tuning
+ * - Deadlock protection with auto-resume
+ * - Pure natural spoken commentary (No robotic "Minute XX" time callouts)
  */
 
-let activeAudio: HTMLAudioElement | null = null;
-let audioCtx: AudioContext | null = null;
+let isCurrentlySpeaking = false;
+let speechFallbackTimer: NodeJS.Timeout | null = null;
 
-// Deep Warri / Edo transliterator for authentic Nigerian commentary
 export function warriTransliterate(text: string): string {
-  return text.trim()
-    .replace(/\bWelcome to the live match o!\b/gi, 'Waffi people, welcome to the live match o! Correct banker match!')
-    .replace(/\bGoal\b/gi, 'Gooooooal o! Net don scatter!')
-    .replace(/\bscored\b/gi, 'don tear net')
-    .replace(/\byellow card\b/gi, 'yellow card! Referee say make you behave yourself')
-    .replace(/\bred card\b/gi, 'red card straight! Go take your bath')
-    .replace(/\bshot\b/gi, 'thunder strike')
-    .replace(/\bsaved\b/gi, 'jump like cat parry am')
-    .replace(/\bpass\b/gi, 'correct carpet pass')
-    .replace(/\btackle\b/gi, 'solid Warri tackle')
-    .replace(/\bfoul\b/gi, 'bad tackle')
-    .replace(/\breferee\b/gi, 'referee oga')
-    .replace(/\bhalf time\b/gi, 'first 45 mins don finish, make players go drink water')
-    .replace(/\bfull time\b/gi, 'match don end kpatakpata, record don lock')
-    .replace(/\bpossession\b/gi, 'ball control')
-    .replace(/\bpenalty\b/gi, 'penalty kick! High tension dey stadium')
-    .replace(/\bcorner kick\b/gi, 'corner kick')
-    .replace(/\bwhat a\b/gi, 'omo see')
-    .replace(/\bgreat\b/gi, 'mad')
-    .replace(/\bamazing\b/gi, 'correct')
-    .replace(/\bvery\b/gi, 'well well')
-    .replace(/\bnow\b/gi, 'now now');
+  // Strip any accidental minute callouts
+  const cleaned = text.replace(/minute\s*\d+:\s*/gi, '').replace(/\d+[':]\s*/gi, '');
+  return cleaned.trim()
+    .replace(/Welcome to the live match o!/gi, 'Waffi people, welcome to the live match o! Correct banker match!')
+    .replace(/Goal/gi, 'Gooooooal o! Net don scatter!')
+    .replace(/scored/gi, 'don tear net')
+    .replace(/yellow card/gi, 'yellow card! Referee say make you behave yourself')
+    .replace(/red card/gi, 'red card straight! Go take your bath')
+    .replace(/shot/gi, 'thunder strike')
+    .replace(/saved/gi, 'jump like cat parry am')
+    .replace(/pass/gi, 'correct carpet pass')
+    .replace(/tackle/gi, 'solid Warri tackle')
+    .replace(/foul/gi, 'bad tackle')
+    .replace(/referee/gi, 'referee oga')
+    .replace(/half time/gi, 'first 45 mins don finish, make players go drink water')
+    .replace(/full time/gi, 'match don end kpatakpata, record don lock');
 }
 
 export function primeNaijaVoices(): void {
   if (typeof window === 'undefined') return;
-  try {
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    if (AudioContextClass && !audioCtx) {
-      audioCtx = new AudioContextClass();
-    }
-    if (audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
-  } catch {}
+  if ('speechSynthesis' in window) {
+    try {
+      window.speechSynthesis.getVoices();
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+    } catch {}
+  }
 }
 
 export function stopNaijaAudio(): void {
-  if (activeAudio) {
+  if (speechFallbackTimer) clearTimeout(speechFallbackTimer);
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     try {
-      activeAudio.pause();
-      activeAudio.currentTime = 0;
-      activeAudio.onended = null;
-      activeAudio.onerror = null;
+      window.speechSynthesis.cancel();
     } catch {}
-    activeAudio = null;
   }
+  isCurrentlySpeaking = false;
 }
 
 export function speakNaija(
@@ -65,61 +56,68 @@ export function speakNaija(
   tone: 'normal' | 'hyped' | 'goal' | 'card' = 'hyped',
   opts: { lang?: string; onEnd?: () => void } = {}
 ): void {
-  if (typeof window === 'undefined') return;
-
-  stopNaijaAudio();
-  primeNaijaVoices();
-
-  const isPidgin = (opts.lang || 'en-NG') === 'en-NG';
-  const targetLang = opts.lang || 'en-NG';
-  const speechText = isPidgin ? warriTransliterate(text) : text;
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    if (opts.onEnd) setTimeout(opts.onEnd, 2000);
+    return;
+  }
 
   try {
-    const audioUrl = `/api/tts?lang=${targetLang}&text=${encodeURIComponent(speechText)}`;
-    const audio = new Audio(audioUrl);
-    activeAudio = audio;
-
-    // DEEP MASCULINE VOICE MODULATION
-    if (isPidgin) {
-      // 0.88x playback pitch lowers the voice fundamental into a rich, deep male baritone range!
-      audio.playbackRate = 0.89;
-      // Preserve pitch shifting on modern browsers
-      (audio as any).preservesPitch = false;
-      (audio as any).mozPreservesPitch = false;
-      (audio as any).webkitPreservesPitch = false;
-    } else {
-      audio.playbackRate = 1.0;
+    if (speechFallbackTimer) clearTimeout(speechFallbackTimer);
+    window.speechSynthesis.cancel();
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
     }
 
-    audio.volume = 1.0;
+    const isPidgin = (opts.lang || 'en-NG') === 'en-NG';
+    const speechText = isPidgin ? warriTransliterate(text) : text.replace(/minute\s*\d+:\s*/gi, '').replace(/\d+[':]\s*/gi, '').trim();
 
-    audio.onended = () => {
-      activeAudio = null;
-      if (opts.onEnd) {
-        opts.onEnd();
-      }
+    if (!speechText) {
+      if (opts.onEnd) opts.onEnd();
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(speechText);
+    
+    // Configure voice parameters for energetic natural broadcast
+    utterance.rate = tone === 'goal' ? 1.05 : 0.98;
+    utterance.pitch = tone === 'goal' ? 1.15 : 0.96;
+    utterance.volume = 1.0;
+
+    const voices = window.speechSynthesis.getVoices();
+    if (voices && voices.length > 0) {
+      const preferredVoice = voices.find(v => 
+        (isPidgin && (v.lang.includes('en-NG') || v.lang.includes('en-ZA') || v.lang.includes('en-GB'))) ||
+        (!isPidgin && (v.lang.includes('en-GB') || v.lang.includes('en-US')))
+      ) || voices.find(v => v.lang.includes('en')) || voices[0];
+
+      if (preferredVoice) utterance.voice = preferredVoice;
+    }
+
+    let hasEnded = false;
+    const finish = () => {
+      if (hasEnded) return;
+      hasEnded = true;
+      if (speechFallbackTimer) clearTimeout(speechFallbackTimer);
+      isCurrentlySpeaking = false;
+      if (opts.onEnd) opts.onEnd();
     };
 
-    audio.onerror = () => {
-      activeAudio = null;
-      if (opts.onEnd) {
-        setTimeout(opts.onEnd, 1500);
-      }
-    };
+    utterance.onend = finish;
+    utterance.onerror = finish;
 
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise.catch((err) => {
-        console.warn('Audio play error:', err);
-        if (opts.onEnd) {
-          setTimeout(opts.onEnd, 1500);
-        }
-      });
+    // Safety fallback timer so commentary never freezes if browser speech hangs
+    const estimatedDurationMs = Math.max(2500, (speechText.split(' ').length / 2.5) * 1000 + 1500);
+    speechFallbackTimer = setTimeout(finish, estimatedDurationMs);
+
+    isCurrentlySpeaking = true;
+    window.speechSynthesis.speak(utterance);
+
+    // Chrome workaround for speech synthesis pausing in background
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
     }
   } catch (err) {
-    console.warn('Audio error:', err);
-    if (opts.onEnd) {
-      setTimeout(opts.onEnd, 1500);
-    }
+    isCurrentlySpeaking = false;
+    if (opts.onEnd) opts.onEnd();
   }
 }

@@ -111,7 +111,7 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
   const [activeAudioChannel, setActiveAudioChannel] = useState<'NONE' | 'ENGLISH' | 'PIDGIN'>('NONE');
   const [isBroadcastPaused, setIsBroadcastPaused] = useState<boolean>(false);
   const [broadcastClock, setBroadcastClock] = useState<string>(resolvedTime || "28'");
-  const [activePlayheadMin, setActivePlayheadMin] = useState<number>(currentMin);
+  const [activePlayheadMin, setActivePlayheadMin] = useState<number>(isFinished ? 1 : currentMin);
 
   useEffect(() => {
     primeNaijaVoices();
@@ -140,13 +140,18 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
     phoneHardware.triggerHaptic('SUCCESS');
     stadiumAudio.enableOnUserClick();
 
-    if (activeAudioChannel !== 'PIDGIN') {
+    if (activeAudioChannel === 'ENGLISH') {
+      // Instant live language switch without stopping
+      setActiveAudioChannel('PIDGIN');
+      setIsBroadcastPaused(false);
+      stadiumBroadcastAudio.switchLanguage('PIDGIN');
+    } else if (activeAudioChannel !== 'PIDGIN') {
       setActiveAudioChannel('PIDGIN');
       setIsBroadcastPaused(false);
       stadiumBroadcastAudio.startPidginBroadcast(
         resolvedHome,
         resolvedAway,
-        currentMin,
+        activePlayheadMin || (isFinished ? 1 : currentMin) || 1,
         (timeStr, isPlaying, minNum) => {
           setBroadcastClock(timeStr);
           setActivePlayheadMin(minNum);
@@ -165,13 +170,18 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
     phoneHardware.triggerHaptic('SUCCESS');
     stadiumAudio.enableOnUserClick();
 
-    if (activeAudioChannel !== 'ENGLISH') {
+    if (activeAudioChannel === 'PIDGIN') {
+      // Instant live language switch without stopping
+      setActiveAudioChannel('ENGLISH');
+      setIsBroadcastPaused(false);
+      stadiumBroadcastAudio.switchLanguage('ENGLISH');
+    } else if (activeAudioChannel !== 'ENGLISH') {
       setActiveAudioChannel('ENGLISH');
       setIsBroadcastPaused(false);
       stadiumBroadcastAudio.startEnglishBroadcast(
         resolvedHome,
         resolvedAway,
-        currentMin,
+        activePlayheadMin || (isFinished ? 1 : currentMin) || 1,
         (timeStr, isPlaying, minNum) => {
           setBroadcastClock(timeStr);
           setActivePlayheadMin(minNum);

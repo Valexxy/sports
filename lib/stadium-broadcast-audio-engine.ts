@@ -2,10 +2,10 @@
 
 /**
  * STADIUM BROADCAST AUDIO ENGINE
- * - Authentic Nigerian Voice Streaming
- * - Sequential Catch-up Auto-Advancement:
- *   If match is at 70' and user taps 65', it speaks 65', then automatically advances
- *   to 66', 67', 68', 69', and 70', then stays at 70' until the live clock ticks 71'!
+ * - Continuous Non-Stop Spoken Commentary
+ * - Does NOT speak minute numbers ("Minute 14" stripped out)
+ * - Seamless 1-Tap Language Switching (Pidgin 🇳🇬 <-> English 🇬🇧)
+ * - Clickable Timeline Scrubbing: Jump to any minute and it advances continuously upwards!
  */
 
 import { speakNaija, stopNaijaAudio } from './naija-voice-engine';
@@ -17,10 +17,11 @@ class StadiumBroadcastAudioEngine {
   private isCrowdPlaying: boolean = false;
   private isPaused: boolean = false;
   
-  private liveMaxMinute: number = 70; // Current real-time match minute
-  private currentPlayheadMinute: number = 70; // Currently voiced minute
+  private liveMaxMinute: number = 90;
+  private currentPlayheadMinute: number = 1;
   private currentSecond: number = 0;
   private timelineTimer: NodeJS.Timeout | null = null;
+  private advanceDelayTimer: NodeJS.Timeout | null = null;
   private crowdVolume: number = 0.35;
   private homeTeam: string = 'Home';
   private awayTeam: string = 'Away';
@@ -67,7 +68,7 @@ class StadiumBroadcastAudioEngine {
   public startEnglishBroadcast(
     homeTeam: string,
     awayTeam: string,
-    initialMinute: number = 28,
+    initialMinute: number = 1,
     onTick?: (timeStr: string, isPlaying: boolean, currentMin: number) => void
   ) {
     this.activeChannel = 'ENGLISH';
@@ -77,11 +78,19 @@ class StadiumBroadcastAudioEngine {
   public startPidginBroadcast(
     homeTeam: string,
     awayTeam: string,
-    initialMinute: number = 28,
+    initialMinute: number = 1,
     onTick?: (timeStr: string, isPlaying: boolean, currentMin: number) => void
   ) {
     this.activeChannel = 'PIDGIN';
     this.startBroadcastInternal(homeTeam, awayTeam, initialMinute, onTick);
+  }
+
+  public switchLanguage(lang: 'ENGLISH' | 'PIDGIN') {
+    this.activeChannel = lang;
+    if (!this.isPaused) {
+      stopNaijaAudio();
+      this.speakCurrentAndAutoAdvance();
+    }
   }
 
   private startBroadcastInternal(
@@ -93,8 +102,8 @@ class StadiumBroadcastAudioEngine {
     this.init();
     this.homeTeam = homeTeam;
     this.awayTeam = awayTeam;
-    this.liveMaxMinute = initialMinute;
-    this.currentPlayheadMinute = initialMinute;
+    this.liveMaxMinute = 90;
+    this.currentPlayheadMinute = Math.max(1, initialMinute);
     this.currentSecond = 0;
     this.isPaused = false;
     this.onTickCallback = onTick;
@@ -102,20 +111,12 @@ class StadiumBroadcastAudioEngine {
     this.startCrowdAmbience();
     this.speakCurrentAndAutoAdvance();
 
-    // Live clock timer: advances real match minute
     if (this.timelineTimer) clearInterval(this.timelineTimer);
     this.timelineTimer = setInterval(() => {
       if (!this.isPaused) {
         this.currentSecond++;
         if (this.currentSecond >= 60) {
-          this.liveMaxMinute++;
           this.currentSecond = 0;
-
-          // If we were caught up, advance playhead together with live clock
-          if (this.currentPlayheadMinute >= this.liveMaxMinute - 1) {
-            this.currentPlayheadMinute = this.liveMaxMinute;
-            this.speakCurrentAndAutoAdvance();
-          }
         }
         const timeStr = `${this.currentPlayheadMinute}:${this.currentSecond < 10 ? '0' + this.currentSecond : this.currentSecond}`;
         if (this.onTickCallback) this.onTickCallback(timeStr, true, this.currentPlayheadMinute);
@@ -123,15 +124,12 @@ class StadiumBroadcastAudioEngine {
     }, 1000);
   }
 
-  /**
-   * Interactive Timeline Scrubbing & Sequential Catch-Up:
-   * When user clicks on 65' (with live at 70'), it starts at 65' and auto-advances
-   * 66', 67', 68', 69', 70', then stays at 70' until 71'!
-   */
-  public seekToMinute(minute: number, liveMax: number = this.liveMaxMinute) {
+  public seekToMinute(minute: number, liveMax: number = 90) {
     this.init();
+    if (this.advanceDelayTimer) clearTimeout(this.advanceDelayTimer);
+    stopNaijaAudio();
     this.liveMaxMinute = Math.max(liveMax, minute);
-    this.currentPlayheadMinute = minute;
+    this.currentPlayheadMinute = Math.max(1, minute);
     this.currentSecond = 0;
     this.isPaused = false;
 
@@ -157,23 +155,27 @@ class StadiumBroadcastAudioEngine {
     let narrativeText = '';
     const isPidgin = this.activeChannel === 'PIDGIN';
 
+    // PURE NATURAL SPORTS COMMENTARY (NO "MINUTE 14" CALLS)
     if (isPidgin) {
-      if (minute === 1) narrativeText = `Referee don blow whistle for match start! ${h} and ${a} enter pitch with heavy fire!`;
-      else if (minute === 14) narrativeText = `Minute 14: Omo see thunder shot! ${a} keeper jump like cat parry ball go corner!`;
-      else if (minute === 24) narrativeText = `Minute 24: Goooooal o! ${h} wire ball enter bottom corner! Net don shake!`;
-      else if (minute === 35) narrativeText = `Minute 35: Rough tackle for center! Referee show yellow card say make player behave!`;
-      else if (minute === 45) narrativeText = `Minute 45: First half don finish kpatakpata! Make two teams go locker room go strategize!`;
-      else if (minute === 68) narrativeText = `Minute 68: Goal again! Mad finish straight enter upper 90! Stadium dey roar!`;
-      else if (minute === 78) narrativeText = `Minute 78: Tactical jersey pull to stop counter attack, referee flash yellow card!`;
-      else if (minute === 86) narrativeText = `Minute 86: Miracle save on the line! Keeper use finger tip clear danger!`;
-      else if (minute >= 90) narrativeText = `Minute 90: Referee blow final whistle! Game don settle kpatakpata!`;
+      if (minute === 1) narrativeText = `Referee don blow whistle for kickoff! ${h} and ${a} enter pitch with heavy fire!`;
+      else if (minute === 14) narrativeText = `Omo see thunder strike! ${a} keeper jump like cat parry ball go corner!`;
+      else if (minute === 24) narrativeText = `Gooooooal o! ${h} wire ball enter bottom corner! Net don scatter kpatakpata!`;
+      else if (minute === 35) narrativeText = `Rough tackle for center pitch! Referee flash yellow card say make player behave himself!`;
+      else if (minute === 45) narrativeText = `Referee blow whistle for half time! Players enter tunnel go drink water, two coaches dey talk tactics!`;
+      else if (minute === 68) narrativeText = `Mad goal again! Curling strike hit post enter net! Stadium dey roar with thunder!`;
+      else if (minute === 78) narrativeText = `Tactical jersey pull to stop fast counter attack, referee bring out yellow card without argument!`;
+      else if (minute === 86) narrativeText = `Miracle reflex save on the goal line! Keeper use finger tip punch danger go safety!`;
+      else if (minute >= 90) narrativeText = `Referee blow final whistle! Game don settle kpatakpata, record don lock inside ledger!`;
       else {
         const pcmBank = [
-          `Minute ${minute}: ${h} boys dey control ball, moving enter 18 box with correct passing!`,
-          `Minute ${minute}: Heavy physical tackle by ${a} defender, ball clear go touch line!`,
-          `Minute ${minute}: Dangerous cross swung enter penalty area, goalkeeper rush out catch am!`,
-          `Minute ${minute}: Rapid counter attack on the left wing! ${h} winger sprint with speed!`,
-          `Minute ${minute}: Long range strike fired! Ball fly inches over the bar!`,
+          `${h} boys dey control tempo, moving ball forward with accurate carpet passing!`,
+          `Heavy solid tackle by ${a} defense, ball clear straight to the touchline!`,
+          `Dangerous high cross swung enter penalty box, goalkeeper fly out catch am safely!`,
+          `Rapid counter attack on the wing! Winger sprint past defender with electric pace!`,
+          `Long range rocket fired from 30 yards! Ball zoom inches over the crossbar!`,
+          `Neat one-two combination around the 18-yard box, defense scrambles to clear!`,
+          `Intense midfield pressure forces a turnover, quick pass forward to the striker!`,
+          `Corner kick delivered with dangerous curve towards the penalty spot!`,
         ];
         narrativeText = pcmBank[minute % pcmBank.length];
       }
@@ -183,22 +185,25 @@ class StadiumBroadcastAudioEngine {
         onEnd: () => this.handleAudioEnded(),
       });
     } else {
-      if (minute === 1) narrativeText = `Referee blows the whistle for kickoff! ${h} gets this match underway.`;
-      else if (minute === 14) narrativeText = `Minute 14: Spectacular diving reflex save by the ${a} goalkeeper to deny the opener!`;
-      else if (minute === 24) narrativeText = `Minute 24: GOAL! Low curling finish into the bottom corner! ${h} takes the lead!`;
-      else if (minute === 35) narrativeText = `Minute 35: Yellow card shown for a late sliding challenge in the center of the pitch.`;
-      else if (minute === 45) narrativeText = `Minute 45: Referee blows for half time after an intense opening 45 minutes.`;
-      else if (minute === 68) narrativeText = `Minute 68: GOAL! Stunning strike straight into the top corner! Superb technique!`;
-      else if (minute === 78) narrativeText = `Minute 78: Booking for a tactical foul stopping a dangerous counter attack.`;
-      else if (minute === 86) narrativeText = `Minute 86: Outstanding goal-line reaction stop to keep the score intact!`;
-      else if (minute >= 90) narrativeText = `Minute 90: Full time whistle is blown! Match settled.`;
+      if (minute === 1) narrativeText = `Referee blows the whistle for kickoff! ${h} gets this eagerly anticipated fixture underway.`;
+      else if (minute === 14) narrativeText = `Spectacular diving reflex save by the ${a} goalkeeper to deny what seemed a certain opener!`;
+      else if (minute === 24) narrativeText = `GOAL! Superb low finish slotted into the bottom corner! ${h} takes the lead in style!`;
+      else if (minute === 35) narrativeText = `Yellow card shown for a late sliding challenge in the center of the pitch.`;
+      else if (minute === 45) narrativeText = `The referee blows for half time after a thrilling, high-tempo first half of football.`;
+      else if (minute === 68) narrativeText = `GOAL! What a magnificent strike straight into the top corner! An absolute world-class finish!`;
+      else if (minute === 78) narrativeText = `Booking for a tactical foul to break up a dangerous breakaways down the flank.`;
+      else if (minute === 86) narrativeText = `Outstanding goal-line stop! Cat-like reflexes from the goalkeeper under immense pressure!`;
+      else if (minute >= 90) narrativeText = `The final whistle sounds! Match concluded and official outcome recorded.`;
       else {
         const ukBank = [
-          `Minute ${minute}: Patient build-up from ${h}, circulating possession across the backline.`,
-          `Minute ${minute}: Solid defensive interception by ${a} to halt the forward momentum.`,
-          `Minute ${minute}: Curling cross delivered towards the far post, cleared by the central defender.`,
-          `Minute ${minute}: Rapid counter attack developing down the right wing with numbers forward.`,
-          `Minute ${minute}: Ambitious long-range effort fired towards goal, dipping just over the crossbar.`,
+          `Patient build-up from ${h}, circulating possession calmly across the defensive third.`,
+          `Solid defensive interception by ${a} to halt the forward momentum and reset play.`,
+          `Curling cross delivered towards the far post, nodded away by the central defender.`,
+          `Rapid counter attack developing down the right wing with options in the box.`,
+          `Ambitious long-range drive from 25 yards, swerving narrowly over the crossbar.`,
+          `Crisp one-touch passing sequence unlocking space between the opposition lines.`,
+          `Aggressive high press wins the ball high up the pitch, creating an immediate opening.`,
+          `Dangerous corner swung into the crowded 6-yard box, goalkeeper punches clear.`,
         ];
         narrativeText = ukBank[minute % ukBank.length];
       }
@@ -210,16 +215,25 @@ class StadiumBroadcastAudioEngine {
     }
   }
 
-  // When a minute's audio finishes, auto-advance to next minute if behind live time!
+  // Continuous Playback: Smoothly advances upward minute-by-minute
   private handleAudioEnded() {
     if (this.isPaused) return;
 
-    if (this.currentPlayheadMinute < this.liveMaxMinute) {
-      // Auto-advance sequentially (e.g. 65 -> 66 -> 67 -> 68 -> 69 -> 70)
+    if (this.currentPlayheadMinute < 90) {
       this.currentPlayheadMinute++;
-      this.speakCurrentAndAutoAdvance();
+      // Small natural 600ms pause between commentary moments
+      if (this.advanceDelayTimer) clearTimeout(this.advanceDelayTimer);
+      this.advanceDelayTimer = setTimeout(() => {
+        this.speakCurrentAndAutoAdvance();
+      }, 600);
+    } else {
+      // Loop back to match highlights if user lets it run continuously
+      this.currentPlayheadMinute = 1;
+      if (this.advanceDelayTimer) clearTimeout(this.advanceDelayTimer);
+      this.advanceDelayTimer = setTimeout(() => {
+        this.speakCurrentAndAutoAdvance();
+      }, 1000);
     }
-    // If currentPlayheadMinute === liveMaxMinute, we have caught up! Stay at 70' until live clock hits 71'.
   }
 
   public startCrowdAmbience() {
@@ -250,6 +264,7 @@ class StadiumBroadcastAudioEngine {
 
   public pauseBroadcast() {
     this.isPaused = true;
+    if (this.advanceDelayTimer) clearTimeout(this.advanceDelayTimer);
     if (this.crowdGainNode && this.audioCtx) {
       this.crowdGainNode.gain.linearRampToValueAtTime(0.0001, this.audioCtx.currentTime + 0.3);
     }
@@ -273,6 +288,7 @@ class StadiumBroadcastAudioEngine {
 
   public stopBroadcast() {
     this.isPaused = false;
+    if (this.advanceDelayTimer) clearTimeout(this.advanceDelayTimer);
     if (this.timelineTimer) clearInterval(this.timelineTimer);
     if (this.crowdSourceNode) {
       try { this.crowdSourceNode.stop(); } catch {}

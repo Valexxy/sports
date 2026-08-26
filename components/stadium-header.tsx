@@ -24,7 +24,7 @@ interface StadiumHeaderProps {
   onToggleTheme?: () => void;
   onOpenReceipt: () => void;
   onOpenLedger: () => void;
-  onOpenBankroll?: () => void;
+  onOpenLedger?: () => void;
   onOpenProfile: () => void;
   onOpenTeams?: () => void;
   onOpenBirthdays: () => void;
@@ -132,7 +132,7 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-black/95 backdrop-blur-xl border-b border-white/10 shadow-2xl overflow-hidden">
+    <header className="sticky top-0 z-40 bg-black/95 backdrop-blur-xl border-b border-white/10 shadow-2xl">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2 sm:gap-3 font-mono text-xs">
         
         {/* Brand Logo & Tagline */}
@@ -154,32 +154,23 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
         {/* Central Language Switcher & Navigation */}
         <div className="flex items-center space-x-2">
           <GlobalLanguageSwitcher />
+          <button
+            onClick={onOpenBirthdays}
+            className="flex items-center space-x-1 sm:space-x-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-2xl bg-pink-500/15 hover:bg-pink-500/25 border border-pink-500/40 text-pink-400 font-black text-xs shadow-md transition-all active:scale-95"
+            title="Star Birthdays Today & This Week"
+          >
+            <span>🎂</span>
+            <span className="hidden sm:inline">Birthdays</span>
+          </button>
         </div>
 
         {/* Desktop Navigation Menu */}
         <nav className="hidden lg:flex items-center space-x-1 bg-black/60 p-1.5 rounded-2xl border border-white/10">
-          <Link
-            href="/"
-            className="px-3 py-1.5 rounded-xl bg-stadiumGreen text-black font-black text-xs transition-all shadow-md"
-          >
-            {t('Live Matches ⚡')}
-          </Link>
 
-          <button
-            onClick={onOpenLeaderboard}
-            className="px-3 py-1.5 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 font-bold transition-all flex items-center space-x-1"
-          >
-            <Trophy className="w-3.5 h-3.5 text-gold" />
-            <span>{t('Leaderboard')}</span>
-          </button>
 
-          <button
-            onClick={onOpenBirthdays}
-            className="px-3 py-1.5 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 font-bold transition-all flex items-center space-x-1"
-          >
-            <Cake className="w-3.5 h-3.5 text-pink-400" />
-            <span>{t('Birthdays')}</span>
-          </button>
+
+
+
 
 
         </nav>
@@ -218,31 +209,7 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
             </button>
           )}
 
-          {/* Dynamic Guest / User Profile Button */}
-          {currentUser ? (
-            <button
-              onClick={onOpenProfile}
-              className="p-1 sm:px-2.5 sm:py-1.5 rounded-2xl bg-panel border border-stadiumGreen/40 text-stadiumGreen flex items-center space-x-1 sm:space-x-1.5 transition-all hover:scale-105 active:scale-95 glow-emerald"
-              title="Your Player Profile & Dashboard"
-            >
-              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-tr from-stadiumGreen to-gold flex items-center justify-center text-black font-black text-[10px]">
-                {currentUser.avatar || '⚡'}
-              </div>
-              <span className="hidden md:inline font-bold text-xs text-white">@{currentUser.username}</span>
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-gold/20 text-gold font-bold">
-                {(currentUser.aura_balance || 500).toLocaleString()} AURA
-              </span>
-            </button>
-          ) : (
-            <button
-              onClick={onOpenProfile}
-              className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-2xl bg-gradient-to-r from-stadiumGreen via-emerald-400 to-gold text-black font-black text-xs flex items-center space-x-1 shadow-lg glow-emerald hover:scale-105 active:scale-95 transition-all"
-              title="Sign In / Fast-Track Onboarding"
-            >
-              <Zap className="w-3.5 h-3.5 fill-black" />
-              <span>Join Arena (+500 Aura)</span>
-            </button>
-          )}
+
 
           
 

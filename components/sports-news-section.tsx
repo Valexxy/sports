@@ -406,17 +406,19 @@ export const SportsNewsSection: React.FC = () => {
 
             {/* ARTICLE STORY CONTENT */}
             <div className="p-6 sm:p-8 rounded-3xl bg-black/60 border border-white/10 space-y-4 font-sans text-sm sm:text-base text-gray-200 leading-relaxed shadow-xl">
-              <p className="font-semibold text-white text-base sm:text-lg leading-relaxed">
+              <p className="font-bold text-stadiumGreen text-base sm:text-lg leading-relaxed border-l-4 border-stadiumGreen pl-4 py-1 bg-white/5 rounded-r-xl">
                 {(lang !== 'en' && translatedMap[activeArticle.id]?.description) 
                   ? translatedMap[activeArticle.id].description 
                   : activeArticle.description}
               </p>
               
-              <p className="text-gray-300 leading-relaxed whitespace-pre-line">
-                {(lang !== 'en' && translatedMap[activeArticle.id]?.fullContent) 
+              <div className="text-gray-300 leading-relaxed whitespace-pre-line space-y-3 pt-2">
+                {((lang !== 'en' && translatedMap[activeArticle.id]?.fullContent) 
                   ? translatedMap[activeArticle.id].fullContent 
-                  : (activeArticle.fullContent || 'Full tactical updates and in-play coverage continue on AuraScore Stadium Match Center.')}
-              </p>
+                  : (activeArticle.fullContent || 'Full tactical updates and in-play coverage continue on AuraScore Stadium Match Center.'))
+                  .replace(activeArticle.description, '')
+                  .trim()}
+              </div>
             </div>
 
             {/* ACTION FOOTER */}
@@ -429,15 +431,10 @@ export const SportsNewsSection: React.FC = () => {
                 <span>{t('Back to All News')}</span>
               </button>
 
-              <a
-                href={activeArticle.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-6 py-3 rounded-2xl bg-stadiumGreen text-black font-black text-xs flex items-center space-x-2 hover:bg-emerald-400 transition-all shadow-lg"
-              >
-                <span>{t('View Original Source')} ({activeArticle.source})</span>
-                <ExternalLink className="w-4 h-4" />
-              </a>
+              <div className="px-5 py-3 rounded-2xl bg-panel border border-stadiumGreen/40 text-gray-300 font-bold text-xs flex items-center space-x-2 shadow-md">
+                <span>📰 Source:</span>
+                <span className="text-stadiumGreen font-black">{activeArticle.source}</span>
+              </div>
             </div>
           </div>
         </div>

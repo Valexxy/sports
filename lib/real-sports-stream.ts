@@ -71,7 +71,7 @@ function estimateTeamStrength(teamName: string) { return getTeamStrength(teamNam
 async function fetchFootballDataMatches(): Promise<MatchData[]> {
   try {
     const now = new Date();
-    const from = new Date(now.getTime() - 2 * 24 * 3600 * 1000).toISOString().split('T')[0];
+    const from = new Date(now.getTime() - 14 * 24 * 3600 * 1000).toISOString().split('T')[0];
     const to = new Date(now.getTime() + 4 * 24 * 3600 * 1000).toISOString().split('T')[0];
 
     const controller = new AbortController();
@@ -159,11 +159,7 @@ async function fetchFootballDataMatches(): Promise<MatchData[]> {
               : dcOutput.homeWinProb >= dcOutput.awayWinProb
               ? (dcOutput.topPick.selection || `${homeTeam} or Draw (1X)`)
               : (dcOutput.awayWinProb > 0.6 ? `${awayTeam} Win` : `${awayTeam} or Draw (X2)`),
-            market: isFinished
-              ? 'SETTLED'
-              : dcOutput.homeWinProb >= dcOutput.awayWinProb
-              ? dcOutput.topPick.market
-              : 'Double Chance',
+            market: isFinished ? 'SETTLED' : (dcOutput.homeWinProb >= dcOutput.awayWinProb ? dcOutput.topPick.market : 'Double Chance'),
             odds: dcOutput.topPick.odds,
             confidenceTier: dcOutput.topPick.probability >= 80 ? 'ULTRA-BANKER' : dcOutput.topPick.probability >= 65 ? 'BANKER' : 'HIGH VALUE',
             kellyStake: dcOutput.topPick.kellyStake,
@@ -204,17 +200,55 @@ async function fetchFootballDataMatches(): Promise<MatchData[]> {
 
 // 2. Fetch ESPN Multi-League Scoreboards in Parallel
 const ESPN_LEAGUES = [
+  // ⚽ FOOTBALL - European Top Leagues & Cups
   { code: 'eng.1', name: 'Premier League', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', sport: 'SOCCER' as const, path: 'soccer/eng.1' },
+  { code: 'eng.league_cup', name: 'Carabao Cup', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿🏆', sport: 'SOCCER' as const, path: 'soccer/eng.league_cup' },
+  { code: 'eng.fa', name: 'FA Cup', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿🏆', sport: 'SOCCER' as const, path: 'soccer/eng.fa' },
+  { code: 'eng.2', name: 'Championship', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', sport: 'SOCCER' as const, path: 'soccer/eng.2' },
   { code: 'esp.1', name: 'La Liga', flag: '🇪🇸', sport: 'SOCCER' as const, path: 'soccer/esp.1' },
-  { code: 'uefa.champions', name: 'UEFA Champions League', flag: '🇪🇺', sport: 'SOCCER' as const, path: 'soccer/uefa.champions' },
-  { code: 'conmebol.libertadores', name: 'Copa Libertadores', flag: '🏆🌎', sport: 'SOCCER' as const, path: 'soccer/conmebol.libertadores' },
+  { code: 'esp.copa_del_rey', name: 'Copa del Rey', flag: '🇪🇸🏆', sport: 'SOCCER' as const, path: 'soccer/esp.copa_del_rey' },
   { code: 'ita.1', name: 'Serie A', flag: '🇮🇹', sport: 'SOCCER' as const, path: 'soccer/ita.1' },
+  { code: 'ita.coppa_italia', name: 'Coppa Italia', flag: '🇮🇹🏆', sport: 'SOCCER' as const, path: 'soccer/ita.coppa_italia' },
   { code: 'ger.1', name: 'Bundesliga', flag: '🇩🇪', sport: 'SOCCER' as const, path: 'soccer/ger.1' },
+  { code: 'ger.dfb_pokal', name: 'DFB-Pokal', flag: '🇩🇪🏆', sport: 'SOCCER' as const, path: 'soccer/ger.dfb_pokal' },
   { code: 'fra.1', name: 'Ligue 1', flag: '🇫🇷', sport: 'SOCCER' as const, path: 'soccer/fra.1' },
-  { code: 'usa.1', name: 'MLS', flag: '🇺🇸', sport: 'SOCCER' as const, path: 'soccer/usa.1' },
+  { code: 'fra.coupe_de_france', name: 'Coupe de France', flag: '🇫🇷🏆', sport: 'SOCCER' as const, path: 'soccer/fra.coupe_de_france' },
+
+  // 🇪🇺 CONTINENTAL UEFA
+  { code: 'uefa.champions', name: 'UEFA Champions League', flag: '🇪🇺⭐', sport: 'SOCCER' as const, path: 'soccer/uefa.champions' },
+  { code: 'uefa.champions_qual', name: 'Champions League Qualifiers', flag: '🇪🇺⚡', sport: 'SOCCER' as const, path: 'soccer/uefa.champions_qual' },
+  { code: 'uefa.europa', name: 'UEFA Europa League', flag: '🇪🇺🏆', sport: 'SOCCER' as const, path: 'soccer/uefa.europa' },
+  { code: 'uefa.europa.conf', name: 'Conference League', flag: '🇪🇺🏆', sport: 'SOCCER' as const, path: 'soccer/uefa.europa.conf' },
+  { code: 'uefa.super_cup', name: 'UEFA Super Cup', flag: '🇪🇺👑', sport: 'SOCCER' as const, path: 'soccer/uefa.super_cup' },
+
+  // 🌎 SOUTH AMERICAN & CONCACAF
+  { code: 'conmebol.libertadores', name: 'Copa Libertadores', flag: '🏆🌎', sport: 'SOCCER' as const, path: 'soccer/conmebol.libertadores' },
+  { code: 'conmebol.sudamericana', name: 'Copa Sudamericana', flag: '🏆🌎', sport: 'SOCCER' as const, path: 'soccer/conmebol.sudamericana' },
   { code: 'bra.1', name: 'Brasileirao', flag: '🇧🇷', sport: 'SOCCER' as const, path: 'soccer/bra.1' },
+  { code: 'bra.copa_do_brasil', name: 'Copa do Brasil', flag: '🇧🇷🏆', sport: 'SOCCER' as const, path: 'soccer/bra.copa_do_brasil' },
+  { code: 'arg.1', name: 'Liga Argentina', flag: '🇦🇷', sport: 'SOCCER' as const, path: 'soccer/arg.1' },
+  { code: 'arg.copa', name: 'Copa Argentina', flag: '🇦🇷🏆', sport: 'SOCCER' as const, path: 'soccer/arg.copa' },
+  { code: 'col.1', name: 'Liga Colombiana', flag: '🇨🇴', sport: 'SOCCER' as const, path: 'soccer/col.1' },
+  { code: 'chi.1', name: 'Primera División de Chile', flag: '🇨🇱', sport: 'SOCCER' as const, path: 'soccer/chi.1' },
+  { code: 'bol.1', name: 'Liga Boliviana', flag: '🇧🇴', sport: 'SOCCER' as const, path: 'soccer/bol.1' },
+  { code: 'usa.1', name: 'MLS', flag: '🇺🇸', sport: 'SOCCER' as const, path: 'soccer/usa.1' },
   { code: 'mex.1', name: 'Liga MX', flag: '🇲🇽', sport: 'SOCCER' as const, path: 'soccer/mex.1' },
+  { code: 'sau.1', name: 'Saudi Pro League', flag: '🇸🇦', sport: 'SOCCER' as const, path: 'soccer/sau.1' },
+
+  // 🏀 BASKETBALL
   { code: 'nba', name: 'NBA Basketball', flag: '🏀🇺🇸', sport: 'BASKETBALL' as const, path: 'basketball/nba' },
+  { code: 'wnba', name: 'WNBA Basketball', flag: '🏀👩', sport: 'BASKETBALL' as const, path: 'basketball/wnba' },
+  { code: 'mens-college-basketball', name: 'NCAA Basketball', flag: '🏀🎓', sport: 'BASKETBALL' as const, path: 'basketball/mens-college-basketball' },
+
+  // 🏈 AMERICAN FOOTBALL
+  { code: 'nfl', name: 'NFL Football', flag: '🏈🇺🇸', sport: 'AMERICAN_FOOTBALL' as const, path: 'football/nfl' },
+  { code: 'college-football', name: 'NCAA College Football', flag: '🏈🎓', sport: 'AMERICAN_FOOTBALL' as const, path: 'football/college-football' },
+
+  // ⚾ BASEBALL
+  { code: 'mlb', name: 'MLB Baseball', flag: '⚾🇺🇸', sport: 'BASEBALL' as const, path: 'baseball/mlb' },
+
+  // 🏒 ICE HOCKEY
+  { code: 'nhl', name: 'NHL Hockey', flag: '🏒🇺🇸', sport: 'HOCKEY' as const, path: 'hockey/nhl' },
 ];
 
 async function fetchSingleEspnLeague(ep: typeof ESPN_LEAGUES[0]): Promise<MatchData[]> {
@@ -222,7 +256,13 @@ async function fetchSingleEspnLeague(ep: typeof ESPN_LEAGUES[0]): Promise<MatchD
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 3000);
 
-    const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/${ep.path}/scoreboard`, {
+    const now = new Date();
+    const past = new Date(now.getTime() - 7 * 24 * 3600 * 1000);
+    const future = new Date(now.getTime() + 7 * 24 * 3600 * 1000);
+    const fmt = (d: Date) => d.toISOString().slice(0, 10).replace(/-/g, '');
+    const dateRange = `${fmt(past)}-${fmt(future)}`;
+
+    const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/${ep.path}/scoreboard?dates=${dateRange}&limit=100`, {
       signal: controller.signal,
       next: { revalidate: 20 },
     });
@@ -276,6 +316,22 @@ async function fetchSingleEspnLeague(ep: typeof ESPN_LEAGUES[0]): Promise<MatchD
       };
       const dcOutput = calculateDixonColesPrediction(dcInput);
 
+      const isBball = ep.sport === 'BASKETBALL';
+      const isNFL = ep.sport === 'AMERICAN_FOOTBALL';
+
+      let defaultSelection = `${homeTeam} Win`;
+      let defaultMarket = 'Moneyline';
+      if (isBball) {
+        defaultSelection = isFinished ? `${homeScore > awayScore ? homeTeam : awayTeam} Win (Settled)` : `${homeTeam} to Win`;
+        defaultMarket = isFinished ? 'SETTLED' : 'Moneyline';
+      } else if (isNFL) {
+        defaultSelection = isFinished ? `${homeScore > awayScore ? homeTeam : awayTeam} Win (Settled)` : `${homeTeam} -3.5 Spread`;
+        defaultMarket = isFinished ? 'SETTLED' : 'Point Spread';
+      } else {
+        defaultSelection = isFinished ? `${homeScore > awayScore ? homeTeam : awayTeam} (Settled)` : (dcOutput.homeWinProb >= dcOutput.awayWinProb ? `${homeTeam} or Draw (1X)` : `${awayTeam} Win`);
+        defaultMarket = isFinished ? 'SETTLED' : 'Double Chance';
+      }
+
       matches.push({
         id: `espn-${ev.id}`,
         homeTeam,
@@ -295,16 +351,8 @@ async function fetchSingleEspnLeague(ep: typeof ESPN_LEAGUES[0]): Promise<MatchD
         stadiumTension: isLive ? 95 : isFinished ? 12 : Math.round(dcOutput.topPick.probability),
         prediction: {
           topPick: {
-            selection: isFinished
-              ? `${homeScore > awayScore ? homeTeam : awayScore > homeScore ? awayTeam : 'Draw'} (Settled)`
-              : dcOutput.homeWinProb >= dcOutput.awayWinProb
-              ? (dcOutput.topPick.selection || `${homeTeam} or Draw (1X)`)
-              : (dcOutput.awayWinProb > 0.6 ? `${awayTeam} Win` : `${awayTeam} or Draw (X2)`),
-            market: isFinished
-              ? 'SETTLED'
-              : dcOutput.homeWinProb >= dcOutput.awayWinProb
-              ? dcOutput.topPick.market
-              : 'Double Chance',
+            selection: defaultSelection,
+            market: defaultMarket,
             odds: dcOutput.topPick.odds,
             confidenceTier: dcOutput.topPick.probability >= 80 ? 'ULTRA-BANKER' : dcOutput.topPick.probability >= 65 ? 'BANKER' : 'HIGH VALUE',
             kellyStake: 5,
@@ -521,3 +569,187 @@ export async function getRealLiveAndPlayedMatches(): Promise<MatchData[]> {
     20000 // 20s edge cache
   );
 }
+
+export const MULTI_SPORT_FIXTURES: MatchData[] = [
+  // 🏀 BASKETBALL
+  {
+    id: 'bball-1',
+    homeTeam: 'Boston Celtics',
+    awayTeam: 'Dallas Mavericks',
+    homeLogo: 'https://a.espncdn.com/i/teamlogos/nba/500/bos.png',
+    awayLogo: 'https://a.espncdn.com/i/teamlogos/nba/500/dal.png',
+    homeScore: 106,
+    awayScore: 99,
+    status: 'FINISHED',
+    matchTime: 'FT',
+    league: 'NBA Basketball',
+    leagueFlag: '🏀🇺🇸',
+    sport: 'BASKETBALL',
+    stadiumTension: 10,
+    utcDate: '2026-08-26T02:00:00Z',
+    prediction: {
+      topPick: {
+        selection: 'Boston Celtics Win (Settled)',
+        market: 'SETTLED',
+        odds: 1.45,
+        confidenceTier: 'ULTRA-BANKER',
+        kellyStake: 5000,
+        probability: 91,
+        rationale: 'Final score: 106 - 99. Official NBA settlement.',
+      },
+      homeWinProb: 0.72,
+      drawProb: 0.05,
+      awayWinProb: 0.23,
+      expectedHomeGoals: 108,
+      expectedAwayGoals: 98,
+    },
+    odds: [
+      { bookie: 'SportyBet ⚡', homeWin: 1.45, draw: 15.0, awayWin: 2.80, affiliateUrl: 'https://www.sportybet.com' },
+      { bookie: 'Bet9ja 🇳🇬', homeWin: 1.48, draw: 14.0, awayWin: 2.85, affiliateUrl: 'https://www.bet9ja.com' },
+    ],
+  },
+  {
+    id: 'bball-2',
+    homeTeam: 'Golden State Warriors',
+    awayTeam: 'LA Lakers',
+    homeLogo: 'https://a.espncdn.com/i/teamlogos/nba/500/gs.png',
+    awayLogo: 'https://a.espncdn.com/i/teamlogos/nba/500/lal.png',
+    homeScore: 0,
+    awayScore: 0,
+    status: 'SCHEDULED',
+    matchTime: '23:30',
+    league: 'NBA Basketball',
+    leagueFlag: '🏀🇺🇸',
+    sport: 'BASKETBALL',
+    stadiumTension: 82,
+    utcDate: '2026-08-26T22:30:00Z',
+    prediction: {
+      topPick: {
+        selection: 'Over 224.5 Total Points',
+        market: 'Over/Under',
+        odds: 1.88,
+        confidenceTier: 'BANKER',
+        kellyStake: 3500,
+        probability: 78,
+        rationale: 'High offensive tempo and perimeter shooting volume.',
+      },
+      homeWinProb: 0.55,
+      drawProb: 0.05,
+      awayWinProb: 0.40,
+      expectedHomeGoals: 115,
+      expectedAwayGoals: 112,
+    },
+    odds: [
+      { bookie: 'SportyBet ⚡', homeWin: 1.75, draw: 15.0, awayWin: 2.10, affiliateUrl: 'https://www.sportybet.com' },
+      { bookie: 'Bet9ja 🇳🇬', homeWin: 1.78, draw: 14.5, awayWin: 2.15, affiliateUrl: 'https://www.bet9ja.com' },
+    ],
+  },
+  // 🥊 UFC / MMA
+  {
+    id: 'ufc-1',
+    homeTeam: 'Alex Pereira',
+    awayTeam: 'Magomed Ankalaev',
+    homeLogo: 'https://a.espncdn.com/combiner/i?img=/i/headshots/mma/players/full/4351684.png&w=350&h=254',
+    awayLogo: 'https://a.espncdn.com/combiner/i?img=/i/headshots/mma/players/full/4285611.png&w=350&h=254',
+    homeScore: 0,
+    awayScore: 0,
+    status: 'SCHEDULED',
+    matchTime: '03:00',
+    league: 'UFC Light Heavyweight Championship',
+    leagueFlag: '🥊🌎',
+    sport: 'COMBAT',
+    stadiumTension: 95,
+    utcDate: '2026-08-26T03:00:00Z',
+    prediction: {
+      topPick: {
+        selection: 'Alex Pereira by KO / TKO',
+        market: 'Method of Victory',
+        odds: 1.95,
+        confidenceTier: 'ULTRA-BANKER',
+        kellyStake: 4000,
+        probability: 84,
+        rationale: 'Pereira devastating calf kicks and trademark left hook.',
+      },
+      homeWinProb: 0.65,
+      drawProb: 0.02,
+      awayWinProb: 0.33,
+      expectedHomeGoals: 1,
+      expectedAwayGoals: 0,
+    },
+    odds: [
+      { bookie: 'SportyBet ⚡', homeWin: 1.62, draw: 25.0, awayWin: 2.30, affiliateUrl: 'https://www.sportybet.com' },
+    ],
+  },
+  // 🎾 TENNIS
+  {
+    id: 'tennis-1',
+    homeTeam: 'Carlos Alcaraz',
+    awayTeam: 'Jannik Sinner',
+    homeLogo: 'https://a.espncdn.com/combiner/i?img=/i/headshots/tennis/players/full/4075.png',
+    awayLogo: 'https://a.espncdn.com/combiner/i?img=/i/headshots/tennis/players/full/4379.png',
+    homeScore: 3,
+    awayScore: 2,
+    status: 'FINISHED',
+    matchTime: 'FT',
+    league: 'US Open Grand Slam',
+    leagueFlag: '🎾🇺🇸',
+    sport: 'TENNIS',
+    stadiumTension: 10,
+    utcDate: '2026-08-26T18:00:00Z',
+    prediction: {
+      topPick: {
+        selection: 'Carlos Alcaraz Win (Settled)',
+        market: 'SETTLED',
+        odds: 1.72,
+        confidenceTier: 'ULTRA-BANKER',
+        kellyStake: 5000,
+        probability: 88,
+        rationale: '5-set classic victory. Recorded in Grand Slam ledger.',
+      },
+      homeWinProb: 0.58,
+      drawProb: 0.0,
+      awayWinProb: 0.42,
+      expectedHomeGoals: 3,
+      expectedAwayGoals: 2,
+    },
+    odds: [
+      { bookie: 'SportyBet ⚡', homeWin: 1.72, draw: 30.0, awayWin: 2.15, affiliateUrl: 'https://www.sportybet.com' },
+    ],
+  },
+  // 🏈 AMERICAN FOOTBALL
+  {
+    id: 'nfl-1',
+    homeTeam: 'Kansas City Chiefs',
+    awayTeam: 'San Francisco 49ers',
+    homeLogo: 'https://a.espncdn.com/i/teamlogos/nfl/500/kc.png',
+    awayLogo: 'https://a.espncdn.com/i/teamlogos/nfl/500/sf.png',
+    homeScore: 25,
+    awayScore: 22,
+    status: 'FINISHED',
+    matchTime: 'FT',
+    league: 'NFL Football',
+    leagueFlag: '🏈🇺🇸',
+    sport: 'AMERICAN_FOOTBALL',
+    stadiumTension: 10,
+    utcDate: '2026-08-26T21:00:00Z',
+    prediction: {
+      topPick: {
+        selection: 'Kansas City Chiefs Win (Settled)',
+        market: 'SETTLED',
+        odds: 1.85,
+        confidenceTier: 'ULTRA-BANKER',
+        kellyStake: 5000,
+        probability: 89,
+        rationale: 'Patrick Mahomes game-winning drive in overtime.',
+      },
+      homeWinProb: 0.60,
+      drawProb: 0.05,
+      awayWinProb: 0.35,
+      expectedHomeGoals: 25,
+      expectedAwayGoals: 22,
+    },
+    odds: [
+      { bookie: 'SportyBet ⚡', homeWin: 1.85, draw: 12.0, awayWin: 2.05, affiliateUrl: 'https://www.sportybet.com' },
+    ],
+  },
+];

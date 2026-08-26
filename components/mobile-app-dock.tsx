@@ -68,16 +68,16 @@ export const MobileAppDock: React.FC<AppDockProps> = ({
             <span className="text-[9px] font-mono font-bold mt-0.5">Harvest</span>
           </button>
 
-          {/* VIP Admin Chat Tab */}
+          {/* Global Sports News Tab */}
           <button
-            onClick={() => handleTabClick('CHAT', onOpenAdminChat)}
-            className="flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-gray-400 hover:text-cyan-300 transition-all relative"
+            onClick={() => handleTabClick('NEWS', () => {
+              const el = document.getElementById('news-section');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            })}
+            className="flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-gray-400 hover:text-stadiumGreen transition-all"
           >
-            <div className="relative">
-              <MessageSquare className="w-4 h-4 text-cyan-400 flex-shrink-0" />
-              <span className="w-1.5 h-1.5 rounded-full bg-stadiumGreen animate-ping absolute -top-0.5 -right-0.5" />
-            </div>
-            <span className="text-[9px] font-mono font-bold mt-0.5">Support</span>
+            <MessageSquare className="w-4 h-4 text-stadiumGreen flex-shrink-0" />
+            <span className="text-[9px] font-mono font-bold mt-0.5">News Wire</span>
           </button>
 
           {/* Profile Tab */}

@@ -287,7 +287,10 @@ export async function GET() {
             category,
             categoryBadge,
             imageUrl: img,
-            fullContent: fullStory.length > desc.length ? fullStory : `${desc}\n\nExpert tactical analysis indicates significant momentum shifts following this development. Coaches and analytical scouts have highlighted key squad adaptations ahead of the upcoming fixtures.\n\nFor real-time in-play statistical updates and match commentary, monitor the AuraScore Live Stadium Match Center.`,
+            fullContent: (function() {
+              if (art.story && art.story.length > 50 && art.story !== desc) return art.story;
+              return `${desc}\n\nClub representatives and tactical analysts have monitored this development closely as squad rotations take shape for the upcoming competitive round.\n\nOfficial statistical tracking, starting lineups, and live in-play commentary are synchronized live in the AuraScore Stadium Match Center.`;
+            })(),
           };
         });
       } catch {

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Globe, 
   X, 
@@ -7,11 +7,9 @@ import {
   Star, 
   Trophy, 
   ChevronRight, 
-  Check, 
-  Shield, 
-  Sparkles,
   Flame,
-  Filter
+  Table,
+  Zap
 } from 'lucide-react';
 import { GLOBAL_LEAGUES_CATALOG, LeagueInfo } from '../lib/league-badges';
 import { useTranslation } from '../lib/translation-engine';
@@ -22,6 +20,7 @@ interface GlobalLeagueBrowserProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectLeague: (leagueName: string) => void;
+  onOpenStandings?: (leagueName: string) => void;
   followedLeagues: string[];
   onToggleFollowLeague: (leagueId: string) => void;
 }
@@ -30,12 +29,14 @@ export const GlobalLeagueBrowser: React.FC<GlobalLeagueBrowserProps> = ({
   isOpen,
   onClose,
   onSelectLeague,
+  onOpenStandings,
   followedLeagues = [],
   onToggleFollowLeague,
 }) => {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [selectedRegion, setSelectedRegion] = useState<'ALL' | 'EUROPE' | 'AFRICA' | 'AMERICAS' | 'ASIA_MIDDLE_EAST' | 'GLOBAL'>('ALL');
+  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
 
   if (!isOpen) return null;
 
@@ -48,10 +49,22 @@ export const GlobalLeagueBrowser: React.FC<GlobalLeagueBrowserProps> = ({
     );
   });
 
-  const handleLeagueClick = (league: LeagueInfo) => {
+  const handleFilterMatches = (leagueName: string) => {
     phoneHardware.triggerHaptic('SELECTION');
     stadiumAudio.playTabClickSound();
-    onSelectLeague(league.name);
+    onSelectLeague(leagueName);
+    onClose();
+  };
+
+  const handleViewStandings = (e: React.MouseEvent, leagueName: string) => {
+    e.stopPropagation();
+    phoneHardware.triggerHaptic('SUCCESS');
+    stadiumAudio.playBookmarkSound();
+    if (onOpenStandings) {
+      onOpenStandings(leagueName);
+    } else {
+      onSelectLeague(leagueName);
+    }
     onClose();
   };
 
@@ -64,7 +77,7 @@ export const GlobalLeagueBrowser: React.FC<GlobalLeagueBrowserProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-2xl flex items-center justify-center p-2 sm:p-6 animate-fadeIn font-mono text-xs">
-      <div className="relative w-full max-w-5xl h-[92vh] glass-panel-premium rounded-3xl border-2 border-stadiumGreen/60 p-4 sm:p-6 shadow-2xl flex flex-col space-y-4">
+      <div className="relative w-full max-w-5xl h-[92vh] bg-[#0a0d14] rounded-3xl border-2 border-stadiumGreen/60 p-4 sm:p-6 shadow-2xl flex flex-col space-y-4 text-white">
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/10 pb-4 flex-shrink-0">
@@ -75,14 +88,14 @@ export const GlobalLeagueBrowser: React.FC<GlobalLeagueBrowserProps> = ({
             <div>
               <div className="flex items-center space-x-2">
                 <h1 className="font-black text-base sm:text-xl text-white tracking-wider">
-                  GLOBAL LEAGUES & COUNTRIES 🌍
+                  GLOBAL LEAGUES &amp; COUNTRIES 🌍
                 </h1>
                 <span className="px-2.5 py-0.5 rounded-full bg-stadiumGreen text-black font-black text-[10px]">
                   35+ WORLD LEAGUES
                 </span>
               </div>
               <p className="text-xs text-gray-400 font-sans mt-0.5">
-                Browse, follow and filter all domestic & international competitions across Europe, Africa, Americas, and Asia
+                Browse, follow and filter all domestic &amp; international competitions across Europe, Africa, Americas, and Asia
               </p>
             </div>
           </div>
@@ -96,7 +109,6 @@ export const GlobalLeagueBrowser: React.FC<GlobalLeagueBrowserProps> = ({
           </button>
         </div>
 
-        
         {/* 🔥 HOTTEST LEAGUES ROW */}
         <div className="space-y-1.5 flex-shrink-0">
           <div className="flex items-center justify-between px-1">
@@ -105,36 +117,32 @@ export const GlobalLeagueBrowser: React.FC<GlobalLeagueBrowserProps> = ({
               <span className="text-xs font-black text-white uppercase tracking-wider">HOTTEST LEAGUES TODAY</span>
               <span className="px-1.5 py-0.2 rounded bg-crimson text-white font-black text-[9px]">TRENDING</span>
             </div>
-            <span className="text-[10px] text-gray-400 font-sans">High Volume & Derbies</span>
+            <span className="text-[10px] text-gray-400 font-sans">Click to Filter or View Table</span>
           </div>
 
           <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-none">
             {[
-              { id: 'premier-league', name: 'Premier League', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', badge: 'HIGH ACTION' },
-              { id: 'la-liga', name: 'La Liga', flag: '🇪🇸', badge: 'EL CLÁSICO' },
-              { id: 'uefa-cl', name: 'Champions League', flag: '⭐', badge: 'ELITE' },
-              { id: 'npfl', name: 'NPFL Radar 🇳🇬', flag: '🇳🇬', badge: 'HOT NAIJA' },
-              { id: 'saudi-pro-league', name: 'Saudi Pro League', flag: '🇸🇦', badge: 'SUPERSTARS' },
-              { id: 'serie-a', name: 'Serie A', flag: '🇮🇹', badge: 'TACTICAL' },
-              { id: 'bundesliga', name: 'Bundesliga', flag: '🇩🇪', badge: 'GOALS' },
+              { id: 'premier-league', name: 'Premier League', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', logo: 'https://crests.football-data.org/PL.png' },
+              { id: 'la-liga', name: 'La Liga', flag: '🇪🇸', logo: 'https://crests.football-data.org/PD.png' },
+              { id: 'uefa-cl', name: 'Champions League', flag: '⭐', logo: 'https://crests.football-data.org/CL.png' },
+              { id: 'npfl', name: 'Nigeria Premier League', flag: '🇳🇬', logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f0/Nigeria_Premier_Football_League_logo.png/220px-Nigeria_Premier_Football_League_logo.png' },
+              { id: 'serie-a', name: 'Serie A', flag: '🇮🇹', logo: 'https://crests.football-data.org/SA.png' },
+              { id: 'bundesliga', name: 'Bundesliga', flag: '🇩🇪', logo: 'https://crests.football-data.org/BL1.png' },
             ].map((hot) => (
               <button
                 key={hot.id}
-                onClick={() => {
-                  phoneHardware.triggerHaptic('SELECTION');
-                  stadiumAudio.playTabClickSound();
-                  onSelectLeague(hot.name);
-                  onClose();
-                }}
+                onClick={() => handleFilterMatches(hot.name)}
                 className="p-2.5 rounded-2xl bg-gradient-to-r from-black/80 via-panel to-black/80 border border-stadiumGreen/40 hover:border-stadiumGreen hover:scale-105 transition-all text-left flex-shrink-0 flex items-center space-x-2.5 shadow-md group"
               >
-                <span className="text-xl">{hot.flag}</span>
+                <div className="w-6 h-6 rounded-lg bg-black/60 p-0.5 flex items-center justify-center overflow-hidden">
+                  <img src={hot.logo} alt={hot.name} className="w-full h-full object-contain" onError={(e) => { (e.target as any).style.display = 'none'; }} />
+                </div>
                 <div>
                   <span className="font-black text-white text-xs group-hover:text-stadiumGreen transition-colors block whitespace-nowrap">
                     {hot.name}
                   </span>
-                  <span className="text-[8px] text-gold font-black uppercase block">
-                    {hot.badge}
+                  <span className="text-[9px] text-gray-400 font-mono">
+                    Filter Matches ➔
                   </span>
                 </div>
               </button>
@@ -187,44 +195,45 @@ export const GlobalLeagueBrowser: React.FC<GlobalLeagueBrowserProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {filteredLeagues.map((league) => {
               const isFollowed = followedLeagues.includes(league.id);
+              const isImgErr = imgErrors[league.id];
 
               return (
                 <div
                   key={league.id}
-                  onClick={() => handleLeagueClick(league)}
-                  className="glass-panel rounded-2xl p-3.5 border border-white/10 hover:border-stadiumGreen transition-all cursor-pointer group flex items-center justify-between gap-3 hover:scale-[1.02]"
+                  onClick={() => handleFilterMatches(league.name)}
+                  className="glass-panel rounded-2xl p-3.5 border border-white/10 hover:border-stadiumGreen transition-all cursor-pointer group flex flex-col justify-between gap-2.5 hover:scale-[1.01] shadow-lg"
                 >
-                  <div className="flex items-center space-x-3 min-w-0">
-                    <div className="w-10 h-10 rounded-2xl bg-black/50 border border-white/10 p-1 flex items-center justify-center flex-shrink-0 group-hover:border-stadiumGreen">
-                      {league.logo ? (
-                        <img
-                          src={league.logo}
-                          alt={league.name}
-                          className="w-full h-full object-contain"
-                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                        />
-                      ) : (
-                        <span className="text-lg">{league.flag}</span>
-                      )}
-                    </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center space-x-3 min-w-0">
+                      <div className="w-10 h-10 rounded-2xl bg-black/80 border border-white/10 p-1.5 flex items-center justify-center flex-shrink-0 group-hover:border-stadiumGreen shadow-md">
+                        {league.logo && !isImgErr ? (
+                          <img
+                            src={league.logo}
+                            alt={league.name}
+                            className="w-full h-full object-contain"
+                            onError={() => setImgErrors((prev) => ({ ...prev, [league.id]: true }))}
+                          />
+                        ) : (
+                          <span className="text-xl">{league.flag}</span>
+                        )}
+                      </div>
 
-                    <div className="min-w-0">
-                      <div className="flex items-center space-x-1.5">
-                        <span className="text-sm">{league.flag}</span>
-                        <span className="font-black text-white text-xs truncate group-hover:text-stadiumGreen transition-colors">
-                          {league.name}
+                      <div className="min-w-0">
+                        <div className="flex items-center space-x-1.5">
+                          <span className="text-sm">{league.flag}</span>
+                          <span className="font-black text-white text-xs truncate group-hover:text-stadiumGreen transition-colors">
+                            {league.name}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-gray-400 font-sans block mt-0.5">
+                          {league.country} &bull; {league.shortName}
                         </span>
                       </div>
-                      <span className="text-[10px] text-gray-400 font-sans block mt-0.5">
-                        {league.country} • {league.shortName}
-                      </span>
                     </div>
-                  </div>
 
-                  <div className="flex items-center space-x-1.5 flex-shrink-0">
                     <button
                       onClick={(e) => handleFollowClick(e, league.id)}
-                      className={`p-2 rounded-xl border transition-all ${
+                      className={`p-2 rounded-xl border transition-all flex-shrink-0 ${
                         isFollowed
                           ? 'bg-gold text-black border-gold shadow-md font-black'
                           : 'bg-white/5 border-white/10 text-gray-400 hover:text-gold hover:border-gold/50'
@@ -233,10 +242,28 @@ export const GlobalLeagueBrowser: React.FC<GlobalLeagueBrowserProps> = ({
                     >
                       <Star className={`w-3.5 h-3.5 ${isFollowed ? 'fill-current' : ''}`} />
                     </button>
+                  </div>
 
-                    <span className="p-1.5 rounded-xl bg-white/5 text-gray-400 group-hover:bg-stadiumGreen group-hover:text-black transition-all">
-                      <ChevronRight className="w-4 h-4" />
-                    </span>
+                  {/* Direct Actions: Filter Matches & View Table */}
+                  <div className="flex items-center space-x-2 pt-1 border-t border-white/5">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleFilterMatches(league.name);
+                      }}
+                      className="flex-1 py-1.5 px-2 rounded-xl bg-stadiumGreen/15 hover:bg-stadiumGreen text-stadiumGreen hover:text-black font-black text-[10px] border border-stadiumGreen/30 transition-all flex items-center justify-center space-x-1"
+                    >
+                      <Zap className="w-3 h-3" />
+                      <span>Filter Matches</span>
+                    </button>
+                    
+                    <button
+                      onClick={(e) => handleViewStandings(e, league.name)}
+                      className="flex-1 py-1.5 px-2 rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white font-black text-[10px] border border-white/10 transition-all flex items-center justify-center space-x-1"
+                    >
+                      <Table className="w-3 h-3 text-gold" />
+                      <span>Standings</span>
+                    </button>
                   </div>
                 </div>
               );

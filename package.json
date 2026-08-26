@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.3",
+    "@tanstack/react-virtual": "^3.14.10",
     "@travisvn/edge-tts": "^1.0.2",
     "@types/stripe": "^8.0.416",
     "@upstash/qstash": "^2.11.3",

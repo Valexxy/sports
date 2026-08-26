@@ -1,4 +1,10 @@
 'use client';
+
+import { BetSlipDrawer } from '../components/bet-slip-drawer';
+import { FEATURE_BUNDLES } from '../lib/feature-bundle-config';
+
+import { SportBar, SportFilterType } from '../components/navigation/SportBar';
+import { PolymorphicMatchCard } from '../components/matches/PolymorphicMatchCard';
 import { ScreenPinnedMatchWidget } from '../components/screen-pinned-match-widget';
 import { SecurityHealthBadge } from '../components/security-health-badge';
 import { StadiumSmartPreloader } from '../components/stadium-smart-preloader';
@@ -33,13 +39,13 @@ import { ReverseJinxModal } from '../components/reverse-jinx-modal';
 import { OfflineBanner } from '../components/offline-banner';
 import { ErrorBoundary } from '../components/error-boundary';
 import { BroadcastTicker, TriggerUpdate } from '../components/broadcast-ticker';
-import { GenZOnboardingModal } from '../components/genz-onboarding-modal';
+
 import { FooterComplianceDisclaimer } from '../components/footer-disclaimer';
 import { SportsNewsSection } from '../components/sports-news-section';
-import { BetSlipDrawer, BetItem } from '../components/bet-slip-drawer';
+export interface BetItem { id: string; selection: string; odds: number; probability: number; homeTeam: string; awayTeam: string; matchId: string; }
 import { MobileAppDock } from '../components/mobile-app-dock';
 import { StadiumSuitesMenu } from '../components/stadium-suites-menu';
-import { CollapsibleStadiumHub } from '../components/collapsible-stadium-hub';
+import { StadiumAndViralHub } from '../components/stadium-viral-hub';
 import { EffectsModal } from '../components/effects-modal';
 import { VcFundingModal } from '../components/vc-funding-modal';
 import { fetchLiveMatches, MatchData } from '../lib/sports-api';
@@ -59,12 +65,17 @@ import { sortMatchesByClosestKickoff } from '../lib/match-sorter';
 import { Sparkles, Search, ChevronDown, RefreshCw, Radio, Calendar, Clock, Zap } from 'lucide-react';
 import { GlobalLanguageSwitcher } from '../components/global-language-switcher';
 import { DailyBankerAccumulatorCard } from '../components/daily-banker-accumulator-card';
-import { Daily10OddsAccumulator } from '../components/daily-10-odds-accumulator';
-import { GenZFomoOddsUnlocker } from '../components/genz-fomo-odds-unlocker';
-import { SwipeToPredictGame } from '../components/swipe-to-predict-game';
-import { P2PSocialWagers } from '../components/p2p-social-wagers';
-import { SocialCommunityBroadcastHub } from '../components/social-community-broadcast-hub';
+
+
+
+
+import { PublicSocialLinksCard } from '../components/community/PublicSocialLinksCard';
 import { CrossPlatformConverterModal } from '../components/cross-platform-code-converter-modal';
+
+
+
+import { FlexReceiptCardModal } from '../components/viral/FlexReceiptCardModal';
+
 import { AccumulatorSlipDrawer, SelectedSlipPick } from '../components/accumulator-slip-drawer';
 import { ViralFeaturesGrid } from '../components/viral-features-grid';
 import { StadiumUserWeatherPanel } from '../components/stadium-user-weather-panel';
@@ -82,7 +93,8 @@ export default function Home() {
   const [hasAutoSwitchedTab, setHasAutoSwitchedTab] = useState(false);
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState<FilterType>('LIVE');
+  const [activeSport, setActiveSport] = useState<SportFilterType>('ALL');
+  const [activeFilter, setActiveFilter] = useState<FilterType>('ALL');
   const [selectedDateStr, setSelectedDateStr] = useState<string>(() => new Date().toISOString().split('T')[0]);
   const [selectedDateLabel, setSelectedDateLabel] = useState<string>('Today');
   const [isViewingToday, setIsViewingToday] = useState<boolean>(true);
@@ -94,10 +106,10 @@ export default function Home() {
     if (tab === 'FOLLOWING') {
       setActiveFilter('FOLLOWING');
     } else if (tab === 'MATCHES') {
-      setActiveFilter('LIVE');
+      setActiveFilter('ALL');
     }
   };
-  const [showBetSlipDrawer, setShowBetSlipDrawer] = useState(false);
+  
   const [followedMatchIds, setFollowedMatchIds] = useState<string[]>(() => {
     if (typeof window !== 'undefined') return PersistentStorage.getFollowedMatches();
     return [];
@@ -156,16 +168,11 @@ export default function Home() {
   const [showVcFundingModal, setShowVcFundingModal] = useState(false);
 
   const loadMatches = async () => {
-    setLoadingMatches(true);
     try {
       const data = await fetchLiveMatches();
-      setMatches(data);
-      if (!hasAutoSwitchedTab && data.length > 0) {
-        const liveGames = data.filter((m: any) => m.status === 'LIVE');
-        if (liveGames.length === 0) {
-          setActiveFilter('UPCOMING');
-        }
-        setHasAutoSwitchedTab(true);
+      if (Array.isArray(data) && data.length > 0) {
+        setMatches(data);
+        try { localStorage.setItem('aurascore_matches_cache', JSON.stringify(data)); } catch (e) {}
       }
       setLastSynced(new Date());
       MatchAlertScheduler.checkAndTriggerLiveAlerts(data);
@@ -176,7 +183,19 @@ export default function Home() {
     }
   };
 
-  useEffect(() => { loadMatches(); }, []);
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem('aurascore_matches_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMatches(parsed);
+          setLoadingMatches(false);
+        }
+      }
+    } catch (e) {}
+    loadMatches();
+  }, []);
 
   // Robust Browser Back Button & Refresh State Restoration
   useEffect(() => {
@@ -216,20 +235,23 @@ export default function Home() {
     return () => window.removeEventListener('popstate', restoreFromUrl);
   }, [matches]);
 
-  // Auto-refresh every 3 minutes
+  // Auto-refresh controlled by FEATURE_BUNDLES (Disabled by default to save mobile data)
   useEffect(() => {
-    const interval = setInterval(() => { loadMatches(); }, 3 * 60 * 1000);
+    if (!FEATURE_BUNDLES.AUTO_BACKGROUND_POLLING) return;
+    const interval = setInterval(() => { loadMatches(); }, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
   // Boot: analytics tracking + push subscription + offline caching
   useEffect(() => {
     const sessionId = pushClientId || `s-${Date.now().toString(36)}`;
-    fetch('/api/analytics', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'pageview', sessionId }),
-    }).catch(() => {});
+    if (FEATURE_BUNDLES.ANALYTICS_BEACONING) {
+      fetch('/api/analytics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'pageview', sessionId }),
+      }).catch(() => {});
+    }
 
     // Register for server-initiated Web Push (silent, only if user grants).
     registerPushClient().catch(() => {});
@@ -286,7 +308,7 @@ export default function Home() {
   };
 
   const handleAddMultiBetItems = (picks: Array<{ match: MatchData; selection: string; odds: number }>) => {
-    setShowBetSlipDrawer(true);
+    
     const newItems: BetItem[] = picks.map(p => ({
       matchId: p.match.id,
       matchTitle: p.match.homeTeam + ' vs ' + p.match.awayTeam,
@@ -339,17 +361,51 @@ export default function Home() {
     });
   }, [matches, selectedDateStr]);
 
-  const liveCount = dayMatches.filter(m => m.status === 'LIVE').length;
-  const upcomingCount = dayMatches.filter(m => m.status === 'SCHEDULED').length;
-  const playedCount = dayMatches.filter(m => m.status === 'FINISHED').length;
-  const highGuaranteesCount = dayMatches.filter(m => (m.prediction?.topPick?.probability || 0) >= 70 || m.prediction?.topPick?.confidenceTier === 'ULTRA-BANKER').length;
+  const isSportMatch = (m: MatchData, sport: SportFilterType): boolean => {
+    const l = (m.league || '').toLowerCase();
+    const isBball = m.sport === 'BASKETBALL' || l.includes('nba') || l.includes('wnba') || l.includes('basketball') || l.includes('euroleague');
+    const isCombat = m.sport === 'COMBAT' || l.includes('ufc') || l.includes('mma') || l.includes('boxing') || l.includes('bellator');
+    const isTennis = m.sport === 'TENNIS' || l.includes('tennis') || l.includes('atp') || l.includes('wta') || l.includes('wimbledon') || l.includes('us open');
+    const isNFL = m.sport === 'AMERICAN_FOOTBALL' || l.includes('nfl') || l.includes('football') && (l.includes('american') || l.includes('ncaa'));
+    const isSoccer = !isBball && !isCombat && !isTennis && !isNFL;
+
+    if (sport === 'ALL') return true;
+    if (sport === 'SOCCER') return isSoccer;
+    if (sport === 'BASKETBALL') return isBball;
+    if (sport === 'COMBAT') return isCombat;
+    if (sport === 'TENNIS') return isTennis;
+    if (sport === 'AMERICAN_FOOTBALL') return isNFL;
+    return true;
+  };
+
+  const daySportCounts = React.useMemo(() => {
+    return {
+      ALL: dayMatches.length,
+      SOCCER: dayMatches.filter(m => isSportMatch(m, 'SOCCER')).length,
+      BASKETBALL: dayMatches.filter(m => isSportMatch(m, 'BASKETBALL')).length,
+      COMBAT: dayMatches.filter(m => isSportMatch(m, 'COMBAT')).length,
+      TENNIS: dayMatches.filter(m => isSportMatch(m, 'TENNIS')).length,
+      AMERICAN_FOOTBALL: dayMatches.filter(m => isSportMatch(m, 'AMERICAN_FOOTBALL')).length,
+    };
+  }, [dayMatches]);
 
   const filteredMatches = React.useMemo(() => {
-    const base = dayMatches.filter(m => {
+    // Check if current day has fixtures for the active sport
+    const daySportFixtures = dayMatches.filter(m => isSportMatch(m, activeSport));
+    
+    // If today has fixtures for this sport or ALL is active, use day fixtures; otherwise use all available matches for that sport
+    const pool = activeSport === 'ALL'
+      ? dayMatches
+      : (daySportFixtures.length > 0 ? daySportFixtures : matches.filter(m => isSportMatch(m, activeSport)));
+
+    const base = pool.filter(m => {
       const q = searchQuery.toLowerCase();
       if (q && !m.homeTeam.toLowerCase().includes(q) && !m.awayTeam.toLowerCase().includes(q) && !m.league.toLowerCase().includes(q)) return false;
+
+      // Sport filter
+      if (!isSportMatch(m, activeSport)) return false;
       
-      // CRITICAL: Apply Correct Banker filter first
+      // Banker filter
       if (highGuaranteesOnly) {
         const prob = m.prediction?.topPick?.probability || 0;
         const tier = m.prediction?.topPick?.confidenceTier || '';
@@ -358,22 +414,18 @@ export default function Home() {
       }
 
       if (activeFilter === 'LIVE') return m.status === 'LIVE';
-      if (activeFilter === 'UPCOMING') {
-        if (m.status !== 'SCHEDULED') return false;
-        if (m.utcDate) {
-          const matchKickoff = new Date(m.utcDate).getTime();
-          if (!isNaN(matchKickoff) && matchKickoff < Date.now() - 30 * 60 * 1000) {
-            return false;
-          }
-        }
-        return true;
-      }
+      if (activeFilter === 'UPCOMING') return m.status === 'SCHEDULED';
       if (activeFilter === 'PLAYED') return m.status === 'FINISHED';
       if (activeFilter === 'FOLLOWING') return followedMatchIds.includes(m.id) || followedLeagues.some(l => m.league.toLowerCase().includes(l.toLowerCase()));
       return true;
     });
     return sortMatchesByClosestKickoff(base, activeFilter);
-  }, [dayMatches, searchQuery, activeFilter, highGuaranteesOnly, followedMatchIds, followedLeagues]);
+  }, [dayMatches, matches, searchQuery, activeFilter, activeSport, highGuaranteesOnly, followedMatchIds, followedLeagues]);
+
+  const liveCount = filteredMatches.filter(m => m.status === 'LIVE').length;
+  const upcomingCount = filteredMatches.filter(m => m.status === 'SCHEDULED').length;
+  const playedCount = filteredMatches.filter(m => m.status === 'FINISHED').length;
+  const highGuaranteesCount = filteredMatches.filter(m => (m.prediction?.topPick?.probability || 0) >= 70 || m.prediction?.topPick?.confidenceTier === 'ULTRA-BANKER').length;
 
 
   // Sync URL search params with Matches for Browser Back Button and Page Refresh Continuity
@@ -444,8 +496,20 @@ export default function Home() {
 
         <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 py-4 space-y-5">
 
-          {/* 1. GOOGLE DATE NAVIGATOR */}
-          <GoogleDateNavigator onSelectDate={(dateStr, label, isToday, isPast) => { setSelectedDateStr(dateStr); setSelectedDateLabel(label); setIsViewingToday(isToday); if (isPast) { setActiveFilter('PLAYED'); } else if (isToday) { setActiveFilter('LIVE'); } else { setActiveFilter('UPCOMING'); } setSearchQuery(''); setVisibleCount(6); }} />
+          {/* 1. GOOGLE DATE NAVIGATOR & DATE-SCOPED SPORT SELECTOR */}
+          <GoogleDateNavigator onSelectDate={(dateStr, label, isToday, isPast) => { setSelectedDateStr(dateStr); setSelectedDateLabel(label); setIsViewingToday(isToday); setActiveFilter('ALL'); setSearchQuery(''); setVisibleCount(6); }} />
+
+          {/* Sport Switcher Scoped To Selected Date */}
+          <SportBar
+            activeSport={activeSport}
+            counts={daySportCounts}
+            onSelectSport={(s) => {
+              setActiveSport(s);
+              setActiveFilter('ALL');
+              setVisibleCount(6);
+              try { stadiumAudio.playTabClickSound(); } catch (e) {}
+            }}
+          />
 
           {/* 2. MATCHES & PREDICTIONS HERO */}
           <div className="space-y-3">
@@ -455,7 +519,14 @@ export default function Home() {
                 <div>
                   <h2 className="text-base font-black text-white flex items-center space-x-2">
                     <Calendar className="w-4 h-4 text-stadiumGreen" />
-                    <span>{isViewingToday ? t("Today's Matches") : `${selectedDateLabel} Matches`}</span>
+                    <span>
+                      {isViewingToday ? "Today's Sports" : `${selectedDateLabel} Sports`}
+                      {activeSport === 'SOCCER' && ' ⚽ (Football)'}
+                      {activeSport === 'BASKETBALL' && ' 🏀 (Basketball)'}
+                      {activeSport === 'COMBAT' && ' 🥊 (UFC / MMA)'}
+                      {activeSport === 'TENNIS' && ' 🎾 (Tennis)'}
+                      {activeSport === 'AMERICAN_FOOTBALL' && ' 🏈 (NFL)'}
+                    </span>
                     {liveCount > 0 && (
                       <span className="px-2 py-0.5 rounded-full bg-crimson text-white text-[10px] font-black animate-pulse">
                         {liveCount} LIVE
@@ -476,10 +547,7 @@ export default function Home() {
                   className="p-2 rounded-xl bg-panel border border-white/10 text-stadiumGreen hover:bg-stadiumGreen/20 transition-all disabled:opacity-50">
                   <RefreshCw className={loadingMatches ? 'w-3.5 h-3.5 animate-spin' : 'w-3.5 h-3.5'} />
                 </button>
-                <button onClick={() => setShowConverterModal(true)}
-                  className="px-3 py-2 rounded-xl bg-panel hover:bg-white/10 border border-white/20 text-white font-black text-xs flex items-center space-x-1.5 transition-all shadow-md">
-                  <span>Code Converter 🔄</span>
-                </button>
+
               </div>
             </div>
 
@@ -504,7 +572,7 @@ export default function Home() {
                   <button
                     key={pill.key}
                     onClick={() => {
-                      setActiveFilter(pill.key);
+                      setActiveFilter(prev => prev === pill.key ? 'ALL' : pill.key);
                       setVisibleCount(6);
                       try { stadiumAudio.playTabClickSound(); } catch (e) {}
                     }}
@@ -538,8 +606,7 @@ export default function Home() {
 
                 <button
                   onClick={() => {
-                    setActiveFilter('ALL');
-                    setVisibleCount(6);
+                    setShowLeagueBrowser(true);
                     try { stadiumAudio.playTabClickSound(); } catch (e) {}
                   }}
                   className="py-2.5 px-2 rounded-2xl border border-stadiumGreen/40 bg-stadiumGreen/15 hover:bg-stadiumGreen/25 text-stadiumGreen text-xs font-black transition-all flex items-center justify-center space-x-1.5 shadow-md"
@@ -548,20 +615,7 @@ export default function Home() {
                   <span className="truncate">{t('All Leagues')}</span>
                 </button>
 
-                <button
-                  onClick={() => {
-                    setHighGuaranteesOnly(!highGuaranteesOnly);
-                    try { stadiumAudio.playTabClickSound(); } catch (e) {}
-                  }}
-                  className={`py-2.5 px-2 rounded-2xl border text-xs font-black transition-all flex items-center justify-center space-x-1.5 shadow-md ${
-                    highGuaranteesOnly
-                      ? 'bg-stadiumGreen/25 border-stadiumGreen text-stadiumGreen shadow-stadiumGreen/20'
-                      : 'border-white/10 text-gray-400 bg-panel hover:text-white'
-                  }`}
-                >
-                  <span>👑</span>
-                  <span className="truncate">{t('Bankers')}</span>
-                </button>
+                
               </div>
             </div>
 
@@ -578,13 +632,14 @@ export default function Home() {
                       onOpenInsights={setSelectedMatchForInsights}
                       onSelectOdds={handleAddBetItem}
                       onBookmarkMatch={handleBookmarkToggle}
+                      onSelectClub={(club) => { setSelectedClubForProfile(club); setShowTeamsModal(true); }}
                       followedMatchIds={followedMatchIds}
                       onToggleFollow={handleToggleFollow}
                       onOpenStandings={(league) => {
                         setSelectedLeagueForTable(league);
                         setShowStandingsModal(true);
                       }}
-                      onOpenTeam={(teamName) => setSelectedClubForProfile(teamName)}
+                      onOpenTeam={(teamName) => { setSelectedClubForProfile(teamName); setShowTeamsModal(true); }}
                     />
                   ))}
                 </div>
@@ -612,60 +667,52 @@ export default function Home() {
             )}
           </div>
 
-          {/* 3. TINDER-STYLE SWIPE-TO-PREDICT GAME */}
-          <SwipeToPredictGame matches={matches} />
+          
+          
 
           {/* 4. REAL-TIME PHYSICS AURA MOMENTUM METER */}
 
           {/* 5. PAYSTACK GEN-Z FOMO MICRO-ODDS UNLOCKER (₦200, ₦300, ₦500) */}
-          <GenZFomoOddsUnlocker matches={matches} />
+          
 
           {/* 6. DAILY 10.00 ODDS ACCUMULATOR & CUT-1 SHIELD */}
-          <Daily10OddsAccumulator
-            matches={matches}
-            onAddMultiPick={handleAddMultiBetItems}
-            onOpenMatch={setSelectedMatchForInsights}
-          />
+          
 
           {/* 7. INSTANT AI MEME & SLANDER CARD CREATOR */}
           
           {/* 8. WHATSAPP STATUS 9:16 TICKET FLEXER */}
           
           {/* 9. 1v1 P2P SOCIAL WAGERS */}
-          <P2PSocialWagers matches={matches} />
+          
 
           {/* 10. WONDERKID AURA STOCK EXCHANGE */}
           
-          {/* 11. TOP 3 STADIUM & VIRAL HUB */}
-          <CollapsibleStadiumHub
-            onOpenGrassroots={() => setShowGrassrootsModal(true)}
-            onOpenBanter={() => setShowBanterModal(true)}
-            onOpenBirthdays={() => setShowBirthdaysModal(true)}
-            onOpenLeaderboard={() => setShowLeaderboardModal(true)}
-            onOpenLedger={() => setShowTrackRecord(true)}
-            onOpenBankroll={() => setShowBankroll(true)}
-            onOpenReceipt={() => matches.length > 0 && setSelectedMatchForReceipt(matches[0])}
-          />
+          {/* 11. FULL SETTLEMENT LEDGER & AUDIT SUMMARY ON HOMEPAGE */}
+          <SettlementLedgerSection onOpenAuditModal={() => setShowTrackRecord(true)} />
 
-          {/* 12. TELEGRAM & WHATSAPP 24/7 BROADCAST BOT HUB */}
-          
-          <SocialCommunityBroadcastHub matches={matches} />
+          {/* 12. TELEGRAM 24/7 BROADCAST BOT HUB */}
+          <PublicSocialLinksCard />
 
           {/* 13. SPORTS NEWS SECTION */}
           <SportsNewsSection />
 
           {/* REGULATORY COMPLIANCE DISCLAIMER */}
-          <GenZOnboardingModal />
+          
 
           <FooterComplianceDisclaimer />
 
         </main>
 
-        <BetSlipDrawer items={betSlipItems} onRemoveItem={handleRemoveBetItem} onClearAll={() => setBetSlipItems([])}
-          isOpenControlled={showBetSlipDrawer} onToggleControlled={() => setShowBetSlipDrawer(!showBetSlipDrawer)} />
+        
+
+        <BetSlipDrawer
+          items={betSlipItems}
+          onRemoveItem={(idx) => setBetSlipItems(prev => prev.filter((_, i) => i !== idx))}
+          onClearAll={() => setBetSlipItems([])}
+        />
 
         <MobileAppDock activeTab={activeDockTab}
-          onSelectTab={tab => { setActiveDockTab(tab); if (tab === 'SLIP') setShowBetSlipDrawer(true); if (tab === 'SUITES') setShowSuitesMenu(true); if (tab === 'PROFILE') setShowProfile(true); }}
+          onSelectTab={tab => { setActiveDockTab(tab); if (tab === 'SLIP')  if (tab === 'SUITES') setShowSuitesMenu(true); if (tab === 'PROFILE') setShowProfile(true); }}
           betSlipCount={betSlipItems.length}
           onOpenProfile={() => setShowProfile(true)}
           onOpenLedger={() => setShowTrackRecord(true)}
@@ -758,28 +805,17 @@ export default function Home() {
         {showTeamsModal && <TeamExplorerModal onClose={() => setShowTeamsModal(false)} />}
         <DailyAuraHarvestModal isOpen={showHarvestModal} onClose={() => setShowHarvestModal(false)} />
         <WhaleLeaderboardModal isOpen={showWhaleModal} onClose={() => setShowWhaleModal(false)} />
-        <AdminChatDrawer isOpen={showAdminChatDrawer} onClose={() => setShowAdminChatDrawer(false)} />
-
-        {/* Floating VIP Admin Chat Button */}
-        <button
-          onClick={() => setShowAdminChatDrawer(true)}
-          className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40 p-3 rounded-2xl bg-gradient-to-r from-cyan-400 to-blue-500 text-black font-black shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center space-x-2 glow-emerald"
-        >
-          <span className="text-lg">💬</span>
-          <span className="text-xs hidden sm:inline">Admin VIP Support</span>
-          <span className="w-2 h-2 rounded-full bg-stadiumGreen animate-ping" />
-        </button>
-        {showBirthdaysModal && <BirthdayCenterModal onClose={() => setShowBirthdaysModal(false)} />}
-        {showBanterModal && <NaijaBanterLoungeModal onClose={() => setShowBanterModal(false)} />}
-        {showGrassrootsModal && <GrassrootsScoutingModal onClose={() => setShowGrassrootsModal(false)} />}
-        {showLeaderboardModal && <TipsterLeaderboardModal onClose={() => setShowLeaderboardModal(false)} />}
+        {showBirthdaysModal && <BirthdayCenterModal isOpen={showBirthdaysModal} onClose={() => setShowBirthdaysModal(false)} />}
+        
+        
+        
         {showLegalModal && <LegalModal onClose={() => setShowLegalModal(false)} />}
         {showStandingsModal && (
           <LeagueStandingsModal
             isOpen={showStandingsModal}
             initialLeague={selectedLeagueForTable || 'PREMIER_LEAGUE'}
             onClose={() => setShowStandingsModal(false)}
-            onSelectTeam={() => setShowTeamsModal(true)}
+            onSelectTeam={(teamName) => { setSelectedClubForProfile(teamName); setShowTeamsModal(true); }}
           />
         )}
         {showPlayersModal && (
@@ -798,6 +834,11 @@ export default function Home() {
             onSelectLeague={(leagueName) => {
               setSearchQuery(leagueName);
               setActiveFilter('ALL');
+              setVisibleCount(6);
+            }}
+            onOpenStandings={(leagueName) => {
+              setSelectedLeagueForTable(leagueName);
+              setShowStandingsModal(true);
             }}
             followedLeagues={followedLeagues}
             onToggleFollowLeague={handleToggleFollowLeague}
