@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { AFFILIATE_PARTNERS, AffiliateKey, ConvertApiResponse } from '../../../config/affiliates';
+import { AFFILIATE_PARTNERS, AffiliateKey, ConvertApiResponse, getAffiliateDeepLink } from '../../../config/affiliates';
 import { runHeadlessVerification, generateDistinctBookmakerCode } from '../../../lib/headless-slip-verifier';
 
 export const dynamic = 'force-dynamic';
@@ -105,8 +105,9 @@ export async function POST(request: Request) {
     }
 
     const verification = await runHeadlessVerification(cleanTarget, convertedCode, rapidData);
+    const deepLinkUrl = getAffiliateDeepLink(cleanTarget, convertedCode);
 
-    const payload: ConvertApiResponse & { verification: any; legs: SlipLeg[] } = {
+    const payload: ConvertApiResponse & { verification: any; legs: SlipLeg[]; directCodeSupport: boolean } = {
       success: true,
       converted_code: convertedCode,
       total_odds: totalOdds,
@@ -115,11 +116,12 @@ export async function POST(request: Request) {
       source_bookmaker: sourceBookmaker,
       target_bookmaker: cleanTarget,
       unmatched_legs: unmatchedLegs,
-      affiliate_url: partner.affiliateUrl,
+      affiliate_url: deepLinkUrl,
       promo_text: partner.promoText,
       bonus_highlight: partner.bonusHighlight,
       verification,
-      legs: DEFAULT_SLIP_LEGS
+      legs: DEFAULT_SLIP_LEGS,
+      directCodeSupport: partner.directCodeSupport
     };
 
     return NextResponse.json(payload, { status: 200 });

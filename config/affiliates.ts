@@ -9,6 +9,8 @@ export interface AffiliatePartner {
   promoText: string;
   bonusHighlight: string;
   apiBookieCode: string;
+  directCodeSupport: boolean;
+  deepLinkTemplate: (code: string) => string;
 }
 
 export interface UnmatchedLeg {
@@ -34,16 +36,6 @@ export interface ConvertApiResponse {
 }
 
 export const AFFILIATE_PARTNERS: Record<AffiliateKey, AffiliatePartner> = {
-  '22BET': {
-    id: '22BET',
-    displayName: '22Bet',
-    badgeColor: '#008b8b',
-    badgeBg: 'rgba(0, 139, 139, 0.2)',
-    affiliateUrl: 'https://22bet.ng/?tag=d_972744m_97c_',
-    promoText: '100% Welcome Bonus up to ₦130,000',
-    bonusHighlight: '₦130,000 Bonus',
-    apiBookieCode: '22bet:ng'
-  },
   'SPORTYBET': {
     id: 'SPORTYBET',
     displayName: 'SportyBet',
@@ -52,7 +44,9 @@ export const AFFILIATE_PARTNERS: Record<AffiliateKey, AffiliatePartner> = {
     affiliateUrl: 'https://sportybet.com/ng?ref=aurascore',
     promoText: '1,000% Dynamic Acca Boost',
     bonusHighlight: '1000% Boost',
-    apiBookieCode: 'sportybet:ng'
+    apiBookieCode: 'sportybet:ng',
+    directCodeSupport: true,
+    deepLinkTemplate: (code: string) => `https://www.sportybet.com/ng/m/sport/football?shareCode=${encodeURIComponent(code)}&ref=aurascore`
   },
   'BET9JA': {
     id: 'BET9JA',
@@ -62,7 +56,21 @@ export const AFFILIATE_PARTNERS: Record<AffiliateKey, AffiliatePartner> = {
     affiliateUrl: 'https://sports.bet9ja.com?ref=aurascore',
     promoText: '170% Multiple Win Boost',
     bonusHighlight: '170% Boost',
-    apiBookieCode: 'bet9ja:ng'
+    apiBookieCode: 'bet9ja:ng',
+    directCodeSupport: true,
+    deepLinkTemplate: (code: string) => `https://sports.bet9ja.com/?coupon=${encodeURIComponent(code)}&ref=aurascore`
+  },
+  '22BET': {
+    id: '22BET',
+    displayName: '22Bet',
+    badgeColor: '#008b8b',
+    badgeBg: 'rgba(0, 139, 139, 0.2)',
+    affiliateUrl: 'https://22bet.ng/?tag=d_972744m_97c_',
+    promoText: '100% Welcome Bonus up to ₦130,000',
+    bonusHighlight: '₦130,000 Bonus',
+    apiBookieCode: '22bet:ng',
+    directCodeSupport: true,
+    deepLinkTemplate: (code: string) => `https://22bet.ng/?tag=d_972744m_97c_&code=${encodeURIComponent(code)}`
   },
   '1XBET': {
     id: '1XBET',
@@ -72,7 +80,9 @@ export const AFFILIATE_PARTNERS: Record<AffiliateKey, AffiliatePartner> = {
     affiliateUrl: 'https://1xbet.ng?ref=aurascore',
     promoText: '300% First Deposit Match',
     bonusHighlight: '300% Bonus',
-    apiBookieCode: '1xbet:ng'
+    apiBookieCode: '1xbet:ng',
+    directCodeSupport: true,
+    deepLinkTemplate: (code: string) => `https://1xbet.ng/?ref=aurascore&coupon=${encodeURIComponent(code)}`
   },
   'STAKE': {
     id: 'STAKE',
@@ -82,7 +92,9 @@ export const AFFILIATE_PARTNERS: Record<AffiliateKey, AffiliatePartner> = {
     affiliateUrl: 'https://stake.com/?c=bPn8D0iA',
     promoText: '200% Bonus up to $3,000 + VIP Rakeback',
     bonusHighlight: '200% Bonus (Crypto/OPay)',
-    apiBookieCode: 'stake:com'
+    apiBookieCode: 'stake:com',
+    directCodeSupport: false, // Stake only supports referral tracking via URL; code loaded via 'Use Bet Code'
+    deepLinkTemplate: () => `https://stake.com/?c=bPn8D0iA`
   }
 };
 
@@ -94,3 +106,9 @@ export const SOURCE_BOOKMAKERS = [
   { id: 'BETWAY', name: 'Betway', code: 'betway:ng' },
   { id: 'MSPORT', name: 'MSport', code: 'msport:ng' }
 ];
+
+export function getAffiliateDeepLink(partnerKey: AffiliateKey, code: string): string {
+  const partner = AFFILIATE_PARTNERS[partnerKey];
+  if (!partner) return 'https://stake.com/?c=bPn8D0iA';
+  return partner.deepLinkTemplate(code);
+}
