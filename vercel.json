@@ -7,6 +7,14 @@
     {
       "path": "/api/cron/update-data",
       "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/telegram-morning",
+      "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/telegram-settle",
+      "schedule": "0 22 * * *"
     }
   ]
 }
