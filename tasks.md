@@ -160,6 +160,6 @@ CREATE POLICY "Users manage own follows" ON public.player_follows FOR ALL USING 
 - [ ] **Step 1: Planning Mode & Task Specification (`tasks.md`)** *(Current Step)*
 - [x] **Step 2: Scaffolding Supabase SQL Schema, Tables & RLS Policies** ✅ (supabase/migrations/0006_sports_wiki_and_social.sql)
 - [x] **Step 3: FastAPI Backend & `uv` Environment Setup with Moderation Pipeline** ✅ (`backend/app` with 2-tier moderation engine)
-- [ ] **Step 4: Background Queues (BullMQ + Redis, Sports Ingestion & WAHA Alerts)** *(Next Step)*
-- [ ] **Step 5: Next.js Frontend Wiki UI (`/players/[id]` & Birthday Social Cards)**
-- [ ] **Step 6: Dockerization & Deployment Configurations for Render / Cloud Tier**
+- [x] **Step 4: Background Queues (BullMQ + Redis, Sports Ingestion & WAHA Alerts)** ✅ (`workers/sportsIngestionWorker.ts`, `workers/wahaAlertWorker.ts`, `backend/app/services/waha_client.py`)
+- [x] **Step 5: Next.js Frontend Wiki UI (`/players/[id]` & Birthday Social Cards)** ✅ (`app/players/[id]`, `app/birthdays`, `components/players/SocialWishCardModal.tsx`, `components/audio/PersistentDynamicIslandPlayer.tsx`)
+- [x] **Step 6: Dockerization & Deployment Configurations for Render / Cloud Tier** ✅ (`Dockerfile.backend`, `Dockerfile.worker`, `Dockerfile.frontend`, `docker-compose.yml`, `render.yaml`)

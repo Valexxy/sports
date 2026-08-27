@@ -1,0 +1,54 @@
+services:
+  # 1. Frontend Web Service
+  - type: web
+    name: mivaj-frontend
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: NEXT_PUBLIC_SITE_URL
+        value: https://mivaj.com
+
+  # 2. FastAPI Backend API Service
+  - type: web
+    name: mivaj-api
+    runtime: python
+    plan: free
+    buildCommand: pip install uv && uv pip install -r backend/pyproject.toml --system
+    startCommand: uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+
+  # 3. Background Worker Queue
+  - type: worker
+    name: mivaj-bullmq-worker
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npx ts-node workers/sportsIngestionWorker.ts
+    envVars:
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: mivaj-redis
+          property: connectionString
+
+  # 4. Managed Redis Instance
+  - type: redis
+    name: mivaj-redis
+    plan: free
+    ipAllowList: []

@@ -1,5 +1,6 @@
 import { PwaRegister } from '../components/pwa-register';
 import { PwaInstallPromptModal } from '../components/pwa/PwaInstallPromptModal';
+import { PersistentDynamicIslandPlayer } from '../components/audio/PersistentDynamicIslandPlayer';
 import './globals.css';
 import { LanguageProvider } from '../lib/translation-engine';
 import type { Metadata, Viewport } from 'next';
@@ -157,6 +158,7 @@ export default function RootLayout({
         <LanguageProvider>
           <PwaRegister />
           <PwaInstallPromptModal />
+          <PersistentDynamicIslandPlayer />
           {children}
         </LanguageProvider>
         <script
