@@ -173,8 +173,8 @@ export class WarriCommentaryEngine {
     try {
       window.speechSynthesis.cancel(); // Stop prior audio
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1.28; // High tempo, snappy delivery (no slow grammar)
-      utterance.pitch = 1.05;
+      utterance.rate = 1.25; // High tempo, snappy delivery (no slow grammar)
+      utterance.pitch = 0.92;
       utterance.lang = 'en-NG'; // Nigerian accent if supported
       pitchMixer.duckAmbient();
       utterance.onend = () => { pitchMixer.restoreAmbient(); };
