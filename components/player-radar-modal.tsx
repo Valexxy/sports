@@ -1,29 +1,112 @@
 'use client';
+
 import React, { useState, useEffect } from 'react';
 import { 
-  Star, 
-  X, 
-  Search, 
-  Shield, 
-  Zap, 
-  Trophy, 
-  Flame, 
-  Target, 
-  Award, 
-  Activity, 
-  CheckCircle2, 
-  TrendingUp, 
-  ChevronRight,
-  Sparkles,
-  ArrowLeft,
-  Calendar,
-  Share2
+  Star, X, Search, Shield, Zap, Trophy, Flame, 
+  Target, Award, Activity, CheckCircle2, TrendingUp, 
+  Sparkles, ArrowLeft, Calendar, Share2, Globe, Heart, RefreshCw, UserCheck
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { FEATURED_PLAYERS_CATALOG, FollowedPlayer, playerFollowEngine } from '../lib/player-follow-engine';
-import { stadiumAudio } from '../lib/sound-synthesizer';
 import { phoneHardware } from '../lib/phone-hardware-engine';
 import { useTranslation } from '../lib/translation-engine';
+
+export interface UniversalPlayerRecord {
+  id: string;
+  name: string;
+  sport: string;
+  club: string;
+  country: string;
+  position: string;
+  jersey_number?: string;
+  birth_date: string;
+  age: number;
+  photo_url: string;
+  rating: number;
+  market_value: string;
+  bio: string;
+  isLegend?: boolean;
+}
+
+const DEFAULT_GLOBAL_LEGENDS: UniversalPlayerRecord[] = [
+  {
+    id: 'p-okocha',
+    name: 'Jay-Jay Okocha',
+    sport: 'Soccer',
+    club: 'Nigeria Legends',
+    country: 'Nigeria',
+    position: 'Attacking Midfielder',
+    jersey_number: '10',
+    birth_date: '1973-08-14',
+    age: 53,
+    photo_url: 'https://www.thesportsdb.com/images/media/player/thumb/g7g49f1612467000.jpg',
+    rating: 96,
+    market_value: 'Legendary Icon',
+    bio: 'Augustine Azuka "Jay-Jay" Okocha is a Nigerian former professional footballer who played as an attacking midfielder. Widely regarded as one of the greatest African players of all time, he is renowned for his extraordinary dribbling, stepovers, and flair.',
+    isLegend: true
+  },
+  {
+    id: 'p-osimhen',
+    name: 'Victor Osimhen',
+    sport: 'Soccer',
+    club: 'Galatasaray / Napoli',
+    country: 'Nigeria',
+    position: 'Striker',
+    jersey_number: '9',
+    birth_date: '1998-12-29',
+    age: 27,
+    photo_url: '/players/osimhen.png',
+    rating: 92,
+    market_value: '€100,000,000',
+    bio: 'Victor James Osimhen is a Nigerian professional footballer who plays as a striker for Süper Lig club Galatasaray and the Nigeria national team. Renowned for his explosive pace, aerial dominance, and elite finishing.',
+    isLegend: false
+  },
+  {
+    id: 'p-haaland',
+    name: 'Erling Haaland',
+    sport: 'Soccer',
+    club: 'Manchester City',
+    country: 'Norway',
+    position: 'Striker',
+    jersey_number: '9',
+    birth_date: '2000-07-21',
+    age: 26,
+    photo_url: '/players/haaland.png',
+    rating: 94,
+    market_value: '€180,000,000',
+    bio: 'Erling Braut Haaland is a Norwegian professional footballer who plays as a striker for Premier League club Manchester City and the Norway national team. Recognized as one of the most prolific goalscorers in world football.',
+    isLegend: false
+  },
+  {
+    id: 'p-jordan',
+    name: 'Michael Jordan',
+    sport: 'Basketball',
+    club: 'Chicago Bulls Legends',
+    country: 'United States',
+    position: 'Shooting Guard',
+    jersey_number: '23',
+    birth_date: '1963-02-17',
+    age: 63,
+    photo_url: 'https://www.thesportsdb.com/images/media/player/thumb/michael-jordan.jpg',
+    rating: 99,
+    market_value: 'GOAT Icon',
+    bio: 'Michael Jeffrey Jordan, also known by his initials MJ, is an American businessman and former professional basketball player. Widely considered the greatest basketball player of all time.',
+    isLegend: true
+  }
+];
+
+function calculateAge(birthDateStr: string): number {
+  if (!birthDateStr) return 26;
+  try {
+    const born = new Date(birthDateStr);
+    const now = new Date();
+    let age = now.getFullYear() - born.getFullYear();
+    const m = now.getMonth() - born.getMonth();
+    if (m < 0 || (m === 0 && now.getDate() < born.getDate())) age--;
+    return age > 0 ? age : 26;
+  } catch {
+    return 26;
+  }
+}
 
 interface PlayerRadarModalProps {
   isOpen: boolean;
@@ -40,351 +123,275 @@ export const PlayerRadarModal: React.FC<PlayerRadarModalProps> = ({
 }) => {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
-  const [followedList, setFollowedList] = useState<string[]>([]);
-  const [selectedPlayer, setSelectedPlayer] = useState<FollowedPlayer | null>(null);
+  const [selectedSport, setSelectedSport] = useState<string>('ALL');
+  const [playersList, setPlayersList] = useState<UniversalPlayerRecord[]>(DEFAULT_GLOBAL_LEGENDS);
+  const [selectedPlayer, setSelectedPlayer] = useState<UniversalPlayerRecord | null>(null);
+  const [followedIds, setFollowedIds] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
-      setFollowedList(playerFollowEngine.getFollowedPlayers());
+    try {
+      const saved = localStorage.getItem('mivaj_followed_players');
+      if (saved) setFollowedIds(JSON.parse(saved));
+    } catch {}
+  }, []);
+
+  const handleToggleFollow = (playerId: string) => {
+    phoneHardware.triggerHaptic('SUCCESS');
+    let updated: string[] = [];
+    if (followedIds.includes(playerId)) {
+      updated = followedIds.filter(id => id !== playerId);
+    } else {
+      updated = [...followedIds, playerId];
+      confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
     }
-  }, [isOpen]);
+    setFollowedIds(updated);
+    try {
+      localStorage.setItem('mivaj_followed_players', JSON.stringify(updated));
+    } catch {}
+  };
+
+  const handleSearchLive = async (queryTerm: string) => {
+    if (!queryTerm.trim()) {
+      setPlayersList(DEFAULT_GLOBAL_LEGENDS);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`https://www.thesportsdb.com/api/v1/json/3/searchplayers.php?p=${encodeURIComponent(queryTerm.trim())}`);
+      if (res.ok) {
+        const json = await res.json();
+        const apiPlayers = json.player || [];
+        if (apiPlayers.length > 0) {
+          const mapped: UniversalPlayerRecord[] = apiPlayers.map((p: any) => {
+            const age = calculateAge(p.dateBorn);
+            const isLegend = (p.strTeam || '').includes('_Retired') || (p.strTeam || '').includes('_Deceased') || age > 40;
+            return {
+              id: p.idPlayer || `p-${Math.random().toString(36).substring(7)}`,
+              name: p.strPlayer || 'Athlete',
+              sport: p.strSport || 'Soccer',
+              club: p.strTeam?.replace(/^_Retired |_Deceased /g, '') || 'Global Athlete',
+              country: p.strNationality || 'Global',
+              position: p.strPosition || 'Forward',
+              jersey_number: p.strNumber || '10',
+              birth_date: p.dateBorn || '1990-01-01',
+              age: age,
+              photo_url: p.strThumb || p.strCutout || '/players/haaland.png',
+              rating: isLegend ? 95 : 88,
+              market_value: p.strWage || (isLegend ? 'Hall of Fame Icon' : '€75,000,000'),
+              bio: p.strDescriptionEN || `${p.strPlayer} is a world-renowned athlete from ${p.strNationality}.`,
+              isLegend
+            };
+          });
+
+          setPlayersList(mapped);
+          setSelectedPlayer(mapped[0]);
+        }
+      }
+    } catch (err) {
+      console.warn('Player search error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!isOpen) return null;
 
-  const filteredPlayers = FEATURED_PLAYERS_CATALOG.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.club.toLowerCase().includes(search.toLowerCase()) ||
-    p.country.toLowerCase().includes(search.toLowerCase()) ||
-    p.position.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const handleToggle = (player: FollowedPlayer, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    phoneHardware.triggerHaptic('SELECTION');
-    const isNow = playerFollowEngine.toggleFollowPlayer(player.name);
-    setFollowedList(playerFollowEngine.getFollowedPlayers());
-    if (isNow) {
-      stadiumAudio.playBookmarkSound();
-      confetti({ particleCount: 50, spread: 60, origin: { y: 0.5 } });
-    } else {
-      stadiumAudio.playRemovePickSound();
-    }
-  };
-
-  const handleSharePlayer = (player: FollowedPlayer, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const text = `⭐ Check out ${player.name} (${player.countryFlag} ${player.club}) dossier on Mivaj Sports! Full statistics, banker picks & trophies: https://mivaj.com/?player=${player.id}`;
-    if (navigator.share) {
-      navigator.share({ title: `${player.name} Dossier`, text, url: 'https://mivaj.com' }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(text);
-      alert('Player dossier link copied to clipboard!');
-    }
-  };
+  const filteredPlayers = playersList.filter(p => {
+    if (selectedSport !== 'ALL' && !p.sport.toUpperCase().includes(selectedSport)) return false;
+    return true;
+  });
 
   return (
-    <div className="fixed inset-0 z-[130] bg-black/90 backdrop-blur-2xl flex items-center justify-center p-2 sm:p-4 animate-fadeIn font-mono text-xs overflow-y-auto">
-      <div className="relative w-full max-w-5xl bg-[#07090e] rounded-3xl border-2 border-gold/50 shadow-2xl p-4 sm:p-6 space-y-4 max-h-[92vh] flex flex-col text-white my-auto">
+    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadeIn overflow-y-auto font-mono">
+      <div className="relative w-full max-w-4xl glass-panel-premium rounded-3xl border-2 border-gold/60 p-5 sm:p-7 shadow-2xl my-auto text-white space-y-5">
         
-        {/* If Selected Player: Render Deep Comprehensive Profile View */}
-        {selectedPlayer ? (
-          <div className="space-y-4 flex flex-col h-full overflow-y-auto">
-            
-            {/* Navigation Header */}
-            <div className="flex items-center justify-between border-b border-white/10 pb-3 flex-shrink-0">
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-gray-400 hover:text-white border border-white/10 transition-all"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        {/* Header */}
+        <div className="space-y-1">
+          <div className="flex items-center space-x-2 text-xs font-bold text-gold">
+            <Trophy className="w-4 h-4" />
+            <span>UNIVERSAL SPORTS ENCYCLOPEDIA • ALL ATHLETES IN HISTORY</span>
+          </div>
+          <h2 className="text-xl sm:text-2xl font-black text-white">
+            GLOBAL PLAYERS &amp; ATHLETES DIRECTORY
+          </h2>
+        </div>
+
+        {/* Search & Filter Bar */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                handleSearchLive(e.target.value);
+              }}
+              placeholder="Search any player in history (e.g. Okocha, Pelé, Jordan, Kobe, Osimhen, Haaland)..."
+              className="w-full pl-10 pr-4 py-3 rounded-2xl bg-neutral-950 border border-neutral-700 text-xs text-white placeholder-gray-500 focus:border-gold focus:outline-none font-mono"
+            />
+            {loading && (
+              <RefreshCw className="w-4 h-4 text-gold animate-spin absolute right-3.5 top-1/2 -translate-y-1/2" />
+            )}
+          </div>
+
+          <div className="flex items-center space-x-1 overflow-x-auto text-[11px]">
+            {(['ALL', 'SOCCER', 'BASKETBALL', 'TENNIS', 'MOTORSPORT', 'ATHLETICS'] as const).map((s) => (
               <button
-                onClick={() => setSelectedPlayer(null)}
-                className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold flex items-center space-x-1.5 transition-all"
+                key={s}
+                onClick={() => {
+                  phoneHardware.triggerHaptic('SELECTION');
+                  setSelectedSport(s);
+                }}
+                className={`px-3 py-2 rounded-xl font-bold transition-all whitespace-nowrap ${
+                  selectedSport === s ? 'bg-gold text-black font-black' : 'bg-neutral-900 text-gray-400 border border-neutral-800'
+                }`}
               >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back to All Star Players</span>
+                {s}
               </button>
+            ))}
+          </div>
+        </div>
 
-              <button
-                onClick={onClose}
-                className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-gray-400 hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Profile Hero Header */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-panel/70 p-4 rounded-3xl border border-gold/40">
-              <div className="relative w-28 h-28 rounded-2xl overflow-hidden bg-gradient-to-br from-white/10 to-black border border-gold/50 flex-shrink-0 flex items-center justify-center p-1 shadow-inner">
-                <img
-                  src={selectedPlayer.jerseyPhoto}
-                  alt={selectedPlayer.name}
-                  className="w-full h-full object-contain drop-shadow-lg"
-                  onError={(e) => {
-                    (e.currentTarget as HTMLElement).style.display = 'none';
-                  }}
-                />
-                <div className="absolute top-1 right-1 text-base">{selectedPlayer.countryFlag}</div>
-              </div>
-
-              <div className="min-w-0 flex-1 space-y-1">
-                <div className="flex items-center space-x-2">
-                  <h2 className="font-black text-xl sm:text-2xl text-white truncate">{selectedPlayer.name}</h2>
-                  <span className="px-2 py-0.5 rounded-full bg-gold/20 text-gold font-mono font-black text-xs border border-gold/30">
-                    ⚡ {selectedPlayer.rating} OVR
-                  </span>
-                </div>
-                <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-gray-300">
-                  <span className="text-stadiumGreen font-black">⚽ {selectedPlayer.club}</span>
-                  <span>&bull;</span>
-                  <span>{selectedPlayer.league}</span>
-                  <span>&bull;</span>
-                  <span className="text-gold">#{selectedPlayer.jerseyNumber} {selectedPlayer.position}</span>
-                </div>
-                <div className="text-[10px] text-gray-400 font-sans">
-                  Country: {selectedPlayer.country} &bull; Age: {selectedPlayer.age} &bull; Preferred Foot: {selectedPlayer.foot} &bull; Value: {selectedPlayer.marketValue}
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2 w-full sm:w-auto">
+        {/* Main Grid: Left Column Players List + Right Column Dossier */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          
+          {/* Left Column: Player Cards */}
+          <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+            {filteredPlayers.map((player) => {
+              const isSelected = selectedPlayer?.id === player.id;
+              const isFollowed = followedIds.includes(player.id);
+              return (
                 <button
-                  onClick={() => handleToggle(selectedPlayer)}
-                  className={`flex-1 sm:flex-none px-4 py-2.5 rounded-2xl font-black text-xs flex items-center justify-center space-x-1.5 transition-all shadow-md ${
-                    followedList.includes(selectedPlayer.name)
-                      ? 'bg-gold text-black shadow-lg shadow-gold/20'
-                      : 'bg-stadiumGreen text-black hover:bg-emerald-400'
+                  type="button"
+                  key={player.id}
+                  onClick={() => {
+                    phoneHardware.triggerHaptic('SELECTION');
+                    setSelectedPlayer(player);
+                  }}
+                  className={`w-full p-3 rounded-2xl text-left transition-all border flex items-center space-x-3 ${
+                    isSelected
+                      ? 'bg-neutral-800 border-gold shadow-lg shadow-gold/20 ring-1 ring-gold'
+                      : 'bg-neutral-950/80 hover:bg-neutral-900 border-neutral-800'
                   }`}
                 >
-                  <Star className="w-4 h-4 fill-current" />
-                  <span>{followedList.includes(selectedPlayer.name) ? 'Following ✓' : 'Follow Alerts ⭐'}</span>
+                  <img
+                    src={player.photo_url}
+                    alt={player.name}
+                    className="w-10 h-10 rounded-full object-cover border border-white/10 flex-shrink-0 bg-neutral-900"
+                    onError={(e) => { (e.target as HTMLImageElement).src = '/players/haaland.png'; }}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center space-x-1">
+                      <span className="font-bold text-xs text-white block truncate">{player.name}</span>
+                      {player.isLegend && (
+                        <span className="px-1 py-0.2 rounded bg-gold/20 text-gold text-[8px] font-black flex-shrink-0">GOAT</span>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-gray-400 block truncate">{player.club} • {player.country}</span>
+                  </div>
+
+                  {isFollowed && <Star className="w-3.5 h-3.5 fill-gold text-gold flex-shrink-0" />}
                 </button>
+              );
+            })}
+          </div>
+
+          {/* Right Column: Full Player Dossier & Wikipedia Status */}
+          {selectedPlayer ? (
+            <div className="md:col-span-2 p-5 rounded-3xl bg-neutral-950 border border-neutral-800 space-y-4 max-h-[380px] overflow-y-auto">
+              
+              {/* Header with Photo & Follow CTA */}
+              <div className="flex items-start justify-between gap-3 border-b border-neutral-800 pb-3">
+                <div className="flex items-center space-x-3">
+                  <img
+                    src={selectedPlayer.photo_url}
+                    alt={selectedPlayer.name}
+                    className="w-14 h-14 rounded-2xl object-cover border border-gold/40 bg-neutral-900"
+                    onError={(e) => { (e.target as HTMLImageElement).src = '/players/haaland.png'; }}
+                  />
+                  <div>
+                    <div className="flex items-center space-x-1.5">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-gold/20 text-gold border border-gold/30 font-bold uppercase">
+                        {selectedPlayer.sport} • {selectedPlayer.country}
+                      </span>
+                      {selectedPlayer.isLegend && (
+                        <span className="text-[9px] px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-400 font-bold">
+                          HALL OF FAME
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-black text-white">{selectedPlayer.name}</h3>
+                    <span className="text-xs text-gray-400 font-sans">{selectedPlayer.club} • #{selectedPlayer.jersey_number}</span>
+                  </div>
+                </div>
 
                 <button
-                  onClick={(e) => handleSharePlayer(selectedPlayer, e)}
-                  className="p-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white transition-all"
-                  title="Share Player Dossier"
+                  type="button"
+                  onClick={() => handleToggleFollow(selectedPlayer.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black flex items-center space-x-1.5 transition-all ${
+                    followedIds.includes(selectedPlayer.id)
+                      ? 'bg-gold text-black shadow-lg shadow-gold/25'
+                      : 'bg-neutral-900 text-gray-300 border border-neutral-700 hover:border-gold'
+                  }`}
                 >
-                  <Share2 className="w-4 h-4" />
+                  {followedIds.includes(selectedPlayer.id) ? <UserCheck className="w-3.5 h-3.5" /> : <Star className="w-3.5 h-3.5" />}
+                  <span>{followedIds.includes(selectedPlayer.id) ? 'Following' : 'Follow'}</span>
                 </button>
               </div>
-            </div>
 
-            {/* Linked Club & League Cards */}
-            <div className="grid grid-cols-2 gap-3">
-              <div 
-                onClick={() => {
-                  if (onOpenClub) onOpenClub(selectedPlayer.club);
-                  onClose();
-                }}
-                className="p-3.5 rounded-2xl bg-black/60 border border-white/10 hover:border-stadiumGreen transition-all cursor-pointer group"
-              >
-                <span className="text-[9px] text-gray-400 font-bold block">CLUB PROFILE HUB</span>
-                <span className="text-xs font-black text-white group-hover:text-stadiumGreen flex items-center justify-between mt-1">
-                  <span>{selectedPlayer.club}</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </span>
-              </div>
-
-              <div 
-                onClick={() => {
-                  if (onOpenLeague) onOpenLeague(selectedPlayer.league);
-                  onClose();
-                }}
-                className="p-3.5 rounded-2xl bg-black/60 border border-white/10 hover:border-cyan-400 transition-all cursor-pointer group"
-              >
-                <span className="text-[9px] text-gray-400 font-bold block">LEAGUE STANDINGS</span>
-                <span className="text-xs font-black text-white group-hover:text-cyan-400 flex items-center justify-between mt-1">
-                  <span>{selectedPlayer.league}</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </span>
-              </div>
-            </div>
-
-            {/* Comprehensive Key Stats Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="p-3.5 rounded-2xl bg-black/60 border border-white/10 text-center">
-                <span className="text-[9px] text-gray-400 block font-bold uppercase">SEASON GOALS</span>
-                <span className="text-xl font-black text-stadiumGreen">🔥 {selectedPlayer.goals}</span>
-              </div>
-              <div className="p-3.5 rounded-2xl bg-black/60 border border-white/10 text-center">
-                <span className="text-[9px] text-gray-400 block font-bold uppercase">ASSISTS</span>
-                <span className="text-xl font-black text-cyan-400">👟 {selectedPlayer.assists}</span>
-              </div>
-              <div className="p-3.5 rounded-2xl bg-black/60 border border-white/10 text-center">
-                <span className="text-[9px] text-gray-400 block font-bold uppercase">MARKET VALUE</span>
-                <span className="text-base font-black text-gold">{selectedPlayer.marketValue}</span>
-              </div>
-              <div className="p-3.5 rounded-2xl bg-black/60 border border-white/10 text-center">
-                <span className="text-[9px] text-gray-400 block font-bold uppercase">PREF. FOOT</span>
-                <span className="text-base font-black text-purple-400">⚡ {selectedPlayer.foot}</span>
-              </div>
-            </div>
-
-            {/* Career Trophies & Honors */}
-            <div className="p-4 rounded-2xl bg-black/60 border border-white/10 space-y-2">
-              <span className="text-xs font-black text-gold flex items-center space-x-1.5">
-                <Trophy className="w-4 h-4 text-gold" />
-                <span>Career Honors & Trophies</span>
-              </span>
-              <ul className="space-y-1.5 text-xs text-gray-200">
-                {selectedPlayer.trophies.map((tr, idx) => (
-                  <li key={idx} className="flex items-center space-x-2">
-                    <span className="text-gold">★</span>
-                    <span>{tr}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Upcoming Match & In-Play Prediction */}
-            <div className="p-4 rounded-2xl bg-panel/70 border border-stadiumGreen/40 space-y-2">
-              <span className="text-[10px] text-stadiumGreen font-black uppercase tracking-wider block">
-                ⚡ NEXT UPCOMING MATCHDAY FIXTURE
-              </span>
-              <p className="text-sm font-black text-white">
-                {selectedPlayer.nextMatch}
-              </p>
-              <div className="p-3 rounded-xl bg-black/80 border border-gold/30 flex items-center justify-between">
-                <span className="text-xs text-gold font-black">🎯 Banker In-Play Pick:</span>
-                <span className="text-xs font-mono font-black text-stadiumGreen">{selectedPlayer.inPlayPick}</span>
-              </div>
-            </div>
-
-          </div>
-        ) : (
-          /* Star Player Grid Catalog View */
-          <>
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/10 pb-4 flex-shrink-0">
-              <div className="flex items-center space-x-3">
-                <div className="p-2.5 rounded-2xl bg-gradient-to-tr from-gold via-stadiumGreen to-cyan-400 text-black font-black shadow-lg">
-                  <Star className="w-6 h-6 text-black fill-current" />
+              {/* Bio Stats Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-sans">
+                <div className="p-2.5 rounded-xl bg-neutral-900 border border-neutral-800">
+                  <span className="text-[10px] text-gray-400 block">🎂 Birth Date</span>
+                  <strong className="text-white text-xs block truncate">{selectedPlayer.birth_date}</strong>
                 </div>
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <h1 className="font-black text-base sm:text-xl text-white tracking-wider">
-                      ⭐ GLOBAL STAR PLAYERS &amp; RADAR DOSSIER
-                    </h1>
-                    <span className="px-2 py-0.5 rounded-full bg-gold/20 text-gold font-black text-[10px] border border-gold/30">
-                      100% VERIFIED
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-400 font-sans mt-0.5">
-                    Tap any player card for full statistical breakdown, match footprint, and lock-screen alerts.
-                  </p>
+
+                <div className="p-2.5 rounded-xl bg-neutral-900 border border-neutral-800">
+                  <span className="text-[10px] text-gray-400 block">Age</span>
+                  <strong className="text-gold text-xs block">{selectedPlayer.age} Years</strong>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-neutral-900 border border-neutral-800">
+                  <span className="text-[10px] text-gray-400 block">Position</span>
+                  <strong className="text-white text-xs block truncate">{selectedPlayer.position}</strong>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-neutral-900 border border-neutral-800">
+                  <span className="text-[10px] text-gray-400 block">Status / Value</span>
+                  <strong className="text-stadiumGreen text-xs block truncate">{selectedPlayer.market_value}</strong>
                 </div>
               </div>
 
-              <button
-                onClick={onClose}
-                className="p-2 rounded-full bg-panel text-gray-400 hover:text-white border border-white/10 transition-all self-end sm:self-auto"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Live Search Bar */}
-            <div className="relative flex-shrink-0">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search star players by name, club, or country (Haaland, Osimhen, Mbappé, Saka, Yamal...)"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-panel/80 border border-white/10 text-white placeholder-gray-500 font-mono text-xs focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold transition-all"
-              />
-            </div>
-
-            {/* Modern Gen-Z Holographic Player Grid */}
-            <div className="flex-1 overflow-y-auto pr-1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
-                {filteredPlayers.map((player) => {
-                  const isFollowed = followedList.includes(player.name);
-
-                  return (
-                    <div
-                      key={player.id}
-                      onClick={() => {
-                        phoneHardware.triggerHaptic('SELECTION');
-                        stadiumAudio.playTabClickSound();
-                        setSelectedPlayer(player);
-                      }}
-                      className="group relative rounded-3xl bg-gradient-to-b from-panel/90 to-black/95 border border-white/10 hover:border-gold/60 p-3.5 flex flex-col justify-between space-y-3 cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-gold/10"
-                    >
-                      {/* Top Card Bar: Rating + Position + Follow Star */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-1.5">
-                          <span className="w-8 h-8 rounded-xl bg-gold/20 border border-gold/40 text-gold font-black text-xs flex items-center justify-center shadow-inner">
-                            {player.rating}
-                          </span>
-                          <span className="text-[10px] font-black text-gray-300 px-2 py-0.5 rounded-md bg-white/5 border border-white/10 uppercase">
-                            {player.position.split(' ')[0]}
-                          </span>
-                        </div>
-
-                        <button
-                          onClick={(e) => handleToggle(player, e)}
-                          className={`p-1.5 rounded-xl border transition-all ${
-                            isFollowed 
-                              ? 'bg-gold text-black border-gold shadow-md' 
-                              : 'bg-white/5 border-white/10 text-gray-400 hover:text-gold'
-                          }`}
-                          title={isFollowed ? 'Following (Tap to unfollow)' : 'Follow for Lock-Screen Goal Alerts'}
-                        >
-                          <Star className={`w-3.5 h-3.5 ${isFollowed ? 'fill-current' : ''}`} />
-                        </button>
-                      </div>
-
-                      {/* Player Action Portrait with Real Transparent Cutout */}
-                      <div className="relative w-full h-40 rounded-2xl overflow-hidden bg-gradient-to-br from-white/10 via-black/80 to-black border border-white/10 flex items-center justify-center p-2 shadow-inner">
-                        <img
-                          src={player.jerseyPhoto}
-                          alt={player.name}
-                          className="w-full h-full object-contain group-hover:scale-115 transition-transform duration-500 drop-shadow-xl"
-                          onError={(e) => {
-                            (e.currentTarget as HTMLElement).style.display = 'none';
-                          }}
-                        />
-
-                        <div className="absolute top-2 right-2 text-base shadow-sm">
-                          {player.countryFlag}
-                        </div>
-                      </div>
-
-                      {/* Player Name, Club & Stats */}
-                      <div className="space-y-1">
-                        <span className="font-black text-sm text-white block truncate group-hover:text-gold transition-colors">
-                          {player.name}
-                        </span>
-                        <div className="flex items-center space-x-1.5 text-[10px] text-stadiumGreen font-bold truncate">
-                          <span>⚽</span>
-                          <span className="truncate">{player.club}</span>
-                        </div>
-                        <span className="text-[9px] text-gray-400 font-sans block truncate">
-                          {player.league}
-                        </span>
-                      </div>
-
-                      {/* Stats Pill Row */}
-                      <div className="grid grid-cols-2 gap-1.5 pt-2 border-t border-white/10 text-center font-mono">
-                        <div className="bg-white/5 py-1 px-1.5 rounded-lg">
-                          <span className="text-[8px] text-gray-400 block">GOALS</span>
-                          <span className="text-xs font-black text-stadiumGreen">🔥 {player.goals}</span>
-                        </div>
-                        <div className="bg-white/5 py-1 px-1.5 rounded-lg">
-                          <span className="text-[8px] text-gray-400 block">ASSISTS</span>
-                          <span className="text-xs font-black text-cyan-400">👟 {player.assists}</span>
-                        </div>
-                      </div>
-
-                      {/* Action Banner */}
-                      <div className="flex items-center justify-between text-[10px] text-gold font-bold pt-1">
-                        <span>Tap to View Full Dossier</span>
-                        <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                      </div>
-
-                    </div>
-                  );
-                })}
+              {/* Wikipedia Bio */}
+              <div className="space-y-1.5 pt-1">
+                <span className="text-xs font-black text-white flex items-center space-x-1.5">
+                  <Globe className="w-3.5 h-3.5 text-gold" />
+                  <span>CAREER OVERVIEW &amp; BIOGRAPHY</span>
+                </span>
+                <p className="text-xs text-neutral-300 font-sans leading-relaxed">
+                  {selectedPlayer.bio}
+                </p>
               </div>
+
             </div>
-          </>
-        )}
+          ) : (
+            <div className="md:col-span-2 p-8 rounded-3xl bg-neutral-950 border border-neutral-800 flex items-center justify-center text-center text-gray-500 text-xs">
+              Select any player on the left or search above to view full career profile.
+            </div>
+          )}
+
+        </div>
 
       </div>
     </div>
