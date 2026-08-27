@@ -1,113 +1,74 @@
-// AuraScore Stadium 2.0 Production Service Worker
-const CACHE_NAME = 'aurascore-v2.4-cache';
-const OFFLINE_FALLBACK_URL = '/offline.html';
-
-const STATIC_PRECACHE = [
+// Mivaj Sports High-Performance Service Worker & Web Push Engine
+const CACHE_NAME = 'mivaj-sports-v2';
+const STATIC_ASSETS = [
   '/',
-  '/dashboard',
   '/manifest.json',
-  '/favicon.ico',
-  '/logo.svg',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
-  '/offline.html'
+  '/favicon.ico'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_PRECACHE).catch((err) => {
-        console.warn('Pre-cache warning (some assets cached on demand):', err);
-      });
-    }).then(() => self.skipWaiting())
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
   );
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+      )
+    )
   );
+  self.clients.claim();
 });
 
-self.addEventListener('fetch', (event) => {
-  const request = event.request;
-  const url = new URL(request.url);
-
-  // Ignore non-GET and API mutation requests
-  if (request.method !== 'GET') return;
-
-  // Stale-While-Revalidate for API reads and match streams
-  if (url.pathname.startsWith('/api/matches') || url.pathname.startsWith('/api/predictions')) {
-    event.respondWith(
-      caches.open(CACHE_NAME).then((cache) => {
-        return fetch(request)
-          .then((networkResponse) => {
-            if (networkResponse && networkResponse.status === 200) {
-              cache.put(request, networkResponse.clone());
-            }
-            return networkResponse;
-          })
-          .catch(() => cache.match(request));
-      })
-    );
-    return;
-  }
-
-  // Cache-First for static assets (scripts, styles, icons, fonts)
-  if (
-    url.pathname.startsWith('/_next/static/') ||
-    url.pathname.startsWith('/icons/') ||
-    url.pathname.endsWith('.svg') ||
-    url.pathname.endsWith('.png') ||
-    url.pathname.endsWith('.ico')
-  ) {
-    event.respondWith(
-      caches.match(request).then((cached) => {
-        return cached || fetch(request).then((response) => {
-          if (response && response.status === 200) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-          }
-          return response;
-        });
-      })
-    );
-    return;
-  }
-
-  // Network-first with Offline Fallback for HTML pages
-  if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request).catch(() => {
-        return caches.match(request).then((cached) => {
-          return cached || caches.match(OFFLINE_FALLBACK_URL);
-        });
-      })
-    );
-  }
-});
-
-
-// SILENT DATA PUSH LISTENER & AUDIO PRE-CACHING
-self.addEventListener('push', function(event) {
+// Intercept Web Push Notifications (iOS 16.4+, Android, Desktop)
+self.addEventListener('push', (event) => {
   if (!event.data) return;
+
+  let payload = {};
   try {
-    const payload = event.data.json();
-    if (payload.silent) {
-      event.waitUntil(
-        caches.open('mivaj_live_matches').then(cache => {
-          return cache.put('/api/live-state', new Response(JSON.stringify(payload)));
-        })
-      );
-      return;
-    }
-  } catch (e) {}
+    payload = event.data.json();
+  } catch (e) {
+    payload = { title: '⚡ Mivaj Sports Alert', body: event.data.text() };
+  }
+
+  const title = payload.title || '⚡ Mivaj Sports Live Alert';
+  const options = {
+    body: payload.body || 'Live match updates, kickoff alerts and real-time score notifications.',
+    icon: payload.icon || '/icon-192x192.png',
+    badge: '/icon-192x192.png',
+    image: payload.image,
+    vibrate: [200, 100, 200, 100, 400],
+    data: { url: payload.url || '/' },
+    actions: [
+      { action: 'open_match', title: '🔴 Open Match Center' },
+      { action: 'dismiss', title: 'Dismiss' }
+    ],
+    tag: payload.tag || 'mivaj-live-alert',
+    renotify: true
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Notification Click Routing
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  if (event.action === 'dismiss') return;
+
+  const targetUrl = event.notification.data?.url || '/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url.includes(targetUrl) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) return clients.openWindow(targetUrl);
+    })
+  );
 });

@@ -1,4 +1,5 @@
 import { PwaRegister } from '../components/pwa-register';
+import { PwaInstallPromptModal } from '../components/pwa/PwaInstallPromptModal';
 import './globals.css';
 import { LanguageProvider } from '../lib/translation-engine';
 import type { Metadata, Viewport } from 'next';
@@ -153,8 +154,11 @@ export default function RootLayout({
         />
         <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async />
 
-        <LanguageProvider><PwaRegister />
-        {children}</LanguageProvider>
+        <LanguageProvider>
+          <PwaRegister />
+          <PwaInstallPromptModal />
+          {children}
+        </LanguageProvider>
         <script
           dangerouslySetInnerHTML={{
             __html: `

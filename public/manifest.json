@@ -1,88 +1,37 @@
 {
-  "name": "AuraScore Stadium 2.0 | AI Sports & Live Prediction Super-App",
-  "short_name": "AuraScore",
-  "description": "World-First Offline-First Live Sports Analytics, Match Predictions & Stadium Atmosphere Super-App",
-  "id": "/",
-  "start_url": "/",
-  "scope": "/",
+  "name": "Mivaj Sports Live | Real-Time Scores & Wiki",
+  "short_name": "Mivaj Sports",
+  "description": "Live match center, persistent real-time audio commentary, star player wiki dossiers, and instant goal push alerts.",
+  "start_url": "/?source=pwa",
   "display": "standalone",
-  "display_override": [
-    "window-controls-overlay",
-    "standalone",
-    "minimal-ui"
-  ],
+  "background_color": "#070c18",
+  "theme_color": "#00ff87",
   "orientation": "portrait-primary",
-  "background_color": "#05070B",
-  "theme_color": "#05070B",
-  "lang": "en",
-  "dir": "ltr",
-  "categories": [
-    "sports",
-    "entertainment",
-    "news"
-  ],
   "icons": [
     {
-      "src": "/icons/icon-192.png",
+      "src": "/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-maskable-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/icons/icon-maskable-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ],
+  "categories": ["sports", "entertainment", "news"],
   "shortcuts": [
     {
-      "name": "Live Matches ⚡",
-      "short_name": "Matches",
-      "description": "Sub-second live match scores & goal power",
-      "url": "/",
-      "icons": [
-        {
-          "src": "/icons/icon-192.png",
-          "sizes": "192x192"
-        }
-      ]
+      "name": "Live Match Center",
+      "url": "/?tab=live",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
     },
     {
-      "name": "User Dashboard",
-      "short_name": "Dashboard",
-      "description": "Your Aura profile, prediction hub & banter",
-      "url": "/dashboard",
-      "icons": [
-        {
-          "src": "/icons/icon-192.png",
-          "sizes": "192x192"
-        }
-      ]
-    },
-    {
-      "name": "PAM Command Center",
-      "short_name": "Admin",
-      "description": "Privileged access management workstation",
-      "url": "/admin",
-      "icons": [
-        {
-          "src": "/icons/icon-192.png",
-          "sizes": "192x192"
-        }
-      ]
+      "name": "Star Birthdays",
+      "url": "/birthdays",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
     }
   ]
 }
