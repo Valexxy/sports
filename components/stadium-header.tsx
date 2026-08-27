@@ -165,7 +165,16 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
         </div>
 
         {/* Desktop Navigation Menu */}
-        <nav className="hidden lg:flex items-center space-x-1 bg-black/60 p-1.5 rounded-2xl border border-white/10">
+        <nav className="hidden lg:flex items-center space-x-2 bg-black/60 px-3 py-1.5 rounded-2xl border border-white/10">
+          <Link href="/players" className="px-3 py-1.5 rounded-xl text-xs font-bold text-gray-300 hover:text-white hover:bg-white/10 transition-all">
+            ★ Players
+          </Link>
+          <Link href="/birthdays" className="px-3 py-1.5 rounded-xl text-xs font-bold text-gray-300 hover:text-white hover:bg-white/10 transition-all">
+            🎂 Birthdays
+          </Link>
+          <Link href="/converter" className="px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-400 hover:bg-emerald-500/20 transition-all">
+            ⚡ Converter
+          </Link>
 
 
 
