@@ -1,12 +1,12 @@
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Zap, Sparkles, Shield, Flame, TrendingUp, Trophy } from 'lucide-react';
+import { ArrowLeft, Zap, Trophy } from 'lucide-react';
 import { BetSlipConverter } from '../../components/converter/BetSlipConverter';
 import { AFFILIATE_PARTNERS } from '../../config/affiliates';
 
 export const metadata = {
-  title: 'Military-Grade Bet Slip Converter | Stake, 22Bet, SportyBet, Bet9ja, 1xBet',
-  description: 'Convert any betting booking code from global sportsbooks into Stake, 22Bet, SportyBet, Bet9ja, and 1xBet with instant odds matching and 1-tap cart injection.',
+  title: 'Bet Slip Converter & Slip Transpiler | Stake, 22Bet, SportyBet, Bet9ja, 1xBet',
+  description: 'Decode and convert live booking codes across global sportsbooks with real API match extraction and 1-tap affiliate bonus claiming.',
 };
 
 export default function ConverterPage() {
@@ -25,20 +25,10 @@ export default function ConverterPage() {
           </Link>
 
           <div className="flex items-center space-x-2">
-            <Link
-              href="/challenge"
-              className="px-3 py-1.5 rounded-xl bg-gold/10 hover:bg-gold/20 text-gold border border-gold/30 text-xs font-black flex items-center space-x-1.5 transition-all"
-            >
-              <Flame className="w-3.5 h-3.5 fill-gold" />
-              <span>Streak Challenge (Free ₦250k)</span>
-            </Link>
-            <Link
-              href="/arbitrage"
-              className="px-3 py-1.5 rounded-xl bg-stadiumGreen/10 hover:bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/30 text-xs font-black flex items-center space-x-1.5 transition-all hidden sm:flex"
-            >
-              <TrendingUp className="w-3.5 h-3.5" />
-              <span>Live Arbitrage Radar</span>
-            </Link>
+            <span className="px-3 py-1 rounded-full bg-stadiumGreen/20 text-stadiumGreen text-xs font-black border border-stadiumGreen/40 flex items-center space-x-1.5">
+              <Zap className="w-3.5 h-3.5" />
+              <span>100% Free Live API Engine</span>
+            </span>
           </div>
         </div>
 
@@ -46,13 +36,13 @@ export default function ConverterPage() {
         <div className="text-center space-y-2 py-2">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-stadiumGreen/10 border border-stadiumGreen/30 text-stadiumGreen text-[11px] font-black uppercase tracking-wider">
             <Zap className="w-3.5 h-3.5" />
-            <span>UNIVERSAL MULTI-BOOKMAKER TRANSPILER</span>
+            <span>LIVE BOOKING CODE DECODER &amp; SLIP BUILDER</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
-            BET SLIP CONVERTER &amp; ACCA BUILDER
+            BET SLIP CONVERTER
           </h1>
           <p className="text-xs sm:text-sm text-gray-400 font-sans max-w-xl mx-auto">
-            Convert any booking code into verified Stake, 22Bet, SportyBet, Bet9ja, and 1xBet accumulator tickets with maximum deposit bonus boost!
+            Extract exact live matches, markets, and odds from any booking code with 100% free live API decoding and place on Stake, 22Bet, SportyBet, Bet9ja, or 1xBet!
           </p>
         </div>
 
@@ -64,9 +54,9 @@ export default function ConverterPage() {
           <div className="flex items-center justify-between">
             <span className="text-xs font-black text-white flex items-center space-x-2">
               <Trophy className="w-4 h-4 text-gold" />
-              <span>EXCLUSIVE SIGNUP BONUS HUBS (1-TAP CLAIM)</span>
+              <span>OFFICIAL SPONSOR SIGNUP BONUSES (1-TAP CLAIM)</span>
             </span>
-            <span className="text-[10px] text-gray-500 font-sans">Updated for 2026 Season</span>
+            <span className="text-[10px] text-gray-500 font-sans">Active &amp; Verified</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
