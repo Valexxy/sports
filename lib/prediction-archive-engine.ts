@@ -139,7 +139,13 @@ export async function buildDynamicArchive(): Promise<ArchivedMatch[]> {
     if (allMatches && allMatches.length > 0) {
       const finished = allMatches.filter(m => m.status === 'FINISHED');
       if (finished.length > 0) {
-        const archive = finished.map(toArchivedMatch).slice(0, 50);
+        // Sort strictly by most recent match date descending (latest first)
+        const sortedFinished = [...finished].sort((a, b) => {
+          const timeB = new Date(b.utcDate || Date.now()).getTime();
+          const timeA = new Date(a.utcDate || 0).getTime();
+          return timeB - timeA;
+        });
+        const archive = sortedFinished.map(toArchivedMatch).slice(0, 50);
         inMemoryArchive = archive;
         lastArchiveFetch = now;
         return archive;

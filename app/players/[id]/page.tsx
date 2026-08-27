@@ -11,6 +11,7 @@ import confetti from 'canvas-confetti';
 import { phoneHardware } from '../../../lib/phone-hardware-engine';
 import { useAudioStore } from '../../../lib/audio-store';
 import { SocialWishCardModal } from '../../../components/players/SocialWishCardModal';
+import { STAR_PLAYERS_CATALOG } from '../../../lib/player-catalog';
 
 interface PlayerDetails {
   id: string;
@@ -41,7 +42,8 @@ export default function PlayerWikiPage() {
   const params = useParams();
   const playerId = (params?.id as string) || 'tsdb-osimhen';
 
-  const [player, setPlayer] = useState<PlayerDetails | null>(null);
+  const initialPlayer = STAR_PLAYERS_CATALOG.find(p => p.id === playerId || p.external_id === playerId) || STAR_PLAYERS_CATALOG[0];
+  const [player, setPlayer] = useState<PlayerDetails | null>(initialPlayer);
   const [isFollowed, setIsFollowed] = useState(false);
   const [wishInput, setWishInput] = useState('');
   const [senderName, setSenderName] = useState('NaijaSupporter');

@@ -3,9 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Sparkles, Trophy, Heart, Search, Filter } from 'lucide-react';
+import { STAR_PLAYERS_CATALOG } from '../../lib/player-catalog';
 
 export default function BirthdaysHubPage() {
-  const [players, setPlayers] = useState<any[]>([]);
+  const [players, setPlayers] = useState<any[]>(STAR_PLAYERS_CATALOG);
   const [selectedSport, setSelectedSport] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
