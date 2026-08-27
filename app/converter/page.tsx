@@ -1,11 +1,12 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Zap, Sparkles, Shield } from 'lucide-react';
+import { BetSlipConverter } from '../../components/converter/BetSlipConverter';
 import { EnterpriseConverterHUD } from '../../components/converter/EnterpriseConverterHUD';
 
 export const metadata = {
-  title: 'Military-Grade Betting Code Converter | Stake, 22Bet, SportyBet, Bet9ja, 1xBet',
-  description: 'Convert any betting booking code from 50+ global sportsbooks into Stake, 22Bet, SportyBet, Bet9ja, and 1xBet with instant odds matching and 1-tap cart injection.',
+  title: 'Military-Grade Bet Slip Converter | Stake, 22Bet, SportyBet, Bet9ja, 1xBet',
+  description: 'Convert any betting booking code from global sportsbooks into Stake, 22Bet, SportyBet, Bet9ja, and 1xBet with instant odds matching and 1-tap cart injection.',
 };
 
 export default function ConverterPage() {
@@ -26,7 +27,7 @@ export default function ConverterPage() {
           <div className="flex items-center space-x-2">
             <span className="px-3 py-1 rounded-full bg-stadiumGreen/20 text-stadiumGreen text-xs font-black border border-stadiumGreen/40 flex items-center space-x-1.5">
               <Zap className="w-3.5 h-3.5" />
-              <span>Universal Omni-Sport Engine 3.0</span>
+              <span>RapidAPI Slip Engine 3.0</span>
             </span>
           </div>
         </div>
@@ -34,25 +35,18 @@ export default function ConverterPage() {
         {/* Hero Header */}
         <div className="text-center space-y-2 py-3">
           <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white flex items-center justify-center gap-2">
-            <span>ENTERPRISE BET CODE CONVERTER</span>
+            <span>PRODUCTION BET SLIP CONVERTER</span>
           </h1>
           <p className="text-xs sm:text-sm text-gray-400 font-sans max-w-2xl mx-auto">
-            Universal multi-sport parser converting booking codes across 50+ global bookmakers into verified Stake, 22Bet, SportyBet, Bet9ja, and 1xBet slips simultaneously.
+            Convert any booking code into verified Stake, 22Bet, SportyBet, Bet9ja, and 1xBet slips with 1-tap copy &amp; launch!
           </p>
         </div>
 
-        {/* Top Ezoic Ad Slot Container */}
-        <div className="p-3.5 rounded-2xl bg-[#0d111a] border border-white/5 text-center text-xs text-gray-500 font-sans">
-          [ Ezoic Sponsored Leaderboard • Top Bookmaker Acca Multipliers ]
-        </div>
+        {/* Primary Bet Slip Converter Component */}
+        <BetSlipConverter />
 
-        {/* Core Enterprise Converter HUD */}
+        {/* Multi-Bookmaker Matrix HUD */}
         <EnterpriseConverterHUD />
-
-        {/* Bottom Ezoic Ad Slot Container */}
-        <div className="p-3.5 rounded-2xl bg-[#0d111a] border border-white/5 text-center text-xs text-gray-500 font-sans">
-          [ Ezoic High-Yield Multiplier Slot • 22Bet ₦130,000 &amp; Stake $3,000 VIP ]
-        </div>
 
       </div>
     </div>
