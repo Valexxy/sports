@@ -22,7 +22,19 @@ interface SlipLeg {
   odds: number;
 }
 
-const BOOKMAKER_LOAD_INSTRUCTIONS: Record<AffiliateKey, { title: string; steps: string[]; tip: string }> = {
+const BOOKMAKER_LOAD_INSTRUCTIONS: Record<AffiliateKey, { title: string; steps: string[]; tip: string; pasteBoxName: string }> = {
+  'BET9JA': {
+    title: 'How to Load on Bet9ja (Desktop & Mobile)',
+    steps: [
+      'Click "[ COPY & BET ON BET9JA ]" below (copies code and opens Bet9ja with 170% Boost).',
+      'On Bet9ja, look at the right sidebar under the "Betslip" tab.',
+      'Find the section titled "Book: Please insert a booking number below".',
+      'Paste your copied code into the box and click the green [ Book ] button.',
+      'Your entire multi-bet ticket will load into your Betslip ready to place!'
+    ],
+    tip: '170% Multiple Win Boost + ₦100,000 Welcome Bonus on Bet9ja.',
+    pasteBoxName: 'Book: Please insert a booking number below'
+  },
   'STAKE': {
     title: 'How to Load on Stake.com',
     steps: [
@@ -31,17 +43,8 @@ const BOOKMAKER_LOAD_INSTRUCTIONS: Record<AffiliateKey, { title: string; steps: 
       'Click "Use Bet Code" to paste the code, OR pick the matches listed below in 10 seconds.',
       'Enjoy 200% VIP Welcome Bonus on your deposit!'
     ],
-    tip: 'Stake supports Crypto, USD & OPay with zero withdrawal fees.'
-  },
-  '22BET': {
-    title: 'How to Load on 22Bet',
-    steps: [
-      'Click "[ COPY & BET ON 22BET ]" below.',
-      'On 22Bet, open your Bet Slip on the right or bottom.',
-      'Click "Save / Load Bet Slip" -> "Load Bet Slip".',
-      'Paste your code and click "Load" to add all selections.'
-    ],
-    tip: 'Get 100% First Deposit Match up to ₦130,000 on 22Bet.'
+    tip: 'Stake supports Crypto, USD & OPay with zero withdrawal fees.',
+    pasteBoxName: 'Use Bet Code'
   },
   'SPORTYBET': {
     title: 'How to Load on SportyBet',
@@ -51,17 +54,19 @@ const BOOKMAKER_LOAD_INSTRUCTIONS: Record<AffiliateKey, { title: string; steps: 
       'Enter your code into the "Load Code" box.',
       'Click "Load" to populate all matches.'
     ],
-    tip: 'Enjoy up to 1,000% Dynamic Accumulator Win Boost.'
+    tip: 'Enjoy up to 1,000% Dynamic Accumulator Win Boost.',
+    pasteBoxName: 'Load Code'
   },
-  'BET9JA': {
-    title: 'How to Load on Bet9ja',
+  '22BET': {
+    title: 'How to Load on 22Bet',
     steps: [
-      'Click "[ COPY & BET ON BET9JA ]" below.',
-      'On Bet9ja, find the "Book a Bet / Booking Number" box.',
-      'Paste your booking code.',
-      'Click "Load" to view your active ticket.'
+      'Click "[ COPY & BET ON 22BET ]" below.',
+      'On 22Bet, open your Bet Slip on the right or bottom.',
+      'Click "Save / Load Bet Slip" -> "Load Bet Slip".',
+      'Paste your code and click "Load" to add all selections.'
     ],
-    tip: '170% Multiple Boost + ₦100,000 Welcome Bonus on Bet9ja.'
+    tip: 'Get 100% First Deposit Match up to ₦130,000 on 22Bet.',
+    pasteBoxName: 'Load Bet Slip'
   },
   '1XBET': {
     title: 'How to Load on 1xBet',
@@ -71,13 +76,14 @@ const BOOKMAKER_LOAD_INSTRUCTIONS: Record<AffiliateKey, { title: string; steps: 
       'Paste the code into the code field.',
       'Click "Download" to populate your selections.'
     ],
-    tip: 'Claim 300% First Deposit Match Package on 1xBet.'
+    tip: 'Claim 300% First Deposit Match Package on 1xBet.',
+    pasteBoxName: 'Save / Download Bet Slip'
   }
 };
 
 export const BetSlipConverter: React.FC = () => {
   const [source, setSource] = useState<string>('SPORTYBET');
-  const [target, setTarget] = useState<AffiliateKey>('STAKE');
+  const [target, setTarget] = useState<AffiliateKey>('BET9JA');
   const [bookingCode, setBookingCode] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingStep, setLoadingStep] = useState<string>('');
@@ -188,7 +194,7 @@ export const BetSlipConverter: React.FC = () => {
             </h2>
           </div>
           <p className="text-xs text-neutral-400 font-sans">
-            Audited headless verification ensuring 100% working, bookmaker-distinct codes for Stake, 22Bet, SportyBet, Bet9ja &amp; 1xBet.
+            Audited headless verification ensuring 100% working, bookmaker-distinct codes for Bet9ja, SportyBet, 22Bet, Stake &amp; 1xBet.
           </p>
         </div>
 
@@ -401,7 +407,28 @@ export const BetSlipConverter: React.FC = () => {
             )}
           </button>
 
-          {/* REAL MATCH LEGS BREAKDOWN (Essential for Stake & all bookmakers) */}
+          {/* HOW TO LOAD SLIP VISUAL INSTRUCTIONS */}
+          <div className="p-4 rounded-2xl bg-neutral-900/90 border border-neutral-700/80 space-y-2.5">
+            <div className="flex items-center space-x-2 text-xs font-black text-emerald-400">
+              <Info className="w-4 h-4 text-emerald-400" />
+              <span>{targetGuide.title}</span>
+            </div>
+
+            <ol className="space-y-1.5 text-xs text-neutral-300 font-sans list-decimal list-inside">
+              {targetGuide.steps.map((step, idx) => (
+                <li key={idx} className="leading-relaxed">
+                  <span className="text-white font-medium">{step}</span>
+                </li>
+              ))}
+            </ol>
+
+            <div className="pt-2 border-t border-neutral-800 text-[11px] text-neutral-400 flex items-center justify-between font-sans">
+              <span>💡 {targetGuide.tip}</span>
+              <span className="text-emerald-400 font-mono font-bold">100% Free Service</span>
+            </div>
+          </div>
+
+          {/* REAL MATCH LEGS BREAKDOWN (Guarantees user can always place the bet) */}
           {result.legs && result.legs.length > 0 && (
             <div className="p-4 rounded-2xl bg-neutral-900/90 border border-neutral-700/80 space-y-3">
               <div className="flex items-center justify-between">
@@ -440,27 +467,6 @@ export const BetSlipConverter: React.FC = () => {
               </div>
             </div>
           )}
-
-          {/* EXACT PLATFORM STEP-BY-STEP SLIP LOADING INSTRUCTIONS */}
-          <div className="p-4 rounded-2xl bg-neutral-900/90 border border-neutral-700/80 space-y-2.5">
-            <div className="flex items-center space-x-2 text-xs font-black text-emerald-400">
-              <Info className="w-4 h-4 text-emerald-400" />
-              <span>{targetGuide.title}</span>
-            </div>
-
-            <ol className="space-y-1.5 text-xs text-neutral-300 font-sans list-decimal list-inside">
-              {targetGuide.steps.map((step, idx) => (
-                <li key={idx} className="leading-relaxed">
-                  <span className="text-white font-medium">{step}</span>
-                </li>
-              ))}
-            </ol>
-
-            <div className="pt-2 border-t border-neutral-800 text-[11px] text-neutral-400 flex items-center justify-between font-sans">
-              <span>💡 {targetGuide.tip}</span>
-              <span className="text-emerald-400 font-mono font-bold">100% Free Service</span>
-            </div>
-          </div>
 
         </div>
       )}
