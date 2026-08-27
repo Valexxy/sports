@@ -802,7 +802,7 @@ export default function Home() {
             followedLeagues={followedLeagues}
           />
         )}
-        {showTeamsModal && <TeamExplorerModal onClose={() => setShowTeamsModal(false)} />}
+        {showTeamsModal && <TeamExplorerModal initialTeamName={selectedClubForProfile || undefined} onClose={() => { setShowTeamsModal(false); setSelectedClubForProfile(null); }} />}
         <DailyAuraHarvestModal isOpen={showHarvestModal} onClose={() => setShowHarvestModal(false)} />
         <WhaleLeaderboardModal isOpen={showWhaleModal} onClose={() => setShowWhaleModal(false)} />
         {showBirthdaysModal && <BirthdayCenterModal isOpen={showBirthdaysModal} onClose={() => setShowBirthdaysModal(false)} />}
