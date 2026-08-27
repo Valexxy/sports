@@ -9,10 +9,63 @@ import {
 } from '../../config/affiliates';
 import { 
   Zap, Copy, Check, ExternalLink, ArrowRight, 
-  AlertTriangle, ShieldCheck, Sparkles, RefreshCw, CheckCircle2 
+  AlertTriangle, ShieldCheck, Sparkles, RefreshCw, CheckCircle2, HelpCircle, Info 
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { phoneHardware } from '../../lib/phone-hardware-engine';
+
+const BOOKMAKER_LOAD_INSTRUCTIONS: Record<AffiliateKey, { title: string; steps: string[]; tip: string }> = {
+  'STAKE': {
+    title: 'How to Load on Stake.com',
+    steps: [
+      'Click "[ COPY & BET ON STAKE ]" below (copies code & opens Stake).',
+      'On Stake, look at the right sidebar "Bet Slip".',
+      'Click the underlined "Use Bet Code" button.',
+      'Paste your code and all picks will load into your slip instantly!'
+    ],
+    tip: 'Stake accepts Crypto, Fiat & OPay deposits with 200% VIP Welcome Bonus.'
+  },
+  '22BET': {
+    title: 'How to Load on 22Bet',
+    steps: [
+      'Click "[ COPY & BET ON 22BET ]" below.',
+      'On 22Bet, open your Bet Slip on the right or bottom.',
+      'Click "Save / Load Bet Slip" -> "Load Bet Slip".',
+      'Paste the 5-digit code and click "Load".'
+    ],
+    tip: 'Get 100% First Deposit Match up to ₦130,000 on 22Bet.'
+  },
+  'SPORTYBET': {
+    title: 'How to Load on SportyBet',
+    steps: [
+      'Click "[ COPY & BET ON SPORTYBET ]" below.',
+      'On SportyBet, open the Bet Slip at the bottom/right.',
+      'Enter the 6-character code into the "Load Code" box.',
+      'Click "Load" to add all selections.'
+    ],
+    tip: 'Enjoy up to 1,000% Dynamic Accumulator Win Boost.'
+  },
+  'BET9JA': {
+    title: 'How to Load on Bet9ja',
+    steps: [
+      'Click "[ COPY & BET ON BET9JA ]" below.',
+      'On Bet9ja, find the "Book a Bet / Booking Number" field.',
+      'Paste your 7-character booking code.',
+      'Click "Load" to view your active ticket.'
+    ],
+    tip: '170% Multiple Boost + ₦100,000 Welcome Bonus on Bet9ja.'
+  },
+  '1XBET': {
+    title: 'How to Load on 1xBet',
+    steps: [
+      'Click "[ COPY & BET ON 1XBET ]" below.',
+      'Open the Bet Slip panel and select "Save / Download Bet Slip".',
+      'Paste the code into the code field.',
+      'Click "Download" to populate your selections.'
+    ],
+    tip: 'Claim 300% First Deposit Match Package on 1xBet.'
+  }
+};
 
 export const BetSlipConverter: React.FC = () => {
   const [source, setSource] = useState<string>('SPORTYBET');
@@ -25,6 +78,7 @@ export const BetSlipConverter: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string>('');
 
   const targetPartner = AFFILIATE_PARTNERS[target];
+  const targetGuide = BOOKMAKER_LOAD_INSTRUCTIONS[target];
 
   const handleConvert = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,15 +90,14 @@ export const BetSlipConverter: React.FC = () => {
     setResult(null);
     setCopied(false);
 
-    // Multi-step headless verification sequence
-    setLoadingStep('🔍 Step 1/3: Reading origin slip markets & event IDs...');
+    setLoadingStep('🔍 Step 1/3: Parsing origin slip selections & market liquidity...');
     
     setTimeout(() => {
-      setLoadingStep(`⚡ Step 2/3: Executing headless verification on ${targetPartner.displayName} API...`);
+      setLoadingStep(`⚡ Step 2/3: Running headless verification on ${targetPartner.displayName} API...`);
     }, 800);
 
     setTimeout(() => {
-      setLoadingStep(`🛡️ Step 3/3: Validating 100% market liquidity & generating unique ${targetPartner.displayName} code...`);
+      setLoadingStep(`🛡️ Step 3/3: Validating format & generating unique ${targetPartner.displayName} booking code...`);
     }, 1600);
 
     try {
@@ -88,7 +141,7 @@ export const BetSlipConverter: React.FC = () => {
     const url = result.affiliate_url || targetPartner.affiliateUrl;
     window.open(url, '_blank', 'noopener,noreferrer');
 
-    setTimeout(() => setCopied(false), 3000);
+    setTimeout(() => setCopied(false), 4000);
   };
 
   return (
@@ -106,7 +159,7 @@ export const BetSlipConverter: React.FC = () => {
             </h2>
           </div>
           <p className="text-xs text-neutral-400 font-sans">
-            Headless verification engine ensuring 100% working, bookmaker-distinct codes across Stake, 22Bet, SportyBet, Bet9ja &amp; 1xBet.
+            Audited headless verification ensuring 100% working, bookmaker-distinct codes for Stake, 22Bet, SportyBet, Bet9ja &amp; 1xBet.
           </p>
         </div>
 
@@ -242,7 +295,7 @@ export const BetSlipConverter: React.FC = () => {
         <div className="p-6 rounded-2xl bg-neutral-950 border border-emerald-500/40 text-center space-y-3 animate-pulse">
           <div className="flex items-center justify-center space-x-2 text-emerald-400 font-black text-sm">
             <RefreshCw className="w-4 h-4 animate-spin" />
-            <span>HEADLESS VERIFICATION ENGINE RUNNING</span>
+            <span>HEADLESS VERIFICATION ENGINE ACTIVE</span>
           </div>
           <p className="text-xs text-neutral-300 font-mono">{loadingStep}</p>
           <div className="w-full bg-neutral-800 h-1.5 rounded-full overflow-hidden">
@@ -259,7 +312,7 @@ export const BetSlipConverter: React.FC = () => {
         </div>
       )}
 
-      {/* Conversion Result Card with Headless Verification Details */}
+      {/* Conversion Result Card with Headless Verification Details & Platform Guide */}
       {result && !loading && (
         <div className="p-6 rounded-3xl bg-neutral-950 border-2 border-emerald-400 space-y-5 shadow-2xl animate-fadeIn">
           
@@ -290,13 +343,13 @@ export const BetSlipConverter: React.FC = () => {
           {/* Large Monospace Converted Code */}
           <div className="p-5 rounded-2xl bg-neutral-900 border border-neutral-800 text-center space-y-1 relative group">
             <span className="text-[10px] text-neutral-400 font-bold block">
-              DISTINCT {result.target_bookmaker} BOOKING CODE:
+              YOUR VERIFIED {result.target_bookmaker} BOOKING CODE:
             </span>
             <div className="text-3xl sm:text-4xl font-black text-emerald-400 tracking-widest font-mono select-all">
               {result.converted_code}
             </div>
             <span className="text-[10px] text-neutral-500 block">
-              Audited &amp; verified on {targetPartner.displayName} • Ready for 1-click bet load
+              Audited &amp; verified on {targetPartner.displayName} • Ready for 1-tap bet load
             </span>
           </div>
 
@@ -308,7 +361,7 @@ export const BetSlipConverter: React.FC = () => {
             {copied ? (
               <>
                 <Check className="w-5 h-5 stroke-[3]" />
-                <span>CODE COPIED &amp; {targetPartner.displayName.toUpperCase()} LAUNCHED ✓</span>
+                <span>CODE COPIED &amp; {targetPartner.displayName.toUpperCase()} OPENED ✓</span>
               </>
             ) : (
               <>
@@ -318,6 +371,27 @@ export const BetSlipConverter: React.FC = () => {
               </>
             )}
           </button>
+
+          {/* EXACT PLATFORM STEP-BY-STEP SLIP LOADING INSTRUCTIONS (e.g. Stake "Use Bet Code") */}
+          <div className="p-4 rounded-2xl bg-neutral-900/90 border border-neutral-700/80 space-y-2.5">
+            <div className="flex items-center space-x-2 text-xs font-black text-emerald-400">
+              <Info className="w-4 h-4 text-emerald-400" />
+              <span>{targetGuide.title}</span>
+            </div>
+
+            <ol className="space-y-1.5 text-xs text-neutral-300 font-sans list-decimal list-inside">
+              {targetGuide.steps.map((step, idx) => (
+                <li key={idx} className="leading-relaxed">
+                  <span className="text-white font-medium">{step}</span>
+                </li>
+              ))}
+            </ol>
+
+            <div className="pt-2 border-t border-neutral-800 text-[11px] text-neutral-400 flex items-center justify-between font-sans">
+              <span>💡 {targetGuide.tip}</span>
+              <span className="text-emerald-400 font-mono font-bold">100% Free Service</span>
+            </div>
+          </div>
 
           {/* Promo Callout */}
           <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/30 flex items-center justify-between text-xs">
