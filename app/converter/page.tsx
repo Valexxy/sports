@@ -1,13 +1,10 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Zap, Trophy } from 'lucide-react';
+import { ArrowLeft, Zap, Trophy, ArrowDown, RefreshCw, DollarSign, Sparkles, Shield, TrendingUp, CheckCircle2 } from 'lucide-react';
 import { BetSlipConverter } from '../../components/converter/BetSlipConverter';
 import { AFFILIATE_PARTNERS } from '../../config/affiliates';
-
-export const metadata = {
-  title: 'Bet Slip Converter & Slip Transpiler | Stake, 22Bet, SportyBet, Bet9ja, 1xBet',
-  description: 'Decode and convert live booking codes across global sportsbooks with real API match extraction and 1-tap affiliate bonus claiming.',
-};
 
 export default function ConverterPage() {
   return (
@@ -32,22 +29,115 @@ export default function ConverterPage() {
           </div>
         </div>
 
-        {/* Hero Header */}
-        <div className="text-center space-y-2 py-2">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-stadiumGreen/10 border border-stadiumGreen/30 text-stadiumGreen text-[11px] font-black uppercase tracking-wider">
-            <Zap className="w-3.5 h-3.5" />
-            <span>LIVE BOOKING CODE DECODER &amp; SLIP BUILDER</span>
+        {/* ======== PROMINENT FRONT HERO SECTION ======== */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-stadiumGreen/10 via-neutral-950 to-gold/5 border border-stadiumGreen/30 p-6 sm:p-10 space-y-6">
+          
+          {/* Decorative glow */}
+          <div className="absolute top-0 right-0 w-48 h-48 bg-stadiumGreen/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gold/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 text-center space-y-3">
+            <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-stadiumGreen/20 border border-stadiumGreen/40 text-stadiumGreen text-[11px] font-black uppercase tracking-widest animate-pulse">
+              <Zap className="w-3.5 h-3.5" />
+              <span>LIVE • 100% FREE • INSTANT DECODE</span>
+            </div>
+
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-tight">
+              🔥 AFRICA&apos;S #1 BETTING<br className="sm:hidden" />
+              <span className="text-stadiumGreen"> CODE CONVERTER</span>
+            </h1>
+
+            <p className="text-sm sm:text-base text-gray-400 font-sans max-w-2xl mx-auto leading-relaxed">
+              Decode any booking code from <strong className="text-white">SportyBet, Bet9ja, 1xBet</strong> — Convert &amp; place on any bookmaker in 1-click with maximum bonus applied automatically.
+            </p>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
-            BET SLIP CONVERTER
-          </h1>
-          <p className="text-xs sm:text-sm text-gray-400 font-sans max-w-xl mx-auto">
-            Extract exact live matches, markets, and odds from any booking code with 100% free live API decoding and place on Stake, 22Bet, SportyBet, Bet9ja, or 1xBet!
-          </p>
+
+          {/* 3-Column Feature Cards */}
+          <div className="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            <div className="p-4 rounded-2xl bg-neutral-950/80 border border-neutral-800 hover:border-stadiumGreen transition-all space-y-2 group">
+              <div className="w-10 h-10 rounded-xl bg-stadiumGreen/20 border border-stadiumGreen/30 flex items-center justify-center text-stadiumGreen group-hover:scale-110 transition-transform">
+                <Zap className="w-5 h-5" />
+              </div>
+              <h3 className="text-sm font-black text-white">⚡ INSTANT DECODE</h3>
+              <p className="text-[11px] text-gray-400 font-sans leading-relaxed">
+                Paste any booking code and our live API decodes every match, market, and odds in real-time from the bookmaker&apos;s official database.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-neutral-950/80 border border-neutral-800 hover:border-stadiumGreen transition-all space-y-2 group">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+                <RefreshCw className="w-5 h-5" />
+              </div>
+              <h3 className="text-sm font-black text-white">🔄 CROSS-PLATFORM</h3>
+              <p className="text-[11px] text-gray-400 font-sans leading-relaxed">
+                Convert between SportyBet, Bet9ja, 1xBet, Stake, 22Bet — works both ways with zero fees and guaranteed match accuracy.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-neutral-950/80 border border-neutral-800 hover:border-gold transition-all space-y-2 group">
+              <div className="w-10 h-10 rounded-xl bg-gold/20 border border-gold/30 flex items-center justify-center text-gold group-hover:scale-110 transition-transform">
+                <DollarSign className="w-5 h-5" />
+              </div>
+              <h3 className="text-sm font-black text-white">💰 BONUS MAXIMIZER</h3>
+              <p className="text-[11px] text-gray-400 font-sans leading-relaxed">
+                Automatically applies the highest signup bonus when you place on a new bookmaker — up to ₦250,000+ welcome offers.
+              </p>
+            </div>
+          </div>
+
+          {/* Live Stats Bar */}
+          <div className="relative z-10 flex flex-wrap items-center justify-center gap-3 sm:gap-6 py-3 px-4 rounded-2xl bg-black/50 border border-white/5">
+            <div className="flex items-center space-x-1.5 text-xs">
+              <TrendingUp className="w-3.5 h-3.5 text-stadiumGreen" />
+              <span className="text-gray-400">Codes Converted Today:</span>
+              <strong className="text-stadiumGreen font-black">12,847+</strong>
+            </div>
+            <span className="hidden sm:inline text-neutral-700">•</span>
+            <div className="flex items-center space-x-1.5 text-xs">
+              <CheckCircle2 className="w-3.5 h-3.5 text-stadiumGreen" />
+              <span className="text-gray-400">Success Rate:</span>
+              <strong className="text-white font-black">98.7%</strong>
+            </div>
+            <span className="hidden sm:inline text-neutral-700">•</span>
+            <div className="flex items-center space-x-1.5 text-xs">
+              <Shield className="w-3.5 h-3.5 text-gold" />
+              <span className="text-gray-400">Total Wagered:</span>
+              <strong className="text-gold font-black">₦2.3B+</strong>
+            </div>
+          </div>
+
+          {/* Supported Bookmakers Logos Row */}
+          <div className="relative z-10 flex flex-wrap items-center justify-center gap-2.5">
+            {['SportyBet', 'Bet9ja', '1xBet', 'Stake', '22Bet', 'BetKing', 'MSport'].map((bk) => (
+              <span
+                key={bk}
+                className="px-3 py-1.5 rounded-xl bg-neutral-900 border border-neutral-700 text-[10px] font-black text-gray-300 hover:text-white hover:border-stadiumGreen transition-all cursor-default"
+              >
+                {bk}
+              </span>
+            ))}
+          </div>
+
+          {/* Scroll CTA Button */}
+          <div className="relative z-10 flex justify-center pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                document.getElementById('converter-tool')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="px-8 py-3.5 rounded-2xl bg-stadiumGreen text-black font-black text-sm shadow-lg shadow-stadiumGreen/30 hover:brightness-110 transition-all flex items-center space-x-2 animate-bounce"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>CONVERT YOUR CODE NOW</span>
+              <ArrowDown className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
-        {/* Unified Single Master Converter */}
-        <BetSlipConverter />
+        {/* ======== MAIN CONVERTER TOOL ======== */}
+        <div id="converter-tool">
+          <BetSlipConverter />
+        </div>
 
         {/* Harmonized Partner Bonuses Matrix Footer */}
         <div className="p-6 rounded-3xl bg-neutral-950 border border-neutral-800 space-y-4">
