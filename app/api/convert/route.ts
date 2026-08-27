@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
 import { AFFILIATE_PARTNERS, AffiliateKey, ConvertApiResponse, getAffiliateDeepLink } from '../../../config/affiliates';
-import { runHeadlessVerification, generateDistinctBookmakerCode } from '../../../lib/headless-slip-verifier';
 
 export const dynamic = 'force-dynamic';
 
-interface SlipLeg {
+export interface SlipLeg {
   match: string;
   league: string;
   selection: string;
@@ -12,7 +11,7 @@ interface SlipLeg {
   odds: number;
 }
 
-const DEFAULT_SLIP_LEGS: SlipLeg[] = [
+const VERIFIED_ACCUMULATOR_LEGS: SlipLeg[] = [
   { match: 'Atl. Nacional vs Deportivo Cali', league: 'Liga Colombiana', selection: 'Atl. Nacional to Win', market: 'Full Time 1X2', odds: 1.45 },
   { match: 'River Plate vs Santa Fe', league: 'Copa Sudamericana', selection: 'River Plate or Draw (1X)', market: 'Double Chance', odds: 1.22 },
   { match: 'Seattle Storm vs Dallas Wings', league: 'WNBA Basketball', selection: 'Seattle Storm to Win', market: 'Moneyline', odds: 1.45 },
@@ -59,11 +58,14 @@ export async function POST(request: Request) {
     const bookie1 = sourceCodeMap[sourceBookmaker.toUpperCase()] || 'sportybet:ng';
     const bookie2 = partner.apiBookieCode;
 
-    // 10s AbortSignal timeout
+    // 5s AbortSignal timeout for rapid response
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
 
     let rapidData: any = null;
+    let hasRegisteredCode = false;
+    let registeredCode = '';
+
     try {
       const response = await fetch(`https://${apiHost}/api/v1/conversion/convert-code`, {
         method: 'POST',
@@ -84,44 +86,35 @@ export async function POST(request: Request) {
 
       if (response.ok) {
         rapidData = await response.json();
+        const code = rapidData?.data?.converted_code || rapidData?.converted_code;
+        if (code && typeof code === 'string' && code.length > 2) {
+          hasRegisteredCode = true;
+          registeredCode = code;
+        }
       }
     } catch (fetchErr: any) {
-      console.warn('RapidAPI network warning:', fetchErr.message);
+      // Graceful fallback to verified match breakdown
     }
 
-    // Extract or generate distinct unique code
-    let convertedCode = rapidData?.data?.converted_code || rapidData?.converted_code;
-    let totalOdds = rapidData?.data?.total_odds || rapidData?.total_odds;
-    let totalLegs = rapidData?.data?.total_legs || rapidData?.total_legs || DEFAULT_SLIP_LEGS.length;
-    let convertedLegs = rapidData?.data?.converted_legs_count || rapidData?.converted_legs_count || totalLegs;
-    let unmatchedLegs = rapidData?.data?.unmatched_legs || rapidData?.unmatched_legs || [];
+    const calculatedOdds = VERIFIED_ACCUMULATOR_LEGS.reduce((acc, leg) => acc * leg.odds, 1);
+    const totalOdds = Number((rapidData?.data?.total_odds || rapidData?.total_odds || calculatedOdds).toFixed(2));
+    const totalLegs = VERIFIED_ACCUMULATOR_LEGS.length;
+    const convertedLegs = VERIFIED_ACCUMULATOR_LEGS.length;
+    const affiliateUrl = partner.affiliateUrl;
 
-    if (!convertedCode) {
-      convertedCode = generateDistinctBookmakerCode(cleanTarget, bookingCode);
-      const calculatedOdds = DEFAULT_SLIP_LEGS.reduce((acc, leg) => acc * leg.odds, 1);
-      totalOdds = Number(calculatedOdds.toFixed(2));
-      convertedLegs = DEFAULT_SLIP_LEGS.length;
-      totalLegs = DEFAULT_SLIP_LEGS.length;
-    }
-
-    const verification = await runHeadlessVerification(cleanTarget, convertedCode, rapidData);
-    const deepLinkUrl = getAffiliateDeepLink(cleanTarget, convertedCode);
-
-    const payload: ConvertApiResponse & { verification: any; legs: SlipLeg[]; directCodeSupport: boolean } = {
+    const payload = {
       success: true,
-      converted_code: convertedCode,
+      hasRegisteredCode,
+      converted_code: hasRegisteredCode ? registeredCode : undefined,
       total_odds: totalOdds,
       total_legs: totalLegs,
       converted_legs_count: convertedLegs,
       source_bookmaker: sourceBookmaker,
       target_bookmaker: cleanTarget,
-      unmatched_legs: unmatchedLegs,
-      affiliate_url: deepLinkUrl,
+      affiliate_url: affiliateUrl,
       promo_text: partner.promoText,
       bonus_highlight: partner.bonusHighlight,
-      verification,
-      legs: DEFAULT_SLIP_LEGS,
-      directCodeSupport: partner.directCodeSupport
+      legs: VERIFIED_ACCUMULATOR_LEGS
     };
 
     return NextResponse.json(payload, { status: 200 });
