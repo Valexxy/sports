@@ -2,6 +2,7 @@ import { PwaRegister } from '../components/pwa-register';
 import { PwaInstallPromptModal } from '../components/pwa/PwaInstallPromptModal';
 import { PersistentDynamicIslandPlayer } from '../components/audio/PersistentDynamicIslandPlayer';
 import { FloatingVipBanner } from '../components/monetization/FloatingVipBanner';
+import { PageviewMonetizer } from '../components/monetization/PageviewMonetizer';
 import './globals.css';
 import { LanguageProvider } from '../lib/translation-engine';
 import type { Metadata, Viewport } from 'next';
@@ -161,6 +162,7 @@ export default function RootLayout({
           <PwaInstallPromptModal />
           <PersistentDynamicIslandPlayer />
           <FloatingVipBanner />
+          <PageviewMonetizer />
           {children}
         </LanguageProvider>
         <script

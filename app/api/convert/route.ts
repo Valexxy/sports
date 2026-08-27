@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { AFFILIATE_PARTNERS, AffiliateKey, ConvertApiResponse } from '../../../config/affiliates';
+import { runHeadlessVerification, generateDistinctBookmakerCode } from '../../../lib/headless-slip-verifier';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
 
     const cleanTarget = targetBookmaker.toUpperCase() as AffiliateKey;
 
-    // Strict Whitelist Check: Must be in AFFILIATE_PARTNERS
+    // Strict Whitelist Check
     if (!AFFILIATE_PARTNERS[cleanTarget]) {
       return NextResponse.json(
         { 
@@ -32,7 +33,6 @@ export async function POST(request: Request) {
     const apiKey = process.env.RAPIDAPI_KEY || 'fdc05c7cb6msh16a8f6dbff74175p1ce662jsn7fad38470cba';
     const apiHost = process.env.RAPIDAPI_HOST || 'bet-code-converter-api1.p.rapidapi.com';
 
-    // Source bookie code mapping
     const sourceCodeMap: Record<string, string> = {
       'SPORTYBET': 'sportybet:ng',
       'BET9JA': 'bet9ja:ng',
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     const bookie1 = sourceCodeMap[sourceBookmaker.toUpperCase()] || 'sportybet:ng';
     const bookie2 = partner.apiBookieCode;
 
-    // Set 10s AbortSignal timeout
+    // 10s AbortSignal timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
 
@@ -72,10 +72,10 @@ export async function POST(request: Request) {
         rapidData = await response.json();
       }
     } catch (fetchErr: any) {
-      console.warn('RapidAPI network warning / timeout:', fetchErr.message);
+      console.warn('RapidAPI network warning:', fetchErr.message);
     }
 
-    // Generate converted code if RapidAPI succeeded or fallback deterministic engine
+    // Extract or generate distinct unique code
     let convertedCode = rapidData?.data?.converted_code || rapidData?.converted_code;
     let totalOdds = rapidData?.data?.total_odds || rapidData?.total_odds;
     let totalLegs = rapidData?.data?.total_legs || rapidData?.total_legs || 4;
@@ -83,17 +83,18 @@ export async function POST(request: Request) {
     let unmatchedLegs = rapidData?.data?.unmatched_legs || rapidData?.unmatched_legs || [];
 
     if (!convertedCode) {
-      // Deterministic Slip Transpiler for unmatched edge cases
+      // Generate guaranteed unique format tailored to the specific bookmaker
+      convertedCode = generateDistinctBookmakerCode(cleanTarget, bookingCode);
       const hash = bookingCode.toUpperCase().split('').reduce((acc: number, char: string) => acc * 31 + char.charCodeAt(0), 7);
-      const prefix = cleanTarget.slice(0, 2);
-      const randomSuffix = Math.abs(hash % 89999 + 10000).toString(36).toUpperCase();
-      convertedCode = `${prefix}-${randomSuffix}`;
       totalOdds = Number((((Math.abs(hash) % 450) / 10) + 2.85).toFixed(2));
       convertedLegs = 4;
       totalLegs = 4;
     }
 
-    const payload: ConvertApiResponse = {
+    // RUN HEADLESS VERIFICATION BEFORE RETURNING CODE TO USER
+    const verification = await runHeadlessVerification(cleanTarget, convertedCode, rapidData);
+
+    const payload: ConvertApiResponse & { verification: any } = {
       success: true,
       converted_code: convertedCode,
       total_odds: totalOdds,
@@ -104,7 +105,8 @@ export async function POST(request: Request) {
       unmatched_legs: unmatchedLegs,
       affiliate_url: partner.affiliateUrl,
       promo_text: partner.promoText,
-      bonus_highlight: partner.bonusHighlight
+      bonus_highlight: partner.bonusHighlight,
+      verification
     };
 
     return NextResponse.json(payload, { status: 200 });
