@@ -264,12 +264,12 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
             ) : activeAudioChannel === 'PIDGIN' && isBroadcastPaused ? (
               <>
                 <Play className="w-3.5 h-3.5 fill-current" />
-                <span>▶️ Resume Warri ({broadcastClock})</span>
+                <span>▶️ Resume Female Warri ({broadcastClock})</span>
               </>
             ) : (
               <>
                 <Play className="w-3.5 h-3.5 fill-current" />
-                <span>🇳🇬 Play Warri Voice</span>
+                <span>🇳🇬 🎙️ Female Warri Voice</span>
               </>
             )}
           </button>
@@ -298,7 +298,7 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
             ) : (
               <>
                 <Play className="w-3.5 h-3.5 fill-current" />
-                <span>🇬🇧 Play UK Voice</span>
+                <span>🇬🇧 🇬🇧 English Voice</span>
               </>
             )}
           </button>

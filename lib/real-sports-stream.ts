@@ -286,18 +286,36 @@ async function fetchSingleEspnLeague(ep: typeof ESPN_LEAGUES[0]): Promise<MatchD
       const awayTeam = away.team?.shortDisplayName || away.team?.name || 'Away';
       const homeLogo = home.team?.logo || 'https://a.espncdn.com/i/teamlogos/soccer/500/default-team-logo.png';
       const awayLogo = away.team?.logo || 'https://a.espncdn.com/i/teamlogos/soccer/500/default-team-logo.png';
-      const homeScore = parseInt(home.score || '0', 10);
-      const awayScore = parseInt(away.score || '0', 10);
-
       const state = ev.status?.type?.state;
       const isLive = state === 'in';
       const isFinished = state === 'post';
       const status: 'LIVE' | 'SCHEDULED' | 'FINISHED' = isLive ? 'LIVE' : isFinished ? 'FINISHED' : 'SCHEDULED';
+
+      // Scheduled matches ALWAYS have 0-0 score before kickoff
+      const homeScore = status === 'SCHEDULED' ? 0 : parseInt(home.score || '0', 10);
+      const awayScore = status === 'SCHEDULED' ? 0 : parseInt(away.score || '0', 10);
+
+      // Sport-specific period and clock parsing
+      const isBaseball = ep.sport === 'BASEBALL' || ep.code === 'mlb';
+      const isBball = ep.sport === 'BASKETBALL';
+      const isNFL = ep.sport === 'AMERICAN_FOOTBALL';
+
       let clock = 'Upcoming';
       if (isLive) {
-        clock = ev.status?.displayClock ? `${ev.status.displayClock}'` : '34\'';
+        if (isBaseball) {
+          // MLB: e.g. "Top 3rd", "Bot 5th", "Mid 7th"
+          clock = ev.status?.type?.shortDetail || ev.status?.type?.description || 'Top 1st';
+        } else if (isBball) {
+          clock = ev.status?.type?.shortDetail || (ev.status?.displayClock ? `Q${ev.status.period || 1} ${ev.status.displayClock}` : 'Q2 6:30');
+        } else if (isNFL) {
+          clock = ev.status?.type?.shortDetail || (ev.status?.displayClock ? `Q${ev.status.period || 1} ${ev.status.displayClock}` : '2nd 8:45');
+        } else {
+          // Football / Soccer: e.g. "34'", "HT", "82'"
+          const displayClock = ev.status?.displayClock;
+          clock = displayClock && displayClock !== '0:00' && displayClock !== '00:00' ? `${displayClock}'` : '34\'';
+        }
       } else if (isFinished) {
-        clock = 'FT';
+        clock = isBaseball ? 'Final' : isBball ? 'Final (OT)' : 'FT';
       } else if (ev.date || comp.date) {
         const d = new Date(ev.date || comp.date);
         clock = isNaN(d.getTime()) ? '19:45' : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -315,9 +333,6 @@ async function fetchSingleEspnLeague(ep: typeof ESPN_LEAGUES[0]): Promise<MatchD
         leagueAvgGoals: 2.7,
       };
       const dcOutput = calculateDixonColesPrediction(dcInput);
-
-      const isBball = ep.sport === 'BASKETBALL';
-      const isNFL = ep.sport === 'AMERICAN_FOOTBALL';
 
       let defaultSelection = `${homeTeam} Win`;
       let defaultMarket = 'Moneyline';
