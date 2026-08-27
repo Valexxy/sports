@@ -45,7 +45,7 @@ export const STAR_PLAYERS_CATALOG: PlayerRecord[] = [
     bio: "African Player of the Year, Capocannoniere Serie A champion, elite athletic pressing forward leading Galatasaray and the Nigerian Super Eagles.",
     market_value: "€75,000,000",
     foot: "Right",
-    cutout_url: "https://r2.thesportsdb.com/images/media/player/cutout/b16vvh1726053896.png",
+    cutout_url: "/players/osimhen.png",
     trophies: ["Serie A Champion (Napoli 2023)", "Capocannoniere Top Scorer", "African Footballer of the Year 2023"],
     career_stats: { goals: 26, assists: 5, appearances: 30, rating: 8.6 }
   },
@@ -67,7 +67,7 @@ export const STAR_PLAYERS_CATALOG: PlayerRecord[] = [
     bio: "Premier League Golden Boot record breaker and UEFA Champions League treble winner with Manchester City.",
     market_value: "€180,000,000",
     foot: "Left",
-    cutout_url: "https://r2.thesportsdb.com/images/media/player/cutout/i7t6241724401037.png",
+    cutout_url: "/players/haaland.png",
     trophies: ["UEFA Champions League Winner 2023", "Premier League Record 36 Goals", "European Golden Shoe 2023"],
     career_stats: { goals: 38, assists: 6, appearances: 35, rating: 8.9 }
   },
@@ -89,7 +89,7 @@ export const STAR_PLAYERS_CATALOG: PlayerRecord[] = [
     bio: "FIFA World Cup Winner, Golden Boot recipient, and Real Madrid galáctico forward.",
     market_value: "€180,000,000",
     foot: "Right",
-    cutout_url: "https://r2.thesportsdb.com/images/media/player/cutout/2q1lts1724400922.png",
+    cutout_url: "/players/mbappe.png",
     trophies: ["FIFA World Cup Winner 2018", "World Cup Final Hat-Trick 2022", "6x Ligue 1 Golden Boot"],
     career_stats: { goals: 32, assists: 9, appearances: 34, rating: 8.8 }
   },
@@ -111,7 +111,7 @@ export const STAR_PLAYERS_CATALOG: PlayerRecord[] = [
     bio: "Golden Boy winner, UEFA Champions League champion, and centerpiece of Real Madrid midfield.",
     market_value: "€180,000,000",
     foot: "Right",
-    cutout_url: "https://r2.thesportsdb.com/images/media/player/cutout/dsq9211724401140.png",
+    cutout_url: "/players/bellingham.png",
     trophies: ["UEFA Champions League Winner 2024", "La Liga Player of the Year 2024", "Kopa Trophy Winner"],
     career_stats: { goals: 23, assists: 13, appearances: 42, rating: 8.7 }
   },
@@ -133,7 +133,7 @@ export const STAR_PLAYERS_CATALOG: PlayerRecord[] = [
     bio: "PFA Young Player of the Year, dynamic dribbler, and attacking engine for Arsenal FC and England.",
     market_value: "€140,000,000",
     foot: "Left",
-    cutout_url: "https://r2.thesportsdb.com/images/media/player/cutout/tew59e1724401210.png",
+    cutout_url: "/players/saka.png",
     trophies: ["PFA Young Player of the Year", "England Men Player of the Year (2x)", "FA Community Shield"],
     career_stats: { goals: 18, assists: 14, appearances: 39, rating: 8.5 }
   },
@@ -155,7 +155,7 @@ export const STAR_PLAYERS_CATALOG: PlayerRecord[] = [
     bio: "UEFA Euro 2024 Champion, Young Player of the Tournament, and generational wonderkid from La Masia.",
     market_value: "€150,000,000",
     foot: "Left",
-    cutout_url: "https://r2.thesportsdb.com/images/media/player/cutout/xsw3291724401290.png",
+    cutout_url: "/players/yamal.png",
     trophies: ["UEFA Euro 2024 Champion", "Euro 2024 Young Player of the Tournament", "La Liga Champion 2023"],
     career_stats: { goals: 12, assists: 17, appearances: 44, rating: 8.8 }
   },
@@ -177,7 +177,7 @@ export const STAR_PLAYERS_CATALOG: PlayerRecord[] = [
     bio: "UEFA Europa League Final hat-trick hero and talismanic forward for Atalanta and Nigeria Super Eagles.",
     market_value: "€40,000,000",
     foot: "Right",
-    cutout_url: "https://r2.thesportsdb.com/images/media/player/cutout/a67r811724401340.png",
+    cutout_url: "/players/lookman.png",
     trophies: ["UEFA Europa League Winner (Final Hat-trick 2024)", "Ballon d Or Top 14 Nominee 2024", "AFCON Silver Medalist"],
     career_stats: { goals: 17, assists: 10, appearances: 36, rating: 8.6 }
   },
@@ -199,7 +199,7 @@ export const STAR_PLAYERS_CATALOG: PlayerRecord[] = [
     bio: "8-time Ballon d Or winner, FIFA World Cup Champion, and widely considered the greatest footballer of all time.",
     market_value: "€30,000,000",
     foot: "Left",
-    cutout_url: "https://r2.thesportsdb.com/images/media/player/cutout/0c9lq21724400811.png",
+    cutout_url: "/players/messi.png",
     trophies: ["8x Ballon d Or Winner", "FIFA World Cup Champion 2022", "4x UEFA Champions League Winner"],
     career_stats: { goals: 25, assists: 16, appearances: 28, rating: 9.2 }
   },
@@ -221,7 +221,7 @@ export const STAR_PLAYERS_CATALOG: PlayerRecord[] = [
     bio: "5-time Ballon d Or winner, all-time leading international goalscorer in football history, and 5x Champions League winner.",
     market_value: "€15,000,000",
     foot: "Right",
-    cutout_url: "https://r2.thesportsdb.com/images/media/player/cutout/4j821w1724400750.png",
+    cutout_url: "/players/ronaldo.png",
     trophies: ["5x Ballon d Or Winner", "5x UEFA Champions League Winner", "UEFA Euro 2016 Champion"],
     career_stats: { goals: 44, assists: 12, appearances: 45, rating: 8.7 }
   }

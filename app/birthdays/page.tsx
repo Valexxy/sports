@@ -96,12 +96,18 @@ export default function BirthdaysHubPage() {
               className="glass-panel-premium rounded-3xl border border-white/10 p-5 hover:border-stadiumGreen/70 transition-all hover:scale-[1.02] shadow-xl group flex flex-col justify-between"
             >
               <div className="flex items-center space-x-3">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-t from-black to-emerald-950 border border-stadiumGreen/50 overflow-hidden flex items-center justify-center flex-shrink-0">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-t from-black to-emerald-950 border border-stadiumGreen/50 overflow-hidden flex items-center justify-center flex-shrink-0 relative">
                   <img
-                    src={p.cutout_url || 'https://r2.thesportsdb.com/images/media/player/cutout/b16vvh1726053896.png'}
+                    src={p.cutout_url}
                     alt={p.name}
-                    className="w-full h-full object-contain filter drop-shadow"
+                    className="w-full h-full object-contain filter drop-shadow z-10"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                    }}
                   />
+                  <div className="absolute inset-0 flex items-center justify-center font-black text-sm text-stadiumGreen bg-emerald-950/80">
+                    {p.name.split(' ').map((n: string) => n[0]).join('')}
+                  </div>
                 </div>
 
                 <div className="space-y-0.5 min-w-0 flex-1">

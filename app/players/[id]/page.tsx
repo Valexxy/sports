@@ -189,10 +189,16 @@ export default function PlayerWikiPage() {
             {/* Cutout Portrait */}
             <div className="relative w-36 h-36 sm:w-44 sm:h-44 rounded-3xl bg-gradient-to-t from-black to-emerald-950 border-2 border-stadiumGreen/70 shadow-2xl flex items-center justify-center overflow-hidden flex-shrink-0">
               <img
-                src={player.cutout_url || 'https://r2.thesportsdb.com/images/media/player/cutout/b16vvh1726053896.png'}
+                src={player.cutout_url || `/players/${player.name.toLowerCase().split(' ').pop()}.png`}
                 alt={player.name}
-                className="w-full h-full object-contain filter drop-shadow-[0_15px_15px_rgba(0,0,0,0.9)]"
+                className="w-full h-full object-contain filter drop-shadow-[0_15px_15px_rgba(0,0,0,0.9)] z-10"
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = 'none';
+                }}
               />
+              <div className="absolute inset-0 flex items-center justify-center font-black text-4xl text-stadiumGreen bg-emerald-950">
+                {player.name.split(' ').map(n => n[0]).join('')}
+              </div>
             </div>
 
             {/* Title & Key Specs */}
