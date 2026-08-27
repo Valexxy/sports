@@ -1,7 +1,7 @@
 import { PwaRegister } from '../components/pwa-register';
 import { PwaInstallPromptModal } from '../components/pwa/PwaInstallPromptModal';
 import { PersistentDynamicIslandPlayer } from '../components/audio/PersistentDynamicIslandPlayer';
-import { FloatingVipBanner } from '../components/monetization/FloatingVipBanner';
+// import { FloatingVipBanner } from '../components/monetization/FloatingVipBanner';
 import { PageviewMonetizer } from '../components/monetization/PageviewMonetizer';
 import './globals.css';
 import { LanguageProvider } from '../lib/translation-engine';
@@ -161,7 +161,7 @@ export default function RootLayout({
           <PwaRegister />
           <PwaInstallPromptModal />
           <PersistentDynamicIslandPlayer />
-          <FloatingVipBanner />
+          {/* FloatingVipBanner removed to eliminate screen blocking popups */}
           <PageviewMonetizer />
           {children}
         </LanguageProvider>
