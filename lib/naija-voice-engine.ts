@@ -1,31 +1,31 @@
 'use client';
 
 /**
- * AUTHENTIC LIVE & HISTORICAL MATCH FEMALE NIGERIAN & ENGLISH COMMENTARY ENGINE
- * - Dedicated Female Naija Warri Voice Engine (Ezinne / Blessing / Nigerian Pidgin / High-Pitch Warm Timbre)
- * - English Commentator Voice Engine
- * - Pure natural spoken commentary (No robotic "Minute XX" time callouts)
+ * AUTHENTIC WARRI & NIGERIAN PIDGIN COMMENTARY AUDIO ENGINE
+ * - Authentic Warri Brother / Naija Street Pidgin energetic commentator
+ * - Genuine street phrases (Waffi cruise, Gbam!, Net don scatter, Wahala gas)
+ * - Pure natural spoken commentary with zero robotic minute callouts
  */
 
 let isCurrentlySpeaking = false;
 let speechFallbackTimer: NodeJS.Timeout | null = null;
 
 export function warriTransliterate(text: string): string {
-  // Strip any accidental minute callouts
+  if (!text) return '';
   const cleaned = text.replace(/minute\s*\d+:\s*/gi, '').replace(/\b\d+[':]\s*/gi, '');
   return cleaned.trim()
-    .replace(/\bWelcome to the live match o!\b/gi, 'Waffi people, welcome to the live match o! Correct banker match!')
-    .replace(/\bGoal\b/gi, 'Gooooooal o! Net don scatter kpatakpata!')
-    .replace(/\bscored\b/gi, 'don tear net')
-    .replace(/\byellow card\b/gi, 'yellow card! Referee say make you behave yourself')
-    .replace(/\bred card\b/gi, 'red card straight! Go take your bath')
-    .replace(/\bshot\b/gi, 'thunder strike')
-    .replace(/\bsaved\b/gi, 'jump like cat parry am')
-    .replace(/\bpass\b/gi, 'correct carpet pass')
+    .replace(/\bWelcome to the live match o!\b/gi, 'Waffi people I salute una! Welcome to this heavy banker match!')
+    .replace(/\bGoal\b/gi, 'Gooooooal o! Net don scatter kpatakpata! See banger!')
+    .replace(/\bscored\b/gi, 'fire thunder goal enter net')
+    .replace(/\byellow card\b/gi, 'yellow card! Referee say make you calm your body')
+    .replace(/\bred card\b/gi, 'red card straight! Pack your load go house')
+    .replace(/\bshot\b/gi, 'heavy bullet strike')
+    .replace(/\bsaved\b/gi, 'goalkeeper fly like bird catch am')
+    .replace(/\bpass\b/gi, 'sweet carpet pass')
     .replace(/\btackle\b/gi, 'solid Warri tackle')
-    .replace(/\bfoul\b/gi, 'bad tackle')
-    .replace(/\breferee\b/gi, 'referee oga')
-    .replace(/\bhalf time\b/gi, 'first 45 mins don finish, make players go drink pure water')
+    .replace(/\bfoul\b/gi, 'bad tackle, wahala dey')
+    .replace(/\breferee\b/gi, 'oga referee')
+    .replace(/\bhalf time\b/gi, 'first 45 mins don finish, make players go cool body')
     .replace(/\bfull time\b/gi, 'match don end kpatakpata, record don lock');
 }
 
@@ -80,46 +80,49 @@ export function speakNaija(
     const voices = window.speechSynthesis.getVoices();
 
     if (isPidgin) {
-      // 👩 AUTHENTIC FEMALE NAIJA WARRI VOICE TUNING
-      utterance.rate = tone === 'goal' ? 1.06 : 1.02; // Lively Warri flow
-      utterance.pitch = tone === 'goal' ? 1.25 : 1.20; // Distinct bright warm female pitch
+      // 🇳🇬 AUTHENTIC ENERGETIC WARRI STREET COMMENTATOR ACCENT
+      utterance.rate = tone === 'goal' ? 1.12 : 1.06; // Lively Warri flow
+      utterance.pitch = tone === 'goal' ? 1.08 : 1.02; // Warm masculine street timber
       utterance.volume = 1.0;
 
       if (voices && voices.length > 0) {
-        // Priority 1: Official Nigerian Female Voices (Microsoft Ezinne / Blessing / Google Nigerian)
-        const femaleNaijaVoice = voices.find(v => {
+        // Priority 1: Official Nigerian English & Pidgin Voices
+        const naijaVoice = voices.find(v => {
           const name = v.name.toLowerCase();
           const lang = (v.lang || '').toLowerCase();
           return (
+            name.includes('nigeria') ||
             name.includes('ezinne') ||
             name.includes('blessing') ||
-            name.includes('nigeria') ||
+            name.includes('abeo') ||
+            name.includes('chukwuma') ||
             lang === 'en-ng' ||
             lang === 'pcm' ||
+            lang === 'pcm-ng' ||
             lang === 'en_ng'
           );
         }) || voices.find(v => {
-          // Priority 2: Natural Female voices with African/British inflection
+          // Priority 2: British/African English Commentator
           const name = v.name.toLowerCase();
           const lang = (v.lang || '').toLowerCase();
           return (
-            (name.includes('female') || name.includes('zira') || name.includes('samantha') || name.includes('sonia') || name.includes('victoria') || name.includes('karen') || name.includes('moira') || name.includes('natural')) &&
-            (lang.includes('en-za') || lang.includes('en-gb') || lang.includes('en-us') || lang.startsWith('en'))
+            (lang.includes('en-za') || lang.includes('en-gb') || lang.includes('en-us') || lang.startsWith('en')) &&
+            (name.includes('male') || name.includes('george') || name.includes('david') || name.includes('daniel') || name.includes('oliver'))
           );
         }) || voices.find(v => v.lang.startsWith('en')) || voices[0];
 
-        if (femaleNaijaVoice) utterance.voice = femaleNaijaVoice;
+        if (naijaVoice) utterance.voice = naijaVoice;
       }
     } else {
-      // 🇬🇧 STANDARD ENGLISH COMMENTATOR VOICE TUNING (Swapped to previous voice)
+      // 🇬🇧 STANDARD ENGLISH COMMENTATOR
       utterance.rate = tone === 'goal' ? 1.05 : 0.98;
-      utterance.pitch = tone === 'goal' ? 1.10 : 0.96; // Standard commentator pitch
+      utterance.pitch = tone === 'goal' ? 1.10 : 0.96;
       utterance.volume = 1.0;
 
       if (voices && voices.length > 0) {
         const englishVoice = voices.find(v => 
           (v.lang.includes('en-GB') || v.lang.includes('en-US')) &&
-          (v.name.toLowerCase().includes('george') || v.name.toLowerCase().includes('david') || v.name.toLowerCase().includes('male') || !v.name.toLowerCase().includes('female'))
+          (v.name.toLowerCase().includes('george') || v.name.toLowerCase().includes('david') || v.name.toLowerCase().includes('male'))
         ) || voices.find(v => v.lang.includes('en-GB')) || voices.find(v => v.lang.startsWith('en')) || voices[0];
 
         if (englishVoice) utterance.voice = englishVoice;
@@ -138,7 +141,6 @@ export function speakNaija(
     utterance.onend = finish;
     utterance.onerror = finish;
 
-    // Safety fallback timer
     const estimatedDurationMs = Math.max(2500, (speechText.split(' ').length / 2.5) * 1000 + 1500);
     speechFallbackTimer = setTimeout(finish, estimatedDurationMs);
 

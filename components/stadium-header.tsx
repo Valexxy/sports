@@ -197,7 +197,7 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
             </button>
           )}
 
-          {/* Star Players Radar Button */}
+          {/* Players Radar Button */}
           {onOpenPlayers && (
             <button
               onClick={onOpenPlayers}
@@ -205,7 +205,7 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
               title="Star Player Radar & Lock Screen Alerts"
             >
               <span>⭐</span>
-              <span className="hidden md:inline">{t('Star Players')}</span>
+              <span className="hidden md:inline">{t('Players')}</span>
             </button>
           )}
 
