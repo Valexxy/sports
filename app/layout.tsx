@@ -1,7 +1,6 @@
 import { PwaRegister } from '../components/pwa-register';
 import { PwaInstallPromptModal } from '../components/pwa/PwaInstallPromptModal';
 import { PersistentDynamicIslandPlayer } from '../components/audio/PersistentDynamicIslandPlayer';
-// import { FloatingVipBanner } from '../components/monetization/FloatingVipBanner';
 import { PageviewMonetizer } from '../components/monetization/PageviewMonetizer';
 import { EnvironmentIntelHeader } from '../components/environment-intel-header';
 import './globals.css';
@@ -11,53 +10,53 @@ import type { Metadata, Viewport } from 'next';
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 5,
+  userScalable: true,
   viewportFit: 'cover',
   themeColor: '#05070B',
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://aurascore.stadium.app'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://mivaj.com'),
   title: {
-    default: 'Mivaj Sports | 100% Free Football Predictions & Live Match Center | World-First Live Sports Analytics & Matchday Super-App',
+    default: 'Mivaj Sports | 100% Free Football Predictions, Live Scores & Matchday Intelligence',
     template: '%s | Mivaj Sports | 100% Free Football Predictions & Live Match Center',
   },
-  description: 'Real-time live scores, Expected goals (xG), referee-verified match settlement ledger, and Gen-Z stadium atmosphere across 12 top leagues.',
+  description: 'Real-time live scores, Expected Goals (xG), Referee-Audited match settlement ledger, live goal haptic notifications, and football intelligence across top world leagues.',
   keywords: [
-    'Live sports scores',
-    'Football predictions',
+    'Mivaj Sports',
+    'Free football predictions',
     'Premier League live scores',
-    'La Liga standings',
+    'La Liga predictions',
     'Champions League match center',
-    'Arbitrage odds calculator',
-    'Match settlement ledger',
-    'Sports betting edge',
-    'Verified banker picks',
-    'AuraScore Stadium'
+    'Audited match settlement ledger',
+    'Live sports betting intelligence',
+    'Football banker picks',
+    'xG pitch analytics',
+    'Mivaj Tips'
   ],
-  authors: [{ name: 'AuraScore Stadium Engineering' }],
-  creator: 'AuraScore Stadium',
-  publisher: 'AuraScore Global Media',
+  authors: [{ name: 'Mivaj Sports Intelligence' }],
+  creator: 'Mivaj Sports',
+  publisher: 'Mivaj Sports Global Media',
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
   alternates: {
-    canonical: '/',
+    canonical: 'https://mivaj.com',
   },
   openGraph: {
-    title: 'Mivaj Sports | 100% Free Football Predictions & Live Match Center | World-First Live Sports Analytics & Matchday Super-App',
-    description: 'Sub-second live scores, verified referee settlement ledger, Goal Power curves, and viral social flex slip generator.',
-    url: 'https://aurascore.stadium.app',
-    siteName: 'Mivaj Sports | 100% Free Football Predictions & Live Match Center',
+    title: 'Mivaj Sports | 100% Free Football Predictions & Live Match Center',
+    description: 'Sub-second live scores, verified referee settlement ledger, xG pitch heatmaps, and live goal haptic vibrations.',
+    url: 'https://mivaj.com',
+    siteName: 'Mivaj Sports',
     images: [
       {
-        url: '/favicon.ico',
+        url: '/logo.svg',
         width: 512,
         height: 512,
-        alt: 'Mivaj Sports | 100% Free Football Predictions & Live Match Center Banner',
+        alt: 'Mivaj Sports Banner',
       },
     ],
     locale: 'en_US',
@@ -65,10 +64,10 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Mivaj Sports | 100% Free Football Predictions & Live Match Center | Live Sports Analytics & Matchday Super-App',
-    description: 'Real-time live scores, verified referee match settlement ledger, and viral social flex slips.',
-    images: ['/favicon.ico'],
-    creator: '@AuraScoreStadium',
+    title: 'Mivaj Sports | 100% Free Football Predictions & Live Match Center',
+    description: 'Real-time live scores, verified referee match settlement ledger, and football match intelligence.',
+    images: ['/logo.svg'],
+    creator: '@MivajSports',
   },
   robots: {
     index: true,
@@ -80,9 +79,6 @@ export const metadata: Metadata = {
       'max-image-preview': 'large',
       'max-snippet': -1,
     },
-  },
-  verification: {
-    google: 'google-site-verification-token',
   },
   icons: {
     icon: [
@@ -102,25 +98,31 @@ export default function RootLayout({
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'SportsOrganization',
-    name: 'Mivaj Sports | 100% Free Football Predictions & Live Match Center',
-    url: 'https://aurascore.stadium.app',
-    logo: 'https://aurascore.stadium.app/favicon.ico',
-    description: 'World-First Live Sports Analytics, Match Predictions & Stadium Crowd Atmosphere Super-App',
-    sport: 'Football, Basketball, Tennis',
+    name: 'Mivaj Sports',
+    url: 'https://mivaj.com',
+    logo: 'https://mivaj.com/logo.svg',
+    email: 'mivajtips@gmail.com',
+    description: 'World-First Free Football Match Predictions, Live Goal Heartbeat Haptics, Referee-Audited Settlement Ledger, and Real-time Matchday Intelligence.',
+    sport: 'Football, Soccer',
     sameAs: [
-      'https://twitter.com/AuraScoreStadium',
-      'https://instagram.com/AuraScoreStadium',
+      'https://t.me/mivasport',
+      'https://twitter.com/MivajSports',
     ],
+    contactPoint: {
+      '@type': 'ContactPoint',
+      email: 'mivajtips@gmail.com',
+      contactType: 'Customer Support & Tips Inquiries',
+    },
   };
 
   return (
     <html lang="en" className="dark">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
-        <meta name="theme-color" content="#0a0f1d" />
+        <meta name="theme-color" content="#05070B" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="AuraScore" />
+        <meta name="apple-mobile-web-app-title" content="Mivaj Sports" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
         <link rel="icon" href="/icons/icon-192.png" sizes="192x192" type="image/png" />
@@ -138,46 +140,45 @@ export default function RootLayout({
         
         {/* OFFICIAL GOOGLE TRANSLATE ENGINE (100% UNIVERSAL COVERAGE) */}
         <div id="google_translate_element" style={{ display: 'none' }} />
+
+        <LanguageProvider>
+          {/* Universal Environment, Location, Dialect & Weather Header */}
+          <EnvironmentIntelHeader />
+
+          {children}
+
+          {/* Persistent Dynamic Island Global Player Bar */}
+          <PersistentDynamicIslandPlayer />
+
+          {/* PWA Lifecycle Engine */}
+          <PwaRegister />
+          <PwaInstallPromptModal />
+
+          {/* Pageview Monetization Core */}
+          <PageviewMonetizer />
+        </LanguageProvider>
+
+        {/* Universal Script for Google Translate */}
         <script
+          type="text/javascript"
           dangerouslySetInnerHTML={{
             __html: `
               function googleTranslateElementInit() {
                 if (window.google && window.google.translate) {
                   new window.google.translate.TranslateElement({
                     pageLanguage: 'en',
-                    includedLanguages: 'en,ha,yo,ig,fr,es,de,ar,pt,sw',
                     autoDisplay: false
                   }, 'google_translate_element');
                 }
               }
-            `,
+            `
           }}
         />
-        <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async />
-
-        <LanguageProvider>
-          <EnvironmentIntelHeader />
-          <PwaRegister />
-          <PwaInstallPromptModal />
-          <PersistentDynamicIslandPlayer />
-          {/* FloatingVipBanner removed to eliminate screen blocking popups */}
-          <PageviewMonetizer />
-          {children}
-        </LanguageProvider>
         <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js').then(function(registration) {
-                    console.log('⚡ ServiceWorker registered with scope:', registration.scope);
-                  }).catch(function(err) {
-                    console.warn('ServiceWorker registration error:', err);
-                  });
-                });
-              }
-            `,
-          }}
+          type="text/javascript"
+          src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
+          async
+          defer
         />
       </body>
     </html>

@@ -89,13 +89,13 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
           <div className="flex flex-col">
             <div className="flex items-center space-x-1.5">
               <span className="font-extrabold text-sm sm:text-base text-white tracking-tight">MIVAJ SPORTS</span>
-              <span className="px-1.5 py-0.5 rounded-full bg-stadiumGreen/20 text-stadiumGreen font-black text-[9px] border border-stadiumGreen/40">iOS 18</span>
+              <span className="px-1.5 py-0.5 rounded-full bg-stadiumGreen/20 text-stadiumGreen font-black text-[9px] border border-stadiumGreen/40">PRO LIVE</span>
             </div>
-            <span className="text-[10px] text-gray-400 font-sans hidden sm:block">AI Sports Intelligence & Live Center</span>
+            <span className="text-[10px] text-gray-400 font-sans hidden sm:block">Sports Intelligence & Live Match Center</span>
           </div>
         </Link>
 
-        {/* iOS Center: Segmented Navigation Pills */}
+        {/* Center: Segmented Navigation Pills */}
         <nav className="hidden lg:flex items-center space-x-1 bg-white/[0.04] p-1 rounded-full border border-white/10 backdrop-blur-2xl shadow-inner">
           <Link 
             href="/converter" 
@@ -134,17 +134,17 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
           </Link>
         </nav>
 
-        {/* iOS Right Controls */}
+        {/* Right Controls */}
         <div className="flex items-center space-x-2 flex-shrink-0">
           <GlobalLanguageSwitcher />
 
-          {/* iOS App Install Button */}
+          {/* App Install Button */}
           {!isInstalled && (
             <button
               onClick={handleAutomaticDownload}
               disabled={isDownloading}
               className="px-3.5 py-1.5 rounded-full bg-stadiumGreen text-black font-extrabold text-xs flex items-center space-x-1.5 shadow-lg hover:bg-emerald-400 active:scale-95 transition-all"
-              title="Install iOS App"
+              title="Install App"
             >
               {isDownloading ? (
                 <span className="w-3 h-3 rounded-full border-2 border-black border-t-transparent animate-spin" />

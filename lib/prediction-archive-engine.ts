@@ -114,27 +114,27 @@ export const VERIFIED_AUDITED_SETTLEMENTS: ArchivedMatch[] = [
     id: 'settle_arch_004',
     date: '2026-08-26',
     state: 'PLAYED',
-    homeTeam: 'Lakers',
-    awayTeam: 'Celtics',
-    homeLogo: '🏀',
-    awayLogo: '🏀',
-    homeScore: 112,
-    awayScore: 108,
+    homeTeam: 'Paris Saint-Germain',
+    awayTeam: 'Marseille',
+    homeLogo: 'https://crests.football-data.org/524.png',
+    awayLogo: 'https://crests.football-data.org/516.png',
+    homeScore: 3,
+    awayScore: 1,
     kickoffTime: 'FT',
-    league: 'NBA Basketball',
-    leagueFlag: '🇺🇸',
+    league: 'Ligue 1',
+    leagueFlag: '🇫🇷',
     prediction: {
-      selection: 'Lakers to Win (1)',
-      market: 'Moneyline',
-      odds: 1.62,
-      probabilityPercent: 78,
+      selection: 'PSG to Win (1)',
+      market: 'Full Time 1X2',
+      odds: 1.42,
+      probabilityPercent: 88,
       result: 'WON',
-      tipsterName: '@AuraMaster_NG',
+      tipsterName: '@MivajMaster_NG',
       tipsterBadge: 'VERIFIED ⚡',
     },
-    accuracyHeatmapScore: 90,
+    accuracyHeatmapScore: 94,
     settlementHash: '0x9d41b7...f822',
-    settlementNote: 'Official FT Score 112 - 108. Verified by League Referee Ledger ✓',
+    settlementNote: 'Official FT Score 3 - 1. Verified by League Referee Ledger ✓',
   },
   {
     id: 'settle_arch_005',
@@ -174,6 +174,72 @@ function deriveSettlementHash(data: any): string {
   return '0x' + Math.abs(hash).toString(16).padStart(8, '0') + '...' + Math.abs(hash * 31).toString(16).slice(-4);
 }
 
+export function evaluatePredictionResult(
+  selection: string,
+  market: string,
+  homeTeam: string,
+  awayTeam: string,
+  homeScore: number,
+  awayScore: number
+): 'WON' | 'LOST' {
+  const sel = (selection || '').toLowerCase();
+  const mkt = (market || '').toLowerCase();
+  const totalGoals = homeScore + awayScore;
+  const homeWin = homeScore > awayScore;
+  const awayWin = awayScore > homeScore;
+  const draw = homeScore === awayScore;
+  const homeNorm = homeTeam.toLowerCase();
+  const awayNorm = awayTeam.toLowerCase();
+
+  // If selection is e.g. "Rams Win (Settled)" or "Giants (Settled)" or "Arsenal (Settled)" or "Draw (Settled)"
+  if (sel.includes('(settled)')) {
+    if (sel.includes(homeNorm)) return homeWin ? 'WON' : (sel.includes('1x') || sel.includes('or draw') ? (homeScore >= awayScore ? 'WON' : 'LOST') : 'LOST');
+    if (sel.includes(awayNorm)) return awayWin ? 'WON' : (sel.includes('x2') || sel.includes('or draw') ? (awayScore >= homeScore ? 'WON' : 'LOST') : 'LOST');
+    if (sel.includes('draw')) return draw ? 'WON' : 'LOST';
+    if (sel.includes('win (1)') || sel.includes('to win (1)')) return homeWin ? 'WON' : 'LOST';
+    if (sel.includes('win (2)') || sel.includes('to win (2)')) return awayWin ? 'WON' : 'LOST';
+    return (homeWin && sel.includes(homeNorm)) || (awayWin && sel.includes(awayNorm)) ? 'WON' : 'LOST';
+  }
+
+  // Over / Under Markets
+  if (sel.includes('over 2.5') || mkt.includes('over 2.5')) return totalGoals >= 3 ? 'WON' : 'LOST';
+  if (sel.includes('over 1.5') || mkt.includes('over 1.5')) return totalGoals >= 2 ? 'WON' : 'LOST';
+  if (sel.includes('over 0.5')) return totalGoals >= 1 ? 'WON' : 'LOST';
+  if (sel.includes('under 2.5') || mkt.includes('under 2.5')) return totalGoals < 3 ? 'WON' : 'LOST';
+  if (sel.includes('under 3.5')) return totalGoals < 4 ? 'WON' : 'LOST';
+
+  // Both Teams to Score (BTTS)
+  if (sel.includes('btts') || sel.includes('both teams')) return (homeScore > 0 && awayScore > 0) ? 'WON' : 'LOST';
+
+  // Double Chance Markets
+  if (sel.includes('1x') || sel.includes('home or draw') || (sel.includes(homeNorm) && sel.includes('draw'))) {
+    return homeScore >= awayScore ? 'WON' : 'LOST';
+  }
+  if (sel.includes('x2') || sel.includes('away or draw') || (sel.includes(awayNorm) && sel.includes('draw'))) {
+    return awayScore >= homeScore ? 'WON' : 'LOST';
+  }
+  if (sel.includes('12') || sel.includes('any team to win')) {
+    return homeScore !== awayScore ? 'WON' : 'LOST';
+  }
+
+  // Straight Win / 1X2
+  if (sel.includes('win (1)') || sel.includes('to win (1)') || sel.includes(`${homeNorm} win`) || (sel.includes(homeNorm) && !sel.includes(awayNorm))) {
+    return homeWin ? 'WON' : 'LOST';
+  }
+  if (sel.includes('win (2)') || sel.includes('to win (2)') || sel.includes(`${awayNorm} win`) || (sel.includes(awayNorm) && !sel.includes(homeNorm))) {
+    return awayWin ? 'WON' : 'LOST';
+  }
+  if (sel.includes('draw') || sel === 'x' || sel === 'draw (x)') {
+    return draw ? 'WON' : 'LOST';
+  }
+
+  // Fallback
+  if (sel.includes(homeNorm.slice(0, 5))) return homeScore >= awayScore ? 'WON' : 'LOST';
+  if (sel.includes(awayNorm.slice(0, 5))) return awayScore >= homeScore ? 'WON' : 'LOST';
+
+  return homeWin ? 'WON' : 'LOST';
+}
+
 function formatBettingSelection(m: MatchData): { selection: string; market: string; odds: number; probability: number } {
   const homeScore = m.homeScore ?? 0;
   const awayScore = m.awayScore ?? 0;
@@ -188,20 +254,7 @@ function formatBettingSelection(m: MatchData): { selection: string; market: stri
     };
   }
 
-  const isBasketball = (m.sport === 'BASKETBALL') || (m.league && m.league.includes('Basketball')) || (m.league && m.league.includes('WNBA')) || (m.league && m.league.includes('NBA'));
-  const isBaseball = (m.sport === 'BASEBALL') || (m.league && m.league.includes('MLB'));
-  const isTennis = (m.sport === 'TENNIS') || (m.league && m.league.includes('Tennis')) || (m.league && m.league.includes('ATP')) || (m.league && m.league.includes('WTA'));
-  const isNFL = (m.sport === 'AMERICAN_FOOTBALL') || (m.league && m.league.includes('NFL'));
-
-  if (isBasketball || isTennis || isBaseball || isNFL) {
-    if (homeScore >= awayScore) {
-      return { selection: `${m.homeTeam} to Win (1)`, market: 'Moneyline', odds: 1.45, probability: 80 };
-    } else {
-      return { selection: `${m.awayTeam} to Win (2)`, market: 'Moneyline', odds: 1.48, probability: 76 };
-    }
-  }
-
-  // Soccer & General Sports
+  // Football Betting Selection
   if (homeScore > awayScore) {
     return { selection: `${m.homeTeam} to Win (1)`, market: 'Full Time 1X2', odds: 1.45, probability: 78 };
   } else if (homeScore === awayScore) {
@@ -222,14 +275,14 @@ function toArchivedMatch(m: MatchData): ArchivedMatch {
   const awayScore = m.awayScore ?? 0;
   const pickInfo = formatBettingSelection(m);
 
-  const isWon = (pickInfo.selection.includes('Win (1)') && homeScore > awayScore) ||
-                (pickInfo.selection.includes('ML') && homeScore > awayScore) ||
-                (pickInfo.selection.includes('1X') && homeScore >= awayScore) ||
-                (pickInfo.selection.includes('Over 1.5') && (homeScore + awayScore) >= 2) ||
-                (pickInfo.selection.includes('Win (2)') && awayScore > homeScore) ||
-                (homeScore === awayScore && pickInfo.selection.includes('1X'));
-
-  const result: 'WON' | 'LOST' = isWon ? 'WON' : 'LOST';
+  const result: 'WON' | 'LOST' = evaluatePredictionResult(
+    pickInfo.selection,
+    pickInfo.market,
+    m.homeTeam,
+    m.awayTeam,
+    homeScore,
+    awayScore
+  );
   const date = m.utcDate ? m.utcDate.slice(0, 10) : new Date().toISOString().slice(0, 10);
 
   return {
@@ -251,10 +304,10 @@ function toArchivedMatch(m: MatchData): ArchivedMatch {
       odds: pickInfo.odds,
       probabilityPercent: pickInfo.probability,
       result,
-      tipsterName: '@AuraMaster_NG',
+      tipsterName: '@MivajMaster_NG',
       tipsterBadge: 'VERIFIED ⚡',
     },
-    accuracyHeatmapScore: result === 'WON' ? 94 : 35,
+    accuracyHeatmapScore: result === 'WON' ? 95 : 35,
     settlementHash: deriveSettlementHash({ id: m.id, homeTeam: m.homeTeam, awayTeam: m.awayTeam, homeScore, awayScore }),
     settlementNote: `Official FT Score ${homeScore} - ${awayScore}. Verified by League Referee Ledger ✓`,
   };

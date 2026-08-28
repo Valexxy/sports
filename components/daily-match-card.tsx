@@ -14,7 +14,12 @@ import {
   Zap,
   TrendingUp,
   Radio,
-  Swords
+  Swords,
+  ChevronDown,
+  ChevronUp,
+  Activity,
+  MapPin,
+  Whistle
 } from 'lucide-react';
 import { MatchData } from '../lib/sports-api';
 import { getLeagueInfo } from '../lib/league-badges';
@@ -31,6 +36,8 @@ export interface DailyMatchCardProps {
   onSelectOdds: (match: MatchData, pick: string, odds: number) => void;
   onBookmarkMatch?: (match: MatchData) => void;
   onOpenMatchDetail?: (match: MatchData) => void;
+  onOpenInsights?: (match: MatchData) => void;
+  onSelectClub?: (clubName: string) => void;
   onOpenTeam?: (teamName: string) => void;
   onOpenStandings?: (leagueName: string) => void;
   followedMatchIds?: string[];
@@ -95,6 +102,8 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   onSelectOdds,
   onBookmarkMatch,
   onOpenMatchDetail,
+  onOpenInsights,
+  onSelectClub,
   onOpenTeam,
   onOpenStandings,
   followedMatchIds = [],
@@ -117,6 +126,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   const [hasVotedTicket, setHasVotedTicket] = useState<boolean>(false);
   const [showCommentaryModal, setShowCommentaryModal] = useState<boolean>(false);
   const [showH2HModal, setShowH2HModal] = useState<boolean>(false);
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
   // Gen Z Emoji Reactions State
   const [reactions, setReactions] = useState<{ [key: string]: number }>({
@@ -168,6 +178,13 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
 
   const dateLabel = getMatchDateLabel(match.utcDate);
 
+  const handleCardClick = () => {
+    try { phoneHardware.triggerHaptic('SELECTION'); } catch {}
+    setIsExpanded(prev => !prev);
+    if (onOpenMatchDetail) onOpenMatchDetail(match);
+    if (onOpenInsights) onOpenInsights(match);
+  };
+
   const handleBookmark = (e: React.MouseEvent) => {
     e.stopPropagation();
     const next = !bookmarked;
@@ -207,6 +224,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
     e.stopPropagation();
     try { phoneHardware.triggerHaptic('SELECTION'); } catch {}
     if (onOpenTeam) onOpenTeam(teamName);
+    if (onSelectClub) onSelectClub(teamName);
   };
 
   const handleEmojiReaction = (emoji: string, e: React.MouseEvent) => {
@@ -227,15 +245,15 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   return (
     <>
       <div
-        onClick={() => onOpenMatchDetail && onOpenMatchDetail(match)}
-        className="glass-panel-premium rounded-[24px] p-4 sm:p-5 space-y-3.5 border border-white/10 hover:border-stadiumGreen/60 transition-all duration-300 shadow-xl cursor-pointer active:scale-[0.985] group relative overflow-hidden"
+        onClick={handleCardClick}
+        className="glass-panel-premium rounded-[24px] p-4 sm:p-5 space-y-3 border border-white/10 hover:border-stadiumGreen/60 transition-all duration-300 shadow-xl cursor-pointer active:scale-[0.985] group relative overflow-hidden"
       >
-        {/* iOS Top Highlight Line */}
+        {/* Top Highlight Accent Line */}
         <div className="absolute inset-x-6 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-        {/* 1. iOS Header Bar — League Logo, Name, Live Status & Action Controls */}
-        <div className="flex items-center justify-between gap-1 border-b border-white/10 pb-2.5">
-          <div className="flex items-center space-x-2 min-w-0">
+        {/* 1. Header Bar: League Info + Status Pill + Bookmark & Follow Controls (Clean & Separate) */}
+        <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5">
+          <div className="flex items-center space-x-2 min-w-0 flex-1">
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -259,53 +277,29 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
               </span>
             </button>
 
-            {/* iOS Dynamic Status Pill */}
+            {/* Dynamic Status Pill */}
             {isLive ? (
-              <span className="flex-shrink-0 flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-stadiumGreen/20 border border-stadiumGreen/60 text-stadiumGreen text-[9px] font-black animate-pulse shadow-sm">
+              <span className="flex-shrink-0 flex items-center space-x-1 px-2 py-0.5 rounded-full bg-stadiumGreen/20 border border-stadiumGreen/60 text-stadiumGreen text-[9px] font-black animate-pulse shadow-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-stadiumGreen" />
                 <span>LIVE {match.matchTime || "28'"}</span>
               </span>
             ) : isFinished ? (
-              <span className={`flex-shrink-0 flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-black border ${
+              <span className={`flex-shrink-0 flex items-center space-x-1 px-2 py-0.5 rounded-full text-[9px] font-black border ${
                 isWon ? 'bg-stadiumGreen/20 border-stadiumGreen/60 text-stadiumGreen' : 'bg-gray-800 border-gray-700 text-gray-300'
               }`}>
                 <CheckCircle2 className="w-3 h-3" />
                 <span>FT • {match.homeScore ?? 0}-{match.awayScore ?? 0}</span>
               </span>
             ) : (
-              <span className="flex-shrink-0 flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/50 text-amber-400 text-[9px] font-black">
+              <span className="flex-shrink-0 flex items-center space-x-1 px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/50 text-amber-400 text-[9px] font-black">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                 <span>{dateLabel}</span>
               </span>
             )}
           </div>
 
-          {/* Action Controls */}
+          {/* Quick Header Actions: Follow & Bookmark */}
           <div className="flex items-center space-x-1.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={() => {
-                try { phoneHardware.triggerHaptic('SELECTION'); } catch {}
-                setShowH2HModal(true);
-              }}
-              className="p-1.5 rounded-xl border bg-amber-500/15 border-amber-500/40 text-amber-400 hover:bg-amber-500 hover:text-black transition-all flex items-center space-x-1"
-              title="Open Head-to-Head Arena (xG, Form & Duels)"
-            >
-              <Swords className="w-3.5 h-3.5" />
-              <span className="text-[10px] font-black hidden sm:inline">H2H Arena ⚔️</span>
-            </button>
-
-            <button
-              onClick={() => {
-                try { phoneHardware.triggerHaptic('SELECTION'); } catch {}
-                setShowCommentaryModal(true);
-              }}
-              className="p-1.5 rounded-xl border bg-stadiumGreen/15 border-stadiumGreen/40 text-stadiumGreen hover:bg-stadiumGreen hover:text-black transition-all flex items-center space-x-1"
-              title="Open Stadium Live Audio & Commentary"
-            >
-              <Radio className="w-3.5 h-3.5 animate-pulse" />
-              <span className="text-[10px] font-black hidden sm:inline">Stadium Mic 🎙️</span>
-            </button>
-
             <button
               onClick={handleAlert}
               className={`p-1.5 rounded-xl border transition-all ${
@@ -435,7 +429,50 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
           </button>
         </div>
 
-        {/* 4. iOS 18 Poisson Model Probability Gauge Bar */}
+        {/* 4. Tactical Inside Card Action Bar (H2H Arena + Stadium Mic when Live/FT) */}
+        <div className="flex items-center justify-between gap-2 p-1.5 rounded-xl bg-black/50 border border-white/5" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center space-x-1.5 flex-1 min-w-0">
+            {/* H2H Arena Button */}
+            <button
+              onClick={() => {
+                try { phoneHardware.triggerHaptic('SELECTION'); } catch {}
+                setShowH2HModal(true);
+              }}
+              className="px-2.5 py-1 rounded-lg border bg-amber-500/15 border-amber-500/40 text-amber-400 hover:bg-amber-500 hover:text-black transition-all flex items-center space-x-1.5 text-[10px] font-black shadow-sm"
+              title="Open Head-to-Head Arena (xG, Form & Duels)"
+            >
+              <Swords className="w-3.5 h-3.5" />
+              <span>H2H Arena ⚔️</span>
+            </button>
+
+            {/* Stadium Mic (Only shown for LIVE or FINISHED matches) */}
+            {(isLive || isFinished) && (
+              <button
+                onClick={() => {
+                  try { phoneHardware.triggerHaptic('SELECTION'); } catch {}
+                  setShowCommentaryModal(true);
+                }}
+                className="px-2.5 py-1 rounded-lg border bg-stadiumGreen/15 border-stadiumGreen/40 text-stadiumGreen hover:bg-stadiumGreen hover:text-black transition-all flex items-center space-x-1.5 text-[10px] font-black shadow-sm"
+                title="Open Stadium Live Audio & Commentary"
+              >
+                <Radio className="w-3.5 h-3.5 animate-pulse" />
+                <span>Stadium Mic 🎙️</span>
+              </button>
+            )}
+          </div>
+
+          {/* Card Expansion Toggle Indicator */}
+          <button
+            onClick={handleCardClick}
+            className="p-1 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all flex items-center space-x-1 text-[10px]"
+            title="Click to view/expand match dossier"
+          >
+            <span>{isExpanded ? 'Hide' : 'Details'}</span>
+            {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          </button>
+        </div>
+
+        {/* 5. Poisson Model Probability Gauge Bar */}
         <div className="space-y-1 bg-black/40 p-2 rounded-xl border border-white/5" onClick={(e) => e.stopPropagation()}>
           <div className="flex justify-between items-center text-[9px] font-mono font-bold text-gray-400">
             <span className="text-stadiumGreen">1: {homePct}%</span>
@@ -449,7 +486,36 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
           </div>
         </div>
 
-        {/* 5. Gen Z Emoji Quick Reactions Bar */}
+        {/* 6. Expandable Match Details Dossier (Revealed on Card Click) */}
+        {isExpanded && (
+          <div className="p-3 rounded-2xl bg-black/60 border border-stadiumGreen/30 space-y-2.5 animate-in fade-in duration-200 text-xs font-mono" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-white/10 pb-1.5">
+              <span className="text-[10px] font-black uppercase text-stadiumGreen flex items-center space-x-1">
+                <Activity className="w-3 h-3" />
+                <span>Match Intelligence Dossier</span>
+              </span>
+              <span className="text-[9px] text-gray-400">Tension: {match.stadiumTension || 85}%</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 text-[10px]">
+              <div className="p-2 rounded-xl bg-white/5 border border-white/5 space-y-1">
+                <span className="text-gray-400 block font-bold">Venue & Stadium</span>
+                <span className="text-white font-bold block truncate">{match.venue || `${match.homeTeam} Arena`}</span>
+              </div>
+              <div className="p-2 rounded-xl bg-white/5 border border-white/5 space-y-1 text-right">
+                <span className="text-gray-400 block font-bold">Expected Score</span>
+                <span className="text-gold font-bold block">{p.expectedHomeGoals.toFixed(1)} - {p.expectedAwayGoals.toFixed(1)} xG</span>
+              </div>
+            </div>
+
+            <div className="p-2 rounded-xl bg-neutral-950 border border-white/10 text-[10px] space-y-1 text-gray-300">
+              <span className="text-gold font-black uppercase tracking-wider block">Strategic Rationale:</span>
+              <p className="leading-relaxed font-sans">{topPick.rationale || 'Engine model confirms high Poisson confidence based on offensive momentum and defensive strength.'}</p>
+            </div>
+          </div>
+        )}
+
+        {/* 7. Gen Z Emoji Quick Reactions Bar */}
         <div className="flex items-center justify-between gap-1 pt-1 border-t border-white/5" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center space-x-1 overflow-x-auto scrollbar-none py-0.5">
             {Object.entries(reactions).map(([emoji, count]) => {
@@ -487,7 +553,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
           </button>
         </div>
 
-        {/* 6. Top Pick Banker Banner — Show on upcoming matches */}
+        {/* 8. Top Pick Banker Banner — Show on upcoming matches */}
         {!isFinished && (
           <div className="p-3 rounded-2xl flex items-center justify-between gap-2 shadow-md bg-gradient-to-r from-stadiumGreen/20 via-panel to-gold/15 border border-stadiumGreen/40">
             <div className="min-w-0">

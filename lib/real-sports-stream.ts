@@ -234,21 +234,9 @@ const ESPN_LEAGUES = [
   { code: 'usa.1', name: 'MLS', flag: '🇺🇸', sport: 'SOCCER' as const, path: 'soccer/usa.1' },
   { code: 'mex.1', name: 'Liga MX', flag: '🇲🇽', sport: 'SOCCER' as const, path: 'soccer/mex.1' },
   { code: 'sau.1', name: 'Saudi Pro League', flag: '🇸🇦', sport: 'SOCCER' as const, path: 'soccer/sau.1' },
-
-  // 🏀 BASKETBALL
-  { code: 'nba', name: 'NBA Basketball', flag: '🏀🇺🇸', sport: 'BASKETBALL' as const, path: 'basketball/nba' },
-  { code: 'wnba', name: 'WNBA Basketball', flag: '🏀👩', sport: 'BASKETBALL' as const, path: 'basketball/wnba' },
-  { code: 'mens-college-basketball', name: 'NCAA Basketball', flag: '🏀🎓', sport: 'BASKETBALL' as const, path: 'basketball/mens-college-basketball' },
-
-  // 🏈 AMERICAN FOOTBALL
-  { code: 'nfl', name: 'NFL Football', flag: '🏈🇺🇸', sport: 'AMERICAN_FOOTBALL' as const, path: 'football/nfl' },
-  { code: 'college-football', name: 'NCAA College Football', flag: '🏈🎓', sport: 'AMERICAN_FOOTBALL' as const, path: 'football/college-football' },
-
-  // ⚾ BASEBALL
-  { code: 'mlb', name: 'MLB Baseball', flag: '⚾🇺🇸', sport: 'BASEBALL' as const, path: 'baseball/mlb' },
-
-  // 🏒 ICE HOCKEY
-  { code: 'nhl', name: 'NHL Hockey', flag: '🏒🇺🇸', sport: 'HOCKEY' as const, path: 'hockey/nhl' },
+  { code: 'por.1', name: 'Primeira Liga', flag: '🇵🇹', sport: 'SOCCER' as const, path: 'soccer/por.1' },
+  { code: 'ned.1', name: 'Eredivisie', flag: '🇳🇱', sport: 'SOCCER' as const, path: 'soccer/ned.1' },
+  { code: 'tur.1', name: 'Turkish Super Lig', flag: '🇹🇷', sport: 'SOCCER' as const, path: 'soccer/tur.1' },
 ];
 
 async function fetchSingleEspnLeague(ep: typeof ESPN_LEAGUES[0]): Promise<MatchData[]> {

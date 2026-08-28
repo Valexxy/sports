@@ -95,7 +95,7 @@ export const VcFundingModal: React.FC<VcFundingModalProps> = ({ onClose }) => {
           <span className="text-gray-400 text-[11px]">Interested in backing the vision?</span>
           <div className="flex items-center space-x-2">
             <a
-              href="mailto:contact@mivaj.com?subject=Investor%20Inquiry%20-%20Mivaj%20Sports"
+              href="mailto:mivajtips@gmail.com?subject=Investor%20Inquiry%20-%20Mivaj%20Sports"
               className="px-4 py-2 rounded-xl bg-gold text-black font-black hover:bg-yellow-400 transition-all text-xs"
             >
               Contact Founder

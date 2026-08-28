@@ -17,13 +17,33 @@ export interface LocationIntelData {
   localGreeting: string;
   deviceName: string;
   userNickname: string;
+  isManualOverride?: boolean;
   lastUpdated: string;
 }
 
-const NIGERIAN_SW_STATES = ['lagos', 'ogun', 'oyo', 'osun', 'ondo', 'ekiti'];
-const NIGERIAN_SE_STATES = ['enugu', 'anambra', 'imo', 'abia', 'ebonyi'];
-const NIGERIAN_NORTH_STATES = ['kano', 'kaduna', 'abuja', 'federal capital territory', 'fct', 'sokoto', 'katsina', 'borno', 'niger', 'bauchi', 'plateau', 'kebbi', 'zamfara', 'jigawa', 'yobe', 'adamawa', 'taraba', 'gombe', 'nasarawa', 'kwara', 'kogi'];
-const NIGERIAN_SS_STATES = ['delta', 'edo', 'rivers', 'bayelsa', 'akwa ibom', 'cross river'];
+const NIGERIAN_SW_STATES = ['lagos', 'ogun', 'oyo', 'osun', 'ondo', 'ekiti', 'ibadan'];
+const NIGERIAN_SE_STATES = ['enugu', 'anambra', 'imo', 'abia', 'ebonyi', 'onitsha', 'owerri'];
+const NIGERIAN_NORTH_STATES = ['kano', 'kaduna', 'abuja', 'federal capital territory', 'fct', 'sokoto', 'katsina', 'borno', 'niger', 'bauchi', 'plateau', 'kebbi', 'zamfara', 'jigawa', 'yobe', 'adamawa', 'taraba', 'gombe', 'nasarawa', 'kwara', 'kogi', 'jos'];
+const NIGERIAN_SS_STATES = ['delta', 'edo', 'rivers', 'bayelsa', 'akwa ibom', 'cross river', 'port harcourt', 'warri', 'benin city', 'calabar', 'uyoo'];
+
+const KNOWN_HUBS: Record<string, { lat: number; lon: number; country: string; code: string; state: string }> = {
+  'lagos': { lat: 6.5244, lon: 3.3792, country: 'Nigeria', code: 'NG', state: 'Lagos' },
+  'abuja': { lat: 9.0765, lon: 7.3986, country: 'Nigeria', code: 'NG', state: 'FCT' },
+  'port harcourt': { lat: 4.8156, lon: 7.0498, country: 'Nigeria', code: 'NG', state: 'Rivers' },
+  'ibadan': { lat: 7.3775, lon: 3.9470, country: 'Nigeria', code: 'NG', state: 'Oyo' },
+  'enugu': { lat: 6.4584, lon: 7.5464, country: 'Nigeria', code: 'NG', state: 'Enugu' },
+  'kano': { lat: 12.0022, lon: 8.5920, country: 'Nigeria', code: 'NG', state: 'Kano' },
+  'benin city': { lat: 6.3350, lon: 5.6037, country: 'Nigeria', code: 'NG', state: 'Edo' },
+  'onitsha': { lat: 6.1667, lon: 6.7833, country: 'Nigeria', code: 'NG', state: 'Anambra' },
+  'accra': { lat: 5.6037, lon: -0.1870, country: 'Ghana', code: 'GH', state: 'Greater Accra' },
+  'nairobi': { lat: -1.2921, lon: 36.8219, country: 'Kenya', code: 'KE', state: 'Nairobi' },
+  'johannesburg': { lat: -26.2041, lon: 28.0473, country: 'South Africa', code: 'ZA', state: 'Gauteng' },
+  'london': { lat: 51.5074, lon: -0.1278, country: 'United Kingdom', code: 'GB', state: 'England' },
+  'manchester': { lat: 53.4808, lon: -2.2426, country: 'United Kingdom', code: 'GB', state: 'Greater Manchester' },
+  'paris': { lat: 48.8566, lon: 2.3522, country: 'France', code: 'FR', state: 'Ile-de-France' },
+  'madrid': { lat: 40.4168, lon: -3.7038, country: 'Spain', code: 'ES', state: 'Madrid' },
+  'new york': { lat: 40.7128, lon: -74.0060, country: 'United States', code: 'US', state: 'New York' },
+};
 
 function mapWeatherCode(code: number): string {
   if (code === 0) return 'Clear Sky ☀️';
@@ -40,18 +60,12 @@ function mapWeatherCode(code: number): string {
 function detectDeviceName(): string {
   if (typeof window === 'undefined') return 'Smart Device';
   const ua = navigator.userAgent || '';
-  if (/iPhone/i.test(ua)) {
-    if (/iPhone15/i.test(ua) || window.screen.height >= 852) return 'iPhone 15/16 Pro';
-    if (/iPhone14/i.test(ua) || window.screen.height >= 844) return 'iPhone 14/15';
-    return 'Apple iPhone';
-  }
-  if (/iPad/i.test(ua)) return 'Apple iPad';
-  if (/Samsung/i.test(ua) || /SM-/i.test(ua)) return 'Samsung Galaxy';
-  if (/Pixel/i.test(ua)) return 'Google Pixel';
-  if (/Android/i.test(ua)) return 'Android Device';
-  if (/Macintosh/i.test(ua)) return 'MacBook / Mac';
-  if (/Windows/i.test(ua)) return 'Windows PC';
-  return 'Mobile Device';
+  if (/iPhone/i.test(ua)) return 'Mobile Device';
+  if (/iPad/i.test(ua)) return 'Tablet Device';
+  if (/Android/i.test(ua)) return 'Mobile Device';
+  if (/Macintosh/i.test(ua)) return 'Desktop Computer';
+  if (/Windows/i.test(ua)) return 'Desktop Computer';
+  return 'Personal Device';
 }
 
 export class LocationIntelligenceEngine {
@@ -80,43 +94,74 @@ export class LocationIntelligenceEngine {
     }
   }
 
+  public static getCustomLocation(): string | null {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('mivaj_custom_city');
+  }
+
+  public static setCustomLocation(city: string): void {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('mivaj_custom_city', city);
+  }
+
+  public static clearCustomLocation(): void {
+    if (typeof window === 'undefined') return;
+    localStorage.removeItem('mivaj_custom_city');
+  }
+
   public static async fetchHyperAccurateLocationIntel(): Promise<LocationIntelData> {
     if (typeof window === 'undefined') {
       return this.getFallbackIntel();
     }
 
     try {
-      // 1. Get GPS coordinates or fallback
-      let lat = 6.5244; // Default Lagos
+      const customCity = this.getCustomLocation();
+      let city = customCity || 'Lagos';
+      let state = 'Lagos State';
+      let countryName = 'Nigeria';
+      let countryCode = 'NG';
+      let lat = 6.5244;
       let lon = 3.3792;
+      let isManual = Boolean(customCity);
 
-      if ('geolocation' in navigator) {
-        try {
-          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
-              timeout: 5000,
-              maximumAge: 60000,
-              enableHighAccuracy: true,
-            });
-          });
-          lat = position.coords.latitude;
-          lon = position.coords.longitude;
-        } catch {
-          // Fallback to IP reverse client
+      if (customCity) {
+        const hub = KNOWN_HUBS[customCity.toLowerCase().trim()];
+        if (hub) {
+          lat = hub.lat;
+          lon = hub.lon;
+          countryName = hub.country;
+          countryCode = hub.code;
+          state = hub.state;
+          city = customCity.charAt(0).toUpperCase() + customCity.slice(1);
         }
-      }
+      } else {
+        // 1. Try GPS coordinates
+        if ('geolocation' in navigator) {
+          try {
+            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, {
+                timeout: 4000,
+                maximumAge: 60000,
+                enableHighAccuracy: true,
+              });
+            });
+            lat = position.coords.latitude;
+            lon = position.coords.longitude;
+          } catch {}
+        }
 
-      // 2. Fetch Reverse Geocoding from BigDataCloud
-      const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
-      let geoData: any = {};
-      if (geoRes.ok) {
-        geoData = await geoRes.json();
+        // 2. Fetch Reverse Geocoding from BigDataCloud
+        try {
+          const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+          if (geoRes.ok) {
+            const geoData = await geoRes.json();
+            city = geoData.city || geoData.locality || geoData.principalSubdivision || 'Lagos';
+            state = (geoData.principalSubdivision || '').toLowerCase();
+            countryName = geoData.countryName || 'Nigeria';
+            countryCode = (geoData.countryCode || 'NG').toUpperCase();
+          }
+        } catch {}
       }
-
-      const city = geoData.city || geoData.locality || geoData.principalSubdivision || 'Lagos';
-      const state = (geoData.principalSubdivision || '').toLowerCase();
-      const countryName = geoData.countryName || 'Nigeria';
-      const countryCode = (geoData.countryCode || 'NG').toUpperCase();
 
       // 3. Fetch Live Weather from Open-Meteo
       let temp = 28;
@@ -139,17 +184,20 @@ export class LocationIntelligenceEngine {
       let suggestedLanguage: LanguageCode = 'pidgin';
       let localGreeting = `How far ${city}! Welcome to Mivaj Sports! 👑`;
 
+      const normCity = city.toLowerCase();
+      const normState = state.toLowerCase();
+
       if (countryCode === 'NG') {
-        if (NIGERIAN_SW_STATES.some(s => state.includes(s) || city.toLowerCase().includes(s))) {
+        if (NIGERIAN_SW_STATES.some(s => normState.includes(s) || normCity.includes(s))) {
           suggestedLanguage = 'yoruba';
           localGreeting = `Ẹ kú àbọ̀ sí ${city}! Ìsọtẹ́lẹ̀ tòní ti dé! 👑`;
-        } else if (NIGERIAN_SE_STATES.some(s => state.includes(s) || city.toLowerCase().includes(s))) {
+        } else if (NIGERIAN_SE_STATES.some(s => normState.includes(s) || normCity.includes(s))) {
           suggestedLanguage = 'igbo';
           localGreeting = `Nnọọ na ${city}! Amụma bọọlụ taa eruola! 👑`;
-        } else if (NIGERIAN_NORTH_STATES.some(s => state.includes(s) || city.toLowerCase().includes(s))) {
+        } else if (NIGERIAN_NORTH_STATES.some(s => normState.includes(s) || normCity.includes(s))) {
           suggestedLanguage = 'hausa';
           localGreeting = `Barka da zuwa ${city}! Hasashen wasanni na yau! 👑`;
-        } else if (NIGERIAN_SS_STATES.some(s => state.includes(s) || city.toLowerCase().includes(s))) {
+        } else if (NIGERIAN_SS_STATES.some(s => normState.includes(s) || normCity.includes(s))) {
           suggestedLanguage = 'pidgin';
           localGreeting = `Waffi & ${city} people how far! Correct banker don land! 👑`;
         }
@@ -175,7 +223,7 @@ export class LocationIntelligenceEngine {
 
       const result: LocationIntelData = {
         city,
-        principalSubdivision: geoData.principalSubdivision || 'State',
+        principalSubdivision: state || 'State',
         countryName,
         countryCode,
         latitude: lat,
@@ -188,6 +236,7 @@ export class LocationIntelligenceEngine {
         localGreeting,
         deviceName: detectDeviceName(),
         userNickname: this.getUserNickname(),
+        isManualOverride: isManual,
         lastUpdated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
 
