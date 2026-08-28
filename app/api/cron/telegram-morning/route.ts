@@ -1,24 +1,23 @@
 import { NextResponse } from 'next/server';
 import { getRealLiveAndPlayedMatches } from '../../../../lib/real-sports-stream';
 import { TelegramBotService } from '../../../../services/telegram/botService';
+import { AFFILIATE_PARTNERS } from '../../../../config/affiliates';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 /**
  * AURASCORE TELEGRAM MORNING CRON — 6:00 AM WAT DAILY
+ * Channel: @mivasport (https://t.me/mivasport)
  * 
- * Automatically posts today's featured accumulator picks to @mivajsport
- * with a monetization-first teaser approach:
- *   - Shows 3-4 FREE banker picks with full odds & analysis
- *   - Locks the remaining picks behind the website (drives traffic)
- *   - Embeds affiliate signup bonus buttons for 22Bet, Bet9ja, Stake
- *   - Includes 1-click converter link for booking code generation
- * 
- * Triggered by Vercel Cron at 0 5 * * * (5:00 UTC = 6:00 WAT)
+ * Features:
+ *   - Shows 3 FREE teaser banker picks with full odds, markets & probability
+ *   - States the EXACT number of remaining unrevealed matches
+ *   - Masks and displays ALL registered affiliate bonus partners (22Bet, Stake, Bet9ja, 1xBet)
+ *   - Provides direct 1-click sharing to Telegram, WhatsApp, and X/Twitter
+ *   - SportyBet Code Decoder promotion (revealing live matches)
  */
 export async function GET(req: Request) {
-  // Optional auth guard for Vercel Cron
   const authHeader = req.headers.get('authorization');
   const expected = process.env.CRON_SECRET;
   if (expected && authHeader !== `Bearer ${expected}`) {
@@ -29,7 +28,6 @@ export async function GET(req: Request) {
     const matches = await getRealLiveAndPlayedMatches();
     const todayIso = new Date().toISOString().split('T')[0];
 
-    // Filter today's scheduled matches
     const todayMatches = matches.filter((m) => {
       if (m.utcDate && m.utcDate.startsWith(todayIso)) return true;
       return false;
@@ -39,16 +37,13 @@ export async function GET(req: Request) {
     const scheduled = pool.filter((m) => m.status === 'SCHEDULED');
     const fixturesPool = scheduled.length > 0 ? scheduled : pool;
 
-    // MONETIZATION STRATEGY:
-    // Show 3 FREE teaser picks in Telegram (enough to hook them)
-    // Lock the remaining picks behind the website
     const FREE_TEASER_COUNT = 3;
     const teaserCount = Math.min(FREE_TEASER_COUNT, fixturesPool.length);
     const teaserFixtures = fixturesPool.slice(0, teaserCount);
     const lockedFixtures = fixturesPool.slice(teaserCount);
-    const lockedCount = lockedFixtures.length;
+    const remainingCount = lockedFixtures.length;
 
-    // 100% Genuine Mathematical Calculations
+    // Combined mathematical odds
     const teaserOddsNum = teaserFixtures.reduce((acc, m) => acc * (m.prediction?.topPick?.odds || 1.15), 1);
     const teaserOdds = teaserOddsNum.toFixed(2);
 
@@ -59,10 +54,9 @@ export async function GET(req: Request) {
       teaserFixtures.reduce((acc, m) => acc + (m.prediction?.topPick?.probability || 85), 0) / (teaserFixtures.length || 1)
     );
 
-    // Build the Telegram message
-    let msg = `☀️ <b>GOOD MORNING! AURASCORE DAILY BANKER SLIP 🔥</b>\n`;
-    msg += `📅 <i>${new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} • AI Confidence: ${avgProb}%</i>\n\n`;
-    msg += `👑 <b>TODAY'S FREE BANKER PICKS (${teaserCount} of ${fixturesPool.length}):</b>\n\n`;
+    let msg = `☀️ <b>GOOD MORNING! AURASCORE DAILY BANKER ACCUMULATOR 🔥</b>\n`;
+    msg += `📅 <i>${new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} • AI Model Confidence: ${avgProb}%</i>\n\n`;
+    msg += `👑 <b>TODAY'S FREE FEATURED PICKS (${teaserCount} of ${fixturesPool.length} Fixtures):</b>\n\n`;
 
     teaserFixtures.forEach((m, idx) => {
       const p = m.prediction?.topPick;
@@ -70,39 +64,51 @@ export async function GET(req: Request) {
       msg += `${idx + 1}. ${sportIcon} <b>${m.homeTeam} vs ${m.awayTeam}</b>\n`;
       msg += `   🏆 <b>${m.leagueFlag || '🌍'} ${m.league}</b>\n`;
       msg += `   ⏰ Kickoff: <b>${m.matchTime || 'TBD'}</b>\n`;
-      msg += `   🎯 Pick: <code>${p?.selection || 'Home Win'}</code> @ <b>${p?.odds || 1.15}</b> (${p?.probability || 85}% Prob)\n\n`;
+      msg += `   🎯 Selection: <code>${p?.selection || 'Home Win'}</code> @ <b>${p?.odds || 1.15}</b> (${p?.probability || 85}% Math Prob)\n\n`;
     });
 
     msg += `📊 <b>Free 3-Fold Odds:</b> <code>${teaserOdds}x</code>\n`;
     msg += `🚀 <b>Full ${fixturesPool.length}-Match Master Slip:</b> <code>${fullAccumulatorOdds}x Total Odds</code>\n\n`;
 
-    if (lockedCount > 0) {
-      msg += `🔒 <b>+${lockedCount} MORE PREMIUM PICKS AVAILABLE</b>\n`;
-      msg += `<i>Unlock the full ${fixturesPool.length}-game accumulator with 1-click booking codes on our website:</i>\n\n`;
+    if (remainingCount > 0) {
+      msg += `🔒 <b>+${remainingCount} MORE MATCHES NOT CAPTURED IN THIS TEASER</b>\n`;
+      msg += `<i>Unlock all ${remainingCount} remaining banker predictions on our website for free:</i>\n\n`;
     }
 
-    msg += `💡 <i>Convert to SportyBet, Bet9ja, 1xBet booking codes instantly on our free converter tool.</i>`;
+    msg += `⚡ <i>Paste any SportyBet booking code on our website to instantly reveal all hidden matches, markets & odds.</i>`;
 
-    // Monetization-focused inline keyboard
     const slipUrl = `https://mivaj.com/?slip=today_banker&ref=tg_morning_cron&date=${todayIso}`;
-    const converterUrl = `https://mivaj.com/converter?ref=tg_morning_cron`;
-    const affiliateUrl22Bet = process.env.NEXT_PUBLIC_22BET_AFFILIATE_URL || 'https://22bet.com.ng/?tag=972744';
-    const affiliateUrlStake = process.env.NEXT_PUBLIC_STAKE_AFFILIATE_URL || 'https://stake.com/?c=AuraScore';
-    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(slipUrl)}&text=${encodeURIComponent(`🔥 ${fullAccumulatorOdds}x Daily Banker Slip on Mivaj! Free picks + converter`)}`;
+    const decoderUrl = `https://mivaj.com/converter?ref=tg_morning_cron`;
+    const shareText = `🔥 Here is today's ${fullAccumulatorOdds}x Multi-Sport Banker Slip on Mivaj (3 Free Picks + ${remainingCount} More)!`;
+
+    const tgShareUrl = `https://t.me/share/url?url=${encodeURIComponent(slipUrl)}&text=${encodeURIComponent(shareText)}`;
+    const waShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + ' ' + slipUrl)}`;
+    const xShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(slipUrl)}`;
 
     const keyboard = [
       [
-        { text: `🔓 UNLOCK FULL ${fullAccumulatorOdds}x MASTER SLIP`, url: slipUrl },
+        { 
+          text: remainingCount > 0 
+            ? `🔓 UNLOCK REMAINING ${remainingCount} PREDICTIONS (${fullAccumulatorOdds}x)` 
+            : `🔓 VIEW FULL ${fullAccumulatorOdds}x MASTER ACCUMULATOR`, 
+          url: slipUrl 
+        },
       ],
       [
-        { text: "⚡ FREE BOOKING CODE CONVERTER", url: converterUrl },
+        { text: "🔍 REVEAL MATCHES FROM SPORTYBET CODE", url: decoderUrl },
       ],
       [
-        { text: "💰 JOIN 22BET (₦250K BONUS)", url: affiliateUrl22Bet },
-        { text: "🎰 JOIN STAKE ($3K BONUS)", url: affiliateUrlStake },
+        { text: "🎁 22BET (₦130,000 WELCOME BONUS)", url: AFFILIATE_PARTNERS['22BET'].affiliateUrl },
+        { text: "🎰 STAKE ($3,000 VIP BONUS)", url: AFFILIATE_PARTNERS['STAKE'].affiliateUrl },
       ],
       [
-        { text: "📲 SHARE WITH FRIENDS", url: shareUrl },
+        { text: "🟢 BET9JA (170% ACCA BOOST)", url: AFFILIATE_PARTNERS['BET9JA'].affiliateUrl },
+        { text: "🔵 1XBET (300% DEPOSIT MATCH)", url: AFFILIATE_PARTNERS['1XBET'].affiliateUrl },
+      ],
+      [
+        { text: "✈️ SHARE ON TELEGRAM", url: tgShareUrl },
+        { text: "💬 WHATSAPP", url: waShareUrl },
+        { text: "🐦 SHARE ON X", url: xShareUrl },
       ],
     ];
 
@@ -111,9 +117,10 @@ export async function GET(req: Request) {
     return NextResponse.json({
       success: true,
       cron: 'TELEGRAM_MORNING_6AM',
+      channel: TelegramBotService.getChannelId(),
       todayDate: todayIso,
       freePicksShown: teaserCount,
-      lockedPicks: lockedCount,
+      remainingUncaptured: remainingCount,
       teaserOdds,
       fullAccumulatorOdds,
       telegramResponse: res,

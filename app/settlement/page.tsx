@@ -1,12 +1,15 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { ShieldCheck, Trophy, ArrowLeft, CheckCircle2, XCircle, Calendar, ExternalLink } from 'lucide-react';
+import { ShieldCheck, Trophy, ArrowLeft, CheckCircle2, XCircle, Calendar, ExternalLink, Filter, Search } from 'lucide-react';
 import { ArchivedMatch } from '../../lib/prediction-archive-engine';
 
 export default function SettlementPage() {
   const [archive, setArchive] = useState<ArchivedMatch[]>([]);
   const [filter, setFilter] = useState<'ALL' | 'WON' | 'LOST'>('ALL');
+  const [dateFilter, setDateFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showCalendar, setShowCalendar] = useState(false);
 
   useEffect(() => {
     fetch('/api/settlement')
@@ -24,11 +27,22 @@ export default function SettlementPage() {
   const totalCount = archive.length;
   const winRate = totalCount > 0 ? Math.round((wonCount / totalCount) * 100) : 85;
 
-  const filtered = archive.filter((m) => {
-    if (filter === 'WON') return m.prediction.result === 'WON';
-    if (filter === 'LOST') return m.prediction.result === 'LOST';
-    return true;
-  });
+  const filtered = useMemo(() => {
+    return archive.filter((m) => {
+      if (filter === 'WON' && m.prediction.result !== 'WON') return false;
+      if (filter === 'LOST' && m.prediction.result !== 'LOST') return false;
+      if (dateFilter && !m.date?.includes(dateFilter)) return false;
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        return m.homeTeam?.toLowerCase().includes(q) ||
+               m.awayTeam?.toLowerCase().includes(q) ||
+               m.league?.toLowerCase().includes(q) ||
+               m.prediction.selection?.toLowerCase().includes(q);
+      }
+      return true;
+    });
+  }, [archive, filter, dateFilter, searchQuery]);
+
 
   return (
     <div className="min-h-screen bg-void text-white font-mono p-4 sm:p-8 space-y-6">
@@ -116,6 +130,40 @@ export default function SettlementPage() {
           >
             🔴 Lost ({lostCount})
           </button>
+        </div>
+
+        {/* Search + Calendar Filter */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search team, league, or prediction..."
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-panel/60 border border-white/10 text-xs text-white placeholder-gray-500 focus:border-stadiumGreen focus:outline-none"
+            />
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => { setShowCalendar(!showCalendar); if (showCalendar) setDateFilter(''); }}
+              className={`px-3 py-2.5 rounded-xl border text-xs font-bold flex items-center space-x-2 transition-all ${showCalendar ? 'bg-stadiumGreen/20 text-stadiumGreen border-stadiumGreen/40' : 'bg-panel/60 border-white/10 text-gray-400 hover:text-white'}`}
+            >
+              <Calendar className="w-4 h-4" />
+              <span>{showCalendar && dateFilter ? dateFilter : 'Filter by Date'}</span>
+            </button>
+            {showCalendar && (
+              <input
+                type="date"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="px-3 py-2.5 rounded-xl border border-stadiumGreen/40 bg-black text-xs text-white focus:outline-none focus:border-stadiumGreen"
+              />
+            )}
+            {dateFilter && (
+              <button onClick={() => { setDateFilter(''); setShowCalendar(false); }} className="px-2 py-2.5 rounded-xl bg-crimson/20 border border-crimson/30 text-crimson text-xs font-bold">Clear</button>
+            )}
+          </div>
         </div>
 
         {/* Ledger Table */}

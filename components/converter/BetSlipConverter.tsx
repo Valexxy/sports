@@ -122,61 +122,39 @@ export const BetSlipConverter: React.FC = () => {
               <Zap className="w-5 h-5" />
             </span>
             <h2 className="text-lg sm:text-xl font-black tracking-tight text-white">
-              BET SLIP DECODER &amp; ODDS MULTIPLIER
+              SPORTYBET BOOKING CODE REVEALER
             </h2>
           </div>
-          <p className="text-xs text-neutral-400 font-sans">
-            Extract exact live matches, markets, and odds from any booking code with 100% free live API decoding and place on Stake, 22Bet, SportyBet, Bet9ja, or 1xBet.
+          <p className="text-xs text-neutral-400 font-sans max-w-lg">
+            Enter any SportyBet booking code to <strong className="text-white">instantly reveal all hidden matches, markets and odds</strong> locked inside it. We show you exactly what's in the slip — then you can claim a bigger bonus placing the same picks on 22Bet, Stake, Bet9ja or 1xBet.
           </p>
-        </div>
-
-        <div className="flex items-center space-x-2 self-start sm:self-auto">
-          <span className="px-3 py-1 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center space-x-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>100% LIVE API ACTIVE</span>
-          </span>
+          <div className="flex items-center space-x-2 pt-1">
+            <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] font-black">✓ SPORTYBET LIVE API</span>
+            <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30 text-[10px] font-black">🆓 100% FREE</span>
+            <span className="px-2 py-0.5 rounded-full bg-gold/10 text-gold border border-gold/30 text-[10px] font-black">🎯 REAL-TIME DECODE</span>
+          </div>
         </div>
       </div>
 
       {/* Main Conversion Form */}
       <form onSubmit={handleConvert} className="space-y-6">
         
-        {/* Step 1: Source Bookmaker */}
-        <div className="space-y-2">
-          <label className="text-xs font-black text-neutral-300 flex items-center space-x-1.5">
-            <span className="w-4 h-4 rounded-full bg-neutral-800 text-neutral-400 text-[10px] flex items-center justify-center font-bold">1</span>
-            <span>SELECT SOURCE BOOKMAKER (Origin)</span>
-          </label>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
-            {SOURCE_BOOKMAKERS.map((bookie) => {
-              const isSelected = source === bookie.id;
-              return (
-                <button
-                  type="button"
-                  key={bookie.id}
-                  onClick={() => {
-                    phoneHardware.triggerHaptic('SELECTION');
-                    setSource(bookie.id);
-                  }}
-                  className={`py-2.5 px-3 rounded-2xl text-xs font-bold transition-all border ${
-                    isSelected
-                      ? 'bg-emerald-500 text-black border-emerald-400 font-black shadow-lg shadow-emerald-500/20'
-                      : 'bg-neutral-800/80 hover:bg-neutral-800 text-neutral-300 border-neutral-700/60'
-                  }`}
-                >
-                  {bookie.name}
-                </button>
-              );
-            })}
+        {/* Step 1: Source — SportyBet Only */}
+        <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-start space-x-3">
+          <ShieldCheck className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-xs font-black text-emerald-400">SOURCE: SPORTYBET (Nigeria) ✓</p>
+            <p className="text-[11px] text-gray-300 font-sans mt-0.5">
+              SportyBet is the only bookmaker that exposes a free, real-time public API for booking codes. We use it to reveal the exact matches, markets, and odds locked inside every code. Other platforms don&apos;t provide this — so we direct you to claim their bonuses directly after revealing your picks.
+            </p>
           </div>
         </div>
 
-        {/* Step 2: Destination Bookmaker */}
+        {/* Step 2: Destination Bookmaker — Bonus Comparison */}
         <div className="space-y-2">
           <label className="text-xs font-black text-neutral-300 flex items-center space-x-1.5">
-            <span className="w-4 h-4 rounded-full bg-neutral-800 text-neutral-400 text-[10px] flex items-center justify-center font-bold">2</span>
-            <span>SELECT PREFERRED BOOKMAKER (Bonus Matching)</span>
+            <span className="w-4 h-4 rounded-full bg-neutral-800 text-neutral-400 text-[10px] flex items-center justify-center font-bold">1</span>
+            <span>PICK YOUR PREFERRED BONUS BOOKMAKER (Where to Place After Reveal)</span>
           </label>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5">
@@ -221,8 +199,8 @@ export const BetSlipConverter: React.FC = () => {
         {/* Step 3: Booking Code Input */}
         <div className="space-y-2">
           <label className="text-xs font-black text-neutral-300 flex items-center space-x-1.5">
-            <span className="w-4 h-4 rounded-full bg-neutral-800 text-neutral-400 text-[10px] flex items-center justify-center font-bold">3</span>
-            <span>ENTER BOOKING CODE (e.g. P5NY07)</span>
+            <span className="w-4 h-4 rounded-full bg-neutral-800 text-neutral-400 text-[10px] flex items-center justify-center font-bold">2</span>
+            <span>ENTER SPORTYBET BOOKING CODE (e.g. P5NY07, HZV5RA)</span>
           </label>
 
           <div className="flex flex-col sm:flex-row gap-2">

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getRealLiveAndPlayedMatches } from '../../../../lib/real-sports-stream';
 import { TelegramBotService } from '../../../../services/telegram/botService';
 import { buildDynamicArchive, getLedgerStats } from '../../../../lib/prediction-archive-engine';
+import { AFFILIATE_PARTNERS } from '../../../../config/affiliates';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +12,7 @@ export async function POST(req: Request) {
     const mode = body.mode || 'MORNING_FIXTURES'; // 'MORNING_FIXTURES' | 'INSTANT_MATCH_SETTLED' | 'NIGHTLY_RECONCILIATION'
 
     const matches = await getRealLiveAndPlayedMatches();
-    const todayIso = new Date().toISOString().split('T')[0]; // e.g. '2026-08-26'
+    const todayIso = new Date().toISOString().split('T')[0];
 
     // Filter matches scheduled/played TODAY
     const todayMatches = matches.filter((m) => {
@@ -21,68 +22,81 @@ export async function POST(req: Request) {
 
     const pool = todayMatches.length > 0 ? todayMatches : matches;
 
-    // 1. ☀️ MORNING DAILY TEASER (100% REAL MATH & ACCUMULATOR SLIP CONVERTER)
+    // 1. ☀️ MORNING DAILY TEASER
     if (mode === 'MORNING_FIXTURES') {
       const scheduled = pool.filter((m) => m.status === 'SCHEDULED');
       const fixturesPool = scheduled.length > 0 ? scheduled : pool;
 
-      // 4 Featured Teaser Picks
-      const teaserCount = Math.min(4, fixturesPool.length);
+      const teaserCount = Math.min(3, fixturesPool.length);
       const teaserFixtures = fixturesPool.slice(0, teaserCount);
       const remainingFixtures = fixturesPool.slice(teaserCount);
       const remainingCount = remainingFixtures.length;
 
-      // 100% Genuine Mathematical Calculations:
-      // Teaser Combined Odds
       const teaserOddsNum = teaserFixtures.reduce((acc, m) => acc * (m.prediction?.topPick?.odds || 1.15), 1);
       const teaserOdds = teaserOddsNum.toFixed(2);
 
-      // Full Master Accumulator Combined Odds (all today's scheduled games)
       const fullOddsNum = fixturesPool.reduce((acc, m) => acc * (m.prediction?.topPick?.odds || 1.15), 1);
       const fullAccumulatorOdds = fullOddsNum.toFixed(2);
 
-      // Real Average AI Probability
       const avgProb = Math.round(
         teaserFixtures.reduce((acc, m) => acc + (m.prediction?.topPick?.probability || 85), 0) / (teaserFixtures.length || 1)
       );
 
-      let msg = `🔥 <b>AURASCORE • TODAY'S OFFICIAL MULTI-SPORT ACCUMULATOR 🌍</b>\n`;
-      msg += `📅 <i>${new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' })} • Statistical Average Confidence: ${avgProb}%</i>\n\n`;
-      msg += `👑 <b>FEATURED BANKER PICKS (4 of ${fixturesPool.length} Today):</b>\n\n`;
+      let msg = `☀️ <b>GOOD MORNING! AURASCORE DAILY BANKER ACCUMULATOR 🔥</b>\n`;
+      msg += `📅 <i>${new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} • AI Model Confidence: ${avgProb}%</i>\n\n`;
+      msg += `👑 <b>TODAY'S FREE FEATURED PICKS (${teaserCount} of ${fixturesPool.length} Fixtures):</b>\n\n`;
 
-      teaserFixtures.forEach((m) => {
+      teaserFixtures.forEach((m, idx) => {
         const p = m.prediction?.topPick;
         const sportIcon = m.sport === 'BASKETBALL' ? '🏀' : m.sport === 'AMERICAN_FOOTBALL' ? '🏈' : '⚽';
-        msg += `${sportIcon} <b>${m.homeTeam} vs ${m.awayTeam}</b>\n`;
-        msg += `   🏆 League: <b>${m.leagueFlag || '🌍'} ${m.league}</b>\n`;
-        msg += `   ⏰ Kickoff: <b>${m.matchTime || '19:00'}</b>\n`;
-        msg += `   🎯 <b>Stadium Selection:</b> <code>${p?.selection || 'Home Win'}</code> @ <b>${p?.odds || 1.15}</b> (${p?.probability || 85}% Math Prob)\n\n`;
+        msg += `${idx + 1}. ${sportIcon} <b>${m.homeTeam} vs ${m.awayTeam}</b>\n`;
+        msg += `   🏆 <b>${m.leagueFlag || '🌍'} ${m.league}</b>\n`;
+        msg += `   ⏰ Kickoff: <b>${m.matchTime || 'TBD'}</b>\n`;
+        msg += `   🎯 Selection: <code>${p?.selection || 'Home Win'}</code> @ <b>${p?.odds || 1.15}</b> (${p?.probability || 85}% Math Prob)\n\n`;
       });
 
-      msg += `📊 <b>Teaser 4-Fold Odds:</b> <code>${teaserOdds}x</code>\n`;
+      msg += `📊 <b>Free 3-Fold Odds:</b> <code>${teaserOdds}x</code>\n`;
       msg += `🚀 <b>Full ${fixturesPool.length}-Match Master Slip:</b> <code>${fullAccumulatorOdds}x Total Odds</code>\n\n`;
 
       if (remainingCount > 0) {
-        msg += `🔒 <b>+${remainingCount} More Verified Fixtures Available On Website</b> (Football & Basketball).\n\n`;
+        msg += `🔒 <b>+${remainingCount} MORE MATCHES NOT CAPTURED IN THIS TEASER</b>\n`;
+        msg += `<i>Unlock all ${remainingCount} remaining banker predictions on our website for free:</i>\n\n`;
       }
 
-      msg += `💡 <i>Use our 1-Click Converter on the website to generate instant booking codes for SportyBet, Bet9ja, 1xBet & 22Bet:</i>`;
+      msg += `⚡ <i>Paste any SportyBet booking code on our website to instantly reveal all hidden matches, markets & odds.</i>`;
 
       const slipUrl = `https://mivaj.com/?slip=today_banker&ref=tg_slip&date=${todayIso}`;
-      const converterUrl = `https://mivaj.com/converter?ref=tg_booking_code`;
-      const affiliateUrl = process.env.NEXT_PUBLIC_22BET_AFFILIATE_URL || 'https://22bet.com.ng/?tag=972744';
-      const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(slipUrl)}&text=${encodeURIComponent(`🔥 Here is today's ${fullAccumulatorOdds}x Multi-Sport Banker Slip on Mivaj!`)}`;
+      const decoderUrl = `https://mivaj.com/converter?ref=tg_booking_code`;
+      const shareText = `🔥 Here is today's ${fullAccumulatorOdds}x Multi-Sport Banker Slip on Mivaj (3 Free Picks + ${remainingCount} More)!`;
+
+      const tgShareUrl = `https://t.me/share/url?url=${encodeURIComponent(slipUrl)}&text=${encodeURIComponent(shareText)}`;
+      const waShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + ' ' + slipUrl)}`;
+      const xShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(slipUrl)}`;
 
       const keyboard = [
         [
-          { text: `👑 VIEW COMPLETE ${fullAccumulatorOdds}x MASTER ACCUMULATOR`, url: slipUrl },
+          { 
+            text: remainingCount > 0 
+              ? `🔓 UNLOCK REMAINING ${remainingCount} PREDICTIONS (${fullAccumulatorOdds}x)` 
+              : `👑 VIEW COMPLETE ${fullAccumulatorOdds}x MASTER ACCUMULATOR`, 
+            url: slipUrl 
+          },
         ],
         [
-          { text: "⚡ 1-CLICK BET9JA / SPORTYBET BOOKING CODE", url: converterUrl },
+          { text: "🔍 REVEAL MATCHES FROM SPORTYBET CODE", url: decoderUrl },
         ],
         [
-          { text: "💰 PLACE SLIP WITH ₦250,000 BONUS (22BET)", url: affiliateUrl },
-          { text: "📲 SHARE SLIP", url: shareUrl },
+          { text: "🎁 22BET (₦130,000 WELCOME BONUS)", url: AFFILIATE_PARTNERS['22BET'].affiliateUrl },
+          { text: "🎰 STAKE ($3,000 VIP BONUS)", url: AFFILIATE_PARTNERS['STAKE'].affiliateUrl },
+        ],
+        [
+          { text: "🟢 BET9JA (170% ACCA BOOST)", url: AFFILIATE_PARTNERS['BET9JA'].affiliateUrl },
+          { text: "🔵 1XBET (300% DEPOSIT MATCH)", url: AFFILIATE_PARTNERS['1XBET'].affiliateUrl },
+        ],
+        [
+          { text: "✈️ SHARE ON TELEGRAM", url: tgShareUrl },
+          { text: "💬 WHATSAPP", url: waShareUrl },
+          { text: "🐦 SHARE ON X", url: xShareUrl },
         ],
       ];
 
@@ -99,7 +113,7 @@ export async function POST(req: Request) {
       });
     }
 
-    // 2. ⚡ INSTANT SETTLED MATCH WIN ALERT (GENUINE LIVE SCORE & PICK)
+    // 2. ⚡ INSTANT SETTLED MATCH WIN ALERT
     if (mode === 'INSTANT_MATCH_SETTLED') {
       const matchId = body.matchId;
       const targetMatch = pool.find((m) => m.id === matchId) || pool.find((m) => m.status === 'FINISHED') || pool[0];
@@ -116,9 +130,17 @@ export async function POST(req: Request) {
       msg += `📲 <i>Track the remaining accumulator games live with audio commentary on our website:</i>`;
 
       const slipUrl = `https://mivaj.com/?ref=tg_live_match&match=${targetMatch.id}`;
+      const decoderUrl = `https://mivaj.com/converter?ref=tg_live_match`;
       const keyboard = [
         [
           { text: "🟢 VIEW LIVE SLIP & IN-PLAY COMMENTARY", url: slipUrl },
+        ],
+        [
+          { text: "🔍 REVEAL SPORTYBET CODE", url: decoderUrl },
+        ],
+        [
+          { text: "🎁 CLAIM ₦130,000 BONUS (22BET)", url: AFFILIATE_PARTNERS['22BET'].affiliateUrl },
+          { text: "🎰 STAKE $3,000 BONUS", url: AFFILIATE_PARTNERS['STAKE'].affiliateUrl },
         ],
       ];
 
@@ -126,7 +148,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, mode, match: targetMatch.homeTeam, telegramResponse: res });
     }
 
-    // 3. 🌙 END-OF-DAY COMPLETE RECONCILIATION & AUDIT (100% REAL STATS & LEDGER)
+    // 3. 🌙 END-OF-DAY COMPLETE RECONCILIATION & AUDIT
     if (mode === 'NIGHTLY_RECONCILIATION') {
       const [archive, stats] = await Promise.all([buildDynamicArchive(), getLedgerStats()]);
       const finishedToday = pool.filter((m) => m.status === 'FINISHED');
@@ -139,7 +161,6 @@ export async function POST(req: Request) {
         const pick = m.prediction?.topPick?.selection || 'Home Win';
         const sportIcon = m.sport === 'BASKETBALL' ? '🏀' : '⚽';
         const score = `${m.homeScore ?? 0} - ${m.awayScore ?? 0}`;
-        // Verify outcome
         wonToday++;
         scoreLines.push(`🟢 ${sportIcon} <b>${m.homeTeam} ${score} ${m.awayTeam}</b> (${m.league})\n   └ Settled Pick: <i>${pick}</i> <b>(WON ✅)</b>`);
       });
@@ -163,6 +184,7 @@ export async function POST(req: Request) {
 
       const ledgerUrl = `https://mivaj.com/settlement?ref=tg_ledger_audit`;
       const tomorrowSlipUrl = `https://mivaj.com/?ref=tg_tomorrow_slip`;
+      const decoderUrl = `https://mivaj.com/converter?ref=tg_ledger_audit`;
 
       const keyboard = [
         [
@@ -170,6 +192,13 @@ export async function POST(req: Request) {
         ],
         [
           { text: "👑 LOAD TOMORROW'S OPENING FIXTURES", url: tomorrowSlipUrl },
+        ],
+        [
+          { text: "🔍 REVEAL SPORTYBET CODE", url: decoderUrl },
+        ],
+        [
+          { text: "🎁 22BET (₦130,000 WELCOME BONUS)", url: AFFILIATE_PARTNERS['22BET'].affiliateUrl },
+          { text: "🎰 STAKE ($3,000 VIP BONUS)", url: AFFILIATE_PARTNERS['STAKE'].affiliateUrl },
         ],
       ];
 

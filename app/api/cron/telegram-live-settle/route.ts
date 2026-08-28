@@ -2,24 +2,18 @@ import { NextResponse } from 'next/server';
 import { getRealLiveAndPlayedMatches } from '../../../../lib/real-sports-stream';
 import { TelegramBotService } from '../../../../services/telegram/botService';
 import { getRedisCache, setRedisCache } from '../../../../lib/upstash-redis-engine';
+import { AFFILIATE_PARTNERS } from '../../../../config/affiliates';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-// In-memory fallback set if Redis is temporarily unreachable
 const processedMatchIds = new Set<string>();
 
 /**
  * AURASCORE IN-DAY LIVE MATCH SETTLEMENT CRON
+ * Channel: @mivasport (https://t.me/mivasport)
  * 
- * Runs continuously throughout the day.
- * Whenever a sport event finishes, it verifies the outcome against the AI prediction,
- * triggers an instant celebratory WON/SETTLED post to @mivajsport, and marks it as settled.
- * 
- * Monetization Hooks:
- *  - 1-Click live slip tracker
- *  - Next live match code converter
- *  - High-converting 22Bet & Stake affiliate links
+ * Triggers instant celebration & verification alerts as each sport event finishes during the day.
  */
 export async function GET(req: Request) {
   const authHeader = req.headers.get('authorization');
@@ -32,7 +26,6 @@ export async function GET(req: Request) {
     const matches = await getRealLiveAndPlayedMatches();
     const todayIso = new Date().toISOString().split('T')[0];
 
-    // Filter today's finished matches
     const finishedMatches = matches.filter((m) => {
       const isToday = !m.utcDate || m.utcDate.startsWith(todayIso);
       return m.status === 'FINISHED' && isToday;
@@ -43,13 +36,11 @@ export async function GET(req: Request) {
     for (const match of finishedMatches) {
       const cacheKey = `aurascore:tg_settled:${match.id}`;
       
-      // Check if already notified in Redis or local memory
       const alreadyNotified = (await getRedisCache<boolean>(cacheKey)) || processedMatchIds.has(match.id);
       if (alreadyNotified) {
         continue;
       }
 
-      // Calculate genuine outcome
       const homeScore = match.homeScore ?? 0;
       const awayScore = match.awayScore ?? 0;
       const homeWin = homeScore > awayScore;
@@ -86,40 +77,45 @@ export async function GET(req: Request) {
       const statusIcon = isWon ? '🟢' : '🔴';
       const verdict = isWon ? 'WON ✅' : 'SETTLED ⚖️';
 
-      let msg = `💥 <b>MATCH SETTLEMENT VERIFIED • OFFICIAL RESULT ${statusIcon}</b>\n\n`;
+      let msg = `💥 <b>MATCH SETTLEMENT VERIFIED • OFFICIAL REFEREE RESULT ${statusIcon}</b>\n\n`;
       msg += `${sportIcon} <b>${match.homeTeam} ${homeScore} - ${awayScore} ${match.awayTeam}</b> (FT)\n`;
       msg += `🏆 League: <b>${match.leagueFlag || '🌍'} ${match.league}</b>\n`;
-      msg += `🎯 Verified Pick: <code>${pick}</code> @ <b>${odds}</b> (${prob}% Prob) <b>[${verdict}]</b>\n\n`;
+      msg += `🎯 Official Selection: <code>${pick}</code> @ <b>${odds}</b> (${prob}% Prob) <b>[${verdict}]</b>\n\n`;
       
       if (isWon) {
-        msg += `💰 <i>Prediction banked successfully! Payout confirmed on all converted bookmaker slips.</i>\n\n`;
+        msg += `💰 <i>Prediction banked successfully! Payout confirmed across all verified slips.</i>\n\n`;
       } else {
         msg += `📋 <i>Official score recorded in our immutable public settlement ledger.</i>\n\n`;
       }
 
-      msg += `⚡ <i>Convert the next live fixtures on our free converter tool:</i>`;
+      msg += `⚡ <i>Paste any SportyBet code to reveal live matches, or track remaining in-play fixtures below:</i>`;
 
       const slipUrl = `https://mivaj.com/?slip=today_banker&ref=tg_live_settle&match=${match.id}`;
-      const converterUrl = `https://mivaj.com/converter?ref=tg_live_settle`;
-      const affiliateUrl22Bet = process.env.NEXT_PUBLIC_22BET_AFFILIATE_URL || 'https://22bet.com.ng/?tag=972744';
-      const affiliateUrlStake = process.env.NEXT_PUBLIC_STAKE_AFFILIATE_URL || 'https://stake.com/?c=AuraScore';
+      const decoderUrl = `https://mivaj.com/converter?ref=tg_live_settle`;
+      const shareText = `💥 ${match.homeTeam} ${homeScore}-${awayScore} ${match.awayTeam} (${verdict}) on Mivaj! Check verified ledger:`;
+
+      const tgShareUrl = `https://t.me/share/url?url=${encodeURIComponent(slipUrl)}&text=${encodeURIComponent(shareText)}`;
+      const waShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + ' ' + slipUrl)}`;
 
       const keyboard = [
         [
           { text: "📊 VIEW NEXT IN-PLAY FIXTURES", url: slipUrl },
         ],
         [
-          { text: "⚡ 1-CLICK CODE CONVERTER", url: converterUrl },
+          { text: "🔍 REVEAL SPORTYBET BOOKING CODE", url: decoderUrl },
         ],
         [
-          { text: "💰 CLAIM ₦250,000 BONUS (22BET)", url: affiliateUrl22Bet },
-          { text: "🎰 STAKE $3,000 MATCH", url: affiliateUrlStake },
+          { text: "🎁 CLAIM ₦130,000 BONUS (22BET)", url: AFFILIATE_PARTNERS['22BET'].affiliateUrl },
+          { text: "🎰 STAKE $3,000 MATCH", url: AFFILIATE_PARTNERS['STAKE'].affiliateUrl },
+        ],
+        [
+          { text: "✈️ SHARE ON TELEGRAM", url: tgShareUrl },
+          { text: "💬 WHATSAPP", url: waShareUrl },
         ],
       ];
 
       const res = await TelegramBotService.sendMessage(msg, keyboard);
 
-      // Save as processed for 48 hours in Redis and memory
       await setRedisCache(cacheKey, true, 60 * 60 * 48);
       processedMatchIds.add(match.id);
 
@@ -135,6 +131,7 @@ export async function GET(req: Request) {
     return NextResponse.json({
       success: true,
       cron: 'TELEGRAM_IN_DAY_LIVE_SETTLE',
+      channel: TelegramBotService.getChannelId(),
       checkedMatches: finishedMatches.length,
       newlySettledAndAlerted: settledResults.length,
       settledResults,

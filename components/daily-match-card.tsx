@@ -392,11 +392,11 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
         </button>
       </div>
 
-      {/* 5. Top Pick Banker Banner & 1-Click Odds Add */}
+      {/* 5. Top Pick Banker Banner — Show on upcoming matches */}
       {!isFinished && (
-        <div className="p-3 rounded-2xl bg-gradient-to-r from-stadiumGreen/20 via-panel to-gold/15 border border-stadiumGreen/40 flex items-center justify-between gap-2 shadow-md">
+        <div className="p-3 rounded-2xl flex items-center justify-between gap-2 shadow-md bg-gradient-to-r from-stadiumGreen/20 via-panel to-gold/15 border border-stadiumGreen/40">
           <div className="min-w-0">
-            <span className="text-[10px] font-black text-stadiumGreen uppercase tracking-wider block">
+            <span className="text-[10px] font-black uppercase tracking-wider block text-stadiumGreen">
               👑 {topPick.confidenceTier} ({topPick.probability}% WIN RATE)
             </span>
             <span className="text-xs font-black text-white truncate block">

@@ -7,6 +7,12 @@ const MEMORY_CACHE_TTL_MS = 30 * 1000; // 30 seconds
 
 export const dynamic = 'force-dynamic';
 
+// Vercel edge cache headers for fast mobile delivery
+const EDGE_HEADERS = {
+  'Cache-Control': 's-maxage=30, stale-while-revalidate=60',
+  'X-Powered-By': 'Mivaj Sports AI',
+};
+
 export async function GET() {
   try {
     const now = Date.now();
@@ -18,7 +24,7 @@ export async function GET() {
         count: inMemoryCache.data.length,
         source: 'memory_hot',
         matches: inMemoryCache.data,
-      });
+      }, { headers: EDGE_HEADERS });
     }
 
     // Fetch matches
@@ -31,7 +37,7 @@ export async function GET() {
         count: matches.length,
         source: 'origin_fresh',
         matches,
-      });
+      }, { headers: EDGE_HEADERS });
     }
 
     // If fetch returned empty but we have stale cache, return stale cache
@@ -41,10 +47,10 @@ export async function GET() {
         count: inMemoryCache.data.length,
         source: 'memory_stale',
         matches: inMemoryCache.data,
-      });
+      }, { headers: EDGE_HEADERS });
     }
 
-    return NextResponse.json({ success: true, count: 0, source: 'empty', matches: [] });
+    return NextResponse.json({ success: true, count: 0, source: 'empty', matches: [] }, { headers: EDGE_HEADERS });
   } catch (err: any) {
     if (inMemoryCache && inMemoryCache.data.length > 0) {
       return NextResponse.json({
@@ -52,8 +58,9 @@ export async function GET() {
         count: inMemoryCache.data.length,
         source: 'fallback',
         matches: inMemoryCache.data,
-      });
+      }, { headers: EDGE_HEADERS });
     }
     return NextResponse.json({ success: false, error: err.message, matches: [] }, { status: 500 });
   }
 }
+
