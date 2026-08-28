@@ -3,23 +3,34 @@
 import React, { useState } from 'react';
 import { 
   AFFILIATE_PARTNERS, 
-  SOURCE_BOOKMAKERS, 
   AffiliateKey, 
   ConvertApiResponse 
 } from '../../config/affiliates';
 import { 
   Zap, Copy, Check, ExternalLink, ArrowRight, 
-  AlertTriangle, ShieldCheck, Sparkles, RefreshCw, CheckCircle2, Info, List, Trophy, DollarSign, Flame 
+  AlertTriangle, ShieldCheck, Sparkles, RefreshCw, CheckCircle2, Info, List, Trophy, DollarSign, Flame, XCircle
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { phoneHardware } from '../../lib/phone-hardware-engine';
 
 interface SlipLeg {
   match: string;
+  homeTeam?: string;
+  awayTeam?: string;
   league: string;
   selection: string;
   market: string;
   odds: number;
+  matchStatus?: 'SCHEDULED' | 'LIVE' | 'FINISHED';
+  homeScore?: number;
+  awayScore?: number;
+  legOutcome?: 'WON' | 'LOST' | 'PENDING';
+  mivajAiPrediction?: {
+    selection: string;
+    odds: number;
+    result: 'WON' | 'LOST';
+    reason: string;
+  };
 }
 
 interface ConverterResponsePayload extends ConvertApiResponse {
@@ -29,13 +40,11 @@ interface ConverterResponsePayload extends ConvertApiResponse {
 }
 
 export const BetSlipConverter: React.FC = () => {
-  const [source, setSource] = useState<string>('SPORTYBET');
-  const [target, setTarget] = useState<AffiliateKey>('STAKE');
+  const [target, setTarget] = useState<AffiliateKey>('22BET');
   const [bookingCode, setBookingCode] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingStep, setLoadingStep] = useState<string>('');
   const [result, setResult] = useState<ConverterResponsePayload | null>(null);
-  const [copiedCode, setCopiedCode] = useState<boolean>(false);
   const [copiedSlipText, setCopiedSlipText] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string>('');
 
@@ -45,29 +54,24 @@ export const BetSlipConverter: React.FC = () => {
     e.preventDefault();
     if (!bookingCode.trim()) return;
 
-    phoneHardware.triggerHaptic('SELECTION');
+    try { phoneHardware.triggerHaptic('SELECTION'); } catch {}
     setLoading(true);
     setErrorMsg('');
     setResult(null);
-    setCopiedCode(false);
     setCopiedSlipText(false);
 
-    setLoadingStep('🔍 Step 1/3: Reading live booking code from SportyBet API...');
+    setLoadingStep('🔍 Reading live booking code from SportyBet API...');
     
     setTimeout(() => {
-      setLoadingStep(`⚡ Step 2/3: Decoding exact matches, markets & calculating multi-bookmaker odds...`);
-    }, 700);
-
-    setTimeout(() => {
-      setLoadingStep(`🛡️ Step 3/3: Assembling verified accumulator & activating max deposit bonus...`);
-    }, 1400);
+      setLoadingStep(`⚡ Decoding exact matches, scores, and leg outcomes...`);
+    }, 600);
 
     try {
       const res = await fetch('/api/convert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          sourceBookmaker: source,
+          sourceBookmaker: 'SPORTYBET',
           targetBookmaker: target,
           bookingCode: bookingCode.trim().toUpperCase()
         })
@@ -83,22 +87,22 @@ export const BetSlipConverter: React.FC = () => {
         } else {
           setErrorMsg(data.error || 'Failed to decode booking code.');
         }
-      }, 2100);
+      }, 1200);
     } catch (err: any) {
       setTimeout(() => {
         setLoading(false);
         setErrorMsg('Network error connecting to Converter Engine.');
-      }, 2100);
+      }, 1200);
     }
   };
 
   const handleCopyFullSlipText = () => {
     if (!result) return;
-    phoneHardware.triggerHaptic('SUCCESS');
+    try { phoneHardware.triggerHaptic('SUCCESS'); } catch {}
     
     const lines = [
       `🔥 MIVAJ VERIFIED ACCA SLIP (${result.legs?.length || 0} MATCHES)`,
-      `Total Odds: ${result.total_odds || '52.12'}`,
+      `Total Odds: ${result.total_odds || '5.20'}`,
       `---------------------------------`,
       ...(result.legs?.map((l, i) => `${i + 1}. ${l.match} (${l.league}) -> ${l.selection} @ ${l.odds}`) || []),
       `---------------------------------`,
@@ -126,12 +130,12 @@ export const BetSlipConverter: React.FC = () => {
             </h2>
           </div>
           <p className="text-xs text-neutral-400 font-sans max-w-lg">
-            Enter any SportyBet booking code to <strong className="text-white">instantly reveal all hidden matches, markets and odds</strong> locked inside it. We show you exactly what's in the slip — then you can claim a bigger bonus placing the same picks on 22Bet, Stake, Bet9ja or 1xBet.
+            Enter any SportyBet booking code to <strong className="text-white">instantly reveal all hidden matches, scores, and leg outcomes</strong>. If a leg lost, see Mivaj AI's superior prediction instead!
           </p>
           <div className="flex items-center space-x-2 pt-1">
             <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] font-black">✓ SPORTYBET LIVE API</span>
             <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30 text-[10px] font-black">🆓 100% FREE</span>
-            <span className="px-2 py-0.5 rounded-full bg-gold/10 text-gold border border-gold/30 text-[10px] font-black">🎯 REAL-TIME DECODE</span>
+            <span className="px-2 py-0.5 rounded-full bg-gold/10 text-gold border border-gold/30 text-[10px] font-black">🎯 REAL-TIME SCORES</span>
           </div>
         </div>
       </div>
@@ -139,25 +143,25 @@ export const BetSlipConverter: React.FC = () => {
       {/* Main Conversion Form */}
       <form onSubmit={handleConvert} className="space-y-6">
         
-        {/* Step 1: Source — SportyBet Only */}
+        {/* Source Info Banner */}
         <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-start space-x-3">
           <ShieldCheck className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-xs font-black text-emerald-400">SOURCE: SPORTYBET (Nigeria) ✓</p>
+            <p className="text-xs font-black text-emerald-400">SOURCE: SPORTYBET CODES ONLY ✓</p>
             <p className="text-[11px] text-gray-300 font-sans mt-0.5">
-              SportyBet is the only bookmaker that exposes a free, real-time public API for booking codes. We use it to reveal the exact matches, markets, and odds locked inside every code. Other platforms don&apos;t provide this — so we direct you to claim their bonuses directly after revealing your picks.
+              SportyBet is the only platform that provides a live public API for booking code decoding. If you enter an invalid code or a code from another bookmaker (such as Bet9ja), the system will explicitly alert you.
             </p>
           </div>
         </div>
 
-        {/* Step 2: Destination Bookmaker — Bonus Comparison */}
+        {/* Step 1: Destination Bookmaker Bonus Choice */}
         <div className="space-y-2">
           <label className="text-xs font-black text-neutral-300 flex items-center space-x-1.5">
             <span className="w-4 h-4 rounded-full bg-neutral-800 text-neutral-400 text-[10px] flex items-center justify-center font-bold">1</span>
-            <span>PICK YOUR PREFERRED BONUS BOOKMAKER (Where to Place After Reveal)</span>
+            <span>PICK PREFERRED AFFILIATE BOOKMAKER (Where to Claim Bonus)</span>
           </label>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
             {(Object.keys(AFFILIATE_PARTNERS) as AffiliateKey[]).map((key) => {
               const partner = AFFILIATE_PARTNERS[key];
               const isSelected = target === key;
@@ -166,7 +170,7 @@ export const BetSlipConverter: React.FC = () => {
                   type="button"
                   key={key}
                   onClick={() => {
-                    phoneHardware.triggerHaptic('SELECTION');
+                    try { phoneHardware.triggerHaptic('SELECTION'); } catch {}
                     setTarget(key);
                   }}
                   className={`p-3 rounded-2xl text-left transition-all border flex flex-col justify-between relative overflow-hidden ${
@@ -196,11 +200,11 @@ export const BetSlipConverter: React.FC = () => {
           </div>
         </div>
 
-        {/* Step 3: Booking Code Input */}
+        {/* Step 2: Booking Code Input */}
         <div className="space-y-2">
           <label className="text-xs font-black text-neutral-300 flex items-center space-x-1.5">
             <span className="w-4 h-4 rounded-full bg-neutral-800 text-neutral-400 text-[10px] flex items-center justify-center font-bold">2</span>
-            <span>ENTER SPORTYBET BOOKING CODE (e.g. P5NY07, HZV5RA)</span>
+            <span>ENTER 6-CHARACTER SPORTYBET BOOKING CODE</span>
           </label>
 
           <div className="flex flex-col sm:flex-row gap-2">
@@ -208,7 +212,7 @@ export const BetSlipConverter: React.FC = () => {
               type="text"
               value={bookingCode}
               onChange={(e) => setBookingCode(e.target.value.toUpperCase())}
-              placeholder="e.g. P5NY07, HZV5RA, B9J4471"
+              placeholder="e.g. BC7F3X, HZV5RA"
               className="flex-1 px-4 py-3.5 rounded-2xl bg-neutral-950 border border-neutral-700 text-white font-mono text-base font-black tracking-widest placeholder:text-neutral-600 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 uppercase"
               required
             />
@@ -221,12 +225,12 @@ export const BetSlipConverter: React.FC = () => {
               {loading ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Decoding via Live API...</span>
+                  <span>Decoding Live API...</span>
                 </>
               ) : (
                 <>
                   <Zap className="w-4 h-4" />
-                  <span>Decode &amp; Compare Payouts ➔</span>
+                  <span>Decode SportyBet Code ➔</span>
                 </>
               )}
             </button>
@@ -235,179 +239,133 @@ export const BetSlipConverter: React.FC = () => {
 
       </form>
 
-      {/* Dwell-Time Processing Animation */}
+      {/* Error Alert — Strict Validation for Non-SportyBet or Invalid Codes */}
+      {errorMsg && (
+        <div className="p-4 rounded-2xl bg-red-950/60 border border-crimson/50 text-red-300 space-y-2 animate-fadeIn">
+          <div className="flex items-center space-x-2 font-black text-xs text-crimson">
+            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+            <span>SPORTYBET CODE NOT FOUND</span>
+          </div>
+          <p className="text-xs font-sans text-gray-200">{errorMsg}</p>
+        </div>
+      )}
+
+      {/* Processing Animation */}
       {loading && (
         <div className="p-6 rounded-2xl bg-neutral-950 border border-emerald-500/40 text-center space-y-3 animate-pulse">
           <div className="flex items-center justify-center space-x-2 text-emerald-400 font-black text-sm">
             <RefreshCw className="w-4 h-4 animate-spin" />
-            <span>LIVE BOOKMAKER API DECODER ACTIVE</span>
+            <span>SPORTYBET LIVE API DECODER ACTIVE</span>
           </div>
           <p className="text-xs text-neutral-300 font-mono">{loadingStep}</p>
-          <div className="w-full bg-neutral-800 h-1.5 rounded-full overflow-hidden">
-            <div className="bg-emerald-400 h-full w-3/4 animate-pulse rounded-full" />
-          </div>
         </div>
       )}
 
-      {/* Error Message */}
-      {errorMsg && (
-        <div className="p-4 rounded-2xl bg-red-950/40 border border-red-500/40 text-red-300 text-xs flex items-center space-x-2">
-          <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0" />
-          <span>{errorMsg}</span>
-        </div>
-      )}
-
-      {/* Conversion Result Card: 100% Exact Live Matches + Odds Multiplier Comparison */}
-      {result && !loading && (
-        <div className="p-6 rounded-3xl bg-neutral-950 border-2 border-emerald-400 space-y-5 shadow-2xl animate-fadeIn">
+      {/* DECODED RESULT DISPLAY */}
+      {result && result.legs && (
+        <div className="space-y-6 pt-4 border-t border-neutral-800 animate-fadeIn">
           
-          {/* Header Info */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-800 pb-3">
-            <div className="flex items-center space-x-2">
-              <span className="text-lg">🔥</span>
-              <div>
-                <span className="text-[10px] text-emerald-400 font-black tracking-wider uppercase block">
-                  {result.isDirectDecoded ? '100% LIVE API DECODED SLIP' : 'SLIP READY FOR PLACEMENT'}
-                </span>
-                <span className="text-sm font-black text-white">
-                  {result.legs?.length || 0} Matches Extracted • Code: <strong className="text-emerald-400 font-mono">{bookingCode}</strong>
-                </span>
-              </div>
+          {/* Slip Overview Header */}
+          <div className="p-5 rounded-3xl bg-neutral-950 border border-emerald-500/40 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xl">
+            <div className="space-y-1 text-center sm:text-left">
+              <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest block">DECODED SPORTYBET SLIP RESULT</span>
+              <h3 className="text-xl font-black text-white">{result.legs.length} Matches Decoded</h3>
+              <span className="text-xs text-neutral-400 block font-mono">Total Cumulative Odds: <strong className="text-gold font-mono text-sm">@{result.total_odds}</strong></span>
             </div>
 
-            <div className="flex items-center space-x-3 text-xs">
-              <span className="text-neutral-400">Total Odds: <strong className="text-emerald-400 font-mono text-base">{result.total_odds || '52.12'}</strong></span>
-              <span className="text-neutral-400">• Legs: <strong className="text-white">{result.converted_legs_count}/{result.total_legs}</strong></span>
-            </div>
+            <button
+              onClick={handleCopyFullSlipText}
+              className="px-4 py-2.5 rounded-2xl bg-emerald-500 text-black font-black text-xs hover:bg-emerald-400 transition-all flex items-center space-x-1.5 shadow"
+            >
+              <Copy className="w-4 h-4" />
+              <span>{copiedSlipText ? 'Slip Copied to Clipboard! ✓' : 'Copy Selections (1-Click)'}</span>
+            </button>
           </div>
 
-          {/* 💰 ODDS & BONUS MULTIPLIER COMPARISON BOX (MONETIZATION GOLDMINE) */}
-          <div className="p-5 rounded-2xl bg-gradient-to-b from-neutral-900 to-black border-2 border-gold/60 space-y-3 shadow-xl">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-black text-gold flex items-center space-x-2">
-                <Trophy className="w-4 h-4 text-gold" />
-                <span>HIGHEST PAYOUT &amp; BONUS COMPARISON (EST. ₦1,000 WAGER)</span>
-              </span>
-              <span className="text-[10px] text-gray-400 font-mono font-bold">1-Click Bonus Claim</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-              
-              {/* Stake.com Card */}
-              <a
-                href={AFFILIATE_PARTNERS.STAKE.affiliateUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-3.5 rounded-xl bg-neutral-950 border border-gold/40 hover:border-emerald-400 transition-all space-y-2 group block"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-white group-hover:text-emerald-400">👑 Stake.com</span>
-                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-gold/20 text-gold font-bold">HIGHEST ODDS</span>
+          {/* Leg Breakdown List with Scores & Outcomes */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-black text-neutral-300 uppercase tracking-wider">MATCHES IN THIS SLIP:</h4>
+            {result.legs.map((leg, idx) => (
+              <div key={idx} className="p-4 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-2 hover:border-emerald-500/40 transition-all">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-black text-white">{idx + 1}. {leg.match}</span>
+                  <span className="text-[10px] text-neutral-400 font-bold">{leg.league}</span>
                 </div>
-                <div className="space-y-0.5">
-                  <div className="text-lg font-black text-emerald-400 font-mono">
-                    ₦{Math.round((result.total_odds || 52.12) * 1120).toLocaleString()}
+
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-neutral-800/60 text-xs">
+                  <div>
+                    <span className="text-neutral-400 text-[10px] block">SportyBet Pick:</span>
+                    <span className="font-bold text-emerald-400">{leg.selection} ({leg.market}) @ {leg.odds}</span>
                   </div>
-                  <span className="text-[10px] text-gray-400 block font-sans">+ 200% up to $3,000 Bonus</span>
-                </div>
-                <div className="text-[11px] font-black text-emerald-400 flex items-center justify-between pt-1 border-t border-neutral-800">
-                  <span>Bet on Stake</span>
-                  <ExternalLink className="w-3 h-3" />
-                </div>
-              </a>
 
-              {/* 22Bet Card */}
-              <a
-                href={AFFILIATE_PARTNERS['22BET'].affiliateUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800 hover:border-stadiumGreen transition-all space-y-2 group block"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-white group-hover:text-stadiumGreen">⚡ 22Bet</span>
-                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-stadiumGreen/20 text-stadiumGreen font-bold">₦130k MATCH</span>
+                  {leg.matchStatus === 'FINISHED' && leg.homeScore !== undefined && leg.awayScore !== undefined && (
+                    <div className="flex items-center space-x-2">
+                      <span className="px-2 py-0.5 rounded bg-neutral-800 text-white font-mono text-[10px] font-black">
+                        FT: {leg.homeScore} - {leg.awayScore}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                        leg.legOutcome === 'WON' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-red-950 text-red-400 border border-crimson/40'
+                      }`}>
+                        {leg.legOutcome === 'WON' ? 'WON ✓' : 'LOST ❌'}
+                      </span>
+                    </div>
+                  )}
                 </div>
-                <div className="space-y-0.5">
-                  <div className="text-lg font-black text-white font-mono">
-                    ₦{Math.round((result.total_odds || 52.12) * 1050).toLocaleString()}
+
+                {/* Highlight Mivaj AI Better Pick for Lost Legs */}
+                {leg.legOutcome === 'LOST' && leg.mivajAiPrediction && (
+                  <div className="p-2.5 rounded-xl bg-stadiumGreen/10 border border-stadiumGreen/40 space-y-1 text-xs mt-2">
+                    <span className="text-[10px] font-black text-stadiumGreen uppercase tracking-wider block flex items-center space-x-1">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-stadiumGreen inline" />
+                      <span>MIVAJ AI MODEL SUPERIOR PICK (WOULD HAVE WON ✅):</span>
+                    </span>
+                    <p className="text-white font-bold text-xs">
+                      Pick: <strong className="text-gold">{leg.mivajAiPrediction.selection}</strong> @ {leg.mivajAiPrediction.odds} (RESULT: WON ✅)
+                    </p>
+                    <p className="text-[10px] text-gray-300 font-sans">{leg.mivajAiPrediction.reason}</p>
                   </div>
-                  <span className="text-[10px] text-gray-400 block font-sans">+ 100% Match up to ₦130,000</span>
-                </div>
-                <div className="text-[11px] font-black text-stadiumGreen flex items-center justify-between pt-1 border-t border-neutral-800">
-                  <span>Bet on 22Bet</span>
-                  <ExternalLink className="w-3 h-3" />
-                </div>
-              </a>
-
-              {/* Bet9ja Card */}
-              <a
-                href={AFFILIATE_PARTNERS.BET9JA.affiliateUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800 hover:border-stadiumGreen transition-all space-y-2 group block"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-white group-hover:text-stadiumGreen">🦅 Bet9ja</span>
-                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-stadiumGreen/20 text-stadiumGreen font-bold">170% BOOST</span>
-                </div>
-                <div className="space-y-0.5">
-                  <div className="text-lg font-black text-white font-mono">
-                    ₦{Math.round((result.total_odds || 52.12) * 1020).toLocaleString()}
-                  </div>
-                  <span className="text-[10px] text-gray-400 block font-sans">+ 170% Multiple Win Boost</span>
-                </div>
-                <div className="text-[11px] font-black text-stadiumGreen flex items-center justify-between pt-1 border-t border-neutral-800">
-                  <span>Bet on Bet9ja</span>
-                  <ExternalLink className="w-3 h-3" />
-                </div>
-              </a>
-
-            </div>
+                )}
+              </div>
+            ))}
           </div>
 
-          {/* VERIFIED MATCH LEGS LIST */}
-          {result.legs && result.legs.length > 0 && (
-            <div className="p-4 rounded-2xl bg-neutral-900/90 border border-neutral-700/80 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black text-emerald-400 flex items-center space-x-1.5">
-                  <List className="w-4 h-4 text-emerald-400" />
-                  <span>EXACT MATCHES DECODED IN THIS SLIP ({result.legs.length} LEGS)</span>
-                </span>
-
-                <button
-                  type="button"
-                  onClick={handleCopyFullSlipText}
-                  className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[10px] font-bold text-gray-300 flex items-center space-x-1 transition-all"
-                >
-                  {copiedSlipText ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                  <span>{copiedSlipText ? 'Picks Copied ✓' : 'Copy All Picks Text'}</span>
-                </button>
-              </div>
-
-              <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
-                {result.legs.map((leg, idx) => (
-                  <div key={idx} className="p-2.5 rounded-xl bg-neutral-950/80 border border-neutral-800 flex items-center justify-between text-xs font-sans">
-                    <div className="space-y-0.5 min-w-0 flex-1">
-                      <div className="font-bold text-white flex items-center space-x-1.5 truncate">
-                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-neutral-800 text-neutral-400 font-mono flex-shrink-0">{idx + 1}</span>
-                        <span className="truncate">{leg.match}</span>
-                      </div>
-                      <span className="text-[10px] text-neutral-400 block truncate">{leg.league} • Market: <strong className="text-neutral-200">{leg.market}</strong></span>
-                    </div>
-
-                    <div className="text-right flex-shrink-0 ml-2">
-                      <span className="text-xs font-black text-emerald-400 block font-mono">{leg.selection}</span>
-                      <span className="text-[10px] text-neutral-500 font-mono">@{leg.odds}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <p className="text-[11px] text-neutral-400 font-sans pt-1">
-                💡 <strong>Smart Betting Tip:</strong> Click any of the bonus cards above to lock in your selections with higher odds and claim up to <strong>$3,000 / ₦130,000</strong> in welcome match bonuses!
-              </p>
+          {/* 3-Step Clear Affiliate Conversion Banner */}
+          <div className="p-6 rounded-3xl bg-gradient-to-br from-neutral-950 via-neutral-900 to-emerald-950/40 border border-emerald-500/50 space-y-4 shadow-2xl">
+            <div className="space-y-1">
+              <span className="text-xs font-black text-emerald-400 uppercase tracking-widest block">HOW TO CLAIM YOUR SIGNUP BONUS & PLACE GAMES</span>
+              <h3 className="text-base sm:text-lg font-black text-white">3-Step Affiliate Bonus Instructions</h3>
             </div>
-          )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+              <div className="p-3.5 rounded-2xl bg-black/60 border border-neutral-800 space-y-1">
+                <span className="px-2 py-0.5 rounded bg-emerald-500 text-black font-black text-[10px]">STEP 1</span>
+                <p className="font-bold text-white pt-1">Register / Deposit</p>
+                <p className="text-[10px] text-neutral-400 font-sans">Click the link below to open {targetPartner.displayName} with your bonus code applied.</p>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-black/60 border border-neutral-800 space-y-1">
+                <span className="px-2 py-0.5 rounded bg-gold text-black font-black text-[10px]">STEP 2</span>
+                <p className="font-bold text-white pt-1">Copy Selections</p>
+                <p className="text-[10px] text-neutral-400 font-sans">Use 1-Click Copy above to copy the matches to your clipboard.</p>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-black/60 border border-neutral-800 space-y-1">
+                <span className="px-2 py-0.5 rounded bg-purple-400 text-black font-black text-[10px]">STEP 3</span>
+                <p className="font-bold text-white pt-1">Place & Win</p>
+                <p className="text-[10px] text-neutral-400 font-sans">Paste/select the matches on {targetPartner.displayName} and claim your bonus!</p>
+              </div>
+            </div>
+
+            <a
+              href={targetPartner.affiliateUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-emerald-400 to-teal-400 text-black font-black text-sm uppercase tracking-wider flex items-center justify-center space-x-2 shadow-xl hover:scale-[1.02] transition-all text-center"
+            >
+              <span>🎁 REGISTER ON {targetPartner.displayName} &amp; CLAIM {targetPartner.bonusHighlight} ➔</span>
+              <ExternalLink className="w-4 h-4 inline" />
+            </a>
+          </div>
 
         </div>
       )}

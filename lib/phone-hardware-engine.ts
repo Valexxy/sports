@@ -1,6 +1,6 @@
 'use client';
 
-type HapticStyle = 'SELECTION' | 'SUCCESS' | 'WARNING' | 'GOAL' | 'TALKING_DRUM' | 'AFRO_BEAT';
+type HapticStyle = 'SELECTION' | 'SUCCESS' | 'WARNING' | 'GOAL' | 'TALKING_DRUM' | 'AFRO_BEAT' | 'RED_CARD' | 'FULLTIME_WIN';
 
 class PhoneHardwareEngine {
   private isSupported: boolean = false;
@@ -36,6 +36,16 @@ class PhoneHardwareEngine {
           break;
         case 'WARNING':
           navigator.vibrate([200, 100, 200]);
+          break;
+        case 'RED_CARD':
+          // Heavy double thud + red perimeter flash – danger signal
+          navigator.vibrate([400, 60, 400]);
+          this.flashScreenPerimeter('#FF2D2D');
+          break;
+        case 'FULLTIME_WIN':
+          // 4-step drum roll celebration + gold perimeter flash
+          navigator.vibrate([150, 60, 150, 60, 150, 60, 500]);
+          this.flashScreenPerimeter('#FFD700');
           break;
         case 'SELECTION':
         default:

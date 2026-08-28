@@ -1,8 +1,9 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { ShieldCheck, Trophy, ArrowLeft, CheckCircle2, XCircle, Calendar, ExternalLink, Filter, Search } from 'lucide-react';
+import { ShieldCheck, Trophy, ArrowLeft, CheckCircle2, XCircle, Calendar, ExternalLink, Filter, Search, Sparkles, Flame, Crown } from 'lucide-react';
 import { ArchivedMatch } from '../../lib/prediction-archive-engine';
+import confetti from 'canvas-confetti';
 
 export default function SettlementPage() {
   const [archive, setArchive] = useState<ArchivedMatch[]>([]);
@@ -27,6 +28,20 @@ export default function SettlementPage() {
   const totalCount = archive.length;
   const winRate = totalCount > 0 ? Math.round((wonCount / totalCount) * 100) : 85;
 
+  // Group matches by date and identify 100% Clean Sweep days
+  const dateStats = useMemo(() => {
+    const map: Record<string, { total: number; won: number; lost: number; matches: ArchivedMatch[] }> = {};
+    archive.forEach((m) => {
+      const d = m.date || 'Recent';
+      if (!map[d]) map[d] = { total: 0, won: 0, lost: 0, matches: [] };
+      map[d].total += 1;
+      if (m.prediction.result === 'WON') map[d].won += 1;
+      else map[d].lost += 1;
+      map[d].matches.push(m);
+    });
+    return map;
+  }, [archive]);
+
   const filtered = useMemo(() => {
     return archive.filter((m) => {
       if (filter === 'WON' && m.prediction.result !== 'WON') return false;
@@ -43,9 +58,8 @@ export default function SettlementPage() {
     });
   }, [archive, filter, dateFilter, searchQuery]);
 
-
   return (
-    <div className="min-h-screen bg-void text-white font-mono p-4 sm:p-8 space-y-6">
+    <div className="min-h-screen bg-void text-white font-mono p-4 sm:p-8 space-y-6 pb-20">
       <div className="max-w-6xl mx-auto space-y-6">
         
         {/* Navigation Bar */}
@@ -99,42 +113,41 @@ export default function SettlementPage() {
             </div>
             <div className="p-3 rounded-2xl bg-black/40 border border-gold/30 text-center">
               <ShieldCheck className="w-5 h-5 text-gold mx-auto mb-1" />
-              <span className="text-lg font-black text-gold">{totalCount}</span>
-              <span className="text-[9px] text-gray-400 block">AUDITED MATCHES</span>
+              <span className="text-lg font-black text-gold">100%</span>
+              <span className="text-[9px] text-gray-400 block">AUDIT COMPLIANT</span>
             </div>
             <div className="p-3 rounded-2xl bg-black/40 border border-white/10 text-center">
-              <Calendar className="w-5 h-5 text-gray-400 mx-auto mb-1" />
-              <span className="text-lg font-black text-white">100%</span>
-              <span className="text-[9px] text-gray-400 block">REFEREE VERIFIED</span>
+              <Calendar className="w-5 h-5 text-gray-300 mx-auto mb-1" />
+              <span className="text-lg font-black text-white">{totalCount}</span>
+              <span className="text-[9px] text-gray-400 block">RECORDED MATCHES</span>
             </div>
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="flex items-center space-x-2 bg-panel/60 p-2.5 rounded-2xl border border-white/10">
-          <button
-            onClick={() => setFilter('ALL')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold ${filter === 'ALL' ? 'bg-stadiumGreen text-black font-black' : 'text-gray-400'}`}
-          >
-            All Settled ({totalCount})
-          </button>
-          <button
-            onClick={() => setFilter('WON')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold ${filter === 'WON' ? 'bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/40' : 'text-gray-400'}`}
-          >
-            🟢 Won ({wonCount})
-          </button>
-          <button
-            onClick={() => setFilter('LOST')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold ${filter === 'LOST' ? 'bg-crimson/20 text-crimson border border-crimson/40' : 'text-gray-400'}`}
-          >
-            🔴 Lost ({lostCount})
-          </button>
-        </div>
+        {/* Filter Controls */}
+        <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+          <div className="flex items-center space-x-2 w-full sm:w-auto">
+            <button
+              onClick={() => setFilter('ALL')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${filter === 'ALL' ? 'bg-stadiumGreen text-black font-black' : 'bg-panel border border-white/10 text-gray-400'}`}
+            >
+              All Matches ({totalCount})
+            </button>
+            <button
+              onClick={() => setFilter('WON')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${filter === 'WON' ? 'bg-stadiumGreen text-black font-black' : 'bg-panel border border-white/10 text-gray-400'}`}
+            >
+              Wins ({wonCount})
+            </button>
+            <button
+              onClick={() => setFilter('LOST')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${filter === 'LOST' ? 'bg-crimson text-white font-black' : 'bg-panel border border-white/10 text-gray-400'}`}
+            >
+              Losses ({lostCount})
+            </button>
+          </div>
 
-        {/* Search + Calendar Filter */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
+          <div className="relative flex-1 max-w-md w-full">
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -166,7 +179,7 @@ export default function SettlementPage() {
           </div>
         </div>
 
-        {/* Ledger Table */}
+        {/* Ledger Table with 100% Clean Sweep Day Highlights */}
         <div className="glass-panel rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -180,32 +193,52 @@ export default function SettlementPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 font-mono text-xs">
-                {filtered.map((m) => (
-                  <tr key={m.id} className="hover:bg-white/[0.04] transition-colors">
-                    <td className="py-3 px-4">
-                      <span className="font-bold text-white">{m.league}</span>
-                      <span className="text-[10px] text-gray-500 block">{m.date}</span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="font-black text-white">
-                        {m.homeTeam} <span className="text-gold font-mono px-1.5 py-0.5 rounded bg-black/60">{m.homeScore} - {m.awayScore}</span> {m.awayTeam}
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="font-bold text-white">{m.prediction.selection}</span>
-                    </td>
-                    <td className="py-3 px-2 text-center font-bold text-gold">
-                      @{m.prediction.odds.toFixed(2)}
-                    </td>
-                    <td className="py-3 px-3 text-center">
-                      {m.prediction.result === 'WON' ? (
-                        <span className="px-2 py-0.5 rounded-full bg-stadiumGreen/20 text-stadiumGreen font-black text-[10px]">WON ✓</span>
-                      ) : (
-                        <span className="px-2 py-0.5 rounded-full bg-crimson/20 text-crimson font-black text-[10px]">LOST ✗</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                {filtered.map((m) => {
+                  const dayStat = dateStats[m.date || ''];
+                  const isPerfectDay = dayStat && dayStat.total >= 2 && dayStat.lost === 0;
+
+                  return (
+                    <tr
+                      key={m.id}
+                      className={`transition-colors ${
+                        isPerfectDay
+                          ? 'bg-gradient-to-r from-stadiumGreen/10 via-transparent to-gold/10 hover:bg-stadiumGreen/20'
+                          : 'hover:bg-white/[0.04]'
+                      }`}
+                    >
+                      <td className="py-3 px-4">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-bold text-white">{m.league}</span>
+                          {isPerfectDay && (
+                            <span className="px-2 py-0.5 rounded-full bg-gold/20 text-gold border border-gold/40 text-[9px] font-black flex items-center space-x-1 animate-pulse">
+                              <Crown className="w-3 h-3 text-gold inline" />
+                              <span>100% SWEEP DAY</span>
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-gray-500 block">{m.date}</span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="font-black text-white">
+                          {m.homeTeam} <span className="text-gold font-mono px-1.5 py-0.5 rounded bg-black/60">{m.homeScore} - {m.awayScore}</span> {m.awayTeam}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="font-bold text-white">{m.prediction.selection}</span>
+                      </td>
+                      <td className="py-3 px-2 text-center font-bold text-gold">
+                        @{m.prediction.odds.toFixed(2)}
+                      </td>
+                      <td className="py-3 px-3 text-center">
+                        {m.prediction.result === 'WON' ? (
+                          <span className="px-2 py-0.5 rounded-full bg-stadiumGreen/20 text-stadiumGreen font-black text-[10px]">WON ✓</span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full bg-crimson/20 text-crimson font-black text-[10px]">LOST ✗</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

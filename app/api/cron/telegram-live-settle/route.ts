@@ -10,10 +10,10 @@ export const maxDuration = 60;
 const processedMatchIds = new Set<string>();
 
 /**
- * AURASCORE IN-DAY LIVE MATCH SETTLEMENT CRON
+ * MIVAJ SPORTS IN-DAY LIVE MATCH SETTLEMENT CRON
  * Channel: @mivasport (https://t.me/mivasport)
- * 
- * Triggers instant celebration & verification alerts as each sport event finishes during the day.
+ * Fires continuously throughout the day as each match finishes.
+ * Delivers extreme virality, real-time FOMO, affiliate links & vital platform links.
  */
 export async function GET(req: Request) {
   const authHeader = req.headers.get('authorization');
@@ -34,7 +34,7 @@ export async function GET(req: Request) {
     const settledResults = [];
 
     for (const match of finishedMatches) {
-      const cacheKey = `aurascore:tg_settled:${match.id}`;
+      const cacheKey = `mivaj:tg_settled:${match.id}`;
       
       const alreadyNotified = (await getRedisCache<boolean>(cacheKey)) || processedMatchIds.has(match.id);
       if (alreadyNotified) {
@@ -74,47 +74,56 @@ export async function GET(req: Request) {
       }
 
       const sportIcon = match.sport === 'BASKETBALL' ? '🏀' : match.sport === 'AMERICAN_FOOTBALL' ? '🏈' : '⚽';
-      const statusIcon = isWon ? '🟢' : '🔴';
-      const verdict = isWon ? 'WON ✅' : 'SETTLED ⚖️';
 
-      let msg = `💥 <b>MATCH SETTLEMENT VERIFIED • OFFICIAL REFEREE RESULT ${statusIcon}</b>\n\n`;
-      msg += `${sportIcon} <b>${match.homeTeam} ${homeScore} - ${awayScore} ${match.awayTeam}</b> (FT)\n`;
-      msg += `🏆 League: <b>${match.leagueFlag || '🌍'} ${match.league}</b>\n`;
-      msg += `🎯 Official Selection: <code>${pick}</code> @ <b>${odds}</b> (${prob}% Prob) <b>[${verdict}]</b>\n\n`;
-      
+      let msg = '';
       if (isWon) {
-        msg += `💰 <i>Prediction banked successfully! Payout confirmed across all verified slips.</i>\n\n`;
+        msg += `💥 <b>BOOM! GREEN TICK WON! ✅ • BANKER CASHED IN LIVE!</b>\n\n`;
+        msg += `${sportIcon} <b>${match.homeTeam} ${homeScore} - ${awayScore} ${match.awayTeam}</b> (FT)\n`;
+        msg += `🏆 League: <b>${match.leagueFlag || '🌍'} ${match.league}</b>\n`;
+        msg += `🎯 Mivaj Pick: <code>${pick}</code> @ <b>${odds}</b> <b>[WON ✅]</b>\n\n`;
+        msg += `💰 <b>PAYOUT CONFIRMED!</b> Another winning ticket in the bag! 🤑\n`;
+        msg += `🚨 <i>Missed this game? Next verified banker kicks off shortly — don't miss out on today's profits!</i>\n\n`;
       } else {
-        msg += `📋 <i>Official score recorded in our immutable public settlement ledger.</i>\n\n`;
+        msg += `⚖️ <b>MATCH SETTLED & VERIFIED IN OFFICIAL LEDGER 📜</b>\n\n`;
+        msg += `${sportIcon} <b>${match.homeTeam} ${homeScore} - ${awayScore} ${match.awayTeam}</b> (FT)\n`;
+        msg += `🏆 League: <b>${match.leagueFlag || '🌍'} ${match.league}</b>\n`;
+        msg += `🎯 Selection: <code>${pick}</code> @ <b>${odds}</b> <b>[SETTLED ⚖️]</b>\n\n`;
+        msg += `📋 <i>100% transparent score recorded in our permanent public ledger. Check next live games below:</i>\n\n`;
       }
 
-      msg += `⚡ <i>Paste any SportyBet code to reveal live matches, or track remaining in-play fixtures below:</i>`;
+      msg += `⚡ <b>MIVAJ SPORTS INSTANT ACCESS:</b>\n`;
+      msg += `👉 Upcoming Bankers: https://mivaj.com\n`;
+      msg += `👉 SportyBet Revealer: https://mivaj.com/converter\n`;
+      msg += `👉 Football News Wire: https://mivaj.com/news\n`;
+      msg += `👉 World Star Birthdays: https://mivaj.com/birthdays`;
 
-      const slipUrl = `https://mivaj.com/?slip=today_banker&ref=tg_live_settle&match=${match.id}`;
+      const slipUrl = `https://mivaj.com/?ref=tg_live_settle&match=${match.id}`;
       const decoderUrl = `https://mivaj.com/converter?ref=tg_live_settle`;
-      const shareText = `💥 ${match.homeTeam} ${homeScore}-${awayScore} ${match.awayTeam} (${verdict}) on Mivaj! Check verified ledger:`;
-
-      const tgShareUrl = `https://t.me/share/url?url=${encodeURIComponent(slipUrl)}&text=${encodeURIComponent(shareText)}`;
-      const waShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + ' ' + slipUrl)}`;
+      const newsUrl = `https://mivaj.com/news?ref=tg_live_settle`;
+      const ledgerUrl = `https://mivaj.com/settlement?ref=tg_live_settle`;
 
       const keyboard = [
         [
-          { text: "📊 VIEW NEXT IN-PLAY FIXTURES", url: slipUrl },
+          { text: "🔥 VIEW NEXT LIVE BANKER FIXTURES ➔", url: slipUrl },
         ],
         [
           { text: "🔍 REVEAL SPORTYBET BOOKING CODE", url: decoderUrl },
+          { text: "📰 FOOTBALL NEWS WIRE", url: newsUrl },
         ],
         [
-          { text: "🎁 CLAIM ₦130,000 BONUS (22BET)", url: AFFILIATE_PARTNERS['22BET'].affiliateUrl },
-          { text: "🎰 STAKE $3,000 MATCH", url: AFFILIATE_PARTNERS['STAKE'].affiliateUrl },
+          { text: "🎁 22Bet 200% Bonus", url: AFFILIATE_PARTNERS['22BET'].affiliateUrl },
+          { text: "🎁 Stake VIP Bonus", url: AFFILIATE_PARTNERS['STAKE'].affiliateUrl },
         ],
         [
-          { text: "✈️ SHARE ON TELEGRAM", url: tgShareUrl },
-          { text: "💬 WHATSAPP", url: waShareUrl },
+          { text: "🎁 Bet9ja Signup Bonus", url: AFFILIATE_PARTNERS['BET9JA'].affiliateUrl },
+          { text: "🎁 1xBet Match Bonus", url: AFFILIATE_PARTNERS['1XBET'].affiliateUrl },
+        ],
+        [
+          { text: "📜 OFFICIAL SETTLEMENT LEDGER", url: ledgerUrl },
         ],
       ];
 
-      const res = await TelegramBotService.sendMessage(msg, keyboard);
+      const res = await TelegramBotService.sendBroadcastMessage(msg, keyboard);
 
       await setRedisCache(cacheKey, true, 60 * 60 * 48);
       processedMatchIds.add(match.id);

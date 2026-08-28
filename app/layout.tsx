@@ -3,12 +3,10 @@ import { PwaInstallPromptModal } from '../components/pwa/PwaInstallPromptModal';
 import { PersistentDynamicIslandPlayer } from '../components/audio/PersistentDynamicIslandPlayer';
 // import { FloatingVipBanner } from '../components/monetization/FloatingVipBanner';
 import { PageviewMonetizer } from '../components/monetization/PageviewMonetizer';
+import { EnvironmentIntelHeader } from '../components/environment-intel-header';
 import './globals.css';
 import { LanguageProvider } from '../lib/translation-engine';
 import type { Metadata, Viewport } from 'next';
-
-
-import type { Viewport } from 'next';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -158,6 +156,7 @@ export default function RootLayout({
         <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async />
 
         <LanguageProvider>
+          <EnvironmentIntelHeader />
           <PwaRegister />
           <PwaInstallPromptModal />
           <PersistentDynamicIslandPlayer />

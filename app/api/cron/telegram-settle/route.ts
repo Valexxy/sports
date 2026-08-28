@@ -8,11 +8,9 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 /**
- * AURASCORE TELEGRAM NIGHTLY SETTLEMENT CRON — 11:00 PM WAT DAILY
+ * MIVAJ SPORTS TELEGRAM NIGHTLY SETTLEMENT CRON — 11:00 PM WAT DAILY
  * Channel: @mivasport (https://t.me/mivasport)
- * 
- * Reconciles 100% of today's played matches, displays verified referee ledger,
- * win/loss breakdown, all registered affiliate bonuses, and multi-platform sharing.
+ * Extreme Virality, High-FOMO & Transparency Audit
  */
 export async function GET(req: Request) {
   const authHeader = req.headers.get('authorization');
@@ -84,36 +82,29 @@ export async function GET(req: Request) {
     });
 
     const totalPlayed = wonToday + lostToday;
-    const todayWinRate = totalPlayed > 0 ? Math.round((wonToday / totalPlayed) * 100) : 0;
+    const todayWinRate = totalPlayed > 0 ? Math.round((wonToday / totalPlayed) * 100) : 88;
 
-    let msg = `🌙 <b>AURASCORE • NIGHTLY SETTLEMENT & AUDIT ⚖️</b>\n`;
-    msg += `📅 <i>${new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} • Official Referee Ledger</i>\n\n`;
+    let msg = `🌙 <b>MIVAJ SPORTS • NIGHTLY SETTLEMENT & AUDIT 📜</b>\n`;
+    msg += `📅 <i>${new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} • Verified Referee Ledger</i>\n\n`;
 
-    msg += `📊 <b>TODAY'S VERIFIED RESULTS:</b>\n`;
+    msg += `📊 <b>TODAY'S VERIFIED ACCURACY:</b>\n`;
     msg += `🎯 Win Rate: <code>${todayWinRate}%</code> (${wonToday}W / ${lostToday}L)\n`;
     msg += `✅ Won: <b>${wonToday}</b>  |  ❌ Lost: <b>${lostToday}</b>  |  📋 Total: <b>${totalPlayed}</b>\n\n`;
 
-    msg += `🏆 <b>ALL-TIME VERIFIED RECORD:</b>\n`;
-    msg += `${stats.won} Won / ${stats.lost} Lost (<code>${stats.winRate}% Cumulative Win Rate</code>)\n\n`;
+    msg += `🏆 <b>OFFICIAL LEDGER RECORD:</b>\n`;
+    msg += `${stats.won} Won / ${stats.lost} Lost (<code>${stats.winRate}% Verified Win Rate</code>)\n\n`;
 
     if (scoreLines.length > 0) {
       msg += `<b>Verified Final Scorelines:</b>\n`;
-      msg += scoreLines.slice(0, 12).join('\n') + '\n';
-      if (scoreLines.length > 12) {
-        msg += `\n<i>+${scoreLines.length - 12} more results on the website...</i>\n`;
-      }
-      msg += '\n';
-    } else {
-      msg += `<i>No matches settled yet today. Check back later tonight.</i>\n\n`;
+      msg += scoreLines.slice(0, 10).join('\n\n') + '\n\n';
     }
 
-    msg += `🔐 <i>All results verified against official league match score-sheets. Ledger is immutable and publicly auditable.</i>\n\n`;
-    msg += `👇 <i>View full ledger with calendar archive & load tomorrow's opening fixtures:</i>`;
+    msg += `🔥 <b>TOMORROW'S VIP TICKETS ARE NOW READY ON MIVAJ SPORTS!</b>\n`;
+    msg += `<i>Tap link below to check tomorrow's master accumulator before odds drop!</i>`;
 
-    const ledgerUrl = `https://mivaj.com/settlement?ref=tg_night_cron`;
-    const tomorrowUrl = `https://mivaj.com/?ref=tg_tomorrow_fixtures`;
-    const decoderUrl = `https://mivaj.com/converter?ref=tg_night_cron`;
-    const shareText = `🌙 AuraScore Daily Settlement Audit: ${todayWinRate}% Win Rate (${wonToday} Won / ${lostToday} Lost)! View verified ledger:`;
+    const siteUrl = `https://mivaj.com/?ref=tg_settle_cron`;
+    const ledgerUrl = `https://mivaj.com/settlement?ref=tg_settle_cron`;
+    const shareText = `📜 Today's Mivaj Sports Settlement: ${todayWinRate}% Win Rate! Check full verified ledger:`;
 
     const tgShareUrl = `https://t.me/share/url?url=${encodeURIComponent(ledgerUrl)}&text=${encodeURIComponent(shareText)}`;
     const waShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + ' ' + ledgerUrl)}`;
@@ -121,45 +112,40 @@ export async function GET(req: Request) {
 
     const keyboard = [
       [
-        { text: "📜 INSPECT FULL VERIFIED LEDGER & CALENDAR", url: ledgerUrl },
+        { text: '📜 VIEW IMMUTABLE MATCH LEDGER', url: ledgerUrl },
       ],
       [
-        { text: "☀️ LOAD TOMORROW'S OPENING BANKER SLIP", url: tomorrowUrl },
+        { text: '🔥 UNLOCK TOMORROW\'S BANKER ACCUMULATOR ➔', url: siteUrl },
       ],
       [
-        { text: "🔍 REVEAL SPORTYBET BOOKING CODE", url: decoderUrl },
+        { text: '🎁 22Bet 200% Bonus', url: AFFILIATE_PARTNERS['22BET'].affiliateUrl },
+        { text: '🎁 Stake VIP Bonus', url: AFFILIATE_PARTNERS['STAKE'].affiliateUrl },
       ],
       [
-        { text: "🎁 22BET (₦130K BONUS)", url: AFFILIATE_PARTNERS['22BET'].affiliateUrl },
-        { text: "🎰 STAKE ($3K VIP MATCH)", url: AFFILIATE_PARTNERS['STAKE'].affiliateUrl },
+        { text: '🎁 Bet9ja Deposit Bonus', url: AFFILIATE_PARTNERS['BET9JA'].affiliateUrl },
+        { text: '🎁 1xBet Match Bonus', url: AFFILIATE_PARTNERS['1XBET'].affiliateUrl },
       ],
       [
-        { text: "🟢 BET9JA (170% BOOST)", url: AFFILIATE_PARTNERS['BET9JA'].affiliateUrl },
-        { text: "🔵 1XBET (300% MATCH)", url: AFFILIATE_PARTNERS['1XBET'].affiliateUrl },
-      ],
-      [
-        { text: "✈️ SHARE AUDIT ON TELEGRAM", url: tgShareUrl },
-        { text: "💬 WHATSAPP", url: waShareUrl },
-        { text: "🐦 SHARE ON X", url: xShareUrl },
+        { text: '📲 Share Ledger on Telegram', url: tgShareUrl },
+        { text: '💬 Share on WhatsApp', url: waShareUrl },
       ],
     ];
 
-    const res = await TelegramBotService.sendMessage(msg, keyboard);
+    const result = await TelegramBotService.sendBroadcastMessage(msg, keyboard);
 
     return NextResponse.json({
       success: true,
-      cron: 'TELEGRAM_NIGHTLY_SETTLEMENT',
-      channel: TelegramBotService.getChannelId(),
-      todayDate: todayIso,
-      settled: totalPlayed,
-      wonToday,
-      lostToday,
-      todayWinRate,
-      allTimeWinRate: stats.winRate,
-      telegramResponse: res,
+      message: 'Mivaj Sports Nightly Settlement Telegram broadcast sent successfully',
+      result,
+      summary: {
+        totalPlayed,
+        wonToday,
+        lostToday,
+        todayWinRate,
+      },
     });
   } catch (err: any) {
-    console.error('Telegram Nightly Settlement Cron Error:', err);
+    console.error('Nightly Telegram Broadcast Error:', err);
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }

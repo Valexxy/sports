@@ -4,15 +4,15 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export type LanguageCode =
   | 'pidgin'
-  | 'igbo'
-  | 'hausa'
   | 'yoruba'
+  | 'hausa'
+  | 'igbo'
+  | 'twi'
+  | 'swahili'
+  | 'zulu'
   | 'en'
   | 'fr'
-  | 'es'
-  | 'ar'
-  | 'pt'
-  | 'de';
+  | 'pt';
 
 export interface LanguageMeta {
   code: LanguageCode;
@@ -24,209 +24,235 @@ export interface LanguageMeta {
 }
 
 export const SUPPORTED_LANGUAGES: LanguageMeta[] = [
-  { code: 'pidgin', name: 'Nigerian Pidgin', nativeName: 'Naija Pidgin', flag: '🇳🇬', dir: 'ltr', greeting: 'Welcome to Mivaj! Correct banker don land!' },
-  { code: 'igbo',   name: 'Igbo',             nativeName: 'Asụsụ Igbo',   flag: '🇳🇬', dir: 'ltr', greeting: 'Nnọọ na Mivaj Sports! Amụma bọọlụ taa!' },
-  { code: 'hausa',  name: 'Hausa',            nativeName: 'Harshen Hausa', flag: '🇳🇬', dir: 'ltr', greeting: 'Barka da zuwa Mivaj Sports! Hasashen yau!' },
-  { code: 'yoruba', name: 'Yorùbá',           nativeName: 'Èdè Yorùbá',    flag: '🇳🇬', dir: 'ltr', greeting: 'Káàbọ̀ sí Mivaj Sports! Ìsọtẹ́lẹ̀ tòní!' },
-  { code: 'en',     name: 'English',          nativeName: 'English (UK)', flag: '🇬🇧', dir: 'ltr', greeting: 'Welcome to Mivaj Sports Intelligence!' },
-  { code: 'fr',     name: 'French',           nativeName: 'Français',     flag: '🇫🇷', dir: 'ltr', greeting: 'Bienvenue sur Mivaj Sports!' },
-  { code: 'es',     name: 'Spanish',          nativeName: 'Español',      flag: '🇪🇸', dir: 'ltr', greeting: '¡Bienvenido a Mivaj Sports!' },
-  { code: 'ar',     name: 'Arabic',           nativeName: 'العربية',      flag: '🇸🇦', dir: 'rtl', greeting: 'مرحباً بكم في ميفاج سبورتس!' },
-  { code: 'pt',     name: 'Portuguese',       nativeName: 'Português',    flag: '🇵🇹', dir: 'ltr', greeting: 'Bem-vindo ao Mivaj Sports!' },
-  { code: 'de',     name: 'German',           nativeName: 'Deutsch',      flag: '🇩🇪', dir: 'ltr', greeting: 'Willkommen bei Mivaj Sports!' },
+  // NIGERIA PRIORITY AT TOP
+  { code: 'pidgin',  name: 'Nigerian Pidgin', nativeName: 'Naija Pidgin',       flag: '🇳🇬', dir: 'ltr', greeting: 'Welcome to Mivaj! Correct banker don land!' },
+  { code: 'yoruba',  name: 'Yorùbá',          nativeName: 'Èdè Yorùbá',         flag: '🇳🇬', dir: 'ltr', greeting: 'Káàbọ̀ sí Mivaj Sports! Ìsọtẹ́lẹ̀ tòní!' },
+  { code: 'hausa',   name: 'Hausa',           nativeName: 'Harshen Hausa',      flag: '🇳🇬', dir: 'ltr', greeting: 'Barka da zuwa Mivaj Sports! Hasashen yau!' },
+  { code: 'igbo',    name: 'Igbo',            nativeName: 'Asụsụ Igbo',         flag: '🇳🇬', dir: 'ltr', greeting: 'Nnọọ na Mivaj Sports! Amụma bọọlụ taa!' },
+  
+  // AFRICAN REGIONS
+  { code: 'twi',     name: 'Twi (Ghana)',     nativeName: 'Twi',                flag: '🇬🇭', dir: 'ltr', greeting: 'Akwaaba ba Mivaj Sports! Nnɛ agodie!' },
+  { code: 'swahili', name: 'Swahili (East Africa)', nativeName: 'Kiswahili',   flag: '🇰🇪', dir: 'ltr', greeting: 'Karibu Mivaj Sports! Bashiri za leo!' },
+  { code: 'zulu',    name: 'isiZulu (South Africa)', nativeName: 'isiZulu',    flag: '🇿🇦', dir: 'ltr', greeting: 'Siyakwamukela ku Mivaj Sports!' },
+  
+  // GLOBAL & FRANCOPHONE/LUSOPHONE AFRICA
+  { code: 'en',      name: 'English (Primary)', nativeName: 'English (UK)',     flag: '🇬🇧', dir: 'ltr', greeting: 'Welcome to Mivaj Sports Intelligence!' },
+  { code: 'fr',      name: 'French (Afrique)',  nativeName: 'Français',         flag: '🇫🇷', dir: 'ltr', greeting: 'Bienvenue sur Mivaj Sports!' },
+  { code: 'pt',      name: 'Portuguese (PALOP)', nativeName: 'Português',       flag: '🇵🇹', dir: 'ltr', greeting: 'Bem-vindo ao Mivaj Sports!' },
 ];
 
 const STORAGE_KEY = 'mivaj_active_language';
 
 export const COMPREHENSIVE_DICTIONARY: Record<string, Partial<Record<LanguageCode, string>>> = {
-  // Brand, Header & Ticker
+  // Brand, Navigation & Tabs
   'LIVE WIRE': {
     en: 'LIVE WIRE',
     pidgin: 'LIVE WIRE ⚡',
     yoruba: 'WÁYÀ LÁYÉ ⚡',
-    igbo: 'WAYA NDỤ ⚡',
     hausa: 'LABARAI MASU ZAFI ⚡',
+    igbo: 'WAYA NDỤ ⚡',
+    twi: 'GYA WIRE ⚡',
+    swahili: 'WAYA YA MOJA KWA MOJA ⚡',
+    zulu: 'UKUSAKAZA OKUBANDAYO ⚡',
     fr: 'EN DIRECT ⚡',
-    es: 'EN VIVO ⚡',
-    ar: 'البث المباشر ⚡',
     pt: 'AO VIVO ⚡',
-    de: 'LIVE-WIRE ⚡',
+  },
+  'Fixtures': {
+    en: 'Fixtures',
+    pidgin: 'Matches',
+    yoruba: 'Àwọn Ìfẹsẹ̀wọnsẹ̀',
+    hausa: 'Wasanni',
+    igbo: 'Egwuregwu',
+    twi: 'Agodie',
+    swahili: 'Mechi',
+    zulu: 'Imidlalo',
+    fr: 'Matches',
+    pt: 'Jogos',
+  },
+  'Revealer': {
+    en: 'Revealer',
+    pidgin: 'Code Revealer 🔍',
+    yoruba: 'Àfihàn Kóòdù 🔍',
+    hausa: 'Mai Fitar da Code 🔍',
+    igbo: 'Ihe Ngosi Koodu 🔍',
+    twi: 'Koodu Nkyerɛkyerɛmu 🔍',
+    swahili: 'Kifungua Nambari 🔍',
+    zulu: 'Umlandi Wekhodi 🔍',
+    fr: 'Décodeur 🔍',
+    pt: 'Decodificador 🔍',
+  },
+  'Ledger': {
+    en: 'Ledger',
+    pidgin: 'History Ledger 📜',
+    yoruba: 'Ìwé Ìtàn 📜',
+    hausa: 'Littafin Sakamako 📜',
+    igbo: 'Akwụkwọ Ndekọ 📜',
+    twi: 'Nkyerɛwee 📜',
+    swahili: 'Daftari la Matokeo 📜',
+    zulu: 'Incwadi Yemiphumela 📜',
+    fr: 'Registre 📜',
+    pt: 'Histórico 📜',
+  },
+  'News': {
+    en: 'News',
+    pidgin: 'Hot News 📰',
+    yoruba: 'Ìròyìn Tuntun 📰',
+    hausa: 'Labarai 📰',
+    igbo: 'Ozi Ọhụrụ 📰',
+    twi: 'Amanneɛbɔ 📰',
+    swahili: 'Habari 📰',
+    zulu: 'Izindaba 📰',
+    fr: 'Actualités 📰',
+    pt: 'Notícias 📰',
+  },
+  'Account': {
+    en: 'Account',
+    pidgin: 'My Profile 👤',
+    yoruba: 'Àkọọ́lẹ̀ Mi 👤',
+    hausa: 'Asusu Na 👤',
+    igbo: 'Akaụntụ M 👤',
+    twi: 'Akawnti 👤',
+    swahili: 'Akaunti Yangu 👤',
+    zulu: 'I-akhawunti 👤',
+    fr: 'Mon Compte 👤',
+    pt: 'Minha Conta 👤',
   },
   'Live': {
     en: 'Live',
     pidgin: 'Live Now',
     yoruba: 'Láyé',
-    igbo: 'Ndụ',
     hausa: 'Kai Tsaye',
+    igbo: 'Ndụ',
+    twi: 'Mprempren',
+    swahili: 'Moja kwa Moja',
+    zulu: 'Bukhoma',
     fr: 'En Direct',
-    es: 'En Vivo',
-    ar: 'مباشر',
     pt: 'Ao Vivo',
-    de: 'Live',
   },
   'Upcoming': {
     en: 'Upcoming',
     pidgin: 'Dey Come',
     yoruba: 'Tó ń Bọ̀',
-    igbo: 'Na-abịa',
     hausa: 'Masu Zuwa',
+    igbo: 'Na-abịa',
+    twi: 'Ɛreba',
+    swahili: 'Zijazo',
+    zulu: 'Okuzayo',
     fr: 'À Venir',
-    es: 'Próximos',
-    ar: 'القادمة',
     pt: 'Próximos',
-    de: 'Bevorstehend',
   },
   'Played': {
     en: 'Played',
     pidgin: 'Don Finish',
     yoruba: 'Ti Pari',
-    igbo: 'Emechara',
     hausa: 'An Gama',
+    igbo: 'Emechara',
+    twi: 'Awie',
+    swahili: 'Zilizokamilika',
+    zulu: 'Kuphelile',
     fr: 'Terminés',
-    es: 'Finalizados',
-    ar: 'المنتهية',
     pt: 'Encerrados',
-    de: 'Beendet',
   },
-  'Following': {
-    en: 'Following',
-    pidgin: 'Following',
-    yoruba: 'Àwọn Tí Mò Ń Tẹ̀lé',
-    igbo: 'Ndị Ana-eso',
-    hausa: 'Wadanda Ake Bi',
-    fr: 'Favoris',
-    es: 'Siguiendo',
-    ar: 'المفضلة',
-    pt: 'Seguindo',
-    de: 'Favoriten',
+  'I Bet This (+1)': {
+    en: 'I Bet This (+1)',
+    pidgin: 'I Bet This (+1) 🔥',
+    yoruba: 'Mo Tẹ́lẹ́ Wọn (+1) 🔥',
+    hausa: 'Na Zabi Wannan (+1) 🔥',
+    igbo: 'M Tinyere Ego (+1) 🔥',
+    twi: 'Metow So (+1) 🔥',
+    swahili: 'Nimebashiri Hii (+1) 🔥',
+    zulu: 'Ngibheja Lokhu (+1) 🔥',
+    fr: 'J\'ai Parié (+1) 🔥',
+    pt: 'Apostei Nisso (+1) 🔥',
   },
-  'All Leagues': {
-    en: 'All Leagues',
-    pidgin: 'All Leagues 🌍',
-    yoruba: 'Gbogbo Liigi 🌍',
-    igbo: 'Liigi Niile 🌍',
-    hausa: 'Duk Gasanni 🌍',
-    fr: 'Toutes Ligues 🌍',
-    es: 'Todas las Ligas 🌍',
-    ar: 'جميع الدوريات 🌍',
-    pt: 'Todas as Ligas 🌍',
-    de: 'Alle Ligen 🌍',
-  },
-  "Today's Matches": {
-    en: "Today's Matches",
-    pidgin: "Today Matches ⚽",
-    yoruba: "Àwọn Eré Òní ⚽",
-    igbo: "Egwuregwu Taa ⚽",
-    hausa: "Wasannin Yau ⚽",
-    fr: "Matchs d'Aujourd'hui ⚽",
-    es: "Partidos de Hoy ⚽",
-    ar: "مباريات اليوم ⚽",
-    pt: "Jogos de Hoje ⚽",
-    de: "Heutige Spiele ⚽",
-  },
-  'Search team, league or fixture...': {
-    en: 'Search team, league or fixture...',
-    pidgin: 'Search team, league or fixture...',
-    yoruba: 'Wá ẹgbẹ́, liigi tàbí eré...',
-    igbo: 'Chọọ otu, liigi ma ọ bụ egwuregwu...',
-    hausa: 'Nemi kungiya, gasa ko wasa...',
-    fr: 'Rechercher une équipe, ligue...',
-    es: 'Buscar equipo, liga o partido...',
-    ar: 'ابحث عن فريق، دوري أو مباراة...',
-    pt: 'Pesquisar equipa, liga ou jogo...',
-    de: 'Team, Liga oder Spiel suchen...',
-  },
-  'Accumulator Bet Slip': {
-    en: 'Accumulator Bet Slip',
-    pidgin: 'Accumulator Bet Slip 🎟️',
-    yoruba: 'Àkójọ Ìsọtẹ́lẹ̀ Bet Slip 🎟️',
-    igbo: 'Akwụkwọ Nzọ Accumulator 🎟️',
-    hausa: 'Takardar Caca ta Accumulator 🎟️',
-    fr: 'Coupon de Pari Combiné 🎟️',
-    es: 'Boleto de Apuesta Combinada 🎟️',
-    ar: 'قسيمة الرهان المجمع 🎟️',
-    pt: 'Boletim de Apostas Múltiplas 🎟️',
-    de: 'Kombiwette Wettschein 🎟️',
-  },
-  'Clear All Picks': {
-    en: 'Clear All Picks',
-    pidgin: 'Clear All Picks',
-    yoruba: 'Pa Gbogbo Ìsọtẹ́lẹ̀ Rẹ́',
-    igbo: 'Hichapụ Nhọrọ Niile',
-    hausa: 'Goge Duk Hasashe',
-    fr: 'Effacer Tout',
-    es: 'Borrar Todo',
-    ar: 'مسح الكل',
-    pt: 'Limpar Tudo',
-    de: 'Alles Löschen',
-  },
-  '1-Click Export to Bookmaker:': {
-    en: '1-Click Export to Bookmaker:',
-    pidgin: '1-Click Load for Bookmaker:',
-    yoruba: '1-Tẹ̀ Lọ Sí Ilé Kalokalo:',
-    igbo: '1-Pịa Banye na Bookmaker:',
-    hausa: 'Loda zuwa Wurin Caca da Danna 1:',
-    fr: 'Exporter en 1-Clic vers Bookmaker:',
-    es: 'Exportar en 1-Clic a Casa de Apuestas:',
-    ar: 'تصدير بنقرة واحدة إلى موقع المراهنات:',
-    pt: 'Exportar em 1-Clique para Casa de Apostas:',
-    de: '1-Klick Export zum Wettanbieter:',
+  'Placed ✓': {
+    en: 'Placed ✓',
+    pidgin: 'Placed ✓',
+    yoruba: 'Ti Tẹ́lẹ́ ✓',
+    hausa: 'An Sanya ✓',
+    igbo: 'Tinyere ✓',
+    twi: 'Atow ✓',
+    swahili: 'Imewekwa ✓',
+    zulu: 'Kubhejiwe ✓',
+    fr: 'Parié ✓',
+    pt: 'Apostado ✓',
   },
 };
 
 interface TranslationContextType {
+  currentLang: LanguageCode;
   lang: LanguageCode;
-  setLang: (code: LanguageCode) => void;
+  setLanguage: (lang: LanguageCode) => void;
+  setLang: (lang: LanguageCode) => void;
+  t: (key: string, fallback?: string) => string;
+  isRTL: boolean;
+  activeLanguageMeta: LanguageMeta;
   meta: LanguageMeta;
-  t: (key: string) => string;
 }
 
+const defaultMeta = SUPPORTED_LANGUAGES.find((l) => l.code === 'en') || SUPPORTED_LANGUAGES[0];
+
 const TranslationContext = createContext<TranslationContextType>({
-  lang: 'pidgin',
+  currentLang: 'en',
+  lang: 'en',
+  setLanguage: () => {},
   setLang: () => {},
-  meta: SUPPORTED_LANGUAGES[0],
-  t: (key: string) => key,
+  t: (key: string, fallback?: string) => fallback || key,
+  isRTL: false,
+  activeLanguageMeta: defaultMeta,
+  meta: defaultMeta,
 });
 
 export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [lang, setLangState] = useState<LanguageCode>('pidgin');
+  const [currentLang, setCurrentLang] = useState<LanguageCode>('en');
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY) as LanguageCode | null;
-      if (stored && SUPPORTED_LANGUAGES.some((l) => l.code === stored)) {
-        setLangState(stored);
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(STORAGE_KEY) as LanguageCode | null;
+      if (saved && SUPPORTED_LANGUAGES.some((l) => l.code === saved)) {
+        setCurrentLang(saved);
       }
-    } catch {}
+    }
   }, []);
 
-  const setLang = (code: LanguageCode) => {
-    setLangState(code);
-    try {
-      localStorage.setItem(STORAGE_KEY, code);
-      const meta = SUPPORTED_LANGUAGES.find((l) => l.code === code);
-      if (meta && typeof document !== 'undefined') {
-        document.documentElement.dir = meta.dir;
-        document.documentElement.lang = meta.code;
-      }
-    } catch {}
+  const setLanguage = (lang: LanguageCode) => {
+    setCurrentLang(lang);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY, lang);
+      const meta = SUPPORTED_LANGUAGES.find((l) => l.code === lang);
+      document.documentElement.dir = meta?.dir || 'ltr';
+      document.documentElement.lang = lang;
+    }
   };
 
-  const meta = SUPPORTED_LANGUAGES.find((l) => l.code === lang) || SUPPORTED_LANGUAGES[0];
+  const t = (key: string, fallback?: string): string => {
+    if (!key) return '';
+    const cleanKey = key.trim();
+    if (currentLang === 'en') return cleanKey;
 
-  const t = (key: string): string => {
-    const entry = COMPREHENSIVE_DICTIONARY[key];
-    if (entry && entry[lang]) {
-      return entry[lang]!;
+    const entry = COMPREHENSIVE_DICTIONARY[cleanKey];
+    if (entry && entry[currentLang]) {
+      return entry[currentLang]!;
     }
-    if (entry && entry['en']) {
-      return entry['en']!;
-    }
-    return key;
+    return fallback || cleanKey;
   };
+
+  const activeLanguageMeta = SUPPORTED_LANGUAGES.find((l) => l.code === currentLang) || defaultMeta;
+  const isRTL = activeLanguageMeta.dir === 'rtl';
 
   return (
-    <TranslationContext.Provider value={{ lang, setLang, meta, t }}>
+    <TranslationContext.Provider
+      value={{
+        currentLang,
+        lang: currentLang,
+        setLanguage,
+        setLang: setLanguage,
+        t,
+        isRTL,
+        activeLanguageMeta,
+        meta: activeLanguageMeta,
+      }}
+    >
       {children}
     </TranslationContext.Provider>
   );
@@ -234,3 +260,4 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
 export const LanguageProvider = TranslationProvider;
 export const useTranslation = () => useContext(TranslationContext);
+export const useLanguage = () => useContext(TranslationContext);

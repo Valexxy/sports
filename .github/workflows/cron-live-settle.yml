@@ -1,10 +1,9 @@
-name: 🌇 Telegram Live Settlement (7PM WAT)
+name: ⚡ Telegram Continuous Live Settlement (Every 15 Mins)
 
 on:
   schedule:
-    # 6:00 PM UTC = 7:00 PM WAT (Nigeria/West Africa Time)
-    # Runs after most afternoon games have ended
-    - cron: '0 18 * * *'
+    # Runs every 15 minutes 24/7 to instantly alert Telegram as each match finishes
+    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -12,9 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: 📡 Trigger Live Settlement Cron
+      - name: 📡 Trigger Real-Time Live Settlement Cron
         run: |
-          echo "🌇 Triggering Mivaj live settlement at $(date)"
+          echo "⚡ Triggering Mivaj live match settlement at $(date)"
           response=$(curl -s -o /dev/null -w "%{http_code}" \
             -X GET "https://mivaj.com/api/cron/telegram-live-settle" \
             -H "Accept: application/json" \

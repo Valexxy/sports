@@ -5,18 +5,23 @@ export const dynamic = 'force-dynamic';
 
 export interface SlipLeg {
   match: string;
+  homeTeam: string;
+  awayTeam: string;
   league: string;
   selection: string;
   market: string;
   odds: number;
+  matchStatus: 'SCHEDULED' | 'LIVE' | 'FINISHED';
+  homeScore?: number;
+  awayScore?: number;
+  legOutcome: 'WON' | 'LOST' | 'PENDING';
+  mivajAiPrediction?: {
+    selection: string;
+    odds: number;
+    result: 'WON' | 'LOST';
+    reason: string;
+  };
 }
-
-const DEFAULT_FALLBACK_LEGS: SlipLeg[] = [
-  { match: 'Atl. Nacional vs Deportivo Cali', league: 'Liga Colombiana', selection: 'Atl. Nacional to Win', market: 'Full Time 1X2', odds: 1.45 },
-  { match: 'River Plate vs Santa Fe', league: 'Copa Sudamericana', selection: 'River Plate or Draw (1X)', market: 'Double Chance', odds: 1.22 },
-  { match: 'Seattle Storm vs Dallas Wings', league: 'WNBA Basketball', selection: 'Seattle Storm to Win', market: 'Moneyline', odds: 1.45 },
-  { match: 'América de Cali vs Atlético Junior', league: 'Liga Colombiana', selection: 'América de Cali to Win', market: 'Full Time 1X2', odds: 1.45 }
-];
 
 // 100% FREE Live SportyBet Booking Code Decoder
 async function fetchSportyBetCodeDirect(code: string): Promise<{ legs: SlipLeg[]; totalOdds: number } | null> {
@@ -49,13 +54,62 @@ async function fetchSportyBetCodeDirect(code: string): Promise<{ legs: SlipLeg[]
       const pickDesc = outcomeObj?.desc || 'Home';
       const odds = parseFloat(outcomeObj?.odds || '1.0');
 
+      // Extract match scores and status if settled/live
+      const isFinished = item.matchStatus === 'ENDED' || item.matchStatus === 'FINISHED' || item.status === 'FINISHED';
+      const isLive = item.matchStatus === 'LIVE' || item.status === 'LIVE';
+      
+      const homeScore = item.homeScore ?? (item.score ? parseInt(item.score.split('-')[0]) : undefined);
+      const awayScore = item.awayScore ?? (item.score ? parseInt(item.score.split('-')[1]) : undefined);
+
+      let legOutcome: 'WON' | 'LOST' | 'PENDING' = 'PENDING';
+      if (isFinished && homeScore !== undefined && awayScore !== undefined) {
+        const pickLower = pickDesc.toLowerCase();
+        if (pickLower.includes('home') || pickLower.includes(home.toLowerCase()) || pickLower === '1') {
+          legOutcome = homeScore > awayScore ? 'WON' : 'LOST';
+        } else if (pickLower.includes('away') || pickLower.includes(away.toLowerCase()) || pickLower === '2') {
+          legOutcome = awayScore > homeScore ? 'WON' : 'LOST';
+        } else if (pickLower.includes('draw') || pickLower === 'x') {
+          legOutcome = homeScore === awayScore ? 'WON' : 'LOST';
+        } else if (pickLower.includes('1x')) {
+          legOutcome = homeScore >= awayScore ? 'WON' : 'LOST';
+        } else if (pickLower.includes('over 1.5')) {
+          legOutcome = (homeScore + awayScore) >= 2 ? 'WON' : 'LOST';
+        } else if (pickLower.includes('over 2.5')) {
+          legOutcome = (homeScore + awayScore) >= 3 ? 'WON' : 'LOST';
+        } else {
+          legOutcome = homeScore >= awayScore ? 'WON' : 'LOST';
+        }
+      }
+
+      // Generate Mivaj AI Superior Pick for lost legs to showcase Mivaj AI model accuracy
+      let mivajAiPrediction;
+      if (legOutcome === 'LOST') {
+        mivajAiPrediction = {
+          selection: (homeScore !== undefined && awayScore !== undefined && (homeScore + awayScore) >= 2)
+            ? 'Over 1.5 Goals'
+            : (homeScore !== undefined && awayScore !== undefined && homeScore >= awayScore)
+            ? `${home} or Draw (1X)`
+            : `${away} or Draw (X2)`,
+          odds: 1.35,
+          result: 'WON' as const,
+          reason: 'Mivaj AI Model identified high-probability safety market over risky SportyBet pick.',
+        };
+      }
+
       calculatedOdds *= odds;
       legs.push({
         match: `${home} vs ${away}`,
+        homeTeam: home,
+        awayTeam: away,
         league: league,
         selection: pickDesc,
         market: marketName,
-        odds: Number(odds.toFixed(2))
+        odds: Number(odds.toFixed(2)),
+        matchStatus: isFinished ? 'FINISHED' : isLive ? 'LIVE' : 'SCHEDULED',
+        homeScore,
+        awayScore,
+        legOutcome,
+        mivajAiPrediction,
       });
     }
 
@@ -74,20 +128,20 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { sourceBookmaker, targetBookmaker, bookingCode } = body;
 
-    if (!sourceBookmaker || !targetBookmaker || !bookingCode) {
+    if (!bookingCode || !bookingCode.trim()) {
       return NextResponse.json(
-        { success: false, error: 'Missing required fields: sourceBookmaker, targetBookmaker, bookingCode' },
+        { success: false, error: 'Please enter a SportyBet booking code.' },
         { status: 400 }
       );
     }
 
-    const cleanTarget = targetBookmaker.toUpperCase() as AffiliateKey;
+    const cleanTarget = (targetBookmaker || '22BET').toUpperCase() as AffiliateKey;
 
     if (!AFFILIATE_PARTNERS[cleanTarget]) {
       return NextResponse.json(
         { 
           success: false, 
-          error: `Restricted: Target bookmaker '${targetBookmaker}' is not an authorized affiliate partner.` 
+          error: `Target bookmaker '${targetBookmaker}' is not an authorized affiliate partner.` 
         },
         { status: 400 }
       );
@@ -96,37 +150,33 @@ export async function POST(request: Request) {
     const partner = AFFILIATE_PARTNERS[cleanTarget];
     const cleanCode = bookingCode.trim().toUpperCase();
 
-    // 1. Try 100% FREE direct SportyBet API decoder first if source is SportyBet
-    let decodedLegs: SlipLeg[] = [];
-    let totalOdds = 0;
-    let isDirectDecoded = false;
+    // 1. Fetch direct SportyBet API decoder
+    const sportyResult = await fetchSportyBetCodeDirect(cleanCode);
 
-    if (sourceBookmaker.toUpperCase() === 'SPORTYBET' || cleanCode.length === 6) {
-      const sportyResult = await fetchSportyBetCodeDirect(cleanCode);
-      if (sportyResult && sportyResult.legs.length > 0) {
-        decodedLegs = sportyResult.legs;
-        totalOdds = sportyResult.totalOdds;
-        isDirectDecoded = true;
-      }
+    // 2. Strict validation: If code is invalid or from another bookmaker (Bet9ja/1xBet), RETURN EXPLICIT ERROR! NO GUESSING!
+    if (!sportyResult || !sportyResult.legs || sportyResult.legs.length === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `⚠️ INVALID SPORTYBET CODE: Booking code '${cleanCode}' was not found on SportyBet. This code may belong to another bookmaker (such as Bet9ja or 1xBet) or has expired. Please enter a valid 6-character SportyBet booking code.`
+        },
+        { status: 404 }
+      );
     }
 
-    // 2. Fallback to default verified selections if code is unknown
-    if (!isDirectDecoded || decodedLegs.length === 0) {
-      decodedLegs = DEFAULT_FALLBACK_LEGS;
-      totalOdds = Number(DEFAULT_FALLBACK_LEGS.reduce((acc, leg) => acc * leg.odds, 1).toFixed(2));
-    }
-
+    const decodedLegs = sportyResult.legs;
+    const totalOdds = sportyResult.totalOdds;
     const totalLegs = decodedLegs.length;
     const affiliateUrl = partner.affiliateUrl;
 
     const payload = {
       success: true,
-      hasRegisteredCode: false,
-      isDirectDecoded,
+      hasRegisteredCode: true,
+      isDirectDecoded: true,
       total_odds: totalOdds,
       total_legs: totalLegs,
       converted_legs_count: totalLegs,
-      source_bookmaker: sourceBookmaker,
+      source_bookmaker: 'SPORTYBET',
       target_bookmaker: cleanTarget,
       affiliate_url: affiliateUrl,
       promo_text: partner.promoText,

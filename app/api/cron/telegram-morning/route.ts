@@ -7,15 +7,9 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 /**
- * AURASCORE TELEGRAM MORNING CRON — 6:00 AM WAT DAILY
+ * MIVAJ SPORTS TELEGRAM MORNING CRON — 6:00 AM WAT DAILY
  * Channel: @mivasport (https://t.me/mivasport)
- * 
- * Features:
- *   - Shows 3 FREE teaser banker picks with full odds, markets & probability
- *   - States the EXACT number of remaining unrevealed matches
- *   - Masks and displays ALL registered affiliate bonus partners (22Bet, Stake, Bet9ja, 1xBet)
- *   - Provides direct 1-click sharing to Telegram, WhatsApp, and X/Twitter
- *   - SportyBet Code Decoder promotion (revealing live matches)
+ * Extreme Virality, High-FOMO & Affiliate Driven
  */
 export async function GET(req: Request) {
   const authHeader = req.headers.get('authorization');
@@ -54,9 +48,9 @@ export async function GET(req: Request) {
       teaserFixtures.reduce((acc, m) => acc + (m.prediction?.topPick?.probability || 85), 0) / (teaserFixtures.length || 1)
     );
 
-    let msg = `☀️ <b>GOOD MORNING! AURASCORE DAILY BANKER ACCUMULATOR 🔥</b>\n`;
-    msg += `📅 <i>${new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} • AI Model Confidence: ${avgProb}%</i>\n\n`;
-    msg += `👑 <b>TODAY'S FREE FEATURED PICKS (${teaserCount} of ${fixturesPool.length} Fixtures):</b>\n\n`;
+    let msg = `🔥 <b>6:00 AM MIVAJ BANKER SLIP IS LIVE! 🚨</b>\n`;
+    msg += `📅 <i>${new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} • Model Win Rate: ${avgProb}% 🎯</i>\n\n`;
+    msg += `👑 <b>TODAY'S TOP FEATURED BANKERS (${teaserCount} of ${fixturesPool.length} Fixtures):</b>\n\n`;
 
     teaserFixtures.forEach((m, idx) => {
       const p = m.prediction?.topPick;
@@ -64,22 +58,23 @@ export async function GET(req: Request) {
       msg += `${idx + 1}. ${sportIcon} <b>${m.homeTeam} vs ${m.awayTeam}</b>\n`;
       msg += `   🏆 <b>${m.leagueFlag || '🌍'} ${m.league}</b>\n`;
       msg += `   ⏰ Kickoff: <b>${m.matchTime || 'TBD'}</b>\n`;
-      msg += `   🎯 Selection: <code>${p?.selection || 'Home Win'}</code> @ <b>${p?.odds || 1.15}</b> (${p?.probability || 85}% Math Prob)\n\n`;
+      msg += `   🎯 Pick: <code>${p?.selection || 'Home Win'}</code> @ <b>${p?.odds || 1.15}</b> (${p?.probability || 85}% Confidence)\n\n`;
     });
 
-    msg += `📊 <b>Free 3-Fold Odds:</b> <code>${teaserOdds}x</code>\n`;
-    msg += `🚀 <b>Full ${fixturesPool.length}-Match Master Slip:</b> <code>${fullAccumulatorOdds}x Total Odds</code>\n\n`;
+    msg += `📊 <b>Featured 3-Fold Odds:</b> <code>${teaserOdds}x</code>\n`;
+    msg += `🚀 <b>Full Master Accumulator:</b> <code>${fullAccumulatorOdds}x Total Odds</code>\n\n`;
 
     if (remainingCount > 0) {
-      msg += `🔒 <b>+${remainingCount} MORE MATCHES NOT CAPTURED IN THIS TEASER</b>\n`;
-      msg += `<i>Unlock all ${remainingCount} remaining banker predictions on our website for free:</i>\n\n`;
+      msg += `🔒 <b>+${remainingCount} HIGH-CONFIDENCE BANKERS STILL LOCKED!</b>\n`;
+      msg += `🚨 <i>Don't miss today's payout — unlock all remaining ${remainingCount} games on our site now for 100% free!</i>\n\n`;
     }
 
-    msg += `⚡ <i>Paste any SportyBet booking code on our website to instantly reveal all hidden matches, markets & odds.</i>`;
+    msg += `⚡ <b>SPORTYBET CODE REVEALER:</b>\n`;
+    msg += `<i>Paste any 6-digit SportyBet booking code on Mivaj Sports to instantly reveal hidden matches & test against our winning picks!</i>`;
 
     const slipUrl = `https://mivaj.com/?slip=today_banker&ref=tg_morning_cron&date=${todayIso}`;
     const decoderUrl = `https://mivaj.com/converter?ref=tg_morning_cron`;
-    const shareText = `🔥 Here is today's ${fullAccumulatorOdds}x Multi-Sport Banker Slip on Mivaj (3 Free Picks + ${remainingCount} More)!`;
+    const shareText = `🚨 TODAY'S ${fullAccumulatorOdds}x MIVAJ BANKER SLIP IS LIVE! Don't miss out — 3 Free Bankers + ${remainingCount} Locked Games:`;
 
     const tgShareUrl = `https://t.me/share/url?url=${encodeURIComponent(slipUrl)}&text=${encodeURIComponent(shareText)}`;
     const waShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + ' ' + slipUrl)}`;
@@ -89,8 +84,8 @@ export async function GET(req: Request) {
       [
         { 
           text: remainingCount > 0 
-            ? `🔓 UNLOCK REMAINING ${remainingCount} PREDICTIONS (${fullAccumulatorOdds}x)` 
-            : `🔓 VIEW FULL ${fullAccumulatorOdds}x MASTER ACCUMULATOR`, 
+            ? `🔥 UNLOCK ALL ${remainingCount} REMAINING BANKERS (${fullAccumulatorOdds}x) ➔` 
+            : `🔥 VIEW FULL ${fullAccumulatorOdds}x MASTER ACCUMULATOR ➔`, 
           url: slipUrl 
         },
       ],
@@ -98,35 +93,36 @@ export async function GET(req: Request) {
         { text: "🔍 REVEAL MATCHES FROM SPORTYBET CODE", url: decoderUrl },
       ],
       [
-        { text: "🎁 22BET (₦130,000 WELCOME BONUS)", url: AFFILIATE_PARTNERS['22BET'].affiliateUrl },
-        { text: "🎰 STAKE ($3,000 VIP BONUS)", url: AFFILIATE_PARTNERS['STAKE'].affiliateUrl },
+        { text: "🎁 22Bet 200% Bonus", url: AFFILIATE_PARTNERS['22BET'].affiliateUrl },
+        { text: "🎁 Stake VIP Bonus", url: AFFILIATE_PARTNERS['STAKE'].affiliateUrl },
       ],
       [
-        { text: "🟢 BET9JA (170% ACCA BOOST)", url: AFFILIATE_PARTNERS['BET9JA'].affiliateUrl },
-        { text: "🔵 1XBET (300% DEPOSIT MATCH)", url: AFFILIATE_PARTNERS['1XBET'].affiliateUrl },
+        { text: "🎁 Bet9ja Signup Bonus", url: AFFILIATE_PARTNERS['BET9JA'].affiliateUrl },
+        { text: "🎁 1xBet Match Bonus", url: AFFILIATE_PARTNERS['1XBET'].affiliateUrl },
       ],
       [
-        { text: "✈️ SHARE ON TELEGRAM", url: tgShareUrl },
-        { text: "💬 WHATSAPP", url: waShareUrl },
-        { text: "🐦 SHARE ON X", url: xShareUrl },
+        { text: "📲 Share on Telegram", url: tgShareUrl },
+        { text: "💬 Share on WhatsApp", url: waShareUrl },
       ],
     ];
 
-    const res = await TelegramBotService.sendMessage(msg, keyboard);
+    const result = await TelegramBotService.sendBroadcastMessage(msg, keyboard);
 
     return NextResponse.json({
       success: true,
-      cron: 'TELEGRAM_MORNING_6AM',
-      channel: TelegramBotService.getChannelId(),
-      todayDate: todayIso,
-      freePicksShown: teaserCount,
-      remainingUncaptured: remainingCount,
-      teaserOdds,
-      fullAccumulatorOdds,
-      telegramResponse: res,
+      message: 'Mivaj Sports Morning Viral Telegram broadcast sent successfully',
+      result,
+      summary: {
+        totalFixtures: fixturesPool.length,
+        teaserCount,
+        remainingCount,
+        teaserOdds,
+        fullAccumulatorOdds,
+        avgProb,
+      },
     });
   } catch (err: any) {
-    console.error('Telegram Morning Cron Error:', err);
+    console.error('Morning Telegram Broadcast Error:', err);
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }

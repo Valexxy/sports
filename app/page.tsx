@@ -7,7 +7,7 @@ import { SportBar, SportFilterType } from '../components/navigation/SportBar';
 import { PolymorphicMatchCard } from '../components/matches/PolymorphicMatchCard';
 import { ScreenPinnedMatchWidget } from '../components/screen-pinned-match-widget';
 import { SecurityHealthBadge } from '../components/security-health-badge';
-import { StadiumSmartPreloader } from '../components/stadium-smart-preloader';
+import { AnimatedPredictionSkeleton } from '../components/animated-prediction-skeleton';
 import { ViralArcadeHubModal } from '../components/viral-arcade-hub-modal';
 import { backgroundGoalChimes } from '../lib/background-goal-chimes';
 import React, { useState, useEffect, useMemo } from 'react';
@@ -61,6 +61,7 @@ import { playerFollowEngine } from '../lib/player-follow-engine';
 import { SettlementLedgerSection } from '../components/settlement-ledger-section';
 import { RealtimeCaptureStatus } from '../components/realtime-capture-status';
 import { MatchAlertScheduler } from '../lib/match-alert-scheduler';
+import { LiveMatchFxEngine } from '../lib/live-match-fx-engine';
 import { sortMatchesByClosestKickoff } from '../lib/match-sorter';
 import { Sparkles, Search, ChevronDown, RefreshCw, Radio, Calendar, Clock, Zap } from 'lucide-react';
 import { GlobalLanguageSwitcher } from '../components/global-language-switcher';
@@ -176,6 +177,7 @@ export default function Home() {
       }
       setLastSynced(new Date());
       MatchAlertScheduler.checkAndTriggerLiveAlerts(data);
+      LiveMatchFxEngine.evaluateLiveMatches(data);
     } catch (err) {
       console.warn('Matches fetch error:', err);
     } finally {
@@ -621,7 +623,7 @@ export default function Home() {
 
             {/* Matches Grid */}
             {loadingMatches ? (
-              <StadiumSmartPreloader />
+              <AnimatedPredictionSkeleton />
             ) : filteredMatches.length > 0 ? (
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">

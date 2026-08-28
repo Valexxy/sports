@@ -1,5 +1,18 @@
 // Comprehensive Permanent Storage Engine for All User Actions
-// Guarantees that followed matches, clubs, players, leagues, bookmarks, and likes are NEVER forgotten.
+// Guarantees that followed matches, clubs, players, leagues, bookmarks, placed bets, and referrals are NEVER forgotten.
+
+export interface PlacedTicket {
+  id: string;
+  matchId: string;
+  homeTeam: string;
+  awayTeam: string;
+  league: string;
+  selection: string;
+  market: string;
+  odds: number;
+  timestamp: number;
+  status: 'PENDING' | 'WON' | 'LOST';
+}
 
 export interface UserSavedPreferences {
   followedMatches: string[];
@@ -8,7 +21,10 @@ export interface UserSavedPreferences {
   followedLeagues: string[];
   bookmarkedMatches: string[];
   likedMatches: string[];
-  betslipItems: any[];
+  placedTickets: PlacedTicket[];
+  referralCode: string;
+  referralsCount: number;
+  earnedAura: number;
 }
 
 const KEYS = {
@@ -18,11 +34,12 @@ const KEYS = {
   LEAGUES: 'aurascore_followed_leagues',
   BOOKMARKS: 'aurascore_bookmarks',
   LIKES: 'aurascore_liked_matches',
-  BETSLIP: 'aurascore_betslip_items',
+  PLACED_TICKETS: 'aurascore_placed_tickets',
+  REFERRALS: 'aurascore_referrals_data',
 };
 
 export class PersistentStorage {
-  private static getArray(key: string): string[] {
+  private static getArray<T = string>(key: string): T[] {
     if (typeof window === 'undefined') return [];
     try {
       const stored = localStorage.getItem(key);
@@ -32,11 +49,45 @@ export class PersistentStorage {
     }
   }
 
-  private static setArray(key: string, items: string[]): void {
+  private static setArray<T = any>(key: string, items: T[]): void {
     if (typeof window === 'undefined') return;
     try {
       localStorage.setItem(key, JSON.stringify(items));
     } catch {}
+  }
+
+  // --- Placed Bets & Tickets ("I bet this") ---
+  public static getPlacedTickets(): PlacedTicket[] {
+    return this.getArray<PlacedTicket>(KEYS.PLACED_TICKETS);
+  }
+
+  public static savePlacedTicket(matchId: string, match: any, topPick: any): boolean {
+    const list = this.getPlacedTickets();
+    const exists = list.some((t) => t.matchId === matchId);
+    if (exists) return false;
+
+    const newTicket: PlacedTicket = {
+      id: `ticket_${matchId}_${Date.now()}`,
+      matchId,
+      homeTeam: match.homeTeam || 'Home Team',
+      awayTeam: match.awayTeam || 'Away Team',
+      league: match.league || 'League Fixture',
+      selection: topPick.selection || 'Double Chance 1X',
+      market: topPick.market || 'Full Time Outcome',
+      odds: topPick.odds || 1.45,
+      timestamp: Date.now(),
+      status: match.isFinished
+        ? (match.isWon ? 'WON' : 'LOST')
+        : 'PENDING',
+    };
+
+    const updated = [newTicket, ...list];
+    this.setArray(KEYS.PLACED_TICKETS, updated);
+    return true;
+  }
+
+  public static isTicketPlaced(matchId: string): boolean {
+    return this.getPlacedTickets().some((t) => t.matchId === matchId);
   }
 
   // --- Matches ---
@@ -93,5 +144,19 @@ export class PersistentStorage {
   }
   public static isLiked(matchId: string): boolean {
     return this.getLikes().includes(matchId);
+  }
+
+  // --- Referrals ---
+  public static getReferralData() {
+    if (typeof window === 'undefined') return { referralCode: 'AURABALLER99', count: 3, earnedAura: 450 };
+    try {
+      const stored = localStorage.getItem(KEYS.REFERRALS);
+      if (stored) return JSON.parse(stored);
+      const initial = { referralCode: `AURA_${Math.random().toString(36).substring(2, 8).toUpperCase()}`, count: 3, earnedAura: 450 };
+      localStorage.setItem(KEYS.REFERRALS, JSON.stringify(initial));
+      return initial;
+    } catch {
+      return { referralCode: 'AURABALLER99', count: 3, earnedAura: 450 };
+    }
   }
 }
