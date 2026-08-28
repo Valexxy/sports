@@ -1,0 +1,35 @@
+name: 🌙 Telegram Nightly Settlement (11PM WAT)
+
+on:
+  schedule:
+    # 10:00 PM UTC = 11:00 PM WAT (Nigeria/West Africa Time)
+    # Final nightly settlement after ALL matches of the day are done
+    - cron: '0 22 * * *'
+  workflow_dispatch:
+
+jobs:
+  nightly-settle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 📡 Trigger Nightly Full Settlement
+        run: |
+          echo "🌙 Triggering Mivaj nightly full settlement at $(date)"
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X GET "https://mivaj.com/api/cron/telegram-settle" \
+            -H "Accept: application/json" \
+            -H "User-Agent: MivajCronBot/1.0" \
+            --max-time 60)
+          echo "Response code: $response"
+          if [ "$response" -ge 200 ] && [ "$response" -lt 300 ]; then
+            echo "✅ Nightly settlement complete!"
+          else
+            echo "⚠️ Warning: received status $response"
+          fi
+
+      - name: 📡 Update data cache for tomorrow
+        run: |
+          echo "🔄 Pre-loading tomorrow's data..."
+          curl -s -X GET "https://mivaj.com/api/cron/update-data" \
+            -H "User-Agent: MivajCronBot/1.0" \
+            --max-time 30 || echo "Data update triggered"

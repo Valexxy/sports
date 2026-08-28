@@ -1,0 +1,33 @@
+name: 🌅 Telegram Morning Predictions (6AM WAT)
+
+on:
+  schedule:
+    # 5:00 AM UTC = 6:00 AM WAT (Nigeria/West Africa Time)
+    - cron: '0 5 * * *'
+  workflow_dispatch:  # Allow manual trigger from GitHub UI
+
+jobs:
+  send-morning-predictions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: 📡 Trigger Morning Predictions Cron
+        run: |
+          echo "🌅 Triggering Mivaj morning predictions at $(date)"
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X GET "https://mivaj.com/api/cron/telegram-morning" \
+            -H "Accept: application/json" \
+            -H "User-Agent: MivajCronBot/1.0" \
+            --max-time 30)
+          echo "Response code: $response"
+          if [ "$response" -ge 200 ] && [ "$response" -lt 300 ]; then
+            echo "✅ Morning predictions sent successfully!"
+          else
+            echo "⚠️ Warning: received status $response"
+          fi
+
+      - name: 🔔 Also trigger daily data update
+        run: |
+          curl -s -X GET "https://mivaj.com/api/cron/daily" \
+            -H "User-Agent: MivajCronBot/1.0" \
+            --max-time 30 || echo "Daily sync triggered"

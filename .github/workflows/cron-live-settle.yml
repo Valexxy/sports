@@ -1,0 +1,28 @@
+name: 🌇 Telegram Live Settlement (7PM WAT)
+
+on:
+  schedule:
+    # 6:00 PM UTC = 7:00 PM WAT (Nigeria/West Africa Time)
+    # Runs after most afternoon games have ended
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+
+jobs:
+  live-settle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: 📡 Trigger Live Settlement Cron
+        run: |
+          echo "🌇 Triggering Mivaj live settlement at $(date)"
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X GET "https://mivaj.com/api/cron/telegram-live-settle" \
+            -H "Accept: application/json" \
+            -H "User-Agent: MivajCronBot/1.0" \
+            --max-time 30)
+          echo "Response code: $response"
+          if [ "$response" -ge 200 ] && [ "$response" -lt 300 ]; then
+            echo "✅ Live settlement triggered successfully!"
+          else
+            echo "⚠️ Warning: received status $response"
+          fi

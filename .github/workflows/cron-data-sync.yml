@@ -1,0 +1,29 @@
+name: ♻️ Data Sync & Cache Refresh (Every 6 Hours)
+
+on:
+  schedule:
+    # Runs 4x daily: midnight, 6AM, noon, 6PM UTC
+    # GitHub Actions allows sub-daily schedules unlike Vercel Hobby
+    - cron: '0 0 * * *'
+    - cron: '0 6 * * *'
+    - cron: '0 12 * * *'
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+
+jobs:
+  data-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: 📡 Refresh Match Data Cache
+        run: |
+          echo "♻️ Triggering data sync at $(date)"
+          curl -s -X GET "https://mivaj.com/api/cron/update-data" \
+            -H "User-Agent: MivajCronBot/1.0" \
+            --max-time 30 || echo "Sync attempt complete"
+
+      - name: 📡 Ping daily route to keep warm
+        run: |
+          curl -s -X GET "https://mivaj.com/api/cron/daily" \
+            -H "User-Agent: MivajCronBot/1.0" \
+            --max-time 15 || echo "Daily ping complete"
