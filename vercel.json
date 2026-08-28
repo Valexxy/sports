@@ -6,11 +6,15 @@
     },
     {
       "path": "/api/cron/update-data",
-      "schedule": "0 12 * * *"
+      "schedule": "0 */4 * * *"
     },
     {
       "path": "/api/cron/telegram-morning",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/telegram-live-settle",
+      "schedule": "*/30 * * * *"
     },
     {
       "path": "/api/cron/telegram-settle",

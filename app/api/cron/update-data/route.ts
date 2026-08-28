@@ -24,10 +24,18 @@ export async function GET(request: Request) {
     await engine.refreshData();
     
     const stats = engine.getAccuracyStats();
+
+    // Trigger instant settlement check for any newly completed matches
+    try {
+      const liveSettleUrl = new URL('/api/cron/telegram-live-settle', request.url);
+      fetch(liveSettleUrl.toString(), {
+        headers: cronSecret ? { 'authorization': `Bearer ${cronSecret}` } : {}
+      }).catch(() => {});
+    } catch (_) {}
     
     return NextResponse.json({
       success: true,
-      message: 'Data updated successfully from free APIs',
+      message: 'Data updated successfully and live settlements synced',
       timestamp: new Date().toISOString(),
       stats: {
         totalMatches: stats.totalPredictions,

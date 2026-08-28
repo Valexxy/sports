@@ -371,10 +371,10 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
 
       {/* 4. Live Crowd Ticket Counter (Realistic Punters Placed Count) */}
       <div className="flex items-center justify-between p-2 rounded-xl bg-black/50 border border-white/5 text-[11px]" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center space-x-1.5 text-gray-300">
-          <Users className="w-3.5 h-3.5 text-gold" />
-          <span>
-            <strong className="text-white font-mono">{bettorCount.toLocaleString()}</strong> Punters Placed This Slip
+        <div className="flex items-center space-x-1.5 text-gray-300 min-w-0 truncate">
+          <Users className="w-3.5 h-3.5 text-gold flex-shrink-0" />
+          <span className="truncate">
+            <strong className="text-white font-mono">{bettorCount.toLocaleString()}</strong> <span className="hidden sm:inline">Punters Placed This Slip</span><span className="sm:hidden">Played</span>
           </span>
         </div>
 

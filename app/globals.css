@@ -10,62 +10,99 @@
   }
 
   body {
-    background-color: #05070B;
+    background-color: #000000;
     color: #F3F4F6;
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     -webkit-tap-highlight-color: transparent;
     padding-bottom: env(safe-area-inset-bottom, 20px);
+    letter-spacing: -0.011em;
   }
 }
 
-/* Crystal-Clear Hardware-Accelerated Glassmorphism — No GPU Rasterization Artifacts */
+/* ═══════════════════════════════════════════════════
+   iOS NATIVE GLASSMORPHISM — SF-grade blur panels
+   ═══════════════════════════════════════════════════ */
 .glass-panel-premium {
-  background: rgba(10, 15, 26, 0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  background: rgba(18, 18, 20, 0.82);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border: 0.5px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 
+    0 0 0 0.5px rgba(255, 255, 255, 0.05),
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.06);
   transform: translateZ(0);
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
 }
 
 .glass-panel {
-  background: rgba(10, 15, 26, 0.88);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  background: rgba(22, 22, 24, 0.78);
+  backdrop-filter: saturate(180%) blur(16px);
+  -webkit-backdrop-filter: saturate(180%) blur(16px);
+  border: 0.5px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 
+    0 0 0 0.5px rgba(255, 255, 255, 0.04),
+    0 4px 24px rgba(0, 0, 0, 0.4);
   transform: translateZ(0);
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
 }
 
+/* iOS-native card surface */
+.ios-card {
+  background: rgba(28, 28, 30, 0.95);
+  border: 0.5px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.3),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.04);
+  transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.2s ease;
+}
+
+.ios-card:active {
+  transform: scale(0.98);
+}
+
+/* iOS grouped table cell */
+.ios-cell {
+  background: rgba(28, 28, 30, 0.95);
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.06);
+  padding: 12px 16px;
+}
+
+.ios-cell:last-child {
+  border-bottom: none;
+}
+
+/* Subtle accent glows */
 .glow-emerald {
-  box-shadow: 0 0 20px rgba(0, 230, 118, 0.2);
+  box-shadow: 0 0 24px rgba(0, 255, 135, 0.12), 0 0 0 0.5px rgba(0, 255, 135, 0.1);
 }
 
 .glow-gold {
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+  box-shadow: 0 0 24px rgba(255, 215, 0, 0.12), 0 0 0 0.5px rgba(255, 215, 0, 0.1);
 }
 
-/* Custom Clean Scrollbars */
+/* ═══════════════════════════════════════════════════
+   iOS SCROLLBAR — Ultra-thin native appearance
+   ═══════════════════════════════════════════════════ */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 3px;
+  height: 3px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #05070B;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 230, 118, 0.3);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 230, 118, 0.6);
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -75,6 +112,10 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ═══════════════════════════════════════════════════
+   ANIMATIONS — 60fps hardware-accelerated
+   ═══════════════════════════════════════════════════ */
 
 /* Broadcast ticker continuous marquee */
 @keyframes tickerMarquee {
@@ -89,22 +130,73 @@
   will-change: transform;
 }
 
-/* Light Theme Override Styles */
+/* iOS fade-in modal animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* iOS slide-up sheet animation */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(100%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Neon Shimmer Gradient */
+@keyframes neonShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.neon-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.02) 20%,
+    rgba(0, 255, 135, 0.1) 50%,
+    rgba(168, 85, 247, 0.1) 60%,
+    rgba(255, 255, 255, 0.02) 80%
+  );
+  background-size: 200% 100%;
+  animation: neonShimmer 2.5s infinite ease-in-out;
+}
+
+/* iOS spring tap feedback */
+.expensive-tap {
+  transition: transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.15s ease;
+}
+
+.expensive-tap:active {
+  transform: scale(0.96);
+}
+
+/* ═══════════════════════════════════════════════════
+   LIGHT THEME — iOS Light Mode Override
+   ═══════════════════════════════════════════════════ */
 .theme-light {
-  background-color: #F8FAFC !important;
-  color: #0F172A !important;
+  background-color: #F2F2F7 !important;
+  color: #000000 !important;
 }
 
 .theme-light .glass-panel-premium,
 .theme-light .glass-panel {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border-color: rgba(0, 0, 0, 0.1) !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
-  color: #0F172A !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: saturate(180%) blur(20px) !important;
+  -webkit-backdrop-filter: saturate(180%) blur(20px) !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+  color: #000000 !important;
 }
 
 .theme-light .bg-void {
-  background-color: #F8FAFC !important;
+  background-color: #F2F2F7 !important;
 }
 
 .theme-light .bg-panel {
@@ -112,15 +204,17 @@
 }
 
 .theme-light .text-white {
-  color: #0F172A !important;
+  color: #000000 !important;
 }
 
 .theme-light .text-gray-300,
 .theme-light .text-gray-400 {
-  color: #475569 !important;
+  color: #3C3C43 !important;
 }
 
-/* Perfect responsive fit on all screens */
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE SAFETY — Zero horizontal overflow
+   ═══════════════════════════════════════════════════ */
 html, body {
   overflow-x: hidden !important;
   max-width: 100vw !important;
@@ -132,45 +226,66 @@ html, body {
   box-sizing: inherit !important;
 }
 
-/* Native Mobile App Touch & Safe-Area Constraints */
+/* iOS Safe Area Insets */
 html, body {
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
   -webkit-tap-highlight-color: transparent;
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 .safe-bottom-dock {
   padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
 }
 
-/* Neon Shimmer Gradient Animation */
-@keyframes neonShimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
+/* iOS-native section headers */
+.ios-section-header {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(235, 235, 245, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 8px 16px 6px;
 }
 
-.neon-shimmer {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.02) 20%,
-    rgba(0, 230, 118, 0.15) 50%,
-    rgba(168, 85, 247, 0.15) 60%,
-    rgba(255, 255, 255, 0.02) 80%
-  );
-  background-size: 200% 100%;
-  animation: neonShimmer 2.2s infinite ease-in-out;
+/* iOS-native separator */
+.ios-separator {
+  height: 0.5px;
+  background: rgba(255, 255, 255, 0.06);
+  margin-left: 16px;
 }
 
-.expensive-tap {
-  transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.12s ease;
+/* iOS pill badge */
+.ios-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
-.expensive-tap:active {
-  transform: scale(0.95);
+/* iOS large title */
+.ios-large-title {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+/* iOS medium title */
+.ios-medium-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+
+/* Dynamic Island notch-aware positioning */
+.dynamic-island-safe {
+  margin-top: max(env(safe-area-inset-top), 12px);
 }

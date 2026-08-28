@@ -559,7 +559,16 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onOpenReceipt, onOp
           onClick={() => setExpandedOdds(!expandedOdds)}
           className="text-xs text-gray-400 hover:text-white flex items-center space-x-1 font-mono transition-all"
         >
-          <span>{expandedOdds ? 'Hide Bookmaker Odds' : '⚡ Compare Live Bookmaker Odds (SportyBet, Bet9ja, 1xBet)'}</span>
+          <span>
+            {expandedOdds ? (
+              'Hide Odds'
+            ) : (
+              <>
+                <span className="hidden sm:inline">⚡ Compare Live Odds (SportyBet, Bet9ja, 1xBet)</span>
+                <span className="sm:hidden">⚡ Compare Live Odds</span>
+              </>
+            )}
+          </span>
           {expandedOdds ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
         </button>
 
