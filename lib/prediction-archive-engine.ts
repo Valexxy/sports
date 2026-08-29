@@ -1,4 +1,5 @@
 import { MatchData } from './sports-api';
+import { ProfessionalSettlementEngine } from './settlement-engine';
 
 export interface ArchivedMatch {
   id: string;
@@ -182,62 +183,14 @@ export function evaluatePredictionResult(
   homeScore: number,
   awayScore: number
 ): 'WON' | 'LOST' {
-  const sel = (selection || '').toLowerCase();
-  const mkt = (market || '').toLowerCase();
-  const totalGoals = homeScore + awayScore;
-  const homeWin = homeScore > awayScore;
-  const awayWin = awayScore > homeScore;
-  const draw = homeScore === awayScore;
-  const homeNorm = homeTeam.toLowerCase();
-  const awayNorm = awayTeam.toLowerCase();
-
-  // If selection is e.g. "Rams Win (Settled)" or "Giants (Settled)" or "Arsenal (Settled)" or "Draw (Settled)"
-  if (sel.includes('(settled)')) {
-    if (sel.includes(homeNorm)) return homeWin ? 'WON' : (sel.includes('1x') || sel.includes('or draw') ? (homeScore >= awayScore ? 'WON' : 'LOST') : 'LOST');
-    if (sel.includes(awayNorm)) return awayWin ? 'WON' : (sel.includes('x2') || sel.includes('or draw') ? (awayScore >= homeScore ? 'WON' : 'LOST') : 'LOST');
-    if (sel.includes('draw')) return draw ? 'WON' : 'LOST';
-    if (sel.includes('win (1)') || sel.includes('to win (1)')) return homeWin ? 'WON' : 'LOST';
-    if (sel.includes('win (2)') || sel.includes('to win (2)')) return awayWin ? 'WON' : 'LOST';
-    return (homeWin && sel.includes(homeNorm)) || (awayWin && sel.includes(awayNorm)) ? 'WON' : 'LOST';
-  }
-
-  // Over / Under Markets
-  if (sel.includes('over 2.5') || mkt.includes('over 2.5')) return totalGoals >= 3 ? 'WON' : 'LOST';
-  if (sel.includes('over 1.5') || mkt.includes('over 1.5')) return totalGoals >= 2 ? 'WON' : 'LOST';
-  if (sel.includes('over 0.5')) return totalGoals >= 1 ? 'WON' : 'LOST';
-  if (sel.includes('under 2.5') || mkt.includes('under 2.5')) return totalGoals < 3 ? 'WON' : 'LOST';
-  if (sel.includes('under 3.5')) return totalGoals < 4 ? 'WON' : 'LOST';
-
-  // Both Teams to Score (BTTS)
-  if (sel.includes('btts') || sel.includes('both teams')) return (homeScore > 0 && awayScore > 0) ? 'WON' : 'LOST';
-
-  // Double Chance Markets
-  if (sel.includes('1x') || sel.includes('home or draw') || (sel.includes(homeNorm) && sel.includes('draw'))) {
-    return homeScore >= awayScore ? 'WON' : 'LOST';
-  }
-  if (sel.includes('x2') || sel.includes('away or draw') || (sel.includes(awayNorm) && sel.includes('draw'))) {
-    return awayScore >= homeScore ? 'WON' : 'LOST';
-  }
-  if (sel.includes('12') || sel.includes('any team to win')) {
-    return homeScore !== awayScore ? 'WON' : 'LOST';
-  }
-
-  // Straight Win / 1X2
-  if (sel.includes('win (1)') || sel.includes('to win (1)') || sel.includes(`${homeNorm} win`) || (sel.includes(homeNorm) && !sel.includes(awayNorm))) {
-    return homeWin ? 'WON' : 'LOST';
-  }
-  if (sel.includes('win (2)') || sel.includes('to win (2)') || sel.includes(`${awayNorm} win`) || (sel.includes(awayNorm) && !sel.includes(homeNorm))) {
-    return awayWin ? 'WON' : 'LOST';
-  }
-  if (sel.includes('draw') || sel === 'x' || sel === 'draw (x)') {
-    return draw ? 'WON' : 'LOST';
-  }
-
-  // Fallback
-  if (sel.includes(homeNorm.slice(0, 5))) return homeScore >= awayScore ? 'WON' : 'LOST';
-  if (sel.includes(awayNorm.slice(0, 5))) return awayScore >= homeScore ? 'WON' : 'LOST';
-
-  return homeWin ? 'WON' : 'LOST';
+  return ProfessionalSettlementEngine.evaluate(
+    selection,
+    market,
+    homeTeam,
+    awayTeam,
+    homeScore,
+    awayScore
+  );
 }
 
 function formatBettingSelection(m: MatchData): { selection: string; market: string; odds: number; probability: number } {

@@ -176,7 +176,9 @@ export class LocationIntelligenceEngine {
 
       // 4. Determine Regional Language & Local Dialect Greeting
       let suggestedLanguage: LanguageCode = 'pidgin';
-      let localGreeting = `How far ${city}! Welcome to Mivaj Sports! 👑`;
+      let localGreeting = city.includes('Match Hub') || !city
+        ? "Welcome, Punter! Today's Premier Match Intelligence! 👑"
+        : `How far ${city}! Welcome to Mivaj Sports! 👑`;
 
       const normCity = city.toLowerCase();
       const normState = state.toLowerCase();
@@ -252,11 +254,11 @@ export class LocationIntelligenceEngine {
 
   private static getFallbackIntel(): LocationIntelData {
     return {
-      city: 'LOCAL ARENA',
-      principalSubdivision: 'Match Arena',
+      city: 'Nigeria Match Hub',
+      principalSubdivision: 'Nigeria',
       countryName: 'Nigeria',
       countryCode: 'NG',
-      formattedAddress: 'Local Match Arena',
+      formattedAddress: 'Nigeria Match Center',
       latitude: 9.0765,
       longitude: 7.3986,
       temperature: 28,
@@ -264,7 +266,7 @@ export class LocationIntelligenceEngine {
       weatherCode: 0,
       windSpeed: 12,
       suggestedLanguage: 'pidgin',
-      localGreeting: 'How far! Welcome to Mivaj Sports! 👑',
+      localGreeting: 'Welcome, Punter! Today\'s Premier Match Intelligence! 👑',
       deviceName: detectDeviceName(),
       userNickname: this.getUserNickname(),
       pitchCondition: 'Firm Match Turf ☀️',

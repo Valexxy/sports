@@ -161,7 +161,7 @@ export const EnvironmentIntelHeader: React.FC = () => {
             <MapPin className="w-3.5 h-3.5 text-stadiumGreen animate-pulse flex-shrink-0" />
             <span className="font-bold truncate max-w-[210px] sm:max-w-[280px]">
               {intel.houseNumber ? `No. ${intel.houseNumber}, ` : ''}
-              {intel.street || intel.neighbourhood || intel.city}, {intel.countryName}
+              {intel.street || intel.neighbourhood || (intel.city && !intel.city.includes('Match Hub') && !intel.city.includes('LOCAL') ? `${intel.city}, ` : '')}{intel.countryName}
             </span>
             <span className="text-[9px] text-stadiumGreen">
               (Auto GPS) 📍

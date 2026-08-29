@@ -66,7 +66,7 @@ export const PhoneHardwareBanner: React.FC = () => {
 <html>
 <head>
   <meta charset="utf-8">
-  <title>AuraScore Stadium 2.0</title>
+  <title>Mivaj Sports Pro Live</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -76,7 +76,7 @@ export const PhoneHardwareBanner: React.FC = () => {
 </head>
 <body style="background:#05070B;color:#00FFA3;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;text-align:center;">
   <div>
-    <h2>⚡ Launching AuraScore Stadium App...</h2>
+    <h2>⚡ Launching Mivaj Sports App...</h2>
     <p style="color:#aaa;">Opening live fixtures and predictions</p>
   </div>
   <script>window.location.href = "${window.location.origin}/";</script>
@@ -87,7 +87,7 @@ export const PhoneHardwareBanner: React.FC = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'AuraScore-Stadium-App.html';
+      a.download = 'Mivaj-Sports-App.html';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -155,13 +155,13 @@ export const PhoneHardwareBanner: React.FC = () => {
         <div className="flex items-center space-x-2.5 min-w-0">
           <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-stadiumGreen via-gold to-cyberPurple p-0.5 flex-shrink-0 shadow-lg">
             <div className="w-full h-full bg-void rounded-[14px] flex items-center justify-center p-1">
-              <img src="/logo.svg" alt="AuraScore" className="w-full h-full object-contain" />
+              <img src="/logo.svg" alt="Mivaj Sports" className="w-full h-full object-contain" />
             </div>
           </div>
           <div className="min-w-0">
             <div className="flex items-center space-x-1.5">
               <span className="font-black text-white text-xs truncate">
-                {justCompleted ? 'App Downloaded ✓' : isDownloading ? 'Downloading App...' : 'Download AuraScore'}
+                {justCompleted ? 'App Installed ✓' : isDownloading ? 'Downloading App...' : 'Download Mivaj App'}
               </span>
               <span className="px-1.5 py-0.2 rounded bg-stadiumGreen text-black font-black text-[9px]">
                 {justCompleted ? 'READY' : 'AUTOMATIC'}

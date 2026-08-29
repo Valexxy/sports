@@ -165,7 +165,7 @@ export async function getUltraPreciseLocation(): Promise<HyperlocalIntelligence>
           houseNumber: geo.houseNumber || '',
           street: geo.street || '',
           neighbourhood: geo.neighbourhood || '',
-          city: geo.city || 'LOCAL ARENA',
+          city: geo.city || geo.state || 'Nigeria Match Hub',
           state: geo.state || '',
           country: geo.country || 'Nigeria',
           countryFlag: '🇳🇬',
@@ -190,62 +190,62 @@ export async function getUltraPreciseLocation(): Promise<HyperlocalIntelligence>
         return result;
       }
     } catch (gpsError) {
-      console.log('[PrecisionLocation] GPS prompt bypassed or timed out, trying network resolution...');
+      console.log('[PrecisionLocation] GPS prompt bypassed or timed out, trying server edge geo...');
     }
   }
 
-  // 2. Network IP Geolocation via ipwho.is (Never forces Lagos)
+  // 2. Try Internal /api/location (Reads Vercel Edge Geolocation headers directly)
   try {
-    const res = await fetch('https://ipwho.is/');
-    const data = await res.json();
+    const edgeRes = await fetch('/api/location', { cache: 'no-store' });
+    if (edgeRes.ok) {
+      const edgeData = await edgeRes.json();
+      if (edgeData && edgeData.city && edgeData.city !== 'LOCAL ARENA') {
+        const realCity = edgeData.city;
+        const region = edgeData.region || '';
+        const country = edgeData.country || 'Nigeria';
+        const lat = edgeData.latitude || 9.0765;
+        const lon = edgeData.longitude || 7.3986;
 
-    if (data && data.success) {
-      const realCity = (data.city || data.region || 'Local Arena').toUpperCase();
-      const country = data.country || 'Nigeria';
-      const flag = data.flag?.emoji || '🇳🇬';
-      const lat = data.latitude || 9.0765;
-      const lon = data.longitude || 7.3986;
-      const isp = data.connection?.isp || data.connection?.org || 'Network Relay';
+        const weather = await fetchLocalWeatherIntel(lat, lon);
 
-      const weather = await fetchLocalWeatherIntel(lat, lon);
+        const result: HyperlocalIntelligence = {
+          city: realCity,
+          state: region,
+          country,
+          countryFlag: '🇳🇬',
+          formattedAddress: `${realCity}${region ? ', ' + region : ''}`,
+          latitude: lat,
+          longitude: lon,
+          isGpsPrecise: false,
+          formattedTimezone: 'WAT (UTC+1)',
+          isp: 'Edge Geo Verified',
+          weatherSummary: weather.weather,
+          temperatureC: weather.temp,
+          pitchCondition: weather.pitch,
+          viewingCentersNearby: `Sports Lounges & Match Viewing in ${realCity} 📺`,
+          matchLightingKickoff: 'Evening Match Lighting (18:30 WAT)',
+        };
 
-      const result: HyperlocalIntelligence = {
-        city: realCity,
-        state: data.region || '',
-        country,
-        countryFlag: flag,
-        formattedAddress: `${realCity}, ${data.region || country}`,
-        latitude: lat,
-        longitude: lon,
-        isGpsPrecise: false,
-        formattedTimezone: `${data.timezone?.abbr || 'WAT'} (UTC${data.timezone?.utc || '+01:00'})`,
-        isp,
-        weatherSummary: weather.weather,
-        temperatureC: weather.temp,
-        pitchCondition: weather.pitch,
-        viewingCentersNearby: `Sports Lounges & Match Viewing in ${realCity} 📺`,
-        matchLightingKickoff: 'Evening Match Lighting (18:30 WAT)',
-      };
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...result, _cachedAt: Date.now() }));
+        } catch {}
 
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...result, _cachedAt: Date.now() }));
-      } catch {}
-
-      return result;
+        return result;
+      }
     }
-  } catch (err) {
-    console.warn('[PrecisionLocation] ipwho.is network error');
+  } catch (e) {
+    console.warn('[PrecisionLocation] /api/location error');
   }
 
-  // 3. Fallback without forcing Lagos
+  // 3. Fallback: Nigeria Match Hub (Never "LOCAL ARENA")
   return {
-    city: 'LOCAL ARENA',
+    city: 'Nigeria Match Hub',
     country: 'Nigeria',
     countryFlag: '🇳🇬',
-    formattedAddress: 'Local Match Arena',
+    formattedAddress: 'Nigeria Match Center',
     isGpsPrecise: false,
     formattedTimezone: 'WAT (UTC+1)',
-    isp: 'Local Mobile Network',
+    isp: 'Local Network',
     weatherSummary: '28°C Warm ⛅',
     temperatureC: 28,
     pitchCondition: 'Firm Match Turf ☀️',

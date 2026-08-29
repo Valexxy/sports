@@ -296,8 +296,18 @@ async function fetchSingleEspnLeague(ep: typeof ESPN_LEAGUES[0]): Promise<MatchD
       const status: 'LIVE' | 'SCHEDULED' | 'FINISHED' = isLive ? 'LIVE' : isFinished ? 'FINISHED' : 'SCHEDULED';
 
       // Scheduled matches ALWAYS have 0-0 score before kickoff
-      const homeScore = status === 'SCHEDULED' ? 0 : parseInt(home.score || '0', 10);
-      const awayScore = status === 'SCHEDULED' ? 0 : parseInt(away.score || '0', 10);
+      let homeScore = status === 'SCHEDULED' ? 0 : parseInt(home.score || '0', 10);
+      let awayScore = status === 'SCHEDULED' ? 0 : parseInt(away.score || '0', 10);
+
+      // Ingest scores from status detail if home.score was missing on finished matches
+      if (homeScore === 0 && awayScore === 0 && (isFinished || isLive)) {
+        const detail = ev.status?.type?.shortDetail || ev.status?.type?.description || '';
+        const m = detail.match(/(\d+)\s*[-:]\s*(\d+)/);
+        if (m) {
+          homeScore = parseInt(m[1], 10);
+          awayScore = parseInt(m[2], 10);
+        }
+      }
 
       // Sport-specific period and clock parsing
       const isBaseball = ep.sport === 'BASEBALL' || ep.code === 'mlb';

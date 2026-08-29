@@ -30,6 +30,7 @@ import { stadiumAudio } from '../lib/sound-synthesizer';
 import confetti from 'canvas-confetti';
 import { PersistentStorage } from '../lib/persistent-storage-engine';
 import { UserProfileEngine } from '../lib/user-profile-engine';
+import { ProfessionalSettlementEngine } from '../lib/settlement-engine';
 import { LiveStadiumCommentaryModal } from './live-stadium-commentary-modal';
 import { HeadToHeadArenaModal } from './head-to-head-arena-modal';
 import { useModalBackHandler } from '../lib/history-back-navigation';
@@ -113,22 +114,7 @@ function calculateRealisticBettors(match: MatchData): number {
   return base;
 }
 
-function checkPredictionWon(match: MatchData): boolean {
-  if (match.status !== 'FINISHED') return false;
-  const hScore = match.homeScore ?? 0;
-  const aScore = match.awayScore ?? 0;
-  const sel = (match.prediction?.topPick?.selection || '').toLowerCase();
-  const mkt = (match.prediction?.topPick?.market || '').toLowerCase();
 
-  if (sel.includes('over 2.5') || mkt.includes('over 2.5')) return (hScore + aScore) >= 3;
-  if (sel.includes('over 1.5') || mkt.includes('over 1.5')) return (hScore + aScore) >= 2;
-  if (sel.includes('btts') || sel.includes('both')) return hScore > 0 && aScore > 0;
-  if (sel.includes('draw')) return hScore === aScore;
-  if (sel.includes('1x') || sel.includes('or draw')) return hScore >= aScore;
-  if (sel.includes(match.homeTeam.toLowerCase()) || sel.includes('home')) return hScore > aScore;
-  if (sel.includes(match.awayTeam.toLowerCase()) || sel.includes('away')) return aScore > hScore;
-  return hScore >= aScore;
-}
 
 export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   match,
@@ -180,21 +166,6 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
     }
   }, [match.id]);
 
-  // Accurate real-time status calculation (respects elapsed kickoff time for past matches)
-  const matchTimestamp = match.utcDate ? new Date(match.utcDate).getTime() : Date.now();
-  const timeDiff = Date.now() - matchTimestamp;
-  const isFinished = match.status === 'FINISHED' || match.matchTime === 'FT' || match.matchTime === 'Final' || timeDiff > 125 * 60000;
-  const isLive = !isFinished && (match.status === 'LIVE' || (timeDiff >= 0 && timeDiff <= 125 * 60000));
-  const isUpcoming = !isFinished && !isLive;
-
-  // Local followed state: clicking registers immediately and syncs with PersistentStorage
-  const [localFollowed, setLocalFollowed] = useState<boolean>(() => {
-    return PersistentStorage.isMatchFollowed(match.id) || (followedMatchIds || []).includes(match.id);
-  });
-  const isFollowed = localFollowed;
-
-  const isWon = isFinished && checkPredictionWon(match);
-
   const p = match.prediction || {
     homeWinProb: 0.52,
     drawProb: 0.24,
@@ -220,6 +191,37 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
     kellyStake: 5,
   };
 
+  // Concise direct terms (e.g. 1X, 2X, Over 1.5, 1, 2) without verbose long phrasing
+  const cleanPickSelection = useMemo(() => {
+    const raw = topPick.selection || '1X';
+    const m1X = raw.match(/(.+) or Draw \(1X\)/i);
+    if (m1X) return `1X (${m1X[1].trim()})`;
+    const mX2 = raw.match(/Draw or (.+) \(X2\)/i) || raw.match(/(.+) or Draw \(X2\)/i);
+    if (mX2) return `2X (${mX2[1].trim()})`;
+    return raw;
+  }, [topPick.selection]);
+
+  // Professional tipster settlement evaluation
+  const settlement = useMemo(() => {
+    return ProfessionalSettlementEngine.settleMatch(match, cleanPickSelection);
+  }, [match, cleanPickSelection]);
+
+  // Accurate real-time status calculation (respects elapsed kickoff time for past matches)
+  const matchTimestamp = match.utcDate ? new Date(match.utcDate).getTime() : Date.now();
+  const timeDiff = Date.now() - matchTimestamp;
+  const isFinished = settlement.isFinished || timeDiff > 120 * 60000;
+  const isLive = !isFinished && (match.status === 'LIVE' || (timeDiff >= 0 && timeDiff <= 120 * 60000));
+  const isUpcoming = !isFinished && !isLive;
+  const isWon = isFinished && settlement.isWon;
+  const resolvedHomeScore = settlement.homeScore;
+  const resolvedAwayScore = settlement.awayScore;
+
+  // Local followed state: clicking registers immediately and syncs with PersistentStorage
+  const [localFollowed, setLocalFollowed] = useState<boolean>(() => {
+    return PersistentStorage.isMatchFollowed(match.id) || (followedMatchIds || []).includes(match.id);
+  });
+  const isFollowed = localFollowed;
+
   // Live Auto Odds Micro-Changer (simulates real-world market movements)
   const [liveOdds, setLiveOdds] = useState<number>(() => topPick.odds || 1.35);
   const [oddsDirection, setOddsDirection] = useState<'UP' | 'DOWN' | null>(null);
@@ -238,16 +240,6 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
 
     return () => clearInterval(interval);
   }, [match.id, isFinished]);
-
-  // Concise direct terms (e.g. 1X, 2X, Over 1.5, 1, 2) without verbose long phrasing
-  const cleanPickSelection = useMemo(() => {
-    const raw = topPick.selection || '1X';
-    const m1X = raw.match(/(.+) or Draw \(1X\)/i);
-    if (m1X) return `1X (${m1X[1].trim()})`;
-    const mX2 = raw.match(/Draw or (.+) \(X2\)/i) || raw.match(/(.+) or Draw \(X2\)/i);
-    if (mX2) return `2X (${mX2[1].trim()})`;
-    return raw;
-  }, [topPick.selection]);
 
   const dateLabel = getMatchDateLabel(match.utcDate);
   const countdown = getMatchCountdown(match.utcDate, match.status);
@@ -430,7 +422,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
                   {isWon ? 'PREDICTION WON ✓ VERIFIED' : 'PREDICTION SETTLED'}
                 </span>
                 <span className="text-white font-black text-xs block">
-                  Pick: <strong className="text-gold">{cleanPickSelection}</strong> @ {topPick.odds} (FT: {match.homeScore ?? 0}-{match.awayScore ?? 0})
+                  Pick: <strong className="text-gold">{cleanPickSelection}</strong> @ {topPick.odds} (FT: {resolvedHomeScore}-{resolvedAwayScore})
                 </span>
               </div>
             </div>
@@ -491,9 +483,9 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
           <div className="flex flex-col items-center justify-center px-2 flex-shrink-0 min-w-[80px] text-center">
             {isLive || isFinished ? (
               <div className="font-mono font-black text-base sm:text-lg text-white flex items-center space-x-1.5 bg-black/70 px-3.5 py-1 rounded-2xl border border-white/10 shadow-inner">
-                <span className={isFinished ? 'text-white' : 'text-stadiumGreen'}>{match.homeScore ?? 0}</span>
+                <span className={isFinished ? 'text-white' : 'text-stadiumGreen'}>{resolvedHomeScore}</span>
                 <span className="text-gray-500">-</span>
-                <span className={isFinished ? 'text-white' : 'text-stadiumGreen'}>{match.awayScore ?? 0}</span>
+                <span className={isFinished ? 'text-white' : 'text-stadiumGreen'}>{resolvedAwayScore}</span>
               </div>
             ) : (
               <span className="font-mono font-black text-sm text-gold bg-black/70 px-3.5 py-1 rounded-2xl border border-white/10 shadow-inner">

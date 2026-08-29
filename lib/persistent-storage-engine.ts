@@ -2,6 +2,7 @@
 // Guarantees that followed matches, clubs, players, leagues, bookmarks, placed bets, and referrals are NEVER forgotten.
 
 import { evaluatePredictionResult } from './prediction-archive-engine';
+import { ProfessionalSettlementEngine } from './settlement-engine';
 
 export interface PlacedTicket {
   id: string;
@@ -133,13 +134,12 @@ export class PersistentStorage {
 
       if (!match) return t;
 
-      const isFinished = match.status === 'FINISHED' || match.state === 'PLAYED' || match.matchTime === 'FT';
+      const isFinished = ProfessionalSettlementEngine.isMatchFinished(match);
       if (!isFinished) return t;
 
-      const hScore = typeof match.homeScore === 'number' ? match.homeScore : 0;
-      const aScore = typeof match.awayScore === 'number' ? match.awayScore : 0;
+      const { homeScore: hScore, awayScore: aScore } = ProfessionalSettlementEngine.extractScores(match);
 
-      const outcome = evaluatePredictionResult(
+      const outcome = ProfessionalSettlementEngine.evaluate(
         t.selection,
         t.market,
         t.homeTeam,

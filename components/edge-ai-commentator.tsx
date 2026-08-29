@@ -175,9 +175,9 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
         {
           minNum: 0,
           min: 'PRE',
-          icon: '⏳',
-          title: `Live Match Kickoff: ${resolvedTime}`,
-          text: `Play-by-play match commentary, live cards, substitutions & goal alerts commence immediately at opening whistle.`,
+          icon: '⚡',
+          title: 'Tactical Setup & Expected Match Tempo',
+          text: 'Both squads expected to contest physical duels in central midfield. High-pressing transitions will dominate early possessions.',
           type: 'info',
         },
       ];
