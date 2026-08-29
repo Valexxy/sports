@@ -12,6 +12,7 @@ import { warriAudio } from '../../lib/warri-commentary-engine';
 import { phoneHardware } from '../../lib/phone-hardware-engine';
 import { adminChat, ChatConversation } from '../../lib/admin-chat-engine';
 import confetti from 'canvas-confetti';
+import { AdminUserManagementConsole } from '../../components/admin-user-management-console';
 
 export default function AdminCommandCenterPage() {
   const [activeTab, setActiveTab] = useState<'TIPSTERS' | 'VAULT' | 'MATCHES' | 'GROWTH' | 'CHAT' | 'USERS' | 'TRANSACTIONS' | 'SETTINGS'>('TIPSTERS');
@@ -502,77 +503,27 @@ export default function AdminCommandCenterPage() {
         </section>
       )}
 
-      {/* 6. USER ACCOUNTS & DATABASE MANAGEMENT */}
+      {/* 6. USER ACCOUNTS & ENTERPRISE PAM DIRECTORY */}
       {activeTab === 'USERS' && (
         <section className="glass-panel-premium rounded-3xl border border-white/10 p-5 space-y-4 shadow-2xl">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
-            <div>
-              <h2 className="font-black text-sm text-white">USER ACCOUNTS & AUTHENTICATION DIRECTORY</h2>
-              <p className="text-[10px] text-gray-400">Total registered members and account moderation controls</p>
-            </div>
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search registered user..."
-                value={userSearch}
-                onChange={(e) => setUserSearch(e.target.value)}
-                className="pl-8 pr-3 py-1.5 rounded-xl bg-black/80 border border-white/10 text-white placeholder-gray-500 font-mono text-xs focus:outline-none"
-              />
-            </div>
+          <div className="border-b border-white/10 pb-3">
+            <h2 className="font-black text-sm sm:text-base text-white flex items-center space-x-2">
+              <Shield className="w-5 h-5 text-stadiumGreen" />
+              <span>MILITARY-GRADE ENTERPRISE USER MANAGEMENT CONSOLE</span>
+            </h2>
+            <p className="text-[10px] text-gray-400">
+              Real-time user intelligence, full personal contacts, club streak telemetry, CSV/JSON exports, and in-place dossier controls
+            </p>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="border-b border-white/10 text-gray-400 text-[10px]">
-                  <th className="py-2.5 px-3">USER ID</th>
-                  <th className="py-2.5 px-3">USERNAME / HANDLE</th>
-                  <th className="py-2.5 px-3">AURA BALANCE</th>
-                  <th className="py-2.5 px-3">ROLE / TIER</th>
-                  <th className="py-2.5 px-3">STATUS</th>
-                  <th className="py-2.5 px-3 text-right">ADMIN ACTION</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5 font-mono">
-                {(dbUsers.length > 0 ? dbUsers : [
-                  { id: 'u-1', username: 'james', email: 'james@mivaj.com', aura_balance: 1450, role: 'MEMBER', is_suspended: false },
-                  { id: 'u-2', username: 'OracleMaster', email: 'oracle@mivaj.com', aura_balance: 148500, role: 'BETTING_KING', is_suspended: false },
-                  { id: 'u-3', username: 'FootballProphet', email: 'prophet@mivaj.com', aura_balance: 92400, role: 'MASTER_ORACLE', is_suspended: false },
-                ])
-                  .filter((u) => !userSearch || (u.username && u.username.toLowerCase().includes(userSearch.toLowerCase())))
-                  .map((u) => (
-                    <tr key={u.id} className="hover:bg-white/5 transition-colors">
-                      <td className="py-3 px-3 text-gray-500 text-[10px]">{u.id}</td>
-                      <td className="py-3 px-3 font-bold text-white">{u.username}</td>
-                      <td className="py-3 px-3 text-gold font-bold">{(u.aura_balance || 500).toLocaleString()} AURA</td>
-                      <td className="py-3 px-3">
-                        <span className="px-2 py-0.5 rounded bg-white/10 text-gray-300 text-[9px] font-bold">
-                          {u.role || 'MEMBER'}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3">
-                        <span className={`px-2 py-0.5 rounded text-[9px] font-black ${
-                          u.is_suspended ? 'bg-crimson/20 text-crimson' : 'bg-stadiumGreen/20 text-stadiumGreen'
-                        }`}>
-                          {u.is_suspended ? 'SUSPENDED' : 'ACTIVE'}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 text-right space-x-1.5">
-                        <button
-                          onClick={() => handleUserAction(u.id, u.is_suspended ? 'ACTIVATE' : 'SUSPEND', u.username)}
-                          className={`px-2 py-1 rounded text-[10px] font-bold transition-all ${
-                            u.is_suspended ? 'bg-stadiumGreen/20 text-stadiumGreen' : 'bg-crimson/20 text-crimson hover:bg-crimson hover:text-white'
-                          }`}
-                        >
-                          {u.is_suspended ? 'Re-activate' : 'Suspend'}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
+          <AdminUserManagementConsole
+            users={dbUsers}
+            onRefresh={fetchAdminData}
+            onActionStatus={(msg) => {
+              setAdminActionStatus(msg);
+              setTimeout(() => setAdminActionStatus(null), 4000);
+            }}
+          />
         </section>
       )}
 

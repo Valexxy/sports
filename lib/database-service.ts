@@ -1,18 +1,28 @@
 export interface DbUser {
   id: string;
   username: string;
+  fullName?: string;
   email: string;
   phone?: string;
+  whatsappNumber?: string;
+  telegramHandle?: string;
   avatar: string;
   club: string;
+  supporter_streak_days?: number;
+  country?: string;
+  city?: string;
+  birth_date?: string;
+  bio?: string;
   aura_balance: number;
   naira_balance: number;
   vip_tier: string;
-  role: 'SUPER_ADMIN' | 'ADMIN' | 'MODERATOR' | 'PLATINUM PRODIGY 👑' | 'GOLD INFLUENCER ⚡' | 'STADIUM MEMBER';
+  role: 'SUPER_ADMIN' | 'ADMIN' | 'MODERATOR' | 'PLATINUM PRODIGY 👑' | 'GOLD INFLUENCER ⚡' | 'STADIUM MEMBER' | string;
   status: 'ACTIVE' | 'SUSPENDED' | 'BANNED' | 'PENDING_KYC';
   total_picks: number;
   win_rate: number;
   created_at: string;
+  last_active?: string;
+  ip_address?: string;
   notes?: string;
 }
 
@@ -105,10 +115,18 @@ class PersistentDatabaseStore {
       {
         id: 'usr-root',
         username: 'azunnaukah',
+        fullName: 'Val Azunnaukah',
         email: 'azunnaukah@gmail.com',
         phone: '+234 807 201 5725',
+        whatsappNumber: '+234 807 201 5725',
+        telegramHandle: '@azunnaukah',
         avatar: '⚡',
         club: 'Arsenal',
+        supporter_streak_days: 14,
+        country: 'Nigeria',
+        city: 'Port Harcourt',
+        birth_date: '1990-08-15',
+        bio: 'Root Owner, Executive Director & Lead Quantitative Architect',
         aura_balance: 50000,
         naira_balance: 135000,
         vip_tier: 'PLATINUM PRODIGY 👑',
@@ -117,15 +135,25 @@ class PersistentDatabaseStore {
         total_picks: 420,
         win_rate: 94.8,
         created_at: '2026-08-24T10:00:00Z',
+        last_active: 'Just now',
+        ip_address: '102.89.44.12 (Port Harcourt, NG)',
         notes: 'Root Owner & Executive Director',
       },
       {
         id: 'usr-002',
         username: 'CyberStriker_99',
+        fullName: 'Victor Chukwuemeka',
         email: 'striker99@mivaj.com',
         phone: '+234 803 111 2233',
+        whatsappNumber: '+234 803 111 2233',
+        telegramHandle: '@cyberstriker_99',
         avatar: '🦁',
         club: 'Chelsea',
+        supporter_streak_days: 28,
+        country: 'Nigeria',
+        city: 'Lagos',
+        birth_date: '1996-03-22',
+        bio: 'Grassroots football betting influencer & high-yield accumulator strategist',
         aura_balance: 3450,
         naira_balance: 15000,
         vip_tier: 'GOLD INFLUENCER ⚡',
@@ -134,15 +162,25 @@ class PersistentDatabaseStore {
         total_picks: 84,
         win_rate: 88.2,
         created_at: '2026-08-24T11:30:00Z',
+        last_active: '5m ago',
+        ip_address: '105.112.38.99 (Lagos, NG)',
         notes: 'Top performing grassroots influencer',
       },
       {
         id: 'usr-003',
         username: 'Tobi_BetMaster',
+        fullName: 'Tobi Adeleke',
         email: 'tobi@gmail.com',
         phone: '+234 814 999 8888',
+        whatsappNumber: '+234 814 999 8888',
+        telegramHandle: '@tobi_adeleke',
         avatar: '👑',
         club: 'Real Madrid',
+        supporter_streak_days: 7,
+        country: 'Nigeria',
+        city: 'Abuja',
+        birth_date: '1999-11-10',
+        bio: 'Hala Madrid! Follow for daily verified 2-odds bankers',
         aura_balance: 1200,
         naira_balance: 5000,
         vip_tier: 'STADIUM MEMBER',
@@ -151,14 +189,24 @@ class PersistentDatabaseStore {
         total_picks: 32,
         win_rate: 76.5,
         created_at: '2026-08-23T14:15:00Z',
+        last_active: '1h ago',
+        ip_address: '197.210.65.14 (Abuja, NG)',
       },
       {
         id: 'usr-004',
         username: 'Emeka_Sharp',
+        fullName: 'Emeka Nwosu',
         email: 'emeka@gmail.com',
         phone: '+234 802 333 4444',
+        whatsappNumber: '+234 802 333 4444',
+        telegramHandle: '@emeka_sharp',
         avatar: '🦅',
         club: 'Super Eagles',
+        supporter_streak_days: 3,
+        country: 'Nigeria',
+        city: 'Enugu',
+        birth_date: '2001-05-18',
+        bio: 'Super Eagles fan for life 🇳🇬',
         aura_balance: 0,
         naira_balance: 0,
         vip_tier: 'STADIUM MEMBER',
@@ -167,7 +215,35 @@ class PersistentDatabaseStore {
         total_picks: 10,
         win_rate: 50.0,
         created_at: '2026-08-22T08:00:00Z',
+        last_active: '2d ago',
+        ip_address: '102.88.19.45 (Enugu, NG)',
         notes: 'Suspended for multi-accounting attempt',
+      },
+      {
+        id: 'usr-005',
+        username: 'Kofi_GhanaianKing',
+        fullName: 'Kofi Mensah',
+        email: 'kofi@mivaj.com',
+        phone: '+233 24 555 7788',
+        whatsappNumber: '+233 24 555 7788',
+        telegramHandle: '@kofi_mensah',
+        avatar: '🇬🇭',
+        club: 'Arsenal',
+        supporter_streak_days: 19,
+        country: 'Ghana',
+        city: 'Accra',
+        birth_date: '1995-12-04',
+        bio: 'Accra Arsenal Chapter President',
+        aura_balance: 4200,
+        naira_balance: 18500,
+        vip_tier: 'GOLD INFLUENCER ⚡',
+        role: 'VIP_MEMBER',
+        status: 'ACTIVE',
+        total_picks: 65,
+        win_rate: 83.1,
+        created_at: '2026-08-25T09:20:00Z',
+        last_active: '12m ago',
+        ip_address: '154.160.22.8 (Accra, GH)',
       },
     ];
 
