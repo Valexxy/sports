@@ -123,6 +123,9 @@ export async function GET(req: Request) {
     });
   } catch (err: any) {
     console.error('Morning Telegram Broadcast Error:', err);
+    try {
+      await TelegramBotService.notifyFailure('Morning Banker Broadcast', err?.message || 'Unknown network error');
+    } catch {}
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }

@@ -28,11 +28,12 @@ const POPULAR_HUBS = [
   { city: 'New York', state: 'NY', country: 'United States', flag: '🇺🇸' },
 ];
 
+import { UserProfileEngine, UserProfileData } from '../lib/user-profile-engine';
+
 export const EnvironmentIntelHeader: React.FC = () => {
   const [intel, setIntel] = useState<LocationIntelData | null>(null);
   const [loading, setLoading] = useState(false);
-  const [editingName, setEditingName] = useState(false);
-  const [nicknameInput, setNicknameInput] = useState('');
+  const [userProfile, setUserProfile] = useState<UserProfileData>(() => UserProfileEngine.getProfile());
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [customCitySearch, setCustomCitySearch] = useState('');
   const [fxMode, setFxMode] = useState<LiveFxMode>('FOLLOWED_ONLY');
@@ -43,7 +44,7 @@ export const EnvironmentIntelHeader: React.FC = () => {
     setLoading(true);
     const data = await LocationIntelligenceEngine.fetchHyperAccurateLocationIntel();
     setIntel(data);
-    setNicknameInput(data.userNickname);
+    setUserProfile(UserProfileEngine.getProfile());
     setLoading(false);
   };
 
@@ -64,9 +65,17 @@ export const EnvironmentIntelHeader: React.FC = () => {
       setTimeout(() => setLatestGoal(null), 6000);
     });
 
+    // Listen for profile changes (e.g. edited username in profile modal/dashboard)
+    const handleProfileUpdate = (e: any) => {
+      if (e?.detail) setUserProfile(e.detail);
+      else setUserProfile(UserProfileEngine.getProfile());
+    };
+    window.addEventListener('mivaj_profile_updated', handleProfileUpdate);
+
     return () => {
       PowerSaverEngine.clearInterval('weather-intel-refresh');
       unsubscribeGoal();
+      window.removeEventListener('mivaj_profile_updated', handleProfileUpdate);
     };
   }, []);
 
@@ -137,38 +146,48 @@ export const EnvironmentIntelHeader: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-3 py-2 flex flex-col sm:flex-row items-center justify-between gap-2">
         
-        {/* Left: Hyper-Accurate Location, Weather & Greeting */}
+        {/* Left: Hyper-Accurate Location, Weather & Pitch Condition */}
         <div className="flex flex-wrap items-center gap-2 text-xs min-w-0">
           
-          {/* Location Badge (Clickable to switch or enter location) */}
+          {/* Location Badge (Shows exact street, house number, or neighbourhood) */}
           <button
             onClick={() => {
               try { phoneHardware.triggerHaptic('SELECTION'); } catch {}
-              setShowLocationPicker(true);
+              loadIntel();
             }}
             className="flex items-center space-x-1.5 bg-black/80 hover:bg-white/10 px-2.5 py-1 rounded-xl border border-white/10 text-[11px] text-white transition-all group"
-            title="Click to change location / city manually or auto-detect"
+            title="Auto-detected GPS location. Click to refresh."
           >
             <MapPin className="w-3.5 h-3.5 text-stadiumGreen animate-pulse flex-shrink-0" />
-            <span className="font-bold">{intel.city}, {intel.countryName}</span>
-            <span className="text-[9px] text-stadiumGreen group-hover:underline">({intel.isManualOverride ? 'Set' : 'Auto'}) 📍</span>
+            <span className="font-bold truncate max-w-[210px] sm:max-w-[280px]">
+              {intel.houseNumber ? `No. ${intel.houseNumber}, ` : ''}
+              {intel.street || intel.neighbourhood || intel.city}, {intel.countryName}
+            </span>
+            <span className="text-[9px] text-stadiumGreen">
+              (Auto GPS) 📍
+            </span>
           </button>
 
-          {/* Live Weather & Temp */}
+          {/* Live Weather & Pitch Condition */}
           <div className="flex items-center space-x-1.5 bg-black/80 px-2.5 py-1 rounded-xl border border-white/10 text-[11px]">
             <CloudSun className="w-3.5 h-3.5 text-gold flex-shrink-0" />
             <span className="font-bold text-white">{intel.temperature}°C</span>
             <span className="text-gray-400 font-sans hidden md:inline">{intel.weatherDescription}</span>
+            {intel.pitchCondition && (
+              <span className="hidden lg:inline text-[9px] text-stadiumGreen font-mono px-1.5 py-0.5 rounded bg-stadiumGreen/10 border border-stadiumGreen/30">
+                {intel.pitchCondition}
+              </span>
+            )}
           </div>
 
           {/* Regional Greeting Text */}
-          <div className="hidden lg:flex items-center space-x-1.5 text-stadiumGreen font-black text-xs">
+          <div className="hidden xl:flex items-center space-x-1.5 text-stadiumGreen font-black text-xs">
             <span>👋</span>
             <span className="truncate">{intel.localGreeting}</span>
           </div>
         </div>
 
-        {/* Right: Suggested Dialect Auto-Switch + FX Toggle + User Handle + Refresh */}
+        {/* Right: FX Toggle + User Profile Link + Refresh */}
         <div className="flex items-center space-x-2 text-xs">
           
           {/* Live Phone Effects Toggle (Followed / All / Off) */}
@@ -187,49 +206,18 @@ export const EnvironmentIntelHeader: React.FC = () => {
             <span>FX: {fxMode === 'FOLLOWED_ONLY' ? 'Followed 📳' : fxMode === 'ALL_LIVE' ? 'All Live 🔥' : 'Muted'}</span>
           </button>
 
-          {/* Regional Dialect Suggestion Pill (if current language differs from region) */}
-          {suggestedLangMeta && lang !== intel.suggestedLanguage && (
-            <button
-              onClick={() => handleApplyRegionalLanguage(intel.suggestedLanguage)}
-              className="px-2.5 py-1 rounded-xl bg-stadiumGreen/20 hover:bg-stadiumGreen text-stadiumGreen hover:text-black border border-stadiumGreen/40 text-[10px] font-black transition-all flex items-center space-x-1 shadow-sm"
-              title={`Switch to local ${suggestedLangMeta.name}`}
-            >
-              <span>{suggestedLangMeta.flag}</span>
-              <span>Switch to {suggestedLangMeta.nativeName}</span>
-              <ChevronRight className="w-3 h-3" />
-            </button>
-          )}
-
-          {/* User Nickname / Personal Device Profile */}
-          {editingName ? (
-            <form onSubmit={handleSaveNickname} className="flex items-center space-x-1">
-              <input
-                type="text"
-                value={nicknameInput}
-                onChange={(e) => setNicknameInput(e.target.value)}
-                placeholder="Enter Nickname"
-                className="px-2 py-0.5 rounded-lg bg-black border border-stadiumGreen text-white text-[11px] w-28 focus:outline-none"
-                autoFocus
-              />
-              <button
-                type="submit"
-                className="p-1 rounded-lg bg-stadiumGreen text-black font-bold"
-                title="Save"
-              >
-                <Check className="w-3 h-3" />
-              </button>
-            </form>
-          ) : (
-            <button
-              onClick={() => setEditingName(true)}
-              className="flex items-center space-x-1.5 bg-black/60 hover:bg-white/10 px-2.5 py-1 rounded-xl border border-white/10 text-[10px] text-gray-300 hover:text-white transition-all"
-              title="Click to customize your fan handle"
-            >
-              <User className="w-3 h-3 text-gold" />
-              <span className="font-bold truncate max-w-[100px]">{intel.userNickname}</span>
-              <Edit3 className="w-2.5 h-2.5 text-gray-400" />
-            </button>
-          )}
+          {/* Profile Name (Edited ONLY in profile dashboard) */}
+          <a
+            href="/dashboard"
+            className="flex items-center space-x-1.5 bg-black/70 hover:bg-white/10 px-2.5 py-1 rounded-xl border border-stadiumGreen/40 text-[10px] text-stadiumGreen hover:text-white transition-all shadow-sm group"
+            title="Your fan profile — click to edit username, check level & referrals in Dashboard"
+          >
+            <User className="w-3 h-3 text-gold group-hover:scale-110 transition-transform" />
+            <span className="font-black truncate max-w-[120px]">@{userProfile.username.replace(/^@/, '')}</span>
+            <span className="text-[9px] px-1 rounded bg-stadiumGreen/20 text-stadiumGreen font-mono font-bold">
+              LVL {userProfile.level?.level || 4}
+            </span>
+          </a>
 
           {/* Manual Intel Refresh */}
           <button
@@ -242,78 +230,6 @@ export const EnvironmentIntelHeader: React.FC = () => {
         </div>
 
       </div>
-
-      {/* Interactive Location Picker Modal */}
-      {showLocationPicker && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-[#0a0d14] border border-white/15 rounded-3xl p-5 space-y-4 shadow-2xl text-white">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <div className="flex items-center space-x-2">
-                <MapPin className="w-5 h-5 text-stadiumGreen" />
-                <h3 className="font-black text-sm text-white">Select or Enter Your Location</h3>
-              </div>
-              <button
-                onClick={() => setShowLocationPicker(false)}
-                className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-gray-400 hover:text-white"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Auto Detect Button */}
-            <button
-              onClick={handleAutoDetectGps}
-              className="w-full py-2.5 px-4 rounded-2xl bg-stadiumGreen/20 hover:bg-stadiumGreen/30 border border-stadiumGreen/40 text-stadiumGreen font-black text-xs flex items-center justify-center space-x-2 transition-all"
-            >
-              <Compass className="w-4 h-4 animate-spin text-stadiumGreen" />
-              <span>📍 Auto-Detect GPS Location</span>
-            </button>
-
-            {/* Custom City Search Input */}
-            <form onSubmit={handleCustomCitySubmit} className="flex items-center space-x-2">
-              <div className="relative flex-1">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  value={customCitySearch}
-                  onChange={(e) => setCustomCitySearch(e.target.value)}
-                  placeholder="Enter city (e.g. Lagos, Abuja, London)..."
-                  className="w-full pl-9 pr-3 py-2 rounded-xl bg-black/80 border border-white/15 text-white text-xs focus:outline-none focus:border-stadiumGreen"
-                />
-              </div>
-              <button
-                type="submit"
-                className="px-4 py-2 rounded-xl bg-stadiumGreen text-black font-black text-xs"
-              >
-                Set
-              </button>
-            </form>
-
-            {/* Quick Hub Buttons */}
-            <div className="space-y-2">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Popular Cities & Stadium Hubs:</span>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {POPULAR_HUBS.map((hub) => (
-                  <button
-                    key={hub.city}
-                    onClick={() => handleSelectCity(hub.city)}
-                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-stadiumGreen/40 text-left text-xs transition-all flex items-center justify-between"
-                  >
-                    <span className="font-bold truncate">{hub.city}</span>
-                    <span>{hub.flag}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="pt-2 text-center">
-              <span className="text-[10px] text-gray-400">
-                Support email: <strong className="text-gold">mivajtips@gmail.com</strong>
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

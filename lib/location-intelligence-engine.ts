@@ -1,12 +1,20 @@
 'use client';
 
 import { LanguageCode } from './translation-engine';
+import { getUltraPreciseLocation } from './precision-location-engine';
 
 export interface LocationIntelData {
   city: string;
   principalSubdivision: string; // State/Province
   countryName: string;
   countryCode: string;
+  street?: string;
+  houseNumber?: string;
+  neighbourhood?: string;
+  formattedAddress: string;
+  isGpsPrecise?: boolean;
+  pitchCondition?: string;
+  viewingCentersNearby?: string;
   latitude: number;
   longitude: number;
   temperature: number;
@@ -116,12 +124,23 @@ export class LocationIntelligenceEngine {
 
     try {
       const customCity = this.getCustomLocation();
-      let city = customCity || 'Lagos';
-      let state = 'Lagos State';
+      let city = customCity || '';
+      let state = '';
       let countryName = 'Nigeria';
       let countryCode = 'NG';
-      let lat = 6.5244;
-      let lon = 3.3792;
+      let lat = 9.0765;
+      let lon = 7.3986;
+      let street = '';
+      let houseNumber = '';
+      let neighbourhood = '';
+      let formattedAddress = '';
+      let isGpsPrecise = false;
+      let temp = 28;
+      let weatherCode = 1;
+      let windSpeed = 12;
+      let weatherDesc = 'Fair Weather 🌤️';
+      let pitchCondition = 'Firm Match Turf ☀️';
+      let viewingCentersNearby = 'Sports Lounges Active 📺';
       let isManual = Boolean(customCity);
 
       if (customCity) {
@@ -133,52 +152,27 @@ export class LocationIntelligenceEngine {
           countryCode = hub.code;
           state = hub.state;
           city = customCity.charAt(0).toUpperCase() + customCity.slice(1);
+          formattedAddress = `${city}, ${state}`;
         }
       } else {
-        // 1. Try GPS coordinates
-        if ('geolocation' in navigator) {
-          try {
-            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-              navigator.geolocation.getCurrentPosition(resolve, reject, {
-                timeout: 4000,
-                maximumAge: 60000,
-                enableHighAccuracy: true,
-              });
-            });
-            lat = position.coords.latitude;
-            lon = position.coords.longitude;
-          } catch {}
-        }
-
-        // 2. Fetch Reverse Geocoding from BigDataCloud
-        try {
-          const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
-          if (geoRes.ok) {
-            const geoData = await geoRes.json();
-            city = geoData.city || geoData.locality || geoData.principalSubdivision || 'Lagos';
-            state = (geoData.principalSubdivision || '').toLowerCase();
-            countryName = geoData.countryName || 'Nigeria';
-            countryCode = (geoData.countryCode || 'NG').toUpperCase();
-          }
-        } catch {}
+        // Run our ultra-precise location engine (GPS first, Nominatim street & house level)
+        const precise = await getUltraPreciseLocation();
+        city = precise.city || 'LOCAL';
+        state = precise.state || '';
+        countryName = precise.country || 'Nigeria';
+        countryCode = precise.countryFlag === '🇳🇬' ? 'NG' : 'NG';
+        lat = precise.latitude || 9.0765;
+        lon = precise.longitude || 7.3986;
+        street = precise.street || '';
+        houseNumber = precise.houseNumber || '';
+        neighbourhood = precise.neighbourhood || '';
+        formattedAddress = precise.formattedAddress || `${city}, ${countryName}`;
+        isGpsPrecise = Boolean(precise.isGpsPrecise);
+        temp = precise.temperatureC || 28;
+        weatherDesc = precise.weatherSummary || 'Clear ☀️';
+        pitchCondition = precise.pitchCondition || 'Firm Match Turf ☀️';
+        viewingCentersNearby = precise.viewingCentersNearby || 'Sports Lounges Active 📺';
       }
-
-      // 3. Fetch Live Weather from Open-Meteo
-      let temp = 28;
-      let weatherCode = 1;
-      let windSpeed = 12;
-
-      try {
-        const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m`);
-        if (weatherRes.ok) {
-          const wData = await weatherRes.json();
-          if (wData.current) {
-            temp = Math.round(wData.current.temperature_2m);
-            weatherCode = wData.current.weather_code;
-            windSpeed = Math.round(wData.current.wind_speed_10m);
-          }
-        }
-      } catch {}
 
       // 4. Determine Regional Language & Local Dialect Greeting
       let suggestedLanguage: LanguageCode = 'pidgin';
@@ -226,10 +220,17 @@ export class LocationIntelligenceEngine {
         principalSubdivision: state || 'State',
         countryName,
         countryCode,
+        street,
+        houseNumber,
+        neighbourhood,
+        formattedAddress,
+        isGpsPrecise,
+        pitchCondition,
+        viewingCentersNearby,
         latitude: lat,
         longitude: lon,
         temperature: temp,
-        weatherDescription: mapWeatherCode(weatherCode),
+        weatherDescription: weatherDesc || mapWeatherCode(weatherCode),
         weatherCode,
         windSpeed,
         suggestedLanguage,
@@ -251,20 +252,23 @@ export class LocationIntelligenceEngine {
 
   private static getFallbackIntel(): LocationIntelData {
     return {
-      city: 'Lagos',
-      principalSubdivision: 'Lagos State',
+      city: 'LOCAL ARENA',
+      principalSubdivision: 'Match Arena',
       countryName: 'Nigeria',
       countryCode: 'NG',
-      latitude: 6.5244,
-      longitude: 3.3792,
-      temperature: 29,
-      weatherDescription: 'Partly Cloudy ⛅',
-      weatherCode: 1,
-      windSpeed: 14,
+      formattedAddress: 'Local Match Arena',
+      latitude: 9.0765,
+      longitude: 7.3986,
+      temperature: 28,
+      weatherDescription: 'Clear Sky ☀️',
+      weatherCode: 0,
+      windSpeed: 12,
       suggestedLanguage: 'pidgin',
-      localGreeting: 'How far Lagos! Welcome to Mivaj Sports! 👑',
+      localGreeting: 'How far! Welcome to Mivaj Sports! 👑',
       deviceName: detectDeviceName(),
       userNickname: this.getUserNickname(),
+      pitchCondition: 'Firm Match Turf ☀️',
+      viewingCentersNearby: 'Sports Lounges Active 📺',
       lastUpdated: 'Live',
     };
   }

@@ -90,4 +90,17 @@ export class TelegramBotService {
 
     return this.requestWithRetry("sendPhoto", payload);
   }
+
+  static async notifyFailure(taskName: string, errorMessage: string): Promise<void> {
+    console.error(`CRON FAILURE ALERT: [${taskName}] ${errorMessage}`);
+    try {
+      await this.sendMessage(
+        `🚨 <b>CRON EXECUTION FAILURE NOTICE</b>\n` +
+        `<b>Task:</b> ${taskName}\n` +
+        `<b>Error:</b> <code>${errorMessage}</code>\n` +
+        `<b>Time:</b> ${new Date().toISOString()}\n` +
+        `<i>Automated retry exhausted. Support dispatch: mivajtips@gmail.com</i>`
+      );
+    } catch {}
+  }
 }

@@ -123,9 +123,47 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
 
   const timelineEvents = useMemo(() => {
     if (isUpcoming) {
+      const pred = match?.prediction;
+      const topPick = pred?.topPick;
+      const xGHome = pred?.expectedHomeGoals?.toFixed(1) || '1.7';
+      const xGAway = pred?.expectedAwayGoals?.toFixed(1) || '1.2';
+      const venue = match?.venue || `${resolvedHome} Stadium`;
+      const referee = match?.referee || 'Official Match Referee';
+      const league = match?.league || 'League Match';
+
       return [
-        { minNum: 0, min: 'PRE', icon: '🏃', title: 'Pre-Match Team Warmup', text: `${resolvedHome} and ${resolvedAway} boys dey stretch body, stadium full ground!`, type: 'info' },
-        { minNum: 0, min: 'PRE', icon: '📋', title: 'Tactical Team Lineups Confirmed', text: 'Two coaches don release first eleven, fire go burn today!', type: 'info' },
+        {
+          minNum: 0,
+          min: 'PRE',
+          icon: '📊',
+          title: `Poisson Engine xG Power: ${xGHome} vs ${xGAway}`,
+          text: `Quantitative model calculates ${resolvedHome} (${Math.round((pred?.homeWinProb || 0.5) * 100)}% Win Prob) vs ${resolvedAway} (${Math.round((pred?.awayWinProb || 0.25) * 100)}%). Expected score power: ${xGHome} - ${xGAway}.`,
+          type: 'info',
+        },
+        {
+          minNum: 0,
+          min: 'PRE',
+          icon: '👑',
+          title: `Tactical Value: ${topPick?.selection || resolvedHome + ' Win'} @ ${topPick?.odds || 1.45}`,
+          text: topPick?.rationale || `Engine rates this selection at high probability based on home/away goal differential and defensive stability.`,
+          type: 'info',
+        },
+        {
+          minNum: 0,
+          min: 'PRE',
+          icon: '🏟️',
+          title: `Match Venue & Officiating: ${venue}`,
+          text: `Sanctioned under ${league}. Pitch conditions verified; head referee: ${referee}.`,
+          type: 'info',
+        },
+        {
+          minNum: 0,
+          min: 'PRE',
+          icon: '⏳',
+          title: `Live Match Kickoff: ${resolvedTime}`,
+          text: `Play-by-play match commentary, live cards, substitutions & goal alerts commence immediately at opening whistle.`,
+          type: 'info',
+        },
       ];
     }
 

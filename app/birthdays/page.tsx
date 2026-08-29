@@ -288,19 +288,27 @@ const MONTH_NAMES = [
 export default function BirthdaysHubPage() {
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   const [selectedSport, setSelectedSport] = useState<string>('ALL');
-  const [activeTab, setActiveTab] = useState<'THIS_WEEK' | 'MONTH' | 'ALL'>('THIS_WEEK');
+  const [activeTab, setActiveTab] = useState<'TODAY' | 'THIS_WEEK' | 'MONTH' | 'ALL'>('TODAY');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeProfile, setActiveProfile] = useState<EnterpriseBirthdayStar | null>(null);
+  const [wikiExtract, setWikiExtract] = useState<string | null>(null);
 
   // Custom Wish Modal State
   const [showWishModal, setShowWishModal] = useState(false);
   const [wishStar, setWishStar] = useState<EnterpriseBirthdayStar | null>(null);
   const [userWishText, setUserWishText] = useState('');
   const [userNickName, setUserNickName] = useState('');
+  const [viewerPhoto, setViewerPhoto] = useState<string | null>(null);
+  const [downloadingImage, setDownloadingImage] = useState(false);
 
   const today = new Date();
   const todayMonth = today.getMonth() + 1;
   const todayDay = today.getDate();
+
+  // Find stars celebrating TODAY (Zero contradiction)
+  const todayStars = useMemo(() => {
+    return GLOBAL_SPORT_STARS.filter((star) => star.birthMonth === todayMonth && star.birthDay === todayDay);
+  }, [todayMonth, todayDay]);
 
   // Find stars celebrating this week
   const thisWeekStars = useMemo(() => {
@@ -317,7 +325,10 @@ export default function BirthdaysHubPage() {
 
   const filteredStars = useMemo(() => {
     return GLOBAL_SPORT_STARS.filter((star) => {
-      if (activeTab === 'THIS_WEEK') {
+      if (activeTab === 'TODAY') {
+        const isToday = star.birthMonth === todayMonth && star.birthDay === todayDay;
+        if (!isToday) return false;
+      } else if (activeTab === 'THIS_WEEK') {
         const isThisWeek = thisWeekStars.some((s) => s.id === star.id);
         if (!isThisWeek) return false;
       } else if (activeTab === 'MONTH') {
@@ -338,7 +349,28 @@ export default function BirthdaysHubPage() {
 
       return true;
     });
-  }, [selectedMonth, selectedSport, activeTab, searchQuery, thisWeekStars]);
+  }, [selectedMonth, selectedSport, activeTab, searchQuery, thisWeekStars, todayMonth, todayDay]);
+
+  // Fetch verified Wikipedia dossier on profile opening
+  useEffect(() => {
+    if (!activeProfile) {
+      setWikiExtract(null);
+      return;
+    }
+    const fetchWiki = async () => {
+      try {
+        const title = activeProfile.name.replace(/ /g, '_');
+        const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.extract) {
+            setWikiExtract(data.extract);
+          }
+        }
+      } catch {}
+    };
+    fetchWiki();
+  }, [activeProfile]);
 
   const handleOpenWishCard = (star: EnterpriseBirthdayStar, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -421,9 +453,17 @@ export default function BirthdaysHubPage() {
             {/* View Mode Tabs */}
             <div className="flex items-center space-x-2 bg-panel p-1.5 rounded-2xl border border-white/10">
               <button
+                onClick={() => setActiveTab('TODAY')}
+                className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center space-x-1.5 ${
+                  activeTab === 'TODAY' ? 'bg-pink-500 text-black shadow-md shadow-pink-500/30 ring-1 ring-pink-400' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <span>🎂 Today ({todayStars.length})</span>
+              </button>
+              <button
                 onClick={() => setActiveTab('THIS_WEEK')}
                 className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center space-x-1.5 ${
-                  activeTab === 'THIS_WEEK' ? 'bg-pink-500 text-black shadow-md' : 'text-gray-400 hover:text-white'
+                  activeTab === 'THIS_WEEK' ? 'bg-stadiumGreen text-black shadow-md' : 'text-gray-400 hover:text-white'
                 }`}
               >
                 <Flame className="w-4 h-4 inline" />
@@ -618,6 +658,18 @@ export default function BirthdaysHubPage() {
                 </div>
               </div>
 
+              {/* Verified Wikipedia Dossier */}
+              {wikiExtract && (
+                <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+                  <span className="text-[10px] font-black text-stadiumGreen uppercase tracking-wider block flex items-center space-x-1">
+                    <span>🌐 VERIFIED WIKIPEDIA CAREER DOSSIER</span>
+                  </span>
+                  <p className="text-xs text-gray-300 font-sans leading-relaxed max-h-32 overflow-y-auto">
+                    {wikiExtract}
+                  </p>
+                </div>
+              )}
+
               <div className="pt-4 border-t border-white/10 flex justify-between items-center">
                 <button
                   onClick={() => {
@@ -639,7 +691,10 @@ export default function BirthdaysHubPage() {
           <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md overflow-y-auto animate-fadeIn flex flex-col p-4">
             <div className="max-w-xl mx-auto w-full glass-panel-premium rounded-3xl p-6 border border-pink-500/40 space-y-5 my-auto shadow-2xl relative">
               <button
-                onClick={() => setShowWishModal(false)}
+                onClick={() => {
+                  setShowWishModal(false);
+                  setViewerPhoto(null);
+                }}
                 className="absolute top-4 right-4 p-2 rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white"
               >
                 <X className="w-5 h-5" />
@@ -648,6 +703,58 @@ export default function BirthdaysHubPage() {
               <div className="text-center space-y-1">
                 <span className="text-xs font-black text-pink-400 uppercase tracking-widest block">CELEBRATION WISH CARD</span>
                 <h3 className="text-xl font-black text-white">Send Birthday Wish to {wishStar.name}</h3>
+              </div>
+
+              {/* Side-by-Side Athlete Star & Viewer Photo Attachment */}
+              <div className="flex items-center justify-center space-x-6 p-4 rounded-2xl bg-black/60 border border-white/10">
+                {/* Athlete Star Photo */}
+                <div className="text-center space-y-1">
+                  <div className="w-20 h-20 rounded-full border-2 border-gold p-1 relative mx-auto shadow-lg bg-black">
+                    <img src={wishStar.avatarUrl} alt={wishStar.name} className="w-full h-full object-cover rounded-full" />
+                    <span className="absolute -bottom-1 -right-1 text-xs">⭐</span>
+                  </div>
+                  <span className="text-[11px] font-black text-gold block truncate max-w-[100px]">{wishStar.name}</span>
+                  <span className="text-[9px] text-gray-400 font-bold block">Birthday Star</span>
+                </div>
+
+                <span className="text-2xl text-pink-500 font-black animate-pulse">🤝</span>
+
+                {/* Viewer Attached Photo */}
+                <div className="text-center space-y-1">
+                  <div className="w-20 h-20 rounded-full border-2 border-stadiumGreen p-1 relative mx-auto shadow-lg bg-black flex items-center justify-center overflow-hidden">
+                    {viewerPhoto ? (
+                      <img src={viewerPhoto} alt="Viewer" className="w-full h-full object-cover rounded-full" />
+                    ) : (
+                      <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-white/10 transition-colors">
+                        <span className="text-lg">📷</span>
+                        <span className="text-[8px] text-stadiumGreen font-bold mt-0.5">Attach</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setViewerPhoto(URL.createObjectURL(file));
+                              try { phoneHardware.triggerHaptic('SUCCESS'); } catch {}
+                            }
+                          }}
+                          className="hidden"
+                        />
+                      </label>
+                    )}
+                  </div>
+                  <span className="text-[11px] font-black text-stadiumGreen block truncate max-w-[100px]">
+                    {userNickName || 'You (Fan)'}
+                  </span>
+                  {viewerPhoto && (
+                    <button
+                      onClick={() => setViewerPhoto(null)}
+                      className="text-[9px] text-crimson hover:underline font-bold block mx-auto"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-3">
@@ -673,7 +780,163 @@ export default function BirthdaysHubPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
+              {/* Generate & Download Shareable Card Button */}
+              <button
+                onClick={async () => {
+                  if (!wishStar) return;
+                  setDownloadingImage(true);
+                  try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 800;
+                    canvas.height = 600;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) return;
+
+                    // Dark gradient background
+                    const grad = ctx.createLinearGradient(0, 0, 800, 600);
+                    grad.addColorStop(0, '#07090e');
+                    grad.addColorStop(0.5, '#0f172a');
+                    grad.addColorStop(1, '#05070a');
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(0, 0, 800, 600);
+
+                    // Perimeter gold border
+                    ctx.strokeStyle = '#f59e0b';
+                    ctx.lineWidth = 4;
+                    ctx.strokeRect(20, 20, 760, 560);
+
+                    // Header
+                    ctx.fillStyle = '#ec4899';
+                    ctx.font = 'bold 20px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('👑 OFFICIAL ATHLETE BIRTHDAY CELEBRATION 🎂', 400, 70);
+
+                    // Star title
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '900 30px sans-serif';
+                    ctx.fillText(wishStar.name, 400, 115);
+
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.font = 'bold 16px sans-serif';
+                    ctx.fillText(`${wishStar.clubOrTeam} • ${wishStar.country}`, 400, 145);
+
+                    // Draw Star Photo
+                    const starImg = new Image();
+                    starImg.crossOrigin = 'anonymous';
+                    await new Promise((res) => {
+                      starImg.onload = res;
+                      starImg.onerror = res;
+                      starImg.src = wishStar.avatarUrl;
+                    });
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(280, 235, 70, 0, Math.PI * 2);
+                    ctx.closePath();
+                    ctx.clip();
+                    try { ctx.drawImage(starImg, 210, 165, 140, 140); } catch {}
+                    ctx.restore();
+
+                    ctx.strokeStyle = '#f59e0b';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.arc(280, 235, 70, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    // Draw Viewer Photo (if attached)
+                    if (viewerPhoto) {
+                      const viewerImg = new Image();
+                      viewerImg.crossOrigin = 'anonymous';
+                      await new Promise((res) => {
+                        viewerImg.onload = res;
+                        viewerImg.onerror = res;
+                        viewerImg.src = viewerPhoto;
+                      });
+
+                      ctx.save();
+                      ctx.beginPath();
+                      ctx.arc(520, 235, 70, 0, Math.PI * 2);
+                      ctx.closePath();
+                      ctx.clip();
+                      try { ctx.drawImage(viewerImg, 450, 165, 140, 140); } catch {}
+                      ctx.restore();
+
+                      ctx.strokeStyle = '#10b981';
+                      ctx.lineWidth = 4;
+                      ctx.beginPath();
+                      ctx.arc(520, 235, 70, 0, Math.PI * 2);
+                      ctx.stroke();
+                    } else {
+                      ctx.fillStyle = '#10b98122';
+                      ctx.beginPath();
+                      ctx.arc(520, 235, 70, 0, Math.PI * 2);
+                      ctx.fill();
+                      ctx.strokeStyle = '#10b981';
+                      ctx.lineWidth = 3;
+                      ctx.stroke();
+                      ctx.fillStyle = '#10b981';
+                      ctx.font = 'bold 36px sans-serif';
+                      ctx.fillText('⚽', 520, 248);
+                    }
+
+                    // Photo captions
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.font = 'bold 14px monospace';
+                    ctx.fillText(wishStar.name, 280, 330);
+
+                    ctx.fillStyle = '#10b981';
+                    ctx.fillText(userNickName || 'Mivaj Fan', 520, 330);
+
+                    // Wish Message Box
+                    ctx.fillStyle = '#ffffff10';
+                    ctx.fillRect(70, 360, 660, 130);
+                    ctx.strokeStyle = '#ffffff20';
+                    ctx.strokeRect(70, 360, 660, 130);
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'italic 17px sans-serif';
+                    const words = userWishText.split(' ');
+                    let line = '';
+                    let y = 400;
+                    for (let n = 0; n < words.length; n++) {
+                      const testLine = line + words[n] + ' ';
+                      const metrics = ctx.measureText(testLine);
+                      if (metrics.width > 620 && n > 0) {
+                        ctx.fillText(line, 400, y);
+                        line = words[n] + ' ';
+                        y += 26;
+                      } else {
+                        line = testLine;
+                      }
+                    }
+                    ctx.fillText(line, 400, y);
+
+                    // Footer
+                    ctx.fillStyle = '#10b981';
+                    ctx.font = 'bold 14px monospace';
+                    ctx.fillText('mivaj.com • Verified Athlete Birthday Archive', 400, 535);
+
+                    // Trigger browser PNG download
+                    const dataUrl = canvas.toDataURL('image/png');
+                    const a = document.createElement('a');
+                    a.href = dataUrl;
+                    a.download = `${wishStar.name.toLowerCase().replace(/ /g, '_')}_birthday_card.png`;
+                    a.click();
+                    try { phoneHardware.triggerHaptic('AFRO_BEAT'); } catch {}
+                    confetti({ particleCount: 70, spread: 80, origin: { y: 0.6 } });
+                  } catch (err) {
+                    console.error(err);
+                  } finally {
+                    setDownloadingImage(false);
+                  }
+                }}
+                disabled={downloadingImage}
+                className="w-full py-3 rounded-2xl bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 text-black font-black text-xs hover:opacity-95 transition-all flex items-center justify-center space-x-2 shadow-xl"
+              >
+                <span>{downloadingImage ? 'Generating Graphic...' : '📥 Download Shareable Celebration Card (PNG)'}</span>
+              </button>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
                 <button
                   onClick={() => handleShareWish('whatsapp')}
                   className="py-2.5 rounded-xl bg-emerald-600 text-white font-black text-xs flex items-center justify-center space-x-1"

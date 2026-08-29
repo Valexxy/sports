@@ -29,6 +29,7 @@ import { phoneHardware } from '../lib/phone-hardware-engine';
 import { stadiumAudio } from '../lib/sound-synthesizer';
 import confetti from 'canvas-confetti';
 import { PersistentStorage } from '../lib/persistent-storage-engine';
+import { UserProfileEngine } from '../lib/user-profile-engine';
 import { LiveStadiumCommentaryModal } from './live-stadium-commentary-modal';
 import { HeadToHeadArenaModal } from './head-to-head-arena-modal';
 import { useModalBackHandler } from '../lib/history-back-navigation';
@@ -60,20 +61,32 @@ function getMatchDateLabel(utcDateStr?: string): string {
   return matchDate.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
-function getMatchCountdown(utcDateStr?: string): { text: string; status: 'URGENT' | 'SOON' | 'UPCOMING' } {
+function getMatchCountdown(utcDateStr?: string, status?: string): { text: string; status: 'URGENT' | 'SOON' | 'UPCOMING' | 'LIVE' | 'FINISHED' } {
+  if (status === 'FINISHED') return { text: 'FT • Final', status: 'FINISHED' };
   if (!utcDateStr) return { text: 'Scheduled', status: 'UPCOMING' };
+
   const now = Date.now();
   const target = new Date(utcDateStr).getTime();
   const diff = target - now;
 
-  if (diff <= 0) return { text: 'Starting Now ⚡', status: 'URGENT' };
+  // Match started in the past
+  if (diff < 0) {
+    const elapsedMins = Math.floor(-diff / 60000);
+    if (elapsedMins > 125) {
+      return { text: 'Full Time', status: 'FINISHED' };
+    }
+    const minStr = elapsedMins <= 45 ? `${elapsedMins}'` : elapsedMins <= 60 ? 'HT' : `${Math.min(90, elapsedMins - 15)}'`;
+    return { text: `Live ${minStr}`, status: 'LIVE' };
+  }
+
   const mins = Math.floor(diff / 60000);
   const hours = Math.floor(mins / 60);
   const remainingMins = mins % 60;
 
+  if (mins <= 5) return { text: 'Kickoff Now ⚡', status: 'URGENT' };
   if (mins < 30) return { text: `⏳ ${mins}m to Kickoff`, status: 'URGENT' };
   if (hours < 3) return { text: `⏳ ${hours}h ${remainingMins}m`, status: 'SOON' };
-  if (hours < 24) return { text: `⏳ ${hours}h ${remainingMins}m`, status: 'UPCOMING' };
+  if (hours < 24) return { text: `Today ${new Date(utcDateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`, status: 'UPCOMING' };
   const days = Math.floor(hours / 24);
   return { text: `📅 ${days}d to go`, status: 'UPCOMING' };
 }
@@ -153,15 +166,13 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   useModalBackHandler(showCommentaryModal, () => setShowCommentaryModal(false));
   useModalBackHandler(showH2HModal, () => setShowH2HModal(false));
 
-  // Gen Z Emoji Reactions State
-  const [reactions, setReactions] = useState<{ [key: string]: number }>({
-    '🔥': 42,
-    '💀': 18,
-    '🧊': 25,
-    '🚀': 31,
-    '👑': 56,
+  // Gen Z Emoji Reactions State (Persisted across sessions)
+  const [reactions, setReactions] = useState<{ [key: string]: number }>(() => {
+    return PersistentStorage.getMatchEmojiReactions(match.id).counts;
   });
-  const [userReacted, setUserReacted] = useState<{ [key: string]: boolean }>({});
+  const [userReacted, setUserReacted] = useState<{ [key: string]: boolean }>(() => {
+    return PersistentStorage.getMatchEmojiReactions(match.id).userReacted;
+  });
 
   useEffect(() => {
     if (PersistentStorage.isTicketPlaced(match.id)) {
@@ -169,10 +180,18 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
     }
   }, [match.id]);
 
-  const isLive = match.status === 'LIVE';
-  const isFinished = match.status === 'FINISHED';
-  const isUpcoming = match.status === 'SCHEDULED';
-  const isFollowed = (followedMatchIds || []).includes(match.id);
+  // Accurate real-time status calculation (respects elapsed kickoff time for past matches)
+  const matchTimestamp = match.utcDate ? new Date(match.utcDate).getTime() : Date.now();
+  const timeDiff = Date.now() - matchTimestamp;
+  const isFinished = match.status === 'FINISHED' || match.matchTime === 'FT' || match.matchTime === 'Final' || timeDiff > 125 * 60000;
+  const isLive = !isFinished && (match.status === 'LIVE' || (timeDiff >= 0 && timeDiff <= 125 * 60000));
+  const isUpcoming = !isFinished && !isLive;
+
+  // Local followed state: clicking registers immediately and syncs with PersistentStorage
+  const [localFollowed, setLocalFollowed] = useState<boolean>(() => {
+    return PersistentStorage.isMatchFollowed(match.id) || (followedMatchIds || []).includes(match.id);
+  });
+  const isFollowed = localFollowed;
 
   const isWon = isFinished && checkPredictionWon(match);
 
@@ -183,26 +202,55 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
     expectedHomeGoals: 1.8,
     expectedAwayGoals: 1.1,
     topPick: {
-      market: 'Moneyline',
-      selection: `${match.homeTeam} Win`,
+      market: 'Double Chance',
+      selection: `1X (${match.homeTeam})`,
       probability: 78,
-      odds: 1.45,
+      odds: 1.35,
       confidenceTier: 'BANKER',
       kellyStake: 5,
     },
   };
 
   const topPick = p.topPick || {
-    market: 'Match Pick',
-    selection: `${match.homeTeam} Win`,
+    market: 'Double Chance',
+    selection: `1X (${match.homeTeam})`,
     probability: 75,
-    odds: 1.40,
+    odds: 1.35,
     confidenceTier: 'BANKER',
     kellyStake: 5,
   };
 
+  // Live Auto Odds Micro-Changer (simulates real-world market movements)
+  const [liveOdds, setLiveOdds] = useState<number>(() => topPick.odds || 1.35);
+  const [oddsDirection, setOddsDirection] = useState<'UP' | 'DOWN' | null>(null);
+
+  useEffect(() => {
+    if (isFinished) return;
+    const interval = setInterval(() => {
+      const delta = (Math.random() > 0.5 ? 1 : -1) * 0.02;
+      setLiveOdds((prev) => {
+        const next = Math.max(1.05, Math.min(3.5, Math.round((prev + delta) * 100) / 100));
+        setOddsDirection(delta > 0 ? 'UP' : 'DOWN');
+        setTimeout(() => setOddsDirection(null), 2500);
+        return next;
+      });
+    }, 18000 + (Math.abs(match.id.charCodeAt(0) || 0) % 9) * 1000);
+
+    return () => clearInterval(interval);
+  }, [match.id, isFinished]);
+
+  // Concise direct terms (e.g. 1X, 2X, Over 1.5, 1, 2) without verbose long phrasing
+  const cleanPickSelection = useMemo(() => {
+    const raw = topPick.selection || '1X';
+    const m1X = raw.match(/(.+) or Draw \(1X\)/i);
+    if (m1X) return `1X (${m1X[1].trim()})`;
+    const mX2 = raw.match(/Draw or (.+) \(X2\)/i) || raw.match(/(.+) or Draw \(X2\)/i);
+    if (mX2) return `2X (${mX2[1].trim()})`;
+    return raw;
+  }, [topPick.selection]);
+
   const dateLabel = getMatchDateLabel(match.utcDate);
-  const countdown = getMatchCountdown(match.utcDate);
+  const countdown = getMatchCountdown(match.utcDate, match.status);
 
   const handleCardClick = () => {
     try { phoneHardware.triggerHaptic('SELECTION'); } catch {}
@@ -224,8 +272,11 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
 
   const handleAlert = (e: React.MouseEvent) => {
     e.stopPropagation();
+    const next = !localFollowed;
+    setLocalFollowed(next);
+    PersistentStorage.toggleFollowMatch(match.id);
     if (onToggleFollow) onToggleFollow(match);
-    try { phoneHardware.triggerHaptic('SELECTION'); } catch {}
+    try { phoneHardware.triggerHaptic('SUCCESS'); } catch {}
   };
 
   const handleAddPick = (e: React.MouseEvent) => {
@@ -233,7 +284,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
     const next = !isAddedToSlip;
     setIsAddedToSlip(next);
     try { stadiumAudio.playAddPickSound(); } catch {}
-    onSelectOdds(match, topPick.selection, topPick.odds || 1.40);
+    onSelectOdds(match, cleanPickSelection, liveOdds || topPick.odds || 1.35);
     try { phoneHardware.triggerHaptic('SUCCESS'); } catch {}
     if (next) {
       confetti({ particleCount: 30, spread: 50, origin: { y: 0.8 } });
@@ -261,12 +312,10 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   const handleEmojiReaction = (emoji: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try { phoneHardware.triggerHaptic('SELECTION'); } catch {}
-    const isReacted = userReacted[emoji];
-    setReactions(prev => ({
-      ...prev,
-      [emoji]: isReacted ? (prev[emoji] || 1) - 1 : (prev[emoji] || 0) + 1,
-    }));
-    setUserReacted(prev => ({ ...prev, [emoji]: !isReacted }));
+    const updated = PersistentStorage.saveMatchEmojiReaction(match.id, emoji);
+    setReactions(updated.counts);
+    setUserReacted(updated.userReacted);
+    UserProfileEngine.toggleReaction(match.id, emoji);
   };
 
   const homePct = Math.round((p.homeWinProb || 0.5) * 100);
@@ -361,12 +410,12 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
 
         {/* 2. PROMINENT PRO PREDICTION BANNER (ON FT) */}
         {isFinished && (
-          <div className={`p-2.5 rounded-2xl flex items-center justify-between border text-xs ${
+          <div className={`p-2.5 rounded-2xl flex items-center justify-between border text-xs gap-2 ${
             isWon
               ? 'bg-stadiumGreen/15 border-stadiumGreen/60 text-emerald-300'
               : 'bg-red-950/40 border-crimson/50 text-red-300'
           }`}>
-            <div className="flex items-center space-x-2 min-w-0">
+            <div className="flex items-center space-x-2 min-w-0 flex-1">
               {isWon ? (
                 <span className="p-1 rounded-lg bg-stadiumGreen text-black font-black flex-shrink-0">
                   <Check className="w-3.5 h-3.5 stroke-[3]" />
@@ -376,21 +425,36 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
                   <XCircle className="w-3.5 h-3.5" />
                 </span>
               )}
-              <div className="min-w-0 truncate">
+              <div className="min-w-0">
                 <span className="text-[10px] font-black uppercase tracking-wider block">
                   {isWon ? 'PREDICTION WON ✓ VERIFIED' : 'PREDICTION SETTLED'}
                 </span>
-                <span className="text-white font-black text-xs block truncate">
-                  Pick: <strong className="text-gold">{topPick.selection}</strong> @ {topPick.odds} (FT: {match.homeScore}-{match.awayScore})
+                <span className="text-white font-black text-xs block">
+                  Pick: <strong className="text-gold">{cleanPickSelection}</strong> @ {topPick.odds} (FT: {match.homeScore ?? 0}-{match.awayScore ?? 0})
                 </span>
               </div>
             </div>
 
-            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase flex-shrink-0 ${
-              isWon ? 'bg-stadiumGreen text-black shadow-md' : 'bg-crimson text-white'
-            }`}>
-              {isWon ? 'WON ✓' : 'LOST'}
-            </span>
+            <div className="flex items-center space-x-1.5 flex-shrink-0">
+              <button
+                type="button"
+                onClick={handleAddPick}
+                className={`px-2.5 py-1 rounded-xl text-[10px] font-black transition-all flex items-center space-x-1 ${
+                  isAddedToSlip
+                    ? 'bg-gold text-black shadow'
+                    : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
+                }`}
+                title="Add settled match to slip"
+              >
+                {isAddedToSlip ? <Check className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+                <span>{isAddedToSlip ? 'In Slip' : '+ Slip'}</span>
+              </button>
+              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                isWon ? 'bg-stadiumGreen text-black shadow-md' : 'bg-crimson text-white'
+              }`}>
+                {isWon ? 'WON ✓' : 'LOST'}
+              </span>
+            </div>
           </div>
         )}
 
@@ -415,8 +479,8 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
                 <Shield className="w-5 h-5 text-gray-400" />
               )}
             </div>
-            <div className="min-w-0">
-              <span className="font-black text-xs sm:text-sm text-white truncate block group-hover/team:text-stadiumGreen transition-colors">
+            <div className="min-w-0 flex-1">
+              <span className="font-black text-xs sm:text-sm text-white break-words leading-tight block group-hover/team:text-stadiumGreen transition-colors line-clamp-2">
                 {match.homeTeam}
               </span>
               <span className="text-[9px] text-gray-400 font-bold block">Home</span>
@@ -445,8 +509,8 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
             className="flex-1 flex items-center justify-end space-x-2 min-w-0 text-right group/team hover:opacity-90 transition-all"
             title={`Click to view ${match.awayTeam} dossier`}
           >
-            <div className="min-w-0">
-              <span className="font-black text-xs sm:text-sm text-white truncate block group-hover/team:text-stadiumGreen transition-colors">
+            <div className="min-w-0 flex-1">
+              <span className="font-black text-xs sm:text-sm text-white break-words leading-tight block group-hover/team:text-stadiumGreen transition-colors line-clamp-2">
                 {match.awayTeam}
               </span>
               <span className="text-[9px] text-gray-400 font-bold block">Away</span>
@@ -616,17 +680,28 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
         ) : !isFinished ? (
           /* Standard Banker Banner — confident pick */
           <div className="p-3 rounded-2xl flex items-center justify-between gap-2 shadow-md bg-gradient-to-r from-stadiumGreen/20 via-panel to-gold/15 border border-stadiumGreen/40">
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <span className="text-[10px] font-black uppercase tracking-wider block text-stadiumGreen flex items-center space-x-1">
-                <Zap className="w-3 h-3 text-gold fill-gold inline" />
+                <Zap className="w-3 h-3 text-gold fill-gold inline flex-shrink-0" />
                 <span>👑 {topPick.confidenceTier} ({topPick.probability}% WIN RATE)</span>
               </span>
-              <span className="text-xs font-black text-white truncate block">
-                {topPick.market}: <strong className="text-gold">{topPick.selection}</strong>
-                {topPick.odds > 0 && ` @ ${topPick.odds}`}
-              </span>
+              <div className="flex items-center space-x-1.5 mt-0.5">
+                <span className="text-sm font-black text-gold">
+                  {cleanPickSelection}
+                </span>
+                <span className="text-xs font-mono font-black text-white">
+                  @{liveOdds.toFixed(2)}
+                </span>
+                {oddsDirection && (
+                  <span className={`text-[11px] font-black animate-pulse ${
+                    oddsDirection === 'UP' ? 'text-stadiumGreen' : 'text-crimson'
+                  }`}>
+                    {oddsDirection === 'UP' ? '▲' : '▼'}
+                  </span>
+                )}
+              </div>
               {match.prediction?.leagueAccuracy !== undefined && (
-                <span className="text-[9px] text-gray-500 font-mono">
+                <span className="text-[9px] text-gray-500 font-mono block">
                   ({match.prediction.leagueAccuracy}% historical accuracy)
                 </span>
               )}
@@ -643,7 +718,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
               }`}
             >
               {isAddedToSlip ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <Plus className="w-3.5 h-3.5" />}
-              <span>{isAddedToSlip ? 'Added ✓' : `Add @ ${topPick.odds > 0 ? topPick.odds : 'EVS'}`}</span>
+              <span>{isAddedToSlip ? 'Added ✓' : `+ Add @ ${liveOdds.toFixed(2)}`}</span>
             </button>
           </div>
         ) : null}

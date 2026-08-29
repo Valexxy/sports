@@ -1,6 +1,8 @@
 // Comprehensive Permanent Storage Engine for All User Actions
 // Guarantees that followed matches, clubs, players, leagues, bookmarks, placed bets, and referrals are NEVER forgotten.
 
+import { evaluatePredictionResult } from './prediction-archive-engine';
+
 export interface PlacedTicket {
   id: string;
   matchId: string;
@@ -66,6 +68,21 @@ export class PersistentStorage {
     const exists = list.some((t) => t.matchId === matchId);
     if (exists) return false;
 
+    const isFinished = match.status === 'FINISHED' || match.isFinished;
+    let initialStatus: 'PENDING' | 'WON' | 'LOST' = 'PENDING';
+    if (isFinished) {
+      const hScore = typeof match.homeScore === 'number' ? match.homeScore : 0;
+      const aScore = typeof match.awayScore === 'number' ? match.awayScore : 0;
+      initialStatus = evaluatePredictionResult(
+        topPick?.selection || 'Double Chance 1X',
+        topPick?.market || 'Double Chance',
+        match.homeTeam || 'Home',
+        match.awayTeam || 'Away',
+        hScore,
+        aScore
+      );
+    }
+
     const newTicket: PlacedTicket = {
       id: `ticket_${matchId}_${Date.now()}`,
       matchId,
@@ -76,9 +93,7 @@ export class PersistentStorage {
       market: topPick.market || 'Full Time Outcome',
       odds: topPick.odds || 1.45,
       timestamp: Date.now(),
-      status: match.isFinished
-        ? (match.isWon ? 'WON' : 'LOST')
-        : 'PENDING',
+      status: initialStatus,
     };
 
     const updated = [newTicket, ...list];
@@ -88,6 +103,65 @@ export class PersistentStorage {
 
   public static isTicketPlaced(matchId: string): boolean {
     return this.getPlacedTickets().some((t) => t.matchId === matchId);
+  }
+
+  /**
+   * SYSTEM-WIDE TICKET SETTLEMENT ENGINE
+   * Scans all placed tickets. For any PENDING ticket whose match has concluded,
+   * evaluates the outcome against real scores and settles as WON or LOST.
+   */
+  public static settleAllTickets(liveOrFinishedMatches: any[]): { settledCount: number; newlyWon: number } {
+    if (typeof window === 'undefined' || !Array.isArray(liveOrFinishedMatches) || liveOrFinishedMatches.length === 0) {
+      return { settledCount: 0, newlyWon: 0 };
+    }
+
+    const tickets = this.getPlacedTickets();
+    if (tickets.length === 0) return { settledCount: 0, newlyWon: 0 };
+
+    let settledCount = 0;
+    let newlyWon = 0;
+
+    const updatedTickets = tickets.map((t) => {
+      if (t.status !== 'PENDING') return t;
+
+      // Match by matchId or by team names
+      const match = liveOrFinishedMatches.find((m) => {
+        if (m.id === t.matchId) return true;
+        const norm = (s: string) => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        return norm(m.homeTeam) === norm(t.homeTeam) && norm(m.awayTeam) === norm(t.awayTeam);
+      });
+
+      if (!match) return t;
+
+      const isFinished = match.status === 'FINISHED' || match.state === 'PLAYED' || match.matchTime === 'FT';
+      if (!isFinished) return t;
+
+      const hScore = typeof match.homeScore === 'number' ? match.homeScore : 0;
+      const aScore = typeof match.awayScore === 'number' ? match.awayScore : 0;
+
+      const outcome = evaluatePredictionResult(
+        t.selection,
+        t.market,
+        t.homeTeam,
+        t.awayTeam,
+        hScore,
+        aScore
+      );
+
+      settledCount++;
+      if (outcome === 'WON') newlyWon++;
+
+      return {
+        ...t,
+        status: outcome,
+      };
+    });
+
+    if (settledCount > 0) {
+      this.setArray(KEYS.PLACED_TICKETS, updatedTickets);
+    }
+
+    return { settledCount, newlyWon };
   }
 
   // --- Matches ---
@@ -146,17 +220,74 @@ export class PersistentStorage {
     return this.getLikes().includes(matchId);
   }
 
-  // --- Referrals ---
-  public static getReferralData() {
-    if (typeof window === 'undefined') return { referralCode: 'AURABALLER99', count: 3, earnedAura: 450 };
+  // --- Persistent Emoji Reactions ---
+  public static getMatchEmojiReactions(matchId: string): { userReacted: Record<string, boolean>; counts: Record<string, number> } {
+    if (typeof window === 'undefined') {
+      return { userReacted: {}, counts: { '🔥': 42, '💀': 18, '🧊': 25, '🚀': 31, '👑': 56 } };
+    }
     try {
-      const stored = localStorage.getItem(KEYS.REFERRALS);
+      const stored = localStorage.getItem(`mivaj_emojis_${matchId}`);
       if (stored) return JSON.parse(stored);
-      const initial = { referralCode: `AURA_${Math.random().toString(36).substring(2, 8).toUpperCase()}`, count: 3, earnedAura: 450 };
-      localStorage.setItem(KEYS.REFERRALS, JSON.stringify(initial));
-      return initial;
+    } catch {}
+    return {
+      userReacted: {},
+      counts: { '🔥': 42, '💀': 18, '🧊': 25, '🚀': 31, '👑': 56 },
+    };
+  }
+
+  public static saveMatchEmojiReaction(
+    matchId: string,
+    emoji: string
+  ): { userReacted: Record<string, boolean>; counts: Record<string, number> } {
+    const current = this.getMatchEmojiReactions(matchId);
+    const isReacted = !!current.userReacted[emoji];
+    const newCount = isReacted ? Math.max(0, (current.counts[emoji] || 1) - 1) : (current.counts[emoji] || 0) + 1;
+
+    const updated = {
+      userReacted: { ...current.userReacted, [emoji]: !isReacted },
+      counts: { ...current.counts, [emoji]: newCount },
+    };
+
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(`mivaj_emojis_${matchId}`, JSON.stringify(updated));
+      } catch {}
+    }
+
+    return updated;
+  }
+
+  // --- Referrals Based On Username ---
+  public static getReferralData(): { referralCode: string; count: number; earnedAura: number; list: any[] } {
+    if (typeof window === 'undefined') {
+      return { referralCode: 'CyberStriker_99', count: 0, earnedAura: 0, list: [] };
+    }
+    try {
+      let username = 'CyberStriker_99';
+      const sessionRaw = localStorage.getItem('mivaj_user_session');
+      if (sessionRaw) {
+        const parsed = JSON.parse(sessionRaw);
+        if (parsed?.username) username = parsed.username;
+      } else {
+        const nick = localStorage.getItem('mivaj_user_nickname');
+        if (nick) username = nick;
+      }
+
+      const cleanUsername = username.replace(/^@/, '');
+      const referralsRaw = localStorage.getItem('mivaj_user_referrals_list');
+      const list = referralsRaw ? JSON.parse(referralsRaw) : [];
+
+      const count = list.length;
+      const earnedAura = count * 150;
+
+      return {
+        referralCode: cleanUsername,
+        count,
+        earnedAura,
+        list,
+      };
     } catch {
-      return { referralCode: 'AURABALLER99', count: 3, earnedAura: 450 };
+      return { referralCode: 'CyberStriker_99', count: 0, earnedAura: 0, list: [] };
     }
   }
 }

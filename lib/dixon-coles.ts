@@ -105,42 +105,58 @@ export function calculateDixonColesPrediction(stats: MatchStats): PredictionResu
   const doubleChanceX2 = awayWinProb + drawProb;
   const drawNoBetHome = homeWinProb / (homeWinProb + awayWinProb);
 
-  // Determine High-Safety Top Pick using natural terms
+  // Determine High-Safety Top Pick using concise direct terms (1X, 2X, Over 1.5, 1, 2)
   let topMarket = 'Total Goals';
-  let topSelection = 'Over 0.5 Goals';
-  let topProb = over05Prob;
+  let topSelection = 'Over 1.5 Goals';
+  let topProb = over15Prob;
   let tier: 'ULTRA-BANKER' | 'BEST VALUE EDGE' | 'PRIME PICK' = 'ULTRA-BANKER';
-  let odds = 1.15;
-  let rationale = 'Over 0.5 Goals carries 95%+ statistical match probability based on team attacking power.';
+  let odds = 1.25;
+  let rationale = `Combined expected goals index indicates high probability of 2+ goals in match.`;
 
-  if (doubleChance1X > 0.88 && homeWinProb > 0.60) {
+  if (awayWinProb > homeWinProb && doubleChanceX2 >= 0.80) {
+    // Away team heavily favored (e.g. Leverkusen vs Elversberg)
     topMarket = 'Double Chance';
-    topSelection = `${stats.homeTeam} or Draw (1X)`;
+    topSelection = `2X (${stats.awayTeam})`;
+    topProb = doubleChanceX2;
+    tier = doubleChanceX2 >= 0.88 ? 'ULTRA-BANKER' : 'BEST VALUE EDGE';
+    odds = Math.round((1 / Math.max(0.05, doubleChanceX2) + 0.05) * 100) / 100;
+    rationale = `${stats.awayTeam} (${Math.round(awayWinProb * 100)}% Win Prob) holds dominant statistical edge with 2X protection.`;
+  } else if (homeWinProb > awayWinProb && doubleChance1X >= 0.80) {
+    // Home team heavily favored
+    topMarket = 'Double Chance';
+    topSelection = `1X (${stats.homeTeam})`;
     topProb = doubleChance1X;
-    tier = 'ULTRA-BANKER';
-    odds = Math.round((1 / doubleChance1X + 0.05) * 100) / 100;
-    rationale = `${stats.homeTeam} dominance at home guarantees a massive safety cushion with 1X protection.`;
-  } else if (over15Prob > 0.85) {
+    tier = doubleChance1X >= 0.88 ? 'ULTRA-BANKER' : 'BEST VALUE EDGE';
+    odds = Math.round((1 / Math.max(0.05, doubleChance1X) + 0.05) * 100) / 100;
+    rationale = `${stats.homeTeam} (${Math.round(homeWinProb * 100)}% Win Prob) carries massive home advantage with 1X protection.`;
+  } else if (over15Prob >= 0.82) {
     topMarket = 'Total Goals';
     topSelection = 'Over 1.5 Goals';
     topProb = over15Prob;
     tier = 'ULTRA-BANKER';
-    odds = Math.round((1 / over15Prob + 0.08) * 100) / 100;
-    rationale = `Combined Goal Chance Index of ${(expectedHomeGoals + expectedAwayGoals).toFixed(2)} indicates 2+ goals in 85%+ simulations.`;
-  } else if (homeWinProb > 0.68) {
-    topMarket = 'Match Result (1X2)';
-    topSelection = `${stats.homeTeam} Win`;
+    odds = Math.round((1 / Math.max(0.05, over15Prob) + 0.06) * 100) / 100;
+    rationale = `Match offensive output model indicates 2+ goals in 82%+ simulations.`;
+  } else if (awayWinProb >= 0.65) {
+    topMarket = 'Match Result (2)';
+    topSelection = `2 (${stats.awayTeam})`;
+    topProb = awayWinProb;
+    tier = 'BEST VALUE EDGE';
+    odds = Math.round((1 / Math.max(0.05, awayWinProb) + 0.08) * 100) / 100;
+    rationale = `Decisive attacking and possession advantage for away side ${stats.awayTeam}.`;
+  } else if (homeWinProb >= 0.65) {
+    topMarket = 'Match Result (1)';
+    topSelection = `1 (${stats.homeTeam})`;
     topProb = homeWinProb;
     tier = 'BEST VALUE EDGE';
-    odds = Math.round((1 / homeWinProb + 0.12) * 100) / 100;
-    rationale = `Strong tactical matchup edge for ${stats.homeTeam} with high goal scoring chance expected.`;
-  } else if (bttsProb > 0.65) {
+    odds = Math.round((1 / Math.max(0.05, homeWinProb) + 0.08) * 100) / 100;
+    rationale = `Strong tactical matchup edge for ${stats.homeTeam} on home ground.`;
+  } else if (bttsProb >= 0.65) {
     topMarket = 'Both Teams to Score';
     topSelection = 'BTTS - Yes';
     topProb = bttsProb;
     tier = 'BEST VALUE EDGE';
-    odds = Math.round((1 / bttsProb + 0.10) * 100) / 100;
-    rationale = 'Both teams demonstrate weak defensive transition efficiency.';
+    odds = Math.round((1 / Math.max(0.05, bttsProb) + 0.10) * 100) / 100;
+    rationale = 'Both teams demonstrate active offensive threat and open defenses.';
   }
 
   const b = odds - 1;

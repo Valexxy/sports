@@ -60,7 +60,7 @@ export const BetSlipConverter: React.FC = () => {
     setResult(null);
     setCopiedSlipText(false);
 
-    setLoadingStep('🔍 Reading live booking code from SportyBet API...');
+    setLoadingStep('🔍 Reading live booking code from SportyBet...');
     
     setTimeout(() => {
       setLoadingStep(`⚡ Decoding exact matches, scores, and leg outcomes...`);
@@ -133,7 +133,7 @@ export const BetSlipConverter: React.FC = () => {
             Enter any SportyBet booking code to <strong className="text-white">instantly reveal all hidden matches, scores, and leg outcomes</strong>. If a leg lost, see Mivaj AI's superior prediction instead!
           </p>
           <div className="flex items-center space-x-2 pt-1">
-            <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] font-black">✓ SPORTYBET LIVE API</span>
+            <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] font-black">✓ SPORTYBET DIRECT</span>
             <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30 text-[10px] font-black">🆓 100% FREE</span>
             <span className="px-2 py-0.5 rounded-full bg-gold/10 text-gold border border-gold/30 text-[10px] font-black">🎯 REAL-TIME SCORES</span>
           </div>
@@ -149,7 +149,7 @@ export const BetSlipConverter: React.FC = () => {
           <div>
             <p className="text-xs font-black text-emerald-400">SOURCE: SPORTYBET CODES ONLY ✓</p>
             <p className="text-[11px] text-gray-300 font-sans mt-0.5">
-              SportyBet is the only platform that provides a live public API for booking code decoding. If you enter an invalid code or a code from another bookmaker (such as Bet9ja), the system will explicitly alert you.
+              Enter any valid SportyBet booking code. If you enter an invalid code or a code from another bookmaker (such as Bet9ja), the system will explicitly alert you.
             </p>
           </div>
         </div>

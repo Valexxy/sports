@@ -125,16 +125,17 @@ export const PhoneHardwareBanner: React.FC = () => {
           setJustCompleted(true);
           setIsInstalled(true);
           localStorage.setItem('aurascore_installed', 'true');
+          localStorage.setItem('aurascore_pwa_dismissed', 'true');
           confetti({ particleCount: 70, spread: 80, origin: { y: 0.5 } });
           stadiumAudio.playSuccessSound();
           setTimeout(() => {
             setDismissed(true);
-          }, 3000);
+          }, 600);
           return 100;
         }
-        return prev + 25;
+        return prev + 50;
       });
-    }, 150);
+    }, 100);
   };
 
   const handleDismiss = () => {
@@ -144,11 +145,11 @@ export const PhoneHardwareBanner: React.FC = () => {
     }
   };
 
-  // If already installed, NEVER SHOW AGAIN
+  // If already installed or dismissed, NEVER SHOW AGAIN
   if (isInstalled || dismissed) return null;
 
   return (
-    <div className="fixed bottom-20 left-3 right-3 sm:bottom-6 sm:left-auto sm:right-6 sm:w-96 z-40 animate-slideUp font-mono text-xs">
+    <div className="fixed bottom-24 left-3 right-3 sm:bottom-6 sm:left-6 sm:right-auto sm:w-84 z-30 animate-slideUp font-mono text-xs">
       <div className="glass-panel-premium rounded-3xl p-3.5 border-2 border-stadiumGreen shadow-2xl bg-black/95 flex items-center justify-between gap-3 glow-emerald">
         
         <div className="flex items-center space-x-2.5 min-w-0">

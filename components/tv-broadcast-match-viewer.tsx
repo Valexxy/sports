@@ -60,9 +60,9 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
               ? 'bg-crimson/20 text-crimson border-crimson/40 animate-pulse' 
               : isFinished 
               ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40' 
-              : 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+              : 'bg-stadiumGreen/15 text-stadiumGreen border-stadiumGreen/30'
           }`}>
-            {isLive ? `LIVE 🔴 ${match.matchTime}` : isFinished ? (isBaseball ? 'FINAL' : 'FT • SETTLED') : `KICKOFF ${match.matchTime}`}
+            {isLive ? `LIVE 🔴` : isFinished ? (isBaseball ? 'FINAL' : 'SETTLED') : 'TACTICAL RADAR'}
           </span>
           <button
             onClick={() => setIsFullscreen(!isFullscreen)}

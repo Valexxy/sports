@@ -208,12 +208,10 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
                 if (onSelectOdds && match.prediction?.topPick) {
                   onSelectOdds(match, match.prediction.topPick.market || 'Match Winner', match.prediction.topPick.odds || 1.25);
                 }
-                alert('✅ Tip added to Accumulator Slip!');
               }}
-              className="px-3.5 py-2 rounded-xl text-xs font-mono font-black bg-stadiumGreen/20 hover:bg-stadiumGreen/30 text-stadiumGreen border border-stadiumGreen/60 flex items-center space-x-1.5 transition-all shadow-md active:scale-95"
+              className="px-3 py-1.5 rounded-xl text-xs font-mono font-black bg-stadiumGreen/20 hover:bg-stadiumGreen/30 text-stadiumGreen border border-stadiumGreen/60 flex items-center space-x-1 transition-all shadow-md active:scale-95"
             >
-              <span>🎟️</span>
-              <span>+ Add Tip to Slip</span>
+              <span>+ Slip</span>
             </button>
 
             <button
@@ -223,35 +221,33 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
                   confetti({ particleCount: 50, spread: 60, origin: { y: 0.5 } });
                 }
               }}
-              className="px-3.5 py-2 rounded-xl text-xs font-mono font-black bg-gradient-to-r from-gold/20 to-stadiumGreen/20 hover:from-gold/30 hover:to-stadiumGreen/30 text-white border border-gold/40 flex items-center space-x-1.5 transition-all shadow-md active:scale-95"
+              className="px-3 py-1.5 rounded-xl text-xs font-mono font-black bg-white/10 hover:bg-white/20 text-white border border-white/20 flex items-center space-x-1 transition-all shadow-md active:scale-95"
               title="Pin Live Score to Phone Lock Screen"
             >
-              <span>📌</span>
-              <span>Pin to Lock Screen (Live Google Style)</span>
+              <span>Pin Score</span>
             </button>
 
             <button
               onClick={() => setShowViralSlip(true)}
-              className="px-3.5 py-2 rounded-xl text-xs font-mono font-black flex items-center space-x-2 transition-all shadow-md bg-gold/20 hover:bg-gold/30 text-gold border border-gold/40"
-              title="Share Viral Matchday Slip on WhatsApp/Twitter"
+              className="px-3 py-1.5 rounded-xl text-xs font-mono font-black flex items-center space-x-1 transition-all shadow-md bg-gold/20 hover:bg-gold/30 text-gold border border-gold/40"
+              title="Share Match Slip"
             >
-              <span>⚡</span>
-              <span>Share Viral Slip</span>
+              <span>Share</span>
             </button>
 
             <button
               onClick={handleToggleFollow}
-              className={`px-3.5 py-2 rounded-xl text-xs font-mono font-black flex items-center space-x-2 transition-all shadow-md ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-mono font-black flex items-center space-x-1.5 transition-all shadow-md ${
                 isFollowed
                   ? 'bg-stadiumGreen text-black shadow-stadiumGreen/30'
                   : 'bg-panel hover:bg-white/10 text-white border border-white/10'
               }`}
             >
-              <Bell className={`w-4 h-4 ${isFollowed ? 'fill-black' : 'text-gold animate-bounce'}`} />
-              <span>{isFollowed ? '🔔 Match Alerts Active ✓' : '🔔 Follow for Kickoff & Goal Alerts'}</span>
+              <Bell className={`w-3.5 h-3.5 ${isFollowed ? 'fill-black' : 'text-gold'}`} />
+              <span>{isFollowed ? 'Alerts On ✓' : 'Alerts'}</span>
             </button>
 
-            <span className={`text-xs font-bold font-mono px-3.5 py-2 rounded-xl border flex items-center space-x-1.5 ${
+            <span className={`text-xs font-bold font-mono px-3 py-1.5 rounded-xl border flex items-center space-x-1.5 ${
               match.status === 'LIVE'
                 ? 'bg-crimson/20 text-crimson border-crimson/50 animate-pulse shadow-lg shadow-crimson/30'
                 : match.status === 'FINISHED'
@@ -259,7 +255,7 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
                 : 'bg-gold/20 text-gold border-gold/40'
             }`}>
               {match.status === 'LIVE' && <span className="w-2 h-2 rounded-full bg-crimson animate-ping" />}
-              <span>{match.status === 'LIVE' ? `LIVE ${match.matchTime}` : match.status === 'FINISHED' ? 'FULL TIME' : match.matchTime}</span>
+              <span>{match.status === 'LIVE' ? `LIVE ${match.matchTime}` : match.status === 'FINISHED' ? 'FT' : match.matchTime}</span>
             </span>
           </div>
         </div>

@@ -354,8 +354,10 @@ export function buildSmartPrediction(
     };
   }
 
-  // Full confident prediction
-  let selection = dcOutput.topPick?.selection ?? `${homeTeam} or Draw (1X)`;
+  // Full confident prediction with proper Home/Away alignment and concise direct terms
+  const favoredIsAway = awp > hwp;
+  const defaultSelection = favoredIsAway ? `2X (${awayTeam})` : `1X (${homeTeam})`;
+  let selection = dcOutput.topPick?.selection ?? defaultSelection;
   let market    = dcOutput.topPick?.market    ?? 'Double Chance';
 
   // Enforce allowed markets for the league
@@ -365,7 +367,7 @@ export function buildSmartPrediction(
     );
     if (!isAllowed) {
       market    = profile.allowedMarkets[0];
-      selection = `${homeTeam} or Draw (1X)`;
+      selection = defaultSelection;
     }
   }
 
