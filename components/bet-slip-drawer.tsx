@@ -4,6 +4,7 @@ import { ShoppingBag, X, Trash2, ExternalLink, Zap, ShieldCheck, Check, Copy, Sh
 import confetti from 'canvas-confetti';
 import { phoneHardware } from '../lib/phone-hardware-engine';
 import { stadiumAudio } from '../lib/sound-synthesizer';
+import { useModalBackHandler } from '../lib/history-back-navigation';
 
 export interface BetItem {
   matchId: string;
@@ -33,6 +34,9 @@ export const BetSlipDrawer: React.FC<BetSlipProps> = ({
   const [stake, setStake] = useState(1000);
   const [copiedBookmaker, setCopiedBookmaker] = useState<string | null>(null);
 
+  // Hook to handle phone back button when slip modal is open
+  useModalBackHandler(open, toggleOpen);
+
   if (items.length === 0) return null;
 
   const totalOdds = items.reduce((acc, curr) => acc * (curr.odds || 1.25), 1);
@@ -45,73 +49,76 @@ export const BetSlipDrawer: React.FC<BetSlipProps> = ({
   const sportyCode = `SB${(Math.abs(seed * 37) % 89999 + 10000).toString()}`;
   const bet9jaCode = `B9-${(Math.abs(seed * 73) % 8999 + 1000).toString(36).toUpperCase()}`;
   const onexCode = `1X-${(Math.abs(seed * 19) % 899999 + 100000).toString()}`;
+  const twentytwoCode = `22B-${(Math.abs(seed * 53) % 899999 + 100000).toString()}`;
 
   const AFFILIATE_BOOKMAKERS = [
     {
       id: '22bet',
       name: '22Bet (₦250,000 Bonus)',
-      url: process.env.NEXT_PUBLIC_22BET_AFFILIATE_URL || 'https://22bet.com.ng/?tag=972744',
-      badge: 'TOP BONUS 🎁',
+      url: process.env.NEXT_PUBLIC_22BET_AFFILIATE_URL || 'https://22bet.ng/?tag=d_972744m_97c_',
+      badge: '300% BONUS 🎁',
       bgClass: 'bg-emerald-600 hover:bg-emerald-500 text-white',
       borderClass: 'border-emerald-400',
-      code: 'AUTO-LOADED',
+      code: twentytwoCode,
     },
     {
       id: 'stake',
       name: 'Stake.com (VIP Club)',
       url: process.env.NEXT_PUBLIC_STAKE_AFFILIATE_URL || 'https://stake.com/?c=bPn8D0iA',
-      badge: 'CRYPTO & FIAT ⚡',
+      badge: 'CRYPTO & INSTANT ⚡',
       bgClass: 'bg-blue-600 hover:bg-blue-500 text-white',
       borderClass: 'border-blue-400',
-      code: 'VIP-SLIP',
-    },
-    {
-      id: 'sportybet',
-      name: `SportyBet (${sportyCode})`,
-      url: 'https://www.sportybet.com/ng/',
-      badge: 'FASTEST PAYOUT 🟢',
-      bgClass: 'bg-red-600 hover:bg-red-500 text-white',
-      borderClass: 'border-red-400',
-      code: sportyCode,
+      code: 'VIP-MIVAJ',
     },
     {
       id: 'bet9ja',
       name: `Bet9ja (${bet9jaCode})`,
-      url: 'https://sports.bet9ja.com/',
+      url: 'https://sports.bet9ja.com?ref=aurascore',
       badge: 'NAIJA #1 🔴',
       bgClass: 'bg-green-700 hover:bg-green-600 text-white',
       borderClass: 'border-green-400',
       code: bet9jaCode,
+    },
+    {
+      id: '1xbet',
+      name: `1xBet (${onexCode})`,
+      url: 'https://1xbet.ng?ref=aurascore',
+      badge: '300% WELCOME 🔵',
+      bgClass: 'bg-cyan-700 hover:bg-cyan-600 text-white',
+      borderClass: 'border-cyan-400',
+      code: onexCode,
     },
   ];
 
   const handleOpenAffiliate = (bm: typeof AFFILIATE_BOOKMAKERS[0]) => {
     // Copy booking code / slip text to clipboard
     const text = 
-      '🔥 MIVAJ SPORTS MULTI-SPORT SLIP (' + items.length + ' LEGS) 🔥\n\n' +
+      '🔥 MIVAJ SPORTS FOOTBALL SLIP (' + items.length + ' LEGS) 🔥\n\n' +
       items.map((it, idx) => (idx + 1) + '. ' + it.matchTitle + ' ➔ ' + it.selection + ' @ ' + it.odds).join('\n') +
       '\n\nTotal Odds: @' + totalOdds.toFixed(2) +
       '\nBooking Code: ' + bm.code +
+      '\nTelegram: t.me/mivajsport' +
       '\nPlace Live on: ' + bm.url;
 
-    navigator.clipboard.writeText(bm.code !== 'AUTO-LOADED' && bm.code !== 'VIP-SLIP' ? bm.code : text);
+    navigator.clipboard.writeText(bm.code !== 'AUTO-LOADED' && bm.code !== 'VIP-MIVAJ' ? bm.code : text);
     setCopiedBookmaker(bm.id);
     phoneHardware.triggerHaptic('SUCCESS');
     stadiumAudio.playCoinCashout();
+    confetti({ particleCount: 40, spread: 60, origin: { y: 0.8 } });
 
-    // Directly open the affiliate website in new tab
-    window.open(bm.url, '_blank', 'noopener,noreferrer');
-
-    setTimeout(() => setCopiedBookmaker(null), 3000);
+    setTimeout(() => {
+      window.open(bm.url, '_blank');
+      setCopiedBookmaker(null);
+    }, 400);
   };
 
   const handleCopyFullSlipText = () => {
     const text = 
-      '🔥 MIVAJ SPORTS MULTI-SPORT SLIP (' + items.length + ' LEGS) 🔥\n\n' +
+      '🔥 MIVAJ SPORTS VERIFIED ACCUMULATOR (' + items.length + ' LEGS) 🔥\n\n' +
       items.map((it, idx) => (idx + 1) + '. ' + it.matchTitle + ' ➔ ' + it.selection + ' @ ' + it.odds).join('\n') +
-      '\n\nTotal Odds: @' + totalOdds.toFixed(2) +
-      '\nStake: ₦' + stake.toLocaleString() + ' ➔ Est. Return: ₦' + potentialPayout.toLocaleString() +
-      '\nSportyBet: ' + sportyCode + ' | Bet9ja: ' + bet9jaCode +
+      '\n\nTotal Combined Odds: @' + totalOdds.toFixed(2) +
+      '\nPotential Payout on ₦' + stake.toLocaleString() + ': ₦' + potentialPayout.toLocaleString() +
+      '\nJoin VIP Channel: https://t.me/mivajsport' +
       '\nPlace Live on https://mivaj.com';
 
     navigator.clipboard.writeText(text);
@@ -123,33 +130,33 @@ export const BetSlipDrawer: React.FC<BetSlipProps> = ({
 
   return (
     <>
-      {/* Floating Bottom Control Bar */}
-      <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-[94vw] max-w-lg bg-[#070c18] rounded-2xl p-3 border-2 border-stadiumGreen shadow-2xl shadow-black flex items-center justify-between animate-fadeIn font-mono">
+      {/* Floating Bottom Control Bar — Positioned at bottom-20 on mobile to stay above app dock */}
+      <div className="fixed bottom-20 lg:bottom-5 left-1/2 -translate-x-1/2 z-[60] w-[94vw] max-w-lg bg-[#070c18] rounded-2xl p-3 border-2 border-stadiumGreen shadow-2xl shadow-black flex items-center justify-between animate-fadeIn font-mono">
         <button
           onClick={toggleOpen}
-          className="flex items-center space-x-3 text-left hover:opacity-90 transition-all flex-1"
+          className="flex items-center space-x-3 text-left hover:opacity-90 transition-all flex-1 min-w-0"
         >
-          <div className="relative p-2.5 rounded-xl bg-stadiumGreen text-black font-black">
+          <div className="relative p-2.5 rounded-xl bg-stadiumGreen text-black font-black flex-shrink-0">
             <ShoppingBag className="w-5 h-5" />
-            <span className="absolute -top-1.5 -right-1.5 bg-black text-stadiumGreen text-[10px] font-mono font-bold w-5 h-5 rounded-full flex items-center justify-center border border-stadiumGreen">
+            <span className="absolute -top-1.5 -right-1.5 bg-black text-stadiumGreen text-[10px] font-mono font-bold w-5 h-5 rounded-full flex items-center justify-center border border-stadiumGreen animate-pulse">
               {items.length}
             </span>
           </div>
 
-          <div>
+          <div className="min-w-0 truncate">
             <div className="flex items-center space-x-2">
               <span className="text-xs font-black text-white font-mono">BET SLIP ({items.length} LEGS)</span>
               <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-stadiumGreen/20 text-stadiumGreen font-black border border-stadiumGreen/30">
                 ACTIVE
               </span>
             </div>
-            <span className="text-xs font-mono text-gold font-black">Total Odds: @{totalOdds.toFixed(2)}</span>
+            <span className="text-xs font-mono text-gold font-black block truncate">Total Odds: @{totalOdds.toFixed(2)}</span>
           </div>
         </button>
 
         <button
           onClick={toggleOpen}
-          className="px-4 py-2 rounded-xl bg-stadiumGreen hover:bg-emerald-400 text-black font-black text-xs shadow-md transition-all font-mono active:scale-95"
+          className="px-4 py-2 rounded-xl bg-stadiumGreen hover:bg-emerald-400 text-black font-black text-xs shadow-md transition-all font-mono active:scale-95 flex-shrink-0 ml-2"
         >
           {open ? 'Hide Slip' : 'View Slip ➔'}
         </button>
@@ -157,9 +164,11 @@ export const BetSlipDrawer: React.FC<BetSlipProps> = ({
 
       {/* Expanded Modal / Drawer */}
       {open && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fadeIn font-mono">
-          <div className="glass-panel-premium w-full sm:max-w-lg max-h-[90vh] rounded-t-3xl sm:rounded-3xl border-2 border-stadiumGreen p-4 sm:p-5 space-y-4 shadow-2xl flex flex-col text-white">
-            
+        <div className="fixed inset-0 z-[70] bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fadeIn font-mono">
+          <div 
+            className="glass-panel-premium w-full sm:max-w-lg max-h-[92vh] rounded-t-3xl sm:rounded-3xl border-2 border-stadiumGreen p-4 sm:p-5 space-y-3.5 shadow-2xl flex flex-col text-white"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Header */}
             <div className="flex items-center justify-between border-b border-white/10 pb-3 flex-shrink-0">
               <div className="flex items-center space-x-2">
@@ -189,21 +198,23 @@ export const BetSlipDrawer: React.FC<BetSlipProps> = ({
               </div>
             </div>
 
-            {/* Scrollable Selections List */}
-            <div className="flex-1 overflow-y-auto space-y-2 pr-1 max-h-[25vh]">
+            {/* Scrollable Selections List (Expanded height to comfortably view all 11+ games) */}
+            <div className="flex-1 overflow-y-auto space-y-2 pr-1 max-h-[42vh]">
               {items.map((it, idx) => (
                 <div
                   key={it.matchId + '-' + idx}
-                  className="p-2.5 rounded-2xl bg-black/70 border border-white/10 flex items-center justify-between hover:border-stadiumGreen/40 transition-colors"
+                  className="p-2.5 rounded-2xl bg-black/70 border border-white/10 flex items-center justify-between hover:border-stadiumGreen/40 transition-colors shadow-sm"
                 >
                   <div className="space-y-0.5 min-w-0 flex-1 pr-2">
-                    <span className="text-[9px] text-gray-400 font-bold block">LEG {idx + 1}</span>
+                    <span className="text-[9px] text-stadiumGreen font-bold block">LEG {idx + 1} OF {items.length}</span>
                     <h4 className="font-bold text-xs text-white truncate">{it.matchTitle}</h4>
-                    <span className="text-[10px] text-stadiumGreen font-black block truncate">{it.selection}</span>
+                    <span className="text-[10px] text-gold font-black block truncate">{it.selection}</span>
                   </div>
 
                   <div className="flex items-center space-x-2 flex-shrink-0">
-                    <span className="text-xs font-black text-gold font-mono">@{it.odds}</span>
+                    <span className="text-xs font-black text-stadiumGreen font-mono bg-stadiumGreen/10 px-2 py-0.5 rounded-lg border border-stadiumGreen/30">
+                      @{it.odds}
+                    </span>
                     <button
                       onClick={() => onRemoveItem(idx)}
                       className="text-gray-500 hover:text-crimson transition-colors p-1"

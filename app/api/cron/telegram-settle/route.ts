@@ -9,7 +9,7 @@ export const maxDuration = 60;
 
 /**
  * MIVAJ SPORTS TELEGRAM NIGHTLY SETTLEMENT CRON — 11:00 PM WAT DAILY
- * Channel: @mivasport (https://t.me/mivasport)
+ * Channel: @mivajsport (https://t.me/mivajsport)
  * Extreme Virality, High-FOMO & Transparency Audit
  */
 export async function GET(req: Request) {

@@ -11,7 +11,7 @@ export interface MatchPrediction {
     selection: string;
     market: string;
     odds: number;
-    confidenceTier: 'ULTRA-BANKER' | 'BANKER' | 'HIGH VALUE' | 'MODERATE';
+    confidenceTier: string;
     kellyStake: number;
     probability: number;
     rationale: string;
@@ -21,6 +21,11 @@ export interface MatchPrediction {
   awayWinProb: number;
   expectedHomeGoals: number;
   expectedAwayGoals: number;
+  // Tipster confidence fields (from prediction-confidence-engine)
+  hasPrediction?: boolean;
+  noDataNote?: string;
+  confidenceLevel?: 'HIGH' | 'MEDIUM' | 'LOW' | 'NO_PREDICTION';
+  leagueAccuracy?: number;
 }
 
 export interface CommentaryEvent {

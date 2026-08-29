@@ -19,7 +19,8 @@ import {
   ChevronUp,
   Activity,
   MapPin,
-  Whistle
+  Clock,
+  Timer
 } from 'lucide-react';
 import { MatchData } from '../lib/sports-api';
 import { getLeagueInfo } from '../lib/league-badges';
@@ -30,6 +31,7 @@ import confetti from 'canvas-confetti';
 import { PersistentStorage } from '../lib/persistent-storage-engine';
 import { LiveStadiumCommentaryModal } from './live-stadium-commentary-modal';
 import { HeadToHeadArenaModal } from './head-to-head-arena-modal';
+import { useModalBackHandler } from '../lib/history-back-navigation';
 
 export interface DailyMatchCardProps {
   match: MatchData;
@@ -56,6 +58,24 @@ function getMatchDateLabel(utcDateStr?: string): string {
   if (diffDays === 1) return 'Tomorrow, ' + matchDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
   if (diffDays === -1) return 'Yesterday, ' + matchDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
   return matchDate.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
+function getMatchCountdown(utcDateStr?: string): { text: string; status: 'URGENT' | 'SOON' | 'UPCOMING' } {
+  if (!utcDateStr) return { text: 'Scheduled', status: 'UPCOMING' };
+  const now = Date.now();
+  const target = new Date(utcDateStr).getTime();
+  const diff = target - now;
+
+  if (diff <= 0) return { text: 'Starting Now ⚡', status: 'URGENT' };
+  const mins = Math.floor(diff / 60000);
+  const hours = Math.floor(mins / 60);
+  const remainingMins = mins % 60;
+
+  if (mins < 30) return { text: `⏳ ${mins}m to Kickoff`, status: 'URGENT' };
+  if (hours < 3) return { text: `⏳ ${hours}h ${remainingMins}m`, status: 'SOON' };
+  if (hours < 24) return { text: `⏳ ${hours}h ${remainingMins}m`, status: 'UPCOMING' };
+  const days = Math.floor(hours / 24);
+  return { text: `📅 ${days}d to go`, status: 'UPCOMING' };
 }
 
 function calculateRealisticPins(match: MatchData): number {
@@ -124,9 +144,14 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   const [pinCount, setPinCount] = useState<number>(basePins);
   const [bettorCount, setBettorCount] = useState<number>(baseBettors);
   const [hasVotedTicket, setHasVotedTicket] = useState<boolean>(false);
+  const [isAddedToSlip, setIsAddedToSlip] = useState<boolean>(false);
   const [showCommentaryModal, setShowCommentaryModal] = useState<boolean>(false);
   const [showH2HModal, setShowH2HModal] = useState<boolean>(false);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
+
+  // Hook to handle phone back button when modals are open
+  useModalBackHandler(showCommentaryModal, () => setShowCommentaryModal(false));
+  useModalBackHandler(showH2HModal, () => setShowH2HModal(false));
 
   // Gen Z Emoji Reactions State
   const [reactions, setReactions] = useState<{ [key: string]: number }>({
@@ -177,6 +202,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   };
 
   const dateLabel = getMatchDateLabel(match.utcDate);
+  const countdown = getMatchCountdown(match.utcDate);
 
   const handleCardClick = () => {
     try { phoneHardware.triggerHaptic('SELECTION'); } catch {}
@@ -204,9 +230,14 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
 
   const handleAddPick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    const next = !isAddedToSlip;
+    setIsAddedToSlip(next);
     try { stadiumAudio.playAddPickSound(); } catch {}
     onSelectOdds(match, topPick.selection, topPick.odds || 1.40);
-    try { phoneHardware.triggerHaptic('SELECTION'); } catch {}
+    try { phoneHardware.triggerHaptic('SUCCESS'); } catch {}
+    if (next) {
+      confetti({ particleCount: 30, spread: 50, origin: { y: 0.8 } });
+    }
   };
 
   const handlePlacedTicket = (e: React.MouseEvent) => {
@@ -251,7 +282,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
         {/* Top Highlight Accent Line */}
         <div className="absolute inset-x-6 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-        {/* 1. Header Bar: League Info + Status Pill + Bookmark & Follow Controls (Clean & Separate) */}
+        {/* 1. Header Bar: League Info + Countdown / Status + Bookmark & Follow */}
         <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5">
           <div className="flex items-center space-x-2 min-w-0 flex-1">
             <button
@@ -277,7 +308,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
               </span>
             </button>
 
-            {/* Dynamic Status Pill */}
+            {/* Dynamic Status / Color-Coded Kickoff Countdown Pill */}
             {isLive ? (
               <span className="flex-shrink-0 flex items-center space-x-1 px-2 py-0.5 rounded-full bg-stadiumGreen/20 border border-stadiumGreen/60 text-stadiumGreen text-[9px] font-black animate-pulse shadow-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-stadiumGreen" />
@@ -291,9 +322,15 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
                 <span>FT • {match.homeScore ?? 0}-{match.awayScore ?? 0}</span>
               </span>
             ) : (
-              <span className="flex-shrink-0 flex items-center space-x-1 px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/50 text-amber-400 text-[9px] font-black">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                <span>{dateLabel}</span>
+              <span className={`flex-shrink-0 flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[9px] font-black border transition-all ${
+                countdown.status === 'URGENT'
+                  ? 'bg-stadiumGreen/20 border-stadiumGreen text-stadiumGreen animate-pulse shadow-sm'
+                  : countdown.status === 'SOON'
+                  ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
+                  : 'bg-white/10 border-white/10 text-gray-300'
+              }`}>
+                <Clock className="w-3 h-3" />
+                <span>{countdown.text}</span>
               </span>
             )}
           </div>
@@ -473,18 +510,24 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
         </div>
 
         {/* 5. Poisson Model Probability Gauge Bar */}
-        <div className="space-y-1 bg-black/40 p-2 rounded-xl border border-white/5" onClick={(e) => e.stopPropagation()}>
-          <div className="flex justify-between items-center text-[9px] font-mono font-bold text-gray-400">
-            <span className="text-stadiumGreen">1: {homePct}%</span>
-            <span className="text-gray-400">X: {drawPct}%</span>
-            <span className="text-gold">2: {awayPct}%</span>
+        {match.prediction?.hasPrediction === false ? (
+          <div className="p-2 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+            <span className="text-[9px] text-gray-500 font-mono">📊 No model data available for this league</span>
           </div>
-          <div className="h-1.5 w-full bg-black/80 rounded-full overflow-hidden flex">
-            <div style={{ width: `${homePct}%` }} className="bg-stadiumGreen h-full transition-all duration-500" />
-            <div style={{ width: `${drawPct}%` }} className="bg-gray-600 h-full transition-all duration-500" />
-            <div style={{ width: `${awayPct}%` }} className="bg-gold h-full transition-all duration-500" />
+        ) : (
+          <div className="space-y-1 bg-black/40 p-2 rounded-xl border border-white/5" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center text-[9px] font-mono font-bold text-gray-400">
+              <span className="text-stadiumGreen">1: {homePct}%</span>
+              <span className="text-gray-400">X: {drawPct}%</span>
+              <span className="text-gold">2: {awayPct}%</span>
+            </div>
+            <div className="h-1.5 w-full bg-black/80 rounded-full overflow-hidden flex">
+              <div style={{ width: `${homePct}%` }} className="bg-stadiumGreen h-full transition-all duration-500" />
+              <div style={{ width: `${drawPct}%` }} className="bg-gray-600 h-full transition-all duration-500" />
+              <div style={{ width: `${awayPct}%` }} className="bg-gold h-full transition-all duration-500" />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* 6. Expandable Match Details Dossier (Revealed on Card Click) */}
         {isExpanded && (
@@ -554,7 +597,24 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
         </div>
 
         {/* 8. Top Pick Banker Banner — Show on upcoming matches */}
-        {!isFinished && (
+        {!isFinished && match.prediction?.hasPrediction === false ? (
+          /* Watch-Only League — no prediction shown */
+          <div className="p-3 rounded-2xl flex items-center space-x-2.5 bg-white/5 border border-white/10 text-xs">
+            <span className="text-2xl flex-shrink-0">📊</span>
+            <div className="min-w-0">
+              <span className="text-[10px] font-black uppercase text-amber-400 block tracking-wider">Watch-Only Match</span>
+              <span className="text-gray-400 font-sans text-[10px] leading-snug block">
+                {match.prediction?.noDataNote || 'Insufficient data for a reliable prediction. View scores only.'}
+              </span>
+              {match.prediction?.leagueAccuracy !== undefined && (
+                <span className="text-[9px] text-gray-600 font-mono">
+                  Hist. accuracy: {match.prediction.leagueAccuracy}% — model coverage insufficient
+                </span>
+              )}
+            </div>
+          </div>
+        ) : !isFinished ? (
+          /* Standard Banker Banner — confident pick */
           <div className="p-3 rounded-2xl flex items-center justify-between gap-2 shadow-md bg-gradient-to-r from-stadiumGreen/20 via-panel to-gold/15 border border-stadiumGreen/40">
             <div className="min-w-0">
               <span className="text-[10px] font-black uppercase tracking-wider block text-stadiumGreen flex items-center space-x-1">
@@ -562,20 +622,31 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
                 <span>👑 {topPick.confidenceTier} ({topPick.probability}% WIN RATE)</span>
               </span>
               <span className="text-xs font-black text-white truncate block">
-                {topPick.market}: <strong className="text-gold">{topPick.selection}</strong> @ {topPick.odds}
+                {topPick.market}: <strong className="text-gold">{topPick.selection}</strong>
+                {topPick.odds > 0 && ` @ ${topPick.odds}`}
               </span>
+              {match.prediction?.leagueAccuracy !== undefined && (
+                <span className="text-[9px] text-gray-500 font-mono">
+                  ({match.prediction.leagueAccuracy}% historical accuracy)
+                </span>
+              )}
             </div>
 
+            {/* Added State with Dynamic Color Feedback */}
             <button
               type="button"
               onClick={handleAddPick}
-              className="px-3.5 py-2 rounded-xl bg-stadiumGreen hover:bg-emerald-400 text-black font-black text-xs shadow-md hover:scale-105 transition-all flex items-center space-x-1 flex-shrink-0"
+              className={`px-3.5 py-2 rounded-xl font-black text-xs shadow-md transition-all flex items-center space-x-1.5 flex-shrink-0 active:scale-95 ${
+                isAddedToSlip
+                  ? 'bg-gradient-to-r from-gold to-amber-400 text-black shadow-lg shadow-gold/30 ring-2 ring-gold'
+                  : 'bg-stadiumGreen hover:bg-emerald-400 text-black hover:scale-105'
+              }`}
             >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add @ {topPick.odds}</span>
+              {isAddedToSlip ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <Plus className="w-3.5 h-3.5" />}
+              <span>{isAddedToSlip ? 'Added ✓' : `Add @ ${topPick.odds > 0 ? topPick.odds : 'EVS'}`}</span>
             </button>
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* Live Stadium Commentary Modal */}

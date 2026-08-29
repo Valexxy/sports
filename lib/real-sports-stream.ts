@@ -41,6 +41,37 @@ import { calculateDixonColesPrediction, MatchStats } from './dixon-coles';
 import { getTeamStrength } from './team-ratings';
 import { SmartApiThrottler } from './smart-api-throttler';
 import { MatchData, BookmakerOdds, CommentaryEvent, MatchDetails, MatchLineupEntry, MatchStatsRow } from './sports-api';
+import { buildSmartPrediction } from './prediction-confidence-engine';
+
+const LEAGUE_NAME_TO_CODE: Record<string, string> = {
+  'Premier League': 'eng.1',
+  'La Liga': 'esp.1',
+  'Primera Division': 'esp.1',
+  'Bundesliga': 'ger.1',
+  'Serie A': 'ita.1',
+  'Ligue 1': 'fra.1',
+  'UEFA Champions League': 'uefa.champions',
+  'Champions League': 'uefa.champions',
+  'UEFA Europa League': 'uefa.europa',
+  'Europa League': 'uefa.europa',
+  'Conference League': 'uefa.europa.conf',
+  'Championship': 'eng.2',
+  'Carabao Cup': 'eng.league_cup',
+  'FA Cup': 'eng.fa',
+  'Copa del Rey': 'esp.copa_del_rey',
+  'Coppa Italia': 'ita.coppa_italia',
+  'DFB-Pokal': 'ger.dfb_pokal',
+  'Coupe de France': 'fra.coupe_de_france',
+  'Brasileirao': 'bra.1',
+  'Liga Argentina': 'arg.1',
+  'MLS': 'usa.1',
+  'Liga MX': 'mex.1',
+  'Saudi Pro League': 'sau.1',
+  'Primeira Liga': 'por.1',
+  'Eredivisie': 'ned.1',
+  'Turkish Super Lig': 'tur.1',
+  'NPFL Nigeria': 'nga.1',
+};
 
 const FD_TOKEN = process.env.FOOTBALL_DATA_TOKEN || 'a981804ab6084434ba7ba719625ec403';
 
@@ -152,30 +183,15 @@ async function fetchFootballDataMatches(): Promise<MatchData[]> {
         referee: m.referees?.[0]?.name || 'Official Match Referee',
         utcDate: m.utcDate || new Date().toISOString(),
         stadiumTension: isLive ? 94 : isFinished ? 10 : Math.round(dcOutput.topPick.probability),
-        prediction: {
-          topPick: {
-            selection: isFinished
-              ? `${homeScore > awayScore ? homeTeam : awayScore > homeScore ? awayTeam : 'Draw'} (Settled)`
-              : dcOutput.homeWinProb >= dcOutput.awayWinProb
-              ? (dcOutput.topPick.selection || `${homeTeam} or Draw (1X)`)
-              : (dcOutput.awayWinProb > 0.6 ? `${awayTeam} Win` : `${awayTeam} or Draw (X2)`),
-            market: isFinished ? 'SETTLED' : (dcOutput.homeWinProb >= dcOutput.awayWinProb ? dcOutput.topPick.market : 'Double Chance'),
-            odds: dcOutput.topPick.odds,
-            confidenceTier: dcOutput.topPick.probability >= 80 ? 'ULTRA-BANKER' : dcOutput.topPick.probability >= 65 ? 'BANKER' : 'HIGH VALUE',
-            kellyStake: dcOutput.topPick.kellyStake,
-            probability: Math.round(dcOutput.topPick.probability),
-            rationale: isFinished
-              ? `Final score: ${homeTeam} ${homeScore} - ${awayScore} ${awayTeam}. Recorded in official referee ledger.`
-              : dcOutput.homeWinProb >= dcOutput.awayWinProb
-              ? dcOutput.topPick.rationale
-              : `Pro match analysis calculates ${dcOutput.expectedAwayGoals.toFixed(2)} vs ${dcOutput.expectedHomeGoals.toFixed(2)} Goal Power for ${awayTeam}.`,
-          },
-          homeWinProb: dcOutput.homeWinProb,
-          drawProb: dcOutput.drawProb,
-          awayWinProb: dcOutput.awayWinProb,
-          expectedHomeGoals: dcOutput.expectedHomeGoals,
-          expectedAwayGoals: dcOutput.expectedAwayGoals,
-        },
+        prediction: buildSmartPrediction(
+          LEAGUE_NAME_TO_CODE[leagueName] || 'eng.1',
+          homeTeam,
+          awayTeam,
+          dcOutput,
+          isFinished,
+          homeScore,
+          awayScore
+        ),
         odds: (() => {
           // Derive implied odds from model probabilities + small bookmaker margin (5%)
           const margin = 1.05;
@@ -352,26 +368,7 @@ async function fetchSingleEspnLeague(ep: typeof ESPN_LEAGUES[0]): Promise<MatchD
         referee: 'Official League Referee',
         utcDate: ev.date || comp.date || new Date().toISOString(),
         stadiumTension: isLive ? 95 : isFinished ? 12 : Math.round(dcOutput.topPick.probability),
-        prediction: {
-          topPick: {
-            selection: defaultSelection,
-            market: defaultMarket,
-            odds: dcOutput.topPick.odds,
-            confidenceTier: dcOutput.topPick.probability >= 80 ? 'ULTRA-BANKER' : dcOutput.topPick.probability >= 65 ? 'BANKER' : 'HIGH VALUE',
-            kellyStake: 5,
-            probability: Math.round(dcOutput.topPick.probability),
-            rationale: isFinished
-              ? `Final outcome: ${homeTeam} ${homeScore} - ${awayScore} ${awayTeam}. Verified on ESPN match sheet.`
-              : dcOutput.homeWinProb >= dcOutput.awayWinProb
-              ? dcOutput.topPick.rationale
-              : `Pro match analysis calculates ${dcOutput.expectedAwayGoals.toFixed(2)} vs ${dcOutput.expectedHomeGoals.toFixed(2)} Goal Power for ${awayTeam}.`,
-          },
-          homeWinProb: dcOutput.homeWinProb,
-          drawProb: dcOutput.drawProb,
-          awayWinProb: dcOutput.awayWinProb,
-          expectedHomeGoals: dcOutput.expectedHomeGoals,
-          expectedAwayGoals: dcOutput.expectedAwayGoals,
-        },
+        prediction: buildSmartPrediction(ep.code, homeTeam, awayTeam, dcOutput, isFinished, homeScore, awayScore),
         odds: (() => {
           // Honest model-derived fair odds + bookmaker margin (no fabricated figures)
           const margin = 1.05;

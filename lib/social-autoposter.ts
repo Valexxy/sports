@@ -5,7 +5,7 @@
  */
 
 export const SOCIAL_LINKS = {
-  TELEGRAM_COMMUNITY: 'https://t.me/aurascore',
+  TELEGRAM_COMMUNITY: 'https://t.me/mivajsport',
   WHATSAPP_COMMUNITY: 'https://chat.whatsapp.com/L7p41jJq82C6L0w9s4Y',
 };
 

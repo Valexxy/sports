@@ -33,7 +33,7 @@ export const PublicSocialLinksCard: React.FC = () => {
 
       {/* 100% Native Unblockable HTML <a> Link for Telegram */}
       <a
-        href="https://t.me/mivaj_sports"
+        href="https://t.me/mivajsport"
         target="_blank"
         rel="noopener noreferrer"
         onClick={handleClick}

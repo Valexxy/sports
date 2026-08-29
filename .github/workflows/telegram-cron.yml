@@ -1,0 +1,49 @@
+name: Mivaj Sports — Telegram Auto-Post Cron
+
+on:
+  schedule:
+    # Morning banker broadcast — 6:30 AM WAT (5:30 AM UTC)
+    - cron: '30 5 * * *'
+    # Live settlement check — every 30 min from 3PM to 11PM UTC (4PM-12AM WAT)
+    - cron: '*/30 15-23 * * *'
+  workflow_dispatch:
+    inputs:
+      job:
+        description: 'Which job to run manually'
+        required: false
+        default: 'morning-broadcast'
+        type: choice
+        options:
+          - morning-broadcast
+          - live-settle
+
+jobs:
+  morning-broadcast:
+    if: github.event.schedule == '30 5 * * *' || (github.event_name == 'workflow_dispatch' && (github.event.inputs.job == 'morning-broadcast' || github.event.inputs.job == ''))
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Trigger Morning Banker Broadcast to @mivajsport
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X GET \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "https://mivaj.com/api/cron/telegram-morning")
+          echo "HTTP Status: $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "::warning::Morning broadcast returned HTTP $STATUS"
+          fi
+
+  live-settle:
+    if: github.event.schedule == '*/30 15-23 * * *' || (github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'live-settle')
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Trigger Live Match Settlement & Results Post
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X GET \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "https://mivaj.com/api/cron/telegram-live-settle")
+          echo "HTTP Status: $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "::warning::Live settle returned HTTP $STATUS"
+          fi

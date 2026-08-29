@@ -11,7 +11,7 @@ const processedMatchIds = new Set<string>();
 
 /**
  * MIVAJ SPORTS IN-DAY LIVE MATCH SETTLEMENT CRON
- * Channel: @mivasport (https://t.me/mivasport)
+ * Channel: @mivajsport (https://t.me/mivajsport)
  * Fires continuously throughout the day as each match finishes.
  * Delivers extreme virality, real-time FOMO, affiliate links & vital platform links.
  */

@@ -7,8 +7,8 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 /**
- * MIVAJ SPORTS TELEGRAM MORNING CRON — 6:00 AM WAT DAILY
- * Channel: @mivasport (https://t.me/mivasport)
+ * MIVAJ SPORTS DAILY MORNING BANKER CRON
+ * Channel: @mivajsport (https://t.me/mivajsport)
  * Extreme Virality, High-FOMO & Affiliate Driven
  */
 export async function GET(req: Request) {

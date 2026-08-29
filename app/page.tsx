@@ -82,6 +82,8 @@ import { ViralFeaturesGrid } from '../components/viral-features-grid';
 import { StadiumUserWeatherPanel } from '../components/stadium-user-weather-panel';
 import { registerPushClient, pushClientId } from '../lib/push-client';
 import { cacheOffline } from '../lib/offline-manager';
+import { AffiliateConversionPopup } from '../components/affiliate-conversion-popup';
+
 
 import { useTranslation } from '../lib/translation-engine';
 
@@ -100,8 +102,9 @@ export default function Home() {
   const [selectedDateLabel, setSelectedDateLabel] = useState<string>('Today');
   const [isViewingToday, setIsViewingToday] = useState<boolean>(true);
   const [selectedSport, setSelectedSport] = useState<'SOCCER' | 'BASKETBALL' | 'TENNIS'>('SOCCER');
-  const [visibleCount, setVisibleCount] = useState(12);
+  const [visibleCount, setVisibleCount] = useState(200);
   const [activeDockTab, setActiveDockTab] = useState('MATCHES');
+  const [showAffiliatePopup, setShowAffiliatePopup] = useState(false);
   const handleSelectDockTab = (tab: string) => {
     setActiveDockTab(tab);
     if (tab === 'FOLLOWING') {
@@ -328,7 +331,14 @@ export default function Home() {
       selection,
       odds,
     };
-    setBetSlipItems(prev => [...prev.filter(i => i.matchId !== match.id), newItem]);
+    setBetSlipItems(prev => {
+      const updated = [...prev.filter(i => i.matchId !== match.id), newItem];
+      // Show affiliate popup when user builds a 3+ pick slip (with 1.5s delay)
+      if (updated.length >= 3 && !showAffiliatePopup) {
+        setTimeout(() => setShowAffiliatePopup(true), 1500);
+      }
+      return updated;
+    });
     if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate([80]);
   };
 
@@ -866,7 +876,11 @@ export default function Home() {
         )}
 
 
-        
+        {/* Affiliate Conversion Popup — opens after 3+ picks added to slip */}
+        <AffiliateConversionPopup
+          isOpen={showAffiliatePopup}
+          onClose={() => setShowAffiliatePopup(false)}
+        />
 
       </div>
     </ErrorBoundary>

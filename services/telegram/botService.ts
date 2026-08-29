@@ -16,7 +16,7 @@ export class TelegramBotService {
   }
 
   public static getChannelId(): string {
-    return process.env.TELEGRAM_CHANNEL_ID || '@mivasport';
+    return process.env.TELEGRAM_CHANNEL_ID || '@mivajsport';
   }
 
   private static getApiUrl(): string {
