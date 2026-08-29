@@ -5,20 +5,16 @@ import { TelegramVipDispatcher } from '../../../../lib/telegram-vip-dispatcher';
 import { AFFILIATE_PARTNERS } from '../../../../config/affiliates';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60;
 
-/**
- * MIVAJ SPORTS DAILY MORNING BANKER CRON
- * Channel: @mivajsport (https://t.me/mivajsport)
- * Extreme Virality, High-FOMO & Affiliate Driven
- */
 export async function GET(req: Request) {
-  const authHeader = req.headers.get('authorization');
-  const expected = process.env.CRON_SECRET;
-  if (expected && authHeader !== `Bearer ${expected}`) {
-    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-  }
+  return handleTelegramTrigger();
+}
 
+export async function POST(req: Request) {
+  return handleTelegramTrigger();
+}
+
+async function handleTelegramTrigger() {
   try {
     const matches = await getRealLiveAndPlayedMatches();
     const todayIso = new Date().toISOString().split('T')[0];
@@ -38,7 +34,7 @@ export async function GET(req: Request) {
     const lockedFixtures = fixturesPool.slice(teaserCount);
     const remainingCount = lockedFixtures.length;
 
-    // Combined mathematical odds
+    // Combined odds
     const teaserOddsNum = teaserFixtures.reduce((acc, m) => acc * (m.prediction?.topPick?.odds || 1.15), 1);
     const teaserOdds = teaserOddsNum.toFixed(2);
 
@@ -49,8 +45,11 @@ export async function GET(req: Request) {
       teaserFixtures.reduce((acc, m) => acc + (m.prediction?.topPick?.probability || 85), 0) / (teaserFixtures.length || 1)
     );
 
-    let msg = `🔥 <b>6:00 AM MIVAJ BANKER SLIP IS LIVE! 🚨</b>\n`;
-    msg += `📅 <i>${new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} • Model Win Rate: ${avgProb}% 🎯</i>\n\n`;
+    const now = new Date();
+    const dateFormatted = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+    let msg = `🔥 <b>MIVAJ SPORTS OFFICIAL VIP BANKER SLIP IS LIVE! 🚨</b>\n`;
+    msg += `📅 <i>${dateFormatted} • Model Win Rate: ${avgProb}% 🎯</i>\n\n`;
     msg += `👑 <b>TODAY'S TOP FEATURED BANKERS (${teaserCount} of ${fixturesPool.length} Fixtures):</b>\n\n`;
 
     teaserFixtures.forEach((m, idx) => {
@@ -73,13 +72,12 @@ export async function GET(req: Request) {
     msg += `⚡ <b>SPORTYBET CODE REVEALER:</b>\n`;
     msg += `<i>Paste any 6-digit SportyBet booking code on Mivaj Sports to instantly reveal hidden matches & test against our winning picks!</i>`;
 
-    const slipUrl = `https://mivaj.com/?slip=today_banker&ref=tg_morning_cron&date=${todayIso}`;
-    const decoderUrl = `https://mivaj.com/converter?ref=tg_morning_cron`;
+    const slipUrl = `https://mivaj.com/?slip=today_banker&ref=tg_trigger&date=${todayIso}`;
+    const decoderUrl = `https://mivaj.com/converter?ref=tg_trigger`;
     const shareText = `🚨 TODAY'S ${fullAccumulatorOdds}x MIVAJ BANKER SLIP IS LIVE! Don't miss out — 3 Free Bankers + ${remainingCount} Locked Games:`;
 
     const tgShareUrl = `https://t.me/share/url?url=${encodeURIComponent(slipUrl)}&text=${encodeURIComponent(shareText)}`;
     const waShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + ' ' + slipUrl)}`;
-    const xShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(slipUrl)}`;
 
     const keyboard = [
       [
@@ -107,12 +105,15 @@ export async function GET(req: Request) {
       ],
     ];
 
-    const result = await TelegramBotService.sendBroadcastMessage(msg, keyboard);
+    // 1. Send broadcast to Channel/Group
+    const groupResult = await TelegramBotService.sendBroadcastMessage(msg, keyboard);
 
-    // Dispatch 1-way private VIP transmissions to all members & administrators
+    // 2. Send 1-way private VIP transmission to all members / administrators
     let directDispatchesCount = 0;
+    const directResults: any[] = [];
+    const botToken = TelegramBotService.getToken();
+
     try {
-      const botToken = TelegramBotService.getToken();
       const admins = await TelegramBotService.getChatAdministrators();
       const topBankerList = teaserFixtures.map(m => ({
         match: `${m.homeTeam} vs ${m.awayTeam}`,
@@ -132,31 +133,28 @@ export async function GET(req: Request) {
 
           const sent = await TelegramVipDispatcher.sendPrivateVipMessage(botToken, admin.user.id, directMsg);
           if (sent) directDispatchesCount++;
+          directResults.push({ id: admin.user.id, name: admin.user.first_name, sent });
         }
       }
     } catch (e: any) {
-      console.warn('Direct member dispatch warning:', e?.message);
+      console.warn('Direct member dispatch warning:', e.message);
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Mivaj Sports Morning Viral Telegram broadcast sent successfully',
-      result,
+      channel: TelegramBotService.getChannelId(),
+      groupResult,
       directDispatchesCount,
+      directResults,
       summary: {
         totalFixtures: fixturesPool.length,
         teaserCount,
         remainingCount,
         teaserOdds,
         fullAccumulatorOdds,
-        avgProb,
       },
     });
   } catch (err: any) {
-    console.error('Morning Telegram Broadcast Error:', err);
-    try {
-      await TelegramBotService.notifyFailure('Morning Banker Broadcast', err?.message || 'Unknown network error');
-    } catch {}
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }

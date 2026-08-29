@@ -58,8 +58,16 @@ export class TelegramBotService {
   }
 
   static async sendMessage(text: string, inlineKeyboard?: InlineKeyboardButton[][]): Promise<any> {
+    return this.sendMessageToChat(this.getChannelId(), text, inlineKeyboard);
+  }
+
+  static async sendBroadcastMessage(text: string, inlineKeyboard?: InlineKeyboardButton[][]): Promise<any> {
+    return this.sendMessageToChat(this.getChannelId(), text, inlineKeyboard);
+  }
+
+  static async sendMessageToChat(chatId: string | number, text: string, inlineKeyboard?: InlineKeyboardButton[][]): Promise<any> {
     const payload: any = {
-      chat_id: this.getChannelId(),
+      chat_id: chatId,
       text,
       parse_mode: "HTML",
       disable_web_page_preview: false,
@@ -72,6 +80,15 @@ export class TelegramBotService {
     }
 
     return this.requestWithRetry("sendMessage", payload);
+  }
+
+  static async getChatAdministrators(chatId = this.getChannelId()): Promise<any[]> {
+    try {
+      const res = await this.requestWithRetry("getChatAdministrators", { chat_id: chatId });
+      return res && res.ok && Array.isArray(res.result) ? res.result : [];
+    } catch {
+      return [];
+    }
   }
 
   static async sendPhoto(photoUrl: string, caption: string, inlineKeyboard?: InlineKeyboardButton[][]): Promise<any> {
