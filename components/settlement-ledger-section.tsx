@@ -13,7 +13,7 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
   const [archive, setArchive] = useState<ArchivedMatch[]>([]);
   const [isOpen, setIsOpen] = useState(true);
   const [filter, setFilter] = useState<'ALL' | 'WON' | 'LOST' | 'VOID'>('ALL');
-  const [period, setPeriod] = useState<'ALL' | 'TODAY' | 'WEEK' | 'MONTH'>('ALL');
+  const [period, setPeriod] = useState<'TODAY' | 'YESTERDAY' | 'WEEK' | 'MONTH' | 'ALL'>('TODAY');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<string>('');
 
@@ -74,32 +74,42 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
     fetchSettlement();
   }, []);
 
-  const wonCount = archive.filter((m) => m.prediction.result === 'WON').length;
-  const lostCount = archive.filter((m) => m.prediction.result === 'LOST').length;
-  const voidCount = archive.filter((m) => m.prediction.result === 'VOID').length;
-  const settledCount = archive.length;
-
   const todayIso = new Date().toISOString().split('T')[0];
+  const yesterdayIso = new Date(Date.now() - 86400000).toISOString().split('T')[0];
   const now = Date.now();
   const oneWeekAgo = now - 7 * 86400000;
   const oneMonthAgo = now - 30 * 86400000;
 
-  const filteredMatches = archive.filter((m) => {
-    if (filter === 'WON' && m.prediction.result !== 'WON') return false;
-    if (filter === 'LOST' && m.prediction.result !== 'LOST') return false;
-    if (filter === 'VOID' && m.prediction.result !== 'VOID') return false;
-    if (selectedDate && m.date !== selectedDate) return false;
-
-    // Period filter
-    if (period === 'TODAY' && m.date !== todayIso) return false;
+  // Filter by period first so stats reflect the selected timeframe (Daily by default)
+  const periodMatches = archive.filter((m) => {
+    if (selectedDate) return m.date === selectedDate;
+    if (period === 'TODAY') return m.date === todayIso;
+    if (period === 'YESTERDAY') return m.date === yesterdayIso;
     if (period === 'WEEK') {
       const matchTime = new Date(m.date).getTime();
-      if (matchTime < oneWeekAgo) return false;
+      return !isNaN(matchTime) && matchTime >= oneWeekAgo;
     }
     if (period === 'MONTH') {
       const matchTime = new Date(m.date).getTime();
-      if (matchTime < oneMonthAgo) return false;
+      return !isNaN(matchTime) && matchTime >= oneMonthAgo;
     }
+    return true; // 'ALL' accumulated
+  });
+
+  const displayPeriodMatches =
+    period === 'TODAY' && periodMatches.length === 0 && !selectedDate && archive.length > 0
+      ? archive.filter((m) => m.date === archive[0]?.date)
+      : periodMatches;
+
+  const wonCount = displayPeriodMatches.filter((m) => m.prediction.result === 'WON').length;
+  const lostCount = displayPeriodMatches.filter((m) => m.prediction.result === 'LOST').length;
+  const voidCount = displayPeriodMatches.filter((m) => m.prediction.result === 'VOID').length;
+  const settledCount = displayPeriodMatches.length;
+
+  const filteredMatches = displayPeriodMatches.filter((m) => {
+    if (filter === 'WON' && m.prediction.result !== 'WON') return false;
+    if (filter === 'LOST' && m.prediction.result !== 'LOST') return false;
+    if (filter === 'VOID' && m.prediction.result !== 'VOID') return false;
 
     // Search query filter
     if (searchQuery.trim()) {
@@ -179,19 +189,20 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
                 )}
               </div>
 
-              {/* Period Tabs: Today | Week | Month | All Time */}
+              {/* Period Tabs: Today (Daily) | Yesterday | Week | Month | All Time */}
               <div className="flex items-center space-x-1 w-full sm:w-auto bg-black/60 p-1 rounded-xl border border-white/10 text-[10px]">
                 {[
-                  { key: 'ALL', label: 'All Time' },
-                  { key: 'TODAY', label: 'Today 📅' },
-                  { key: 'WEEK', label: 'This Week' },
-                  { key: 'MONTH', label: 'This Month' },
+                  { key: 'TODAY', label: '📅 Today' },
+                  { key: 'YESTERDAY', label: '📆 Yesterday' },
+                  { key: 'WEEK', label: '📊 Week' },
+                  { key: 'MONTH', label: '🗓️ Month' },
+                  { key: 'ALL', label: `🏆 All-Time (${archive.length})` },
                 ].map((p) => (
                   <button
                     key={p.key}
-                    onClick={() => setPeriod(p.key as any)}
+                    onClick={() => { setPeriod(p.key as any); setSelectedDate(''); }}
                     className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
-                      period === p.key
+                      period === p.key && !selectedDate
                         ? 'bg-stadiumGreen text-black font-black shadow-sm'
                         : 'text-gray-400 hover:text-white'
                     }`}
