@@ -77,7 +77,7 @@ export interface MatchData {
   awayLogo: string;
   homeScore: number;
   awayScore: number;
-  status: 'LIVE' | 'SCHEDULED' | 'FINISHED';
+  status: 'LIVE' | 'SCHEDULED' | 'FINISHED' | 'POSTPONED' | 'CANCELLED';
   matchTime: string;
   league: string;
   leagueFlag: string;

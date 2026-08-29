@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArchivedMatch } from '../lib/prediction-archive-engine';
-import { ShieldCheck, CheckCircle2, XCircle, ChevronDown, ChevronUp, ExternalLink, Calendar, ArrowUpRight, Search } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, XCircle, ChevronDown, ChevronUp, ExternalLink, Calendar, ArrowUpRight, Search, Shield } from 'lucide-react';
+import { ProfessionalSettlementEngine } from '../lib/settlement-engine';
 
 interface SettlementLedgerSectionProps {
   onOpenAuditModal: (record?: ArchivedMatch) => void;
@@ -11,7 +12,7 @@ interface SettlementLedgerSectionProps {
 export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = ({ onOpenAuditModal }) => {
   const [archive, setArchive] = useState<ArchivedMatch[]>([]);
   const [isOpen, setIsOpen] = useState(true);
-  const [filter, setFilter] = useState<'ALL' | 'WON' | 'LOST'>('ALL');
+  const [filter, setFilter] = useState<'ALL' | 'WON' | 'LOST' | 'VOID'>('ALL');
   const [period, setPeriod] = useState<'ALL' | 'TODAY' | 'WEEK' | 'MONTH'>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<string>('');
@@ -26,37 +27,33 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
       const baseArchive: ArchivedMatch[] = Array.isArray(settleRes?.archive) ? settleRes.archive : [];
       const liveMatches = Array.isArray(matchesRes?.matches) ? matchesRes.matches : [];
 
-      // Dynamic Real-time Ingestion: Converted finished matches from today into audited ledger rows
+      // Dynamic Real-time Ingestion: Converted finished/void matches from today into audited ledger rows
       const finishedToday = liveMatches
-        .filter((m: any) => m.status === 'FINISHED')
+        .filter((m: any) => ProfessionalSettlementEngine.isMatchFinished(m))
         .map((m: any): ArchivedMatch => {
-          const isWon = m.homeScore !== undefined && (
-            (m.homeScore > m.awayScore && (m.prediction?.topPick?.selection || '').includes(m.homeTeam)) ||
-            (m.homeScore >= m.awayScore && (m.prediction?.topPick?.selection || '').includes('1X')) ||
-            (m.awayScore >= m.homeScore && (m.prediction?.topPick?.selection || '').includes('X2'))
-          );
+          const settlement = ProfessionalSettlementEngine.settleMatch(m);
           const todayStr = new Date().toISOString().split('T')[0];
           return {
             id: `live-settle-${m.id}`,
             date: m.utcDate?.split('T')[0] || todayStr,
             homeTeam: m.homeTeam,
             awayTeam: m.awayTeam,
-            homeScore: m.homeScore,
-            awayScore: m.awayScore,
+            homeScore: settlement.homeScore,
+            awayScore: settlement.awayScore,
             league: m.league,
             leagueFlag: m.leagueFlag || '🌍',
             prediction: {
-              selection: m.prediction?.topPick?.selection || `${m.homeTeam} or Draw (1X)`,
+              selection: settlement.evaluatedSelection,
               market: m.prediction?.topPick?.market || 'Double Chance',
-              odds: m.prediction?.topPick?.odds || 1.35,
+              odds: settlement.settledOdds,
               probabilityPercent: m.prediction?.topPick?.probability || 82,
-              result: isWon ? 'WON' : 'LOST',
-              tipsterName: '@AuraMaster_NG',
+              result: settlement.statusText,
+              tipsterName: '@MivajMaster_NG',
               tipsterBadge: 'VERIFIED ⚡',
             },
-            accuracyHeatmapScore: isWon ? 92 : 45,
+            accuracyHeatmapScore: settlement.isWon ? 92 : settlement.isVoid ? 85 : 45,
             settlementHash: `0x${m.id.slice(-6)}...${Date.now().toString(16).slice(-4)}`,
-            settlementNote: `Official FT Score ${m.homeScore} - ${m.awayScore}. Verified by League Referee Ledger ✓`,
+            settlementNote: settlement.auditExplanation,
           };
         });
 
@@ -79,6 +76,7 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
 
   const wonCount = archive.filter((m) => m.prediction.result === 'WON').length;
   const lostCount = archive.filter((m) => m.prediction.result === 'LOST').length;
+  const voidCount = archive.filter((m) => m.prediction.result === 'VOID').length;
   const settledCount = archive.length;
 
   const todayIso = new Date().toISOString().split('T')[0];
@@ -89,6 +87,7 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
   const filteredMatches = archive.filter((m) => {
     if (filter === 'WON' && m.prediction.result !== 'WON') return false;
     if (filter === 'LOST' && m.prediction.result !== 'LOST') return false;
+    if (filter === 'VOID' && m.prediction.result !== 'VOID') return false;
     if (selectedDate && m.date !== selectedDate) return false;
 
     // Period filter
@@ -230,6 +229,14 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
                 >
                   🔴 Lost ({lostCount})
                 </button>
+                <button
+                  onClick={() => setFilter('VOID')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    filter === 'VOID' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 font-black' : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  🛡️ Void ({voidCount})
+                </button>
               </div>
 
               {/* Calendar Picker with showPicker() */}
@@ -330,6 +337,11 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
                           <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-stadiumGreen/20 border border-stadiumGreen/50 text-stadiumGreen font-black text-[10px]">
                             <CheckCircle2 className="w-3 h-3" />
                             <span>WON ✓</span>
+                          </span>
+                        ) : m.prediction.result === 'VOID' ? (
+                          <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 font-black text-[10px]">
+                            <Shield className="w-3 h-3" />
+                            <span>VOID 1.00x</span>
                           </span>
                         ) : (
                           <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-crimson/20 border border-crimson/50 text-crimson font-black text-[10px]">

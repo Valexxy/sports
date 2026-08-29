@@ -293,7 +293,17 @@ async function fetchSingleEspnLeague(ep: typeof ESPN_LEAGUES[0]): Promise<MatchD
       const state = ev.status?.type?.state;
       const isLive = state === 'in';
       const isFinished = state === 'post';
-      const status: 'LIVE' | 'SCHEDULED' | 'FINISHED' = isLive ? 'LIVE' : isFinished ? 'FINISHED' : 'SCHEDULED';
+      const statusDesc = (ev.status?.type?.description || ev.status?.type?.shortDetail || '').toLowerCase();
+      const isPostponed = statusDesc.includes('postponed') || statusDesc.includes('ppd') || ev.status?.type?.name === 'STATUS_POSTPONED';
+      const isCanceled = statusDesc.includes('cancel') || ev.status?.type?.name === 'STATUS_CANCELED';
+      const isSuspended = statusDesc.includes('suspend') || ev.status?.type?.name === 'STATUS_SUSPENDED';
+
+      const status: 'LIVE' | 'SCHEDULED' | 'FINISHED' | 'POSTPONED' | 'CANCELLED' =
+        isCanceled ? 'CANCELLED' :
+        isPostponed ? 'POSTPONED' :
+        isLive ? 'LIVE' :
+        isFinished ? 'FINISHED' :
+        'SCHEDULED';
 
       // Scheduled matches ALWAYS have 0-0 score before kickoff
       let homeScore = status === 'SCHEDULED' ? 0 : parseInt(home.score || '0', 10);
@@ -315,7 +325,13 @@ async function fetchSingleEspnLeague(ep: typeof ESPN_LEAGUES[0]): Promise<MatchD
       const isNFL = ep.sport === 'AMERICAN_FOOTBALL';
 
       let clock = 'Upcoming';
-      if (isLive) {
+      if (isPostponed) {
+        clock = 'Postponed';
+      } else if (isCanceled) {
+        clock = 'Canceled';
+      } else if (isSuspended) {
+        clock = 'Suspended';
+      } else if (isLive) {
         if (isBaseball) {
           // MLB: e.g. "Top 3rd", "Bot 5th", "Mid 7th"
           clock = ev.status?.type?.shortDetail || ev.status?.type?.description || 'Top 1st';

@@ -14,7 +14,7 @@ export interface PlacedTicket {
   market: string;
   odds: number;
   timestamp: number;
-  status: 'PENDING' | 'WON' | 'LOST';
+  status: 'PENDING' | 'WON' | 'LOST' | 'VOID';
 }
 
 export interface UserSavedPreferences {
@@ -69,12 +69,17 @@ export class PersistentStorage {
     const exists = list.some((t) => t.matchId === matchId);
     if (exists) return false;
 
-    const isFinished = match.status === 'FINISHED' || match.isFinished;
-    let initialStatus: 'PENDING' | 'WON' | 'LOST' = 'PENDING';
-    if (isFinished) {
-      const hScore = typeof match.homeScore === 'number' ? match.homeScore : 0;
-      const aScore = typeof match.awayScore === 'number' ? match.awayScore : 0;
-      initialStatus = evaluatePredictionResult(
+    const voidCheck = ProfessionalSettlementEngine.evaluateVoidStatus(match);
+    const isFinished = voidCheck.isVoid || match.status === 'FINISHED' || match.isFinished;
+    let initialStatus: 'PENDING' | 'WON' | 'LOST' | 'VOID' = 'PENDING';
+    let ticketOdds = topPick.odds || 1.45;
+
+    if (voidCheck.isVoid) {
+      initialStatus = 'VOID';
+      ticketOdds = 1.00;
+    } else if (isFinished) {
+      const { homeScore: hScore, awayScore: aScore } = ProfessionalSettlementEngine.extractScores(match);
+      initialStatus = ProfessionalSettlementEngine.evaluate(
         topPick?.selection || 'Double Chance 1X',
         topPick?.market || 'Double Chance',
         match.homeTeam || 'Home',
@@ -92,7 +97,7 @@ export class PersistentStorage {
       league: match.league || 'League Fixture',
       selection: topPick.selection || 'Double Chance 1X',
       market: topPick.market || 'Full Time Outcome',
-      odds: topPick.odds || 1.45,
+      odds: ticketOdds,
       timestamp: Date.now(),
       status: initialStatus,
     };
@@ -108,8 +113,8 @@ export class PersistentStorage {
 
   /**
    * SYSTEM-WIDE TICKET SETTLEMENT ENGINE
-   * Scans all placed tickets. For any PENDING ticket whose match has concluded,
-   * evaluates the outcome against real scores and settles as WON or LOST.
+   * Scans all placed tickets. For any PENDING ticket whose match has concluded or been voided,
+   * evaluates the outcome against real scores and settles as WON, LOST, or VOID (1.00x).
    */
   public static settleAllTickets(liveOrFinishedMatches: any[]): { settledCount: number; newlyWon: number } {
     if (typeof window === 'undefined' || !Array.isArray(liveOrFinishedMatches) || liveOrFinishedMatches.length === 0) {
@@ -134,26 +139,16 @@ export class PersistentStorage {
 
       if (!match) return t;
 
-      const isFinished = ProfessionalSettlementEngine.isMatchFinished(match);
-      if (!isFinished) return t;
-
-      const { homeScore: hScore, awayScore: aScore } = ProfessionalSettlementEngine.extractScores(match);
-
-      const outcome = ProfessionalSettlementEngine.evaluate(
-        t.selection,
-        t.market,
-        t.homeTeam,
-        t.awayTeam,
-        hScore,
-        aScore
-      );
+      const settlement = ProfessionalSettlementEngine.settleMatch(match, t.selection);
+      if (!settlement.isFinished) return t;
 
       settledCount++;
-      if (outcome === 'WON') newlyWon++;
+      if (settlement.statusText === 'WON') newlyWon++;
 
       return {
         ...t,
-        status: outcome,
+        status: settlement.statusText,
+        odds: settlement.settledOdds,
       };
     });
 

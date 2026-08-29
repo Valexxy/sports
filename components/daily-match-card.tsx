@@ -213,6 +213,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   const isLive = !isFinished && (match.status === 'LIVE' || (timeDiff >= 0 && timeDiff <= 120 * 60000));
   const isUpcoming = !isFinished && !isLive;
   const isWon = isFinished && settlement.isWon;
+  const isVoid = settlement.isVoid;
   const resolvedHomeScore = settlement.homeScore;
   const resolvedAwayScore = settlement.awayScore;
 
@@ -400,15 +401,21 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
           </div>
         </div>
 
-        {/* 2. PROMINENT PRO PREDICTION BANNER (ON FT) */}
+        {/* 2. PROMINENT PRO PREDICTION BANNER (ON FT OR VOID) */}
         {isFinished && (
           <div className={`p-2.5 rounded-2xl flex items-center justify-between border text-xs gap-2 ${
-            isWon
+            isVoid
+              ? 'bg-cyan-950/40 border-cyan-500/50 text-cyan-300'
+              : isWon
               ? 'bg-stadiumGreen/15 border-stadiumGreen/60 text-emerald-300'
               : 'bg-red-950/40 border-crimson/50 text-red-300'
           }`}>
             <div className="flex items-center space-x-2 min-w-0 flex-1">
-              {isWon ? (
+              {isVoid ? (
+                <span className="p-1 rounded-lg bg-cyan-500 text-black font-black flex-shrink-0">
+                  <Shield className="w-3.5 h-3.5" />
+                </span>
+              ) : isWon ? (
                 <span className="p-1 rounded-lg bg-stadiumGreen text-black font-black flex-shrink-0">
                   <Check className="w-3.5 h-3.5 stroke-[3]" />
                 </span>
@@ -419,10 +426,18 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
               )}
               <div className="min-w-0">
                 <span className="text-[10px] font-black uppercase tracking-wider block">
-                  {isWon ? 'PREDICTION WON ✓ VERIFIED' : 'PREDICTION SETTLED'}
+                  {isVoid
+                    ? `MATCH ${settlement.voidReason || 'POSTPONED'} • SELECTION VOID`
+                    : isWon
+                    ? 'PREDICTION WON ✓ VERIFIED'
+                    : 'PREDICTION SETTLED'}
                 </span>
                 <span className="text-white font-black text-xs block">
-                  Pick: <strong className="text-gold">{cleanPickSelection}</strong> @ {topPick.odds} (FT: {resolvedHomeScore}-{resolvedAwayScore})
+                  {isVoid ? (
+                    <>Pick: <strong className="text-cyan-300">{cleanPickSelection}</strong> • Stake Refunded (1.00x)</>
+                  ) : (
+                    <>Pick: <strong className="text-gold">{cleanPickSelection}</strong> @ {topPick.odds} (FT: {resolvedHomeScore}-{resolvedAwayScore})</>
+                  )}
                 </span>
               </div>
             </div>
@@ -442,9 +457,13 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
                 <span>{isAddedToSlip ? 'In Slip' : '+ Slip'}</span>
               </button>
               <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                isWon ? 'bg-stadiumGreen text-black shadow-md' : 'bg-crimson text-white'
+                isVoid
+                  ? 'bg-cyan-400 text-black shadow-md font-mono'
+                  : isWon
+                  ? 'bg-stadiumGreen text-black shadow-md'
+                  : 'bg-crimson text-white'
               }`}>
-                {isWon ? 'WON ✓' : 'LOST'}
+                {isVoid ? 'VOID (1.00x)' : isWon ? 'WON ✓' : 'LOST'}
               </span>
             </div>
           </div>

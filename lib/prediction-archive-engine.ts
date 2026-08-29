@@ -19,7 +19,7 @@ export interface ArchivedMatch {
     market: string;
     odds: number;
     probabilityPercent: number;
-    result: 'WON' | 'LOST' | 'PENDING';
+    result: 'WON' | 'LOST' | 'PENDING' | 'VOID';
     tipsterName: string;
     tipsterBadge: string;
   };
@@ -224,18 +224,30 @@ function formatBettingSelection(m: MatchData): { selection: string; market: stri
 }
 
 function toArchivedMatch(m: MatchData): ArchivedMatch {
+  const voidCheck = ProfessionalSettlementEngine.evaluateVoidStatus(m);
   const homeScore = m.homeScore ?? 0;
   const awayScore = m.awayScore ?? 0;
   const pickInfo = formatBettingSelection(m);
 
-  const result: 'WON' | 'LOST' = evaluatePredictionResult(
-    pickInfo.selection,
-    pickInfo.market,
-    m.homeTeam,
-    m.awayTeam,
-    homeScore,
-    awayScore
-  );
+  let result: 'WON' | 'LOST' | 'VOID' = 'WON';
+  let odds = pickInfo.odds;
+  let note = `Official FT Score ${homeScore} - ${awayScore}. Verified by League Referee Ledger ✓`;
+
+  if (voidCheck.isVoid) {
+    result = 'VOID';
+    odds = 1.00;
+    note = `Match fixture officially ${voidCheck.reason}. Selection settled as VOID (1.00x Odds) — Stake 100% Refunded.`;
+  } else {
+    result = evaluatePredictionResult(
+      pickInfo.selection,
+      pickInfo.market,
+      m.homeTeam,
+      m.awayTeam,
+      homeScore,
+      awayScore
+    );
+  }
+
   const date = m.utcDate ? m.utcDate.slice(0, 10) : new Date().toISOString().slice(0, 10);
 
   return {
@@ -248,21 +260,21 @@ function toArchivedMatch(m: MatchData): ArchivedMatch {
     awayLogo: m.awayLogo || '⚽',
     homeScore,
     awayScore,
-    kickoffTime: 'FT',
+    kickoffTime: voidCheck.isVoid ? voidCheck.reason : 'FT',
     league: m.league,
     leagueFlag: m.leagueFlag || '🏆',
     prediction: {
       selection: pickInfo.selection,
       market: pickInfo.market,
-      odds: pickInfo.odds,
+      odds,
       probabilityPercent: pickInfo.probability,
       result,
       tipsterName: '@MivajMaster_NG',
       tipsterBadge: 'VERIFIED ⚡',
     },
-    accuracyHeatmapScore: result === 'WON' ? 95 : 35,
+    accuracyHeatmapScore: result === 'WON' ? 95 : result === 'VOID' ? 85 : 35,
     settlementHash: deriveSettlementHash({ id: m.id, homeTeam: m.homeTeam, awayTeam: m.awayTeam, homeScore, awayScore }),
-    settlementNote: `Official FT Score ${homeScore} - ${awayScore}. Verified by League Referee Ledger ✓`,
+    settlementNote: note,
   };
 }
 

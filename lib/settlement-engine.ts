@@ -5,16 +5,22 @@
  * - 1X2 Moneyline (Home, Draw, Away)
  * - Totals (Over/Under 1.5, 2.5, 3.5)
  * - Both Teams to Score (BTTS Yes / No)
+ * - Postponed, Canceled, Abandoned & Suspended match settlement (VOID at 1.00x odds / Stake Refund)
  * - Robust Score Extraction from match scores, clock strings ("FT - 4-1"), and state flags.
  */
+
+export type SettlementStatus = 'WON' | 'LOST' | 'VOID' | 'PENDING';
 
 export interface SettlementResult {
   isFinished: boolean;
   isWon: boolean;
-  statusText: 'WON' | 'LOST' | 'PENDING';
+  isVoid: boolean;
+  voidReason?: string;
+  statusText: SettlementStatus;
   homeScore: number;
   awayScore: number;
   evaluatedSelection: string;
+  settledOdds: number;
   auditExplanation: string;
 }
 
@@ -48,9 +54,58 @@ export class ProfessionalSettlementEngine {
   }
 
   /**
-   * Determines if a match has officially concluded
+   * Evaluates whether a fixture has been canceled, postponed, abandoned, or suspended
+   */
+  public static evaluateVoidStatus(match: any): { isVoid: boolean; reason: string } {
+    const rawStatus = (match.status || '').toString().toUpperCase();
+    const rawTime = (match.matchTime || '').toString().toUpperCase();
+    const rawDetail = (match.statusDetail || match.clock || '').toString().toUpperCase();
+
+    if (
+      rawStatus === 'POSTPONED' ||
+      rawStatus === 'PPD' ||
+      rawTime.includes('POSTP') ||
+      rawTime.includes('PPD') ||
+      rawDetail.includes('POSTPONED')
+    ) {
+      return { isVoid: true, reason: 'POSTPONED' };
+    }
+
+    if (
+      rawStatus === 'CANCELLED' ||
+      rawStatus === 'CANCELED' ||
+      rawTime.includes('CANC') ||
+      rawDetail.includes('CANCEL')
+    ) {
+      return { isVoid: true, reason: 'CANCELED' };
+    }
+
+    if (
+      rawStatus === 'ABANDONED' ||
+      rawTime.includes('ABAND') ||
+      rawDetail.includes('ABANDON')
+    ) {
+      return { isVoid: true, reason: 'ABANDONED' };
+    }
+
+    if (
+      rawStatus === 'SUSPENDED' ||
+      rawTime.includes('SUSP') ||
+      rawDetail.includes('SUSPEND')
+    ) {
+      return { isVoid: true, reason: 'SUSPENDED' };
+    }
+
+    return { isVoid: false, reason: '' };
+  }
+
+  /**
+   * Determines if a match has officially concluded (or terminated prematurely as void)
    */
   public static isMatchFinished(match: any): boolean {
+    const voidCheck = this.evaluateVoidStatus(match);
+    if (voidCheck.isVoid) return true;
+
     if (match.status === 'FINISHED' || match.state === 'PLAYED' || match.isFinished === true) {
       return true;
     }
@@ -169,25 +224,48 @@ export class ProfessionalSettlementEngine {
 
   /**
    * Complete settlement pass for a MatchData object
+   * Fully handles Canceled, Postponed, Abandoned & Suspended fixtures.
    */
   public static settleMatch(match: any, explicitSelection?: string): SettlementResult {
-    const isFinished = this.isMatchFinished(match);
-    const { homeScore, awayScore } = this.extractScores(match);
+    const voidCheck = this.evaluateVoidStatus(match);
     const selection = explicitSelection || match.prediction?.topPick?.selection || '1X';
     const market = match.prediction?.topPick?.market || 'Double Chance';
+    const originalOdds = match.prediction?.topPick?.odds || 1.35;
+    const { homeScore, awayScore } = this.extractScores(match);
 
+    // 1. CANCELED / POSTPONED / ABANDONED / SUSPENDED MATCHES
+    if (voidCheck.isVoid) {
+      return {
+        isFinished: true,
+        isWon: false,
+        isVoid: true,
+        voidReason: voidCheck.reason,
+        statusText: 'VOID',
+        homeScore,
+        awayScore,
+        evaluatedSelection: selection,
+        settledOdds: 1.00,
+        auditExplanation: `Match officially ${voidCheck.reason}. Selection settled as VOID @ 1.00x Odds — Stake 100% Refunded per international bookmaker regulations.`,
+      };
+    }
+
+    // 2. ACTIVE / SCHEDULED (NOT YET CONCLUDED)
+    const isFinished = this.isMatchFinished(match);
     if (!isFinished) {
       return {
         isFinished: false,
         isWon: false,
+        isVoid: false,
         statusText: 'PENDING',
         homeScore,
         awayScore,
         evaluatedSelection: selection,
+        settledOdds: originalOdds,
         auditExplanation: 'Match has not reached final whistle yet.',
       };
     }
 
+    // 3. FINISHED FIXTURE — EVALUATE RESULT
     const outcome = this.evaluate(
       selection,
       market,
@@ -201,10 +279,12 @@ export class ProfessionalSettlementEngine {
     return {
       isFinished: true,
       isWon,
+      isVoid: false,
       statusText: outcome,
       homeScore,
       awayScore,
       evaluatedSelection: selection,
+      settledOdds: isWon ? originalOdds : 0,
       auditExplanation: `Official FT Score: ${match.homeTeam} ${homeScore} - ${awayScore} ${match.awayTeam}. Pick: ${selection} -> ${outcome}.`,
     };
   }
