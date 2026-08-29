@@ -541,97 +541,6 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
           </button>
         </div>
 
-        {/* 4. Tactical Inside Card Action Bar (H2H Arena + Stadium Mic when Live/FT) */}
-        <div className="flex items-center justify-between gap-2 p-1.5 rounded-xl bg-black/50 border border-white/5" onClick={(e) => e.stopPropagation()}>
-          <div className="flex items-center space-x-1.5 flex-1 min-w-0">
-            {/* H2H Arena Button */}
-            <button
-              onClick={() => {
-                try { phoneHardware.triggerHaptic('SELECTION'); } catch {}
-                setShowH2HModal(true);
-              }}
-              className="px-2.5 py-1 rounded-lg border bg-amber-500/15 border-amber-500/40 text-amber-400 hover:bg-amber-500 hover:text-black transition-all flex items-center space-x-1.5 text-[10px] font-black shadow-sm"
-              title="Open Head-to-Head Arena (xG, Form & Duels)"
-            >
-              <Swords className="w-3.5 h-3.5" />
-              <span>H2H Arena ⚔️</span>
-            </button>
-
-            {/* Stadium Mic (Only shown for LIVE or FINISHED matches) */}
-            {(isLive || isFinished) && (
-              <button
-                onClick={() => {
-                  try { phoneHardware.triggerHaptic('SELECTION'); } catch {}
-                  setShowCommentaryModal(true);
-                }}
-                className="px-2.5 py-1 rounded-lg border bg-stadiumGreen/15 border-stadiumGreen/40 text-stadiumGreen hover:bg-stadiumGreen hover:text-black transition-all flex items-center space-x-1.5 text-[10px] font-black shadow-sm"
-                title="Open Stadium Live Audio & Commentary"
-              >
-                <Radio className="w-3.5 h-3.5 animate-pulse" />
-                <span>Stadium Mic 🎙️</span>
-              </button>
-            )}
-          </div>
-
-          {/* Card Expansion Toggle Indicator */}
-          <button
-            onClick={handleCardClick}
-            className="p-1 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all flex items-center space-x-1 text-[10px]"
-            title="Click to view/expand match dossier"
-          >
-            <span>{isExpanded ? 'Hide' : 'Details'}</span>
-            {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-          </button>
-        </div>
-
-        {/* 5. Poisson Model Probability Gauge Bar */}
-        {match.prediction?.hasPrediction === false ? (
-          <div className="p-2 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-            <span className="text-[9px] text-gray-500 font-mono">📊 No model data available for this league</span>
-          </div>
-        ) : (
-          <div className="space-y-1 bg-black/40 p-2 rounded-xl border border-white/5" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center text-[9px] font-mono font-bold text-gray-400">
-              <span className="text-stadiumGreen">1: {homePct}%</span>
-              <span className="text-gray-400">X: {drawPct}%</span>
-              <span className="text-gold">2: {awayPct}%</span>
-            </div>
-            <div className="h-1.5 w-full bg-black/80 rounded-full overflow-hidden flex">
-              <div style={{ width: `${homePct}%` }} className="bg-stadiumGreen h-full transition-all duration-500" />
-              <div style={{ width: `${drawPct}%` }} className="bg-gray-600 h-full transition-all duration-500" />
-              <div style={{ width: `${awayPct}%` }} className="bg-gold h-full transition-all duration-500" />
-            </div>
-          </div>
-        )}
-
-        {/* 6. Expandable Match Details Dossier (Revealed on Card Click) */}
-        {isExpanded && (
-          <div className="p-3 rounded-2xl bg-black/60 border border-stadiumGreen/30 space-y-2.5 animate-in fade-in duration-200 text-xs font-mono" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-white/10 pb-1.5">
-              <span className="text-[10px] font-black uppercase text-stadiumGreen flex items-center space-x-1">
-                <Activity className="w-3 h-3" />
-                <span>Match Intelligence Dossier</span>
-              </span>
-              <span className="text-[9px] text-gray-400">Tension: {match.stadiumTension || 85}%</span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 text-[10px]">
-              <div className="p-2 rounded-xl bg-white/5 border border-white/5 space-y-1">
-                <span className="text-gray-400 block font-bold">Venue & Stadium</span>
-                <span className="text-white font-bold block truncate">{match.venue || `${match.homeTeam} Arena`}</span>
-              </div>
-              <div className="p-2 rounded-xl bg-white/5 border border-white/5 space-y-1 text-right">
-                <span className="text-gray-400 block font-bold">Expected Score</span>
-                <span className="text-gold font-bold block">{p.expectedHomeGoals.toFixed(1)} - {p.expectedAwayGoals.toFixed(1)} xG</span>
-              </div>
-            </div>
-
-            <div className="p-2 rounded-xl bg-neutral-950 border border-white/10 text-[10px] space-y-1 text-gray-300">
-              <span className="text-gold font-black uppercase tracking-wider block">Strategic Rationale:</span>
-              <p className="leading-relaxed font-sans">{topPick.rationale || 'Engine model confirms high Poisson confidence based on offensive momentum and defensive strength.'}</p>
-            </div>
-          </div>
-        )}
 
         {/* 7. Gen Z Emoji Quick Reactions Bar */}
         <div className="flex items-center justify-between gap-1 pt-1 border-t border-white/5" onClick={(e) => e.stopPropagation()}>
@@ -692,9 +601,8 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
           /* Standard Banker Banner — confident pick */
           <div className="p-3 rounded-2xl flex items-center justify-between gap-2 shadow-md bg-gradient-to-r from-stadiumGreen/20 via-panel to-gold/15 border border-stadiumGreen/40">
             <div className="min-w-0 flex-1">
-              <span className="text-[10px] font-black uppercase tracking-wider block text-stadiumGreen flex items-center space-x-1">
-                <Zap className="w-3 h-3 text-gold fill-gold inline flex-shrink-0" />
-                <span>👑 {topPick.confidenceTier} ({topPick.probability}% WIN RATE)</span>
+              <span className="text-[10px] font-black uppercase tracking-wider block text-stadiumGreen">
+                👑 {topPick.confidenceTier} ({topPick.probability}% WIN RATE)
               </span>
               <div className="flex items-center space-x-1.5 mt-0.5">
                 <span className="text-sm font-black text-gold">
@@ -711,11 +619,6 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
                   </span>
                 )}
               </div>
-              {match.prediction?.leagueAccuracy !== undefined && (
-                <span className="text-[9px] text-gray-500 font-mono block">
-                  ({match.prediction.leagueAccuracy}% historical accuracy)
-                </span>
-              )}
             </div>
 
             {/* Added State with Dynamic Color Feedback */}

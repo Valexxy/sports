@@ -15,8 +15,9 @@ import { MatchWinProbabilityChart } from './match-win-probability-chart';
 import { MatchShotMapViewer } from './match-shot-map-viewer';
 import { LivePlayerRatingsMatrix } from './live-player-ratings-matrix';
 import { H2HAndRefereeAnalytics } from './h2h-and-referee-analytics';
+import { HeadToHeadArenaModal } from './head-to-head-arena-modal';
 import { MatchAlertScheduler } from '../lib/match-alert-scheduler';
-import { X, Send, MessageSquare, Flame, Trophy, ExternalLink, Zap, Activity, Radio, Sun, Heart, Plus, ShieldCheck, Newspaper, ThumbsUp, Bell, BellRing, Volume2 } from 'lucide-react';
+import { X, Send, MessageSquare, Flame, Trophy, ExternalLink, Zap, Activity, Radio, Sun, Heart, Plus, ShieldCheck, Newspaper, ThumbsUp, Bell, BellRing, Volume2, Swords } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface InsightsModalProps {
@@ -40,6 +41,7 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
   const [bookmakers, setBookmakers] = useState<CountryBookmaker[]>([]);
   const [chatFeed, setChatFeed] = useState<MatchComment[]>([]);
   const [loadingComments, setLoadingComments] = useState(false);
+  const [showH2HModal, setShowH2HModal] = useState(false);
 
   useEffect(() => {
     getSmartVisitorDetails().then((data) => {
@@ -228,6 +230,15 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
             </button>
 
             <button
+              onClick={() => setShowH2HModal(true)}
+              className="px-3 py-1.5 rounded-xl text-xs font-mono font-black bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/40 flex items-center space-x-1.5 transition-all shadow-md active:scale-95"
+              title="Open Head-to-Head Arena (xG Pitch, Form Battle & Duels)"
+            >
+              <Swords className="w-3.5 h-3.5" />
+              <span>H2H Arena</span>
+            </button>
+
+            <button
               onClick={() => setShowViralSlip(true)}
               className="px-3 py-1.5 rounded-xl text-xs font-mono font-black flex items-center space-x-1 transition-all shadow-md bg-gold/20 hover:bg-gold/30 text-gold border border-gold/40"
               title="Share Match Slip"
@@ -365,6 +376,39 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
           )}
         </div>
 
+        {/* MATCH INTELLIGENCE DOSSIER (ADVANCED SECTION INSIDE CARD ONLY) */}
+        <div className="p-4 sm:p-5 rounded-3xl bg-panel border border-white/10 space-y-3 mb-5 shadow-xl font-mono text-xs">
+          <div className="flex items-center justify-between border-b border-white/10 pb-2">
+            <span className="flex items-center space-x-1.5 text-stadiumGreen font-black text-xs uppercase tracking-wider">
+              <Activity className="w-3.5 h-3.5" />
+              <span>Match Intelligence Dossier</span>
+            </span>
+            <span className="text-[10px] text-gray-400 font-mono">
+              Tension Index: <strong className="text-gold">{match.stadiumTension || 85}%</strong>
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div className="p-3 rounded-2xl bg-black/50 border border-white/5 space-y-1">
+              <span className="text-gray-400 block text-[10px] font-bold uppercase">Official Match Venue</span>
+              <span className="text-white font-bold block text-sm">{match.venue || `${match.homeTeam} Stadium`}</span>
+            </div>
+            <div className="p-3 rounded-2xl bg-black/50 border border-white/5 space-y-1">
+              <span className="text-gray-400 block text-[10px] font-bold uppercase">Expected Score (Poisson xG)</span>
+              <span className="text-gold font-bold block text-sm font-mono">
+                {p.expectedHomeGoals.toFixed(1)} - {p.expectedAwayGoals.toFixed(1)} xG
+              </span>
+            </div>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-black/70 border border-white/10 space-y-1">
+            <span className="text-gold font-black uppercase text-[10px] tracking-wider block">Strategic Rationale</span>
+            <p className="text-gray-300 font-sans text-xs leading-relaxed">
+              {p.topPick?.rationale || 'Engine model confirms high Poisson confidence based on offensive momentum and defensive strength.'}
+            </p>
+          </div>
+        </div>
+
         {/* BENTO GRID (ALL FEATURES VISIBLE & PROPERLY SCROLLABLE) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
           
@@ -379,57 +423,80 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
               </div>
               <div className="p-3 rounded-2xl bg-panel border border-white/10">
                 <span className="text-gray-400 block text-[10px]">{match.awayTeam} Goal Power</span>
-                <span className="text-lg font-black text-gold">{p.expectedAwayGoals.toFixed(2)} xG</span>
+                <span className="text-lg font-black text-crimson">{p.expectedAwayGoals.toFixed(2)} xG</span>
               </div>
             </div>
 
-            {/* 2. Match Analytics Hub (2D Pitch Radar, H2H History, Correct Scores & Streaks) */}
-            <MatchAnalyticsHub
-              match={match}
-              onSelectOdds={onSelectOdds}
-            />
-
-
+            {/* 2. Live Match Barometer (Attacking Momentum) */}
+            <div className="p-3.5 rounded-2xl bg-panel border border-white/10 space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-gray-400">Match Tension Barometer</span>
+                <span className="font-mono text-gold font-bold">{match.stadiumTension || 85}% Electric</span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-black/50 overflow-hidden flex">
+                <div 
+                  style={{ width: `${match.stadiumTension || 85}%` }} 
+                  className="h-full bg-gradient-to-r from-stadiumGreen via-gold to-crimson transition-all duration-700" 
+                />
+              </div>
+            </div>
 
           </div>
 
-          {/* RIGHT 5 COLS: Country Bookmakers, Dynamic Fan Chat & Verified Media Hype */}
+          {/* RIGHT 5 COLS: Live Odds Matrix & Fan Chat */}
           <div className="lg:col-span-5 space-y-4">
             
-            {/* 5. Live Stadium Fan Chat Room (Dynamic per Match) */}
+            {/* 1. Best Market Odds by Local Bookmakers */}
             <div className="p-4 rounded-3xl bg-panel border border-white/10 space-y-3">
-              <div className="flex justify-between items-center border-b border-white/10 pb-2">
-                <div className="flex items-center space-x-2">
-                  <MessageSquare className="w-4 h-4 text-stadiumGreen" />
-                  <span className="font-extrabold text-white text-xs">DYNAMIC FAN CHAT</span>
-                </div>
-                <div className="flex space-x-1">
-                  {['🔥', '⚽', '👑', '🚀'].map((emoji) => (
-                    <button
-                      key={emoji}
-                      onClick={() => handleEmojiRain(emoji)}
-                      className="p-1 rounded-lg bg-black/60 hover:bg-stadiumGreen/20 text-xs transition-all hover:scale-110"
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
+              <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                <span className="text-xs font-black uppercase text-gold">Live Bookmaker Matrix</span>
+                <span className="text-[10px] text-stadiumGreen">Best Value Verified</span>
               </div>
 
-              {/* Chat Feed */}
-              <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
-                {chatFeed.map((item) => (
-                  <div key={item.id} className="p-2.5 rounded-2xl bg-black/60 border border-white/5 space-y-0.5 text-[11px]">
-                    <div className="flex justify-between items-center text-[10px]">
-                      <span className="font-bold text-stadiumGreen">{item.sender}</span>
-                      <span className="text-gray-500">{item.time}</span>
+              <div className="space-y-2">
+                {bookmakers.slice(0, 3).map((bk) => (
+                  <a
+                    key={bk.id}
+                    href={bk.affiliateUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2.5 rounded-2xl bg-black/40 border border-white/5 flex items-center justify-between hover:border-gold/50 transition-all group"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <span className="text-base">{bk.logo}</span>
+                      <div>
+                        <span className="font-black text-xs text-white group-hover:text-gold block">{bk.name}</span>
+                        <span className="text-[10px] text-gray-400 font-sans block">{bk.bonus}</span>
+                      </div>
                     </div>
-                    <p className="text-gray-200 font-sans">{item.text}</p>
+                    <ExternalLink className="w-3.5 h-3.5 text-gray-500 group-hover:text-white" />
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* 2. Live Fan Reaction & Chat Wall */}
+            <div className="p-4 rounded-3xl bg-panel border border-white/10 space-y-3">
+              <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                <span className="text-xs font-black uppercase text-white flex items-center space-x-1.5">
+                  <MessageSquare className="w-3.5 h-3.5 text-stadiumGreen" />
+                  <span>Live Match Chat</span>
+                </span>
+                <span className="text-[10px] text-gray-400">{chatFeed.length} comments</span>
+              </div>
+
+              <div className="h-40 overflow-y-auto space-y-2 text-xs font-sans pr-1 scrollbar-thin">
+                {chatFeed.map((c) => (
+                  <div key={c.id} className="p-2 rounded-xl bg-black/40 border border-white/5 space-y-0.5">
+                    <div className="flex items-center justify-between text-[10px]">
+                      <span className="font-bold text-stadiumGreen">{c.sender} <span className="text-[9px] text-gray-500">({c.badge})</span></span>
+                      <span className="text-[9px] text-gray-500 font-mono">{c.time}</span>
+                    </div>
+                    <p className="text-gray-300 text-[11px]">{c.text}</p>
                   </div>
                 ))}
               </div>
 
-              {/* Send Chat Box */}
               <div className="flex items-center space-x-2 pt-1">
                 <input
                   type="text"
@@ -455,6 +522,12 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
       </div>
       {showViralSlip && (
         <ViralMatchSlipModal match={match} onClose={() => setShowViralSlip(false)} />
+      )}
+      {showH2HModal && (
+        <HeadToHeadArenaModal
+          match={match}
+          onClose={() => setShowH2HModal(false)}
+        />
       )}
     </div>
   );

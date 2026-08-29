@@ -111,12 +111,18 @@ export class TelegramBotService {
   static async notifyFailure(taskName: string, errorMessage: string): Promise<void> {
     console.error(`CRON FAILURE ALERT: [${taskName}] ${errorMessage}`);
     try {
+      const { FailureAlertService } = await import('../../lib/failure-alert-service');
+      await FailureAlertService.dispatchFailureNotice({
+        taskName,
+        errorMessage,
+      });
+
       await this.sendMessage(
         `🚨 <b>CRON EXECUTION FAILURE NOTICE</b>\n` +
         `<b>Task:</b> ${taskName}\n` +
         `<b>Error:</b> <code>${errorMessage}</code>\n` +
         `<b>Time:</b> ${new Date().toISOString()}\n` +
-        `<i>Automated retry exhausted. Support dispatch: mivajtips@gmail.com</i>`
+        `<i>Independent failure alert dispatched to mivajtips@gmail.com</i>`
       );
     } catch {}
   }

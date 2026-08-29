@@ -284,26 +284,7 @@ export function buildSmartPrediction(
   const ehg = dcOutput.expectedHomeGoals ?? 1.3;
   const eag = dcOutput.expectedAwayGoals ?? 1.0;
 
-  // Always settle finished matches transparently regardless of confidence
-  if (isFinished) {
-    const winner = homeScore > awayScore ? homeTeam : awayScore > homeScore ? awayTeam : 'Draw';
-    return {
-      topPick: {
-        selection: `${winner} (Settled)`,
-        market: 'SETTLED',
-        odds: 0,
-        confidenceTier: 'SETTLED',
-        kellyStake: 0,
-        probability: 100,
-        rationale: `Official FT: ${homeTeam} ${homeScore} – ${awayScore} ${awayTeam}. Recorded in referee ledger.`,
-      },
-      homeWinProb: hwp, drawProb: dp, awayWinProb: awp,
-      expectedHomeGoals: ehg, expectedAwayGoals: eag,
-      hasPrediction: true,
-      confidenceLevel: profile.confidenceLevel,
-      leagueAccuracy: profile.historicalAccuracy,
-    };
-  }
+
 
   const modelProb = dcOutput.topPick?.probability ?? 55;
 
