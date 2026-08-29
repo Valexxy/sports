@@ -1,50 +1,92 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
   Flame, Zap, Gift, Send, Copy, Check, ExternalLink,
   MessageSquare, Heart, Share2, ArrowLeft, Users, Settings,
   Shield, Sparkles, TrendingUp, Trophy, Compass, ChevronRight, X,
-  Bookmark, Bell, Star, Ticket, CheckCircle2, XCircle, Clock, Edit3, UserCheck, Award
+  Bookmark, Bell, Star, Ticket, CheckCircle2, XCircle, Clock, Edit3,
+  UserCheck, Award, Lock, Smartphone, Globe, Sliders, Download, Eye, Save
 } from 'lucide-react';
-import Link from 'next/link';
 import confetti from 'canvas-confetti';
 import { stadiumAudio } from '../../lib/sound-synthesizer';
 import { phoneHardware } from '../../lib/phone-hardware-engine';
 import { cn } from '../../lib/utils';
 import { PersistentStorage, PlacedTicket } from '../../lib/persistent-storage-engine';
-import { UserProfileEngine, UserProfileData, UserReferralRecord } from '../../lib/user-profile-engine';
+import { UserProfileEngine, UserProfileData, UserReferralRecord, UserSettings } from '../../lib/user-profile-engine';
 import { calculateLevelFromXp, LEVEL_MILESTONES, XP_REWARDS } from '../../lib/xp-engine';
+import { ClubSupporterPassCard, POPULAR_CLUBS } from '../../components/club-supporter-pass-card';
+import { ClubSelectorModal } from '../../components/club-selector-modal';
 
-const AVAILABLE_AVATARS = ['⚡', '👑', '🦁', '🦅', '🐐', '🔥', '💎', '🚀', '⚽', '🎯'];
-const AVAILABLE_CLUBS = ['Arsenal', 'Chelsea', 'Man United', 'Real Madrid', 'Barcelona', 'Liverpool', 'Man City', 'Super Eagles'];
+const AVAILABLE_AVATARS = ['⚡', '👑', '🦁', '🦅', '🐐', '🔥', '💎', '🚀', '⚽', '🎯', '🥊', '🏎️'];
+const AVAILABLE_SPORTS = ['SOCCER', 'BASKETBALL', 'TENNIS', 'COMBAT', 'AMERICAN_FOOTBALL', 'CRICKET'];
+const AVAILABLE_TIMEZONES = [
+  'Africa/Lagos (WAT, UTC+1)',
+  'Africa/Johannesburg (SAST, UTC+2)',
+  'Africa/Nairobi (EAT, UTC+3)',
+  'Africa/Accra (GMT, UTC+0)',
+  'Europe/London (GMT/BST)',
+  'America/New_York (EST, UTC-5)',
+];
 
-export default function MultiDeviceResponsiveDashboard() {
-  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'TICKETS' | 'FOLLOWED' | 'REFERRALS'>('OVERVIEW');
-  const [userProfile, setUserProfile] = useState<UserProfileData>(() => UserProfileEngine.getProfile());
+export default function EnterpriseUserDashboardPage() {
+  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'EDIT_PROFILE' | 'SETTINGS' | 'TICKETS' | 'REFERRALS' | 'SECURITY'>('OVERVIEW');
+  const [profile, setProfile] = useState<UserProfileData>(() => UserProfileEngine.getProfile());
   const [dailyClaimed, setDailyClaimed] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [showClubModal, setShowClubModal] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<string | null>(null);
 
-  // Edit Profile Modal
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [editUsername, setEditUsername] = useState('');
-  const [editAvatar, setEditAvatar] = useState('⚡');
-  const [editClub, setEditClub] = useState('Arsenal');
+  // Edit Personal Information Form State
+  const [formData, setFormData] = useState({
+    username: '',
+    fullName: '',
+    nickname: '',
+    email: '',
+    phone: '',
+    whatsappNumber: '',
+    telegramHandle: '',
+    bio: '',
+    country: '',
+    city: '',
+    birthDate: '',
+    avatar: '⚡',
+    avatarCustomUrl: '',
+    club: 'Arsenal',
+    secondaryClub: 'Super Eagles',
+  });
+
+  // Settings State
+  const [settingsData, setSettingsData] = useState<UserSettings>(profile.settings);
 
   // Persistent User Data State
   const [placedTickets, setPlacedTickets] = useState<PlacedTicket[]>([]);
   const [followedMatches, setFollowedMatches] = useState<string[]>([]);
-  const [followedClubs, setFollowedClubs] = useState<string[]>([]);
-  const [followedPlayers, setFollowedPlayers] = useState<string[]>([]);
   const [bookmarks, setBookmarks] = useState<string[]>([]);
 
   // Load and auto-settle tickets on mount
   useEffect(() => {
-    const profile = UserProfileEngine.getProfile();
-    setUserProfile(profile);
-    setEditUsername(profile.username);
-    setEditAvatar(profile.avatar);
-    setEditClub(profile.club);
+    const current = UserProfileEngine.getProfile();
+    setProfile(current);
+    setFormData({
+      username: current.username,
+      fullName: current.fullName || '',
+      nickname: current.nickname || '',
+      email: current.email || '',
+      phone: current.phone || '',
+      whatsappNumber: current.whatsappNumber || '',
+      telegramHandle: current.telegramHandle || '',
+      bio: current.bio || '',
+      country: current.country || 'Nigeria',
+      city: current.city || 'Lagos',
+      birthDate: current.birthDate || '1998-01-01',
+      avatar: current.avatar || '⚡',
+      avatarCustomUrl: current.avatarCustomUrl || '',
+      club: current.club || 'Arsenal',
+      secondaryClub: current.secondaryClub || 'Super Eagles',
+    });
+    setSettingsData(current.settings);
 
     // Check daily aura claim persistence
     const todayStr = new Date().toISOString().split('T')[0];
@@ -54,12 +96,9 @@ export default function MultiDeviceResponsiveDashboard() {
 
     setPlacedTickets(PersistentStorage.getPlacedTickets());
     setFollowedMatches(PersistentStorage.getFollowedMatches());
-    setFollowedClubs(PersistentStorage.getFollowedClubs());
-    setFollowedPlayers(PersistentStorage.getFollowedPlayers());
     setBookmarks(PersistentStorage.getBookmarks());
 
     // SYSTEM-WIDE TICKET SETTLEMENT PASS
-    // Fetches live/finished matches and settlement archive, settling any concluded tickets
     Promise.all([
       fetch('/api/matches').then((r) => r.json()).catch(() => ({ matches: [] })),
       fetch('/api/settlement').then((r) => r.json()).catch(() => ({ archive: [] })),
@@ -72,14 +111,14 @@ export default function MultiDeviceResponsiveDashboard() {
         if (newlyWon > 0) {
           UserProfileEngine.addAura(newlyWon * 250);
           UserProfileEngine.addXp(newlyWon * XP_REWARDS.WON_BET, 'Tickets won');
-          setUserProfile(UserProfileEngine.getProfile());
+          setProfile(UserProfileEngine.getProfile());
         }
       }
     });
 
     const handleProfileSync = (e: any) => {
-      if (e?.detail) setUserProfile(e.detail);
-      else setUserProfile(UserProfileEngine.getProfile());
+      if (e?.detail) setProfile(e.detail);
+      else setProfile(UserProfileEngine.getProfile());
     };
     window.addEventListener('mivaj_profile_updated', handleProfileSync);
 
@@ -98,681 +137,721 @@ export default function MultiDeviceResponsiveDashboard() {
     if (typeof window !== 'undefined') {
       localStorage.setItem('mivaj_daily_claimed_date', todayStr);
     }
-    UserProfileEngine.addAura(150);
-    UserProfileEngine.addXp(XP_REWARDS.DAILY_CHECKIN, 'Daily Aura claim');
-    setUserProfile(UserProfileEngine.getProfile());
 
-    try { phoneHardware.triggerHaptic('AFRO_BEAT'); } catch {}
-    try { stadiumAudio.playAfrobeatVictory(); } catch {}
-    confetti({ particleCount: 60, spread: 70, origin: { y: 0.5 } });
+    try { phoneHardware.triggerHaptic('SUCCESS'); } catch {}
+    try { stadiumAudio.playGoalSiren(); } catch {}
+    confetti({ particleCount: 70, spread: 70, origin: { y: 0.6 } });
+
+    UserProfileEngine.addAura(250);
+    UserProfileEngine.addXp(XP_REWARDS.DAILY_VISIT, 'Daily check-in aura drop');
+    setProfile(UserProfileEngine.getProfile());
   };
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanName = editUsername.trim().replace(/^@/, '') || 'CyberStriker_99';
-    const updated = UserProfileEngine.updateProfile({
-      username: cleanName,
-      avatar: editAvatar,
-      club: editClub,
-    });
-    setUserProfile(updated);
-    setIsEditingProfile(false);
     try { phoneHardware.triggerHaptic('SUCCESS'); } catch {}
-    confetti({ particleCount: 40, spread: 60, origin: { y: 0.3 } });
+    try { stadiumAudio.playTabClickSound(); } catch {}
+    confetti({ particleCount: 50, spread: 60, origin: { y: 0.5 } });
+
+    const updated = UserProfileEngine.updateProfile({
+      username: formData.username.trim() || profile.username,
+      fullName: formData.fullName.trim() || profile.fullName,
+      nickname: formData.nickname.trim(),
+      email: formData.email.trim(),
+      phone: formData.phone.trim(),
+      whatsappNumber: formData.whatsappNumber.trim(),
+      telegramHandle: formData.telegramHandle.trim(),
+      bio: formData.bio.trim(),
+      country: formData.country.trim(),
+      city: formData.city.trim(),
+      birthDate: formData.birthDate,
+      avatar: formData.avatar,
+      avatarCustomUrl: formData.avatarCustomUrl.trim(),
+      club: formData.club,
+      secondaryClub: formData.secondaryClub,
+    });
+
+    setProfile(updated);
+    setSaveStatus('✅ Personal profile saved successfully! All systems updated.');
+    setTimeout(() => setSaveStatus(null), 4000);
   };
 
-  const cleanUsername = userProfile.username.replace(/^@/, '');
-  const referralUrl = `https://mivaj.com?ref=${cleanUsername}`;
-
-  const copyReferralLink = () => {
-    try {
-      navigator.clipboard.writeText(referralUrl);
-      setCopiedLink(true);
-      UserProfileEngine.addXp(XP_REWARDS.SHARE_SLIP, 'Shared referral link');
-      setUserProfile(UserProfileEngine.getProfile());
-      try { phoneHardware.triggerHaptic('SUCCESS'); } catch {}
-      confetti({ particleCount: 30, spread: 50, origin: { y: 0.7 } });
-      setTimeout(() => setCopiedLink(false), 2500);
-    } catch {}
+  const handleSaveSettings = (partial: Partial<UserSettings>) => {
+    try { phoneHardware.triggerHaptic('SELECTION'); } catch {}
+    const updated = UserProfileEngine.updateSettings(partial);
+    setSettingsData(updated);
+    setProfile(UserProfileEngine.getProfile());
+    setSaveStatus('⚙️ Preferences updated and persisted.');
+    setTimeout(() => setSaveStatus(null), 3000);
   };
 
-  const levelInfo = userProfile.level || calculateLevelFromXp(userProfile.xp);
-  const referralsList = userProfile.referrals || [];
-  const wonTickets = placedTickets.filter((t) => t.status === 'WON').length;
-  const lostTickets = placedTickets.filter((t) => t.status === 'LOST').length;
-  const pendingTickets = placedTickets.filter((t) => t.status === 'PENDING').length;
+  const handleExportUserData = () => {
+    try { phoneHardware.triggerHaptic('SUCCESS'); } catch {}
+    const dump = {
+      profile,
+      placedTickets,
+      followedMatches,
+      bookmarks,
+      exportedAt: new Date().toISOString(),
+      platform: 'Mivaj Sports Military-Grade PAM v2.0',
+    };
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(dump, null, 2));
+    const dlAnchor = document.createElement('a');
+    dlAnchor.setAttribute('href', dataStr);
+    dlAnchor.setAttribute('download', 'mivaj_user_backup_' + profile.username + '_' + Date.now() + '.json');
+    dlAnchor.click();
+  };
+
+  const handleCopyReferral = () => {
+    const link = 'https://mivaj.com?ref=' + encodeURIComponent(profile.username);
+    navigator.clipboard.writeText(link);
+    setCopiedLink(true);
+    try { phoneHardware.triggerHaptic('SUCCESS'); } catch {}
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
 
   return (
-    <div className="min-h-screen bg-void text-white font-mono text-xs overflow-x-hidden selection:bg-stadiumGreen selection:text-black pb-24 lg:pb-8">
-      
-      {/* 1. TOP ENTERPRISE HEADER */}
-      <header className="sticky top-0 z-30 bg-black/90 backdrop-blur-xl border-b border-white/10 px-4 sm:px-8 py-3 flex items-center justify-between shadow-xl">
-        <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-stadiumGreen via-emerald-400 to-gold p-0.5 flex items-center justify-center shadow-lg">
-            <div className="w-full h-full bg-black rounded-[14px] flex items-center justify-center text-base">
-              {userProfile.avatar}
-            </div>
-          </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <span className="font-black text-sm sm:text-base text-white tracking-wider">MIVAJ USER PROFILE</span>
-              <span className="text-[9px] px-2 py-0.5 rounded bg-stadiumGreen text-black font-black">
-                LVL {levelInfo.level} {levelInfo.badge}
-              </span>
-            </div>
-            <span className="text-[10px] text-gray-400 font-sans hidden sm:block">
-              Centralized Profile Command • Bets, Rewards, and XP
+    <main className="min-h-screen bg-void text-white font-mono p-3 sm:p-8 space-y-6 pb-24">
+      <div className="max-w-6xl mx-auto space-y-6">
+        
+        {/* Top Navbar */}
+        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+          <Link
+            href="/"
+            className="px-3.5 py-2 rounded-xl bg-panel hover:bg-white/10 border border-white/10 text-xs font-bold text-gray-300 hover:text-white flex items-center space-x-2 transition-all shadow-md active:scale-95"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Return to Match Center 🏟️</span>
+          </Link>
+
+          <div className="flex items-center space-x-2">
+            <span className="text-stadiumGreen font-black text-sm">MIVAJ SPORTS</span>
+            <span className="px-2.5 py-0.5 rounded bg-purple-500/20 text-purple-400 text-[10px] font-black border border-purple-500/30">
+              ACCOUNT &amp; SETTINGS COMMAND 🛡️
             </span>
           </div>
         </div>
 
-        <div className="flex items-center space-x-3">
-          <div className="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-panel border border-white/10 text-xs">
-            <span className="text-gray-400">STASH:</span>
-            <span className="font-bold text-gold">{userProfile.auraBalance.toLocaleString()} AURA</span>
-          </div>
+        {/* Global Supporter Pass Card (Viral Club Loyalty Engine) */}
+        <ClubSupporterPassCard onOpenClubSelector={() => setShowClubModal(true)} />
 
-          <Link
-            href="/"
-            className="px-3.5 py-2 rounded-xl bg-stadiumGreen/15 border border-stadiumGreen/40 hover:bg-stadiumGreen hover:text-black text-stadiumGreen font-bold text-xs flex items-center space-x-1.5 transition-all shadow"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Match Arena 🏟️</span>
-          </Link>
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
-        
-        {/* USER PROFILE & STATS BANNER */}
-        <div className="glass-panel-premium rounded-3xl p-6 border border-stadiumGreen/40 shadow-2xl space-y-5">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            
-            {/* Identity & Edit Button */}
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-stadiumGreen via-emerald-400 to-purple-500 p-0.5 shadow-xl">
-                  <div className="w-full h-full bg-black rounded-[14px] flex items-center justify-center text-3xl">
-                    {userProfile.avatar}
-                  </div>
-                </div>
-                <span className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded bg-stadiumGreen text-black font-black text-[9px]">
-                  LVL {levelInfo.level}
-                </span>
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex items-center space-x-2">
-                  <h1 className="text-xl sm:text-2xl font-black text-white">@{cleanUsername}</h1>
-                  <button
-                    onClick={() => setIsEditingProfile(true)}
-                    className="p-1.5 rounded-lg bg-white/5 hover:bg-stadiumGreen/20 hover:text-stadiumGreen text-gray-400 transition-all border border-white/10"
-                    title="Edit username, avatar, and loyalty club"
-                  >
-                    <Edit3 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded bg-gold/20 border border-gold text-gold font-bold text-[10px]">
-                    {levelInfo.title} {levelInfo.badge}
-                  </span>
-                  <span className="text-[10px] text-gray-400">
-                    Loyalty Club: <strong className="text-stadiumGreen">{userProfile.club}</strong>
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Clickable Quick Action Stats Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 min-w-[280px]">
-              <button
-                onClick={() => setActiveTab('TICKETS')}
-                className="p-3 rounded-2xl bg-black/60 border border-stadiumGreen/30 text-center hover:border-stadiumGreen transition-all active:scale-95"
-              >
-                <Ticket className="w-4 h-4 text-stadiumGreen mx-auto mb-1" />
-                <span className="text-base font-black text-stadiumGreen">{placedTickets.length}</span>
-                <span className="text-[9px] text-gray-400 block uppercase">Bets Placed</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('FOLLOWED')}
-                className="p-3 rounded-2xl bg-black/60 border border-gold/30 text-center hover:border-gold transition-all active:scale-95"
-              >
-                <Bell className="w-4 h-4 text-gold mx-auto mb-1" />
-                <span className="text-base font-black text-gold">{followedMatches.length}</span>
-                <span className="text-[9px] text-gray-400 block uppercase">Followed</span>
-              </button>
-
-              <div className="p-3 rounded-2xl bg-black/60 border border-cyan-400/30 text-center">
-                <Bookmark className="w-4 h-4 text-cyan-400 mx-auto mb-1" />
-                <span className="text-base font-black text-cyan-400">{bookmarks.length}</span>
-                <span className="text-[9px] text-gray-400 block uppercase">Bookmarks</span>
-              </div>
-
-              <button
-                onClick={() => setActiveTab('REFERRALS')}
-                className="p-3 rounded-2xl bg-black/60 border border-purple-400/30 text-center hover:border-purple-400 transition-all active:scale-95"
-              >
-                <Users className="w-4 h-4 text-purple-400 mx-auto mb-1" />
-                <span className="text-base font-black text-purple-400">{referralsList.length}</span>
-                <span className="text-[9px] text-gray-400 block uppercase">Referrals</span>
-              </button>
-            </div>
-          </div>
-
-          {/* XP Progression Bar */}
-          <div className="space-y-1.5 p-3 rounded-2xl bg-black/50 border border-white/10">
-            <div className="flex justify-between items-center text-[10px]">
-              <span className="text-stadiumGreen font-black flex items-center space-x-1">
-                <Zap className="w-3 h-3 text-gold fill-gold" />
-                <span>LEVEL {levelInfo.level} PROGRESS ({levelInfo.title})</span>
-              </span>
-              <span className="text-gray-400 font-mono">
-                {levelInfo.currentXp} / {levelInfo.nextLevelXp} XP ({levelInfo.progressPercent}%)
-              </span>
-            </div>
-            <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
-              <div
-                style={{ width: `${levelInfo.progressPercent}%` }}
-                className="h-full bg-gradient-to-r from-stadiumGreen via-emerald-400 to-gold rounded-full transition-all duration-500"
-              />
-            </div>
-          </div>
-
-          {/* Daily Aura Claim Button */}
-          <div className="flex flex-col sm:flex-row items-center justify-between pt-2 border-t border-white/10 gap-3">
-            <div className="flex items-center space-x-2 text-xs text-gray-300">
-              <Gift className="w-4 h-4 text-gold" />
-              <span>AURA WALLET BALANCE: <strong className="text-gold font-mono text-sm">{userProfile.auraBalance.toLocaleString()} AURA</strong></span>
-            </div>
-
-            <button
-              onClick={handleClaimDailyAura}
-              disabled={dailyClaimed}
-              className={cn(
-                'px-5 py-2.5 rounded-2xl font-black text-xs shadow-lg transition-all flex items-center space-x-2',
-                dailyClaimed
-                  ? 'bg-white/10 text-gray-400 cursor-not-allowed border border-white/10'
-                  : 'bg-gradient-to-r from-gold to-yellow-400 text-black hover:scale-105 active:scale-95'
-              )}
-            >
-              <Gift className="w-4 h-4" />
-              <span>{dailyClaimed ? 'Daily Aura Bonus Claimed ✓' : 'Claim +150 Daily Aura Bonus 🎁'}</span>
-            </button>
-          </div>
-        </div>
-
-        {/* DASHBOARD NAVIGATION TABS */}
-        <div className="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none border-b border-white/10">
+        {/* Navigation Tabs */}
+        <div className="flex items-center space-x-1.5 overflow-x-auto pb-2 scrollbar-none bg-panel/80 p-1.5 rounded-2xl border border-white/10">
           {[
-            { key: 'OVERVIEW', label: '📊 Overview', count: null },
-            { key: 'TICKETS', label: '🎟️ My Placed Bets', count: placedTickets.length },
-            { key: 'FOLLOWED', label: '🔔 Followed Fixtures', count: followedMatches.length },
-            { key: 'REFERRALS', label: '👥 Referral Rewards', count: referralsList.length },
+            { id: 'OVERVIEW', label: '📊 Overview', icon: Users },
+            { id: 'EDIT_PROFILE', label: '✏️ Edit Profile', icon: Edit3 },
+            { id: 'SETTINGS', label: '⚙️ Settings & System', icon: Settings },
+            { id: 'TICKETS', label: `🎟️ Placed Tickets (${placedTickets.length})`, icon: Ticket },
+            { id: 'REFERRALS', label: `👥 Referrals (${profile.referrals.length})`, icon: Gift },
+            { id: 'SECURITY', label: '🔒 Security & Export', icon: Shield },
           ].map((tab) => (
             <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key as any)}
-              className={cn(
-                'px-4 py-2.5 rounded-2xl text-xs font-black transition-all flex items-center space-x-2 whitespace-nowrap shadow-sm',
-                activeTab === tab.key
-                  ? 'bg-stadiumGreen text-black shadow-stadiumGreen/30'
-                  : 'bg-panel text-gray-400 hover:text-white border border-white/10'
-              )}
+              key={tab.id}
+              onClick={() => {
+                try { phoneHardware.triggerHaptic('SELECTION'); } catch {}
+                setActiveTab(tab.id as any);
+              }}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center space-x-1.5 ${
+                activeTab === tab.id
+                  ? 'bg-stadiumGreen text-black font-black shadow-md shadow-stadiumGreen/20'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
             >
               <span>{tab.label}</span>
-              {tab.count !== null && (
-                <span className={cn(
-                  'px-2 py-0.5 rounded-full text-[9px] font-mono',
-                  activeTab === tab.key ? 'bg-black/30 text-white' : 'bg-white/10 text-gray-300'
-                )}>
-                  {tab.count}
-                </span>
-              )}
             </button>
           ))}
         </div>
 
-        {/* TAB 1: OVERVIEW */}
+        {/* Save Status Toast */}
+        {saveStatus && (
+          <div className="p-3 rounded-2xl bg-stadiumGreen/20 border border-stadiumGreen text-stadiumGreen text-xs font-black animate-fadeIn flex items-center justify-between shadow-lg">
+            <span>{saveStatus}</span>
+            <button onClick={() => setSaveStatus(null)} className="text-gray-400 hover:text-white">✕</button>
+          </div>
+        )}
+
+        {/* ================= TAB 1: OVERVIEW ================= */}
         {activeTab === 'OVERVIEW' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
-            <div className="lg:col-span-8 space-y-6">
-              
-              {/* Placed Tickets Card */}
-              <div className="p-6 rounded-3xl bg-panel/80 border border-white/10 space-y-4 shadow-xl">
+          <div className="space-y-6 animate-fadeIn">
+            {/* Quick Metrics Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+              {/* Aura Wallet */}
+              <div className="p-4 rounded-3xl bg-panel border border-gold/30 space-y-2 relative overflow-hidden shadow-xl">
+                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">AURA WALLET</span>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm sm:text-base font-black text-white flex items-center space-x-2">
-                    <Ticket className="w-4 h-4 text-stadiumGreen" />
-                    <span>RECENTLY PLACED BETS ({wonTickets} WON • {lostTickets} LOST • {pendingTickets} PENDING)</span>
-                  </h3>
-                  <button onClick={() => setActiveTab('TICKETS')} className="text-xs text-stadiumGreen font-bold hover:underline">
-                    View All ({placedTickets.length}) ➔
+                  <div className="flex items-center space-x-1.5">
+                    <Zap className="w-5 h-5 text-gold fill-gold animate-pulse" />
+                    <span className="text-2xl font-black text-white">{profile.auraBalance.toLocaleString()}</span>
+                  </div>
+                  <button
+                    onClick={handleClaimDailyAura}
+                    disabled={dailyClaimed}
+                    className={`px-3 py-1 rounded-xl text-[10px] font-black transition-all ${
+                      dailyClaimed ? 'bg-white/10 text-gray-400' : 'bg-gold text-black hover:bg-amber-300 shadow-md'
+                    }`}
+                  >
+                    {dailyClaimed ? 'Claimed ✓' : '+250 Daily 🎁'}
                   </button>
                 </div>
-
-                {placedTickets.length === 0 ? (
-                  <div className="p-8 rounded-2xl bg-black/40 border border-dashed border-white/10 text-center space-y-2">
-                    <Ticket className="w-8 h-8 text-gray-600 mx-auto" />
-                    <p className="text-xs text-gray-400 font-sans">You haven't placed any bets yet.</p>
-                    <p className="text-[10px] text-gray-500">Go to Match Arena and tap "I Bet This 🎯" on any match card to save your picks!</p>
-                    <Link href="/" className="inline-block px-4 py-2 rounded-xl bg-stadiumGreen text-black font-black text-xs mt-2">
-                      Explore Live Matches ➔
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="space-y-2.5">
-                    {placedTickets.slice(0, 5).map((ticket) => (
-                      <div key={ticket.id} className="p-3.5 rounded-2xl bg-black/60 border border-white/10 flex items-center justify-between gap-3">
-                        <div className="space-y-1 min-w-0">
-                          <span className="text-[10px] text-gray-400 block font-bold truncate">{ticket.league}</span>
-                          <span className="text-xs font-black text-white block truncate">{ticket.homeTeam} vs {ticket.awayTeam}</span>
-                          <span className="text-[11px] text-stadiumGreen font-bold block">Pick: {ticket.selection} @ {ticket.odds}</span>
-                        </div>
-
-                        <div className="text-right flex-shrink-0">
-                          <span className={cn(
-                            'px-2.5 py-1 rounded-xl text-[10px] font-black uppercase inline-block',
-                            ticket.status === 'WON' ? 'bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/40 font-black' :
-                            ticket.status === 'LOST' ? 'bg-crimson/20 text-crimson border border-crimson/40 font-black' :
-                            'bg-gold/20 text-gold border border-gold/40'
-                          )}>
-                            {ticket.status === 'WON' ? 'WON ✓' : ticket.status === 'LOST' ? 'LOST ✗' : 'PENDING ⏳'}
-                          </span>
-                          <span className="text-[9px] text-gray-500 block mt-1 font-mono">{new Date(ticket.timestamp).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <span className="text-[10px] text-gold/80 block font-sans">Used for unlocks &amp; prediction tools</span>
               </div>
 
-              {/* Followed Clubs & Players */}
-              <div className="p-6 rounded-3xl bg-panel/80 border border-white/10 space-y-4 shadow-xl">
-                <h3 className="text-sm font-black text-white flex items-center space-x-2">
-                  <Star className="w-4 h-4 text-gold" />
-                  <span>MY FOLLOWED TEAMS & STARS</span>
-                </h3>
+              {/* Naira Balance */}
+              <div className="p-4 rounded-3xl bg-panel border border-stadiumGreen/30 space-y-2 relative overflow-hidden shadow-xl">
+                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">NAIRA VAULT</span>
+                <div className="flex items-center space-x-1.5">
+                  <span className="text-2xl font-black text-stadiumGreen">₦{(profile.nairaBalance || 25000).toLocaleString()}</span>
+                </div>
+                <span className="text-[10px] text-gray-400 block font-sans">Verified referral earnings &amp; rewards</span>
+              </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-2xl bg-black/60 border border-white/10 space-y-2">
-                    <span className="text-[10px] text-gray-400 font-bold block uppercase">Loyalty Club</span>
-                    <span className="px-2.5 py-1 rounded-xl bg-stadiumGreen/20 text-stadiumGreen font-black text-xs border border-stadiumGreen/30 inline-block">
-                      🛡️ {userProfile.club}
-                    </span>
+              {/* XP & Level */}
+              <div className="p-4 rounded-3xl bg-panel border border-cyan-500/30 space-y-2 relative overflow-hidden shadow-xl">
+                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">TACTICIAN LEVEL</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-xl font-black text-cyan-400">LVL {profile.level.level}</span>
+                  <span className="text-[10px] text-cyan-300 font-bold bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/30">
+                    {profile.level.title}
+                  </span>
+                </div>
+                {/* XP Progress Bar */}
+                <div className="space-y-1">
+                  <div className="h-1.5 bg-black/60 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-cyan-500 to-stadiumGreen rounded-full transition-all duration-500"
+                      style={{ width: `${Math.min(100, Math.round((profile.xp / (profile.level.nextLevelXp || 2000)) * 100))}%` }}
+                    />
                   </div>
-
-                  <div className="p-4 rounded-2xl bg-black/60 border border-white/10 space-y-2">
-                    <span className="text-[10px] text-gray-400 font-bold block uppercase">Followed Fixtures</span>
-                    <span className="text-xs text-white font-bold block">
-                      {followedMatches.length > 0 ? `${followedMatches.length} Live Alerts Active 🔔` : 'No fixtures followed yet'}
-                    </span>
+                  <div className="flex justify-between text-[9px] text-gray-400 font-mono">
+                    <span>{profile.xp} XP</span>
+                    <span>{profile.level.nextLevelXp} XP Next</span>
                   </div>
                 </div>
               </div>
 
+              {/* VIP Tier */}
+              <div className="p-4 rounded-3xl bg-panel border border-purple-500/30 space-y-2 relative overflow-hidden shadow-xl">
+                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">COMMUNITY VIP STATUS</span>
+                <div className="flex items-center space-x-2">
+                  <Trophy className="w-5 h-5 text-purple-400" />
+                  <span className="text-xs font-black text-purple-300 truncate">{profile.vipTier}</span>
+                </div>
+                <span className="text-[10px] text-gray-400 block font-sans">Member Since {profile.memberSince}</span>
+              </div>
             </div>
 
-            {/* Right 4 Cols: Trackable Referral Widget */}
-            <div className="lg:col-span-4 space-y-6">
-              
-              <div className="p-6 rounded-3xl bg-gradient-to-br from-panel via-black to-stadiumGreen/10 border border-stadiumGreen/40 space-y-4 shadow-xl">
-                <div className="space-y-1">
-                  <span className="text-xs font-black text-stadiumGreen flex items-center space-x-1.5">
-                    <Users className="w-4 h-4" />
-                    <span>YOUR USERNAME-BASED REFERRAL LINK</span>
-                  </span>
-                  <p className="text-[10px] text-gray-400 font-sans">
-                    Every punter who joins using your handle credits your Aura Wallet with +150 Aura and +150 XP!
-                  </p>
+            {/* Profile Bio Dossier Card */}
+            <div className="p-5 sm:p-6 rounded-3xl bg-panel border border-white/10 space-y-4 shadow-xl">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+                <div className="flex items-center space-x-3.5">
+                  <div className="w-16 h-16 rounded-2xl bg-black border-2 border-stadiumGreen p-1 flex items-center justify-center text-3xl shadow-lg relative">
+                    {profile.avatarCustomUrl ? (
+                      <img src={profile.avatarCustomUrl} alt={profile.username} className="w-full h-full object-cover rounded-xl" />
+                    ) : (
+                      <span>{profile.avatar}</span>
+                    )}
+                  </div>
+                  <div>
+                    <h2 className="text-base sm:text-lg font-black text-white">{profile.fullName || profile.username}</h2>
+                    <span className="text-xs text-stadiumGreen font-bold block">@{profile.username} &bull; {profile.city}, {profile.country}</span>
+                    <span className="text-[10px] text-gray-400 font-sans block">{profile.email} &bull; {profile.phone}</span>
+                  </div>
                 </div>
 
-                <div className="p-3 rounded-2xl bg-black border border-white/15 space-y-2">
-                  <span className="text-[9px] text-gray-500 font-bold block">UNIQUE REFERRAL URL:</span>
+                <button
+                  onClick={() => setActiveTab('EDIT_PROFILE')}
+                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold text-white flex items-center space-x-1.5 transition-all self-start sm:self-auto"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>Edit Personal Info</span>
+                </button>
+              </div>
+
+              {profile.bio && (
+                <p className="text-xs text-gray-300 font-sans italic bg-black/40 p-3 rounded-2xl border border-white/5">
+                  "{profile.bio}"
+                </p>
+              )}
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs pt-1">
+                <div className="p-3 rounded-xl bg-black/50 border border-white/5">
+                  <span className="text-[9px] text-gray-400 block">PRIMARY CLUB</span>
+                  <span className="font-bold text-white text-xs">{profile.club}</span>
+                </div>
+                <div className="p-3 rounded-xl bg-black/50 border border-white/5">
+                  <span className="text-[9px] text-gray-400 block">TELEGRAM HANDLE</span>
+                  <span className="font-bold text-white text-xs truncate">{profile.telegramHandle || 'Not Linked'}</span>
+                </div>
+                <div className="p-3 rounded-xl bg-black/50 border border-white/5">
+                  <span className="text-[9px] text-gray-400 block">ODDS FORMAT</span>
+                  <span className="font-bold text-gold text-xs">{profile.settings.oddsFormat}</span>
+                </div>
+                <div className="p-3 rounded-xl bg-black/50 border border-white/5">
+                  <span className="text-[9px] text-gray-400 block">TIMEZONE</span>
+                  <span className="font-bold text-white text-xs truncate">{profile.settings.timezone.split(' ')[0]}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ================= TAB 2: EDIT PROFILE (EVERY FIELD EDITABLE) ================= */}
+        {activeTab === 'EDIT_PROFILE' && (
+          <form onSubmit={handleSaveProfile} className="space-y-5 animate-fadeIn">
+            <div className="p-5 sm:p-7 rounded-3xl bg-panel border border-white/15 space-y-5 shadow-2xl">
+              <div className="border-b border-white/10 pb-3">
+                <h2 className="text-base sm:text-lg font-black text-white flex items-center space-x-2">
+                  <span>EDIT PERSONAL INFORMATION</span>
+                  <span className="text-[10px] text-stadiumGreen font-normal bg-stadiumGreen/10 px-2 py-0.5 rounded border border-stadiumGreen/30">
+                    100% Editable &amp; Synchronized
+                  </span>
+                </h2>
+                <p className="text-xs text-gray-400 font-sans">
+                  Update your identity, contacts, supporting club, and biography across all Mivaj systems.
+                </p>
+              </div>
+
+              {/* Avatar Selector */}
+              <div className="space-y-2">
+                <label className="text-[10px] text-gray-400 font-bold uppercase block">CHOOSE AVATAR BADGE</label>
+                <div className="flex flex-wrap gap-2">
+                  {AVAILABLE_AVATARS.map((av) => (
+                    <button
+                      key={av}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, avatar: av })}
+                      className={`w-11 h-11 rounded-2xl text-xl flex items-center justify-center transition-all border ${
+                        formData.avatar === av
+                          ? 'bg-stadiumGreen border-stadiumGreen scale-110 shadow-lg'
+                          : 'bg-black/60 border-white/10 hover:border-white/30'
+                      }`}
+                    >
+                      {av}
+                    </button>
+                  ))}
+                </div>
+                <div className="pt-1">
+                  <label className="text-[10px] text-gray-400 font-sans">Or paste custom profile photo URL:</label>
+                  <input
+                    type="url"
+                    value={formData.avatarCustomUrl}
+                    onChange={(e) => setFormData({ ...formData, avatarCustomUrl: e.target.value })}
+                    placeholder="https://example.com/my-photo.jpg"
+                    className="w-full mt-1 p-2.5 rounded-xl bg-black border border-white/10 text-xs text-white placeholder-gray-500 focus:border-stadiumGreen focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Primary Identity Fields */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase">FULL NAME</label>
                   <input
                     type="text"
-                    readOnly
-                    value={referralUrl}
-                    className="w-full p-2 rounded-xl bg-panel border border-white/10 text-white font-mono text-[10px]"
+                    required
+                    value={formData.fullName}
+                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                    placeholder="e.g. Victor Chukwuemeka"
+                    className="w-full p-2.5 rounded-xl bg-black border border-white/10 text-xs text-white focus:border-stadiumGreen focus:outline-none"
                   />
-                  <button
-                    onClick={copyReferralLink}
-                    className="w-full py-2.5 rounded-xl bg-stadiumGreen text-black font-black text-xs hover:bg-emerald-400 transition-all flex items-center justify-center space-x-1.5 shadow"
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>{copiedLink ? 'Link Copied to Clipboard! ✓' : 'Copy Referral Link'}</span>
-                  </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-center pt-1">
-                  <button
-                    onClick={() => setActiveTab('REFERRALS')}
-                    className="p-3 rounded-2xl bg-black/60 border border-purple-400/30 hover:border-purple-400 transition-all"
+                <div className="space-y-1">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase">DISPLAY USERNAME</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.username}
+                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                    placeholder="e.g. CyberStriker_99"
+                    className="w-full p-2.5 rounded-xl bg-black border border-white/10 text-xs text-white focus:border-stadiumGreen focus:outline-none"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase">EMAIL ADDRESS</label>
+                  <input
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="name@mivaj.com"
+                    className="w-full p-2.5 rounded-xl bg-black border border-white/10 text-xs text-white focus:border-stadiumGreen focus:outline-none"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase">PHONE NUMBER</label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="+234 800 000 0000"
+                    className="w-full p-2.5 rounded-xl bg-black border border-white/10 text-xs text-white focus:border-stadiumGreen focus:outline-none"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase">WHATSAPP NUMBER</label>
+                  <input
+                    type="tel"
+                    value={formData.whatsappNumber}
+                    onChange={(e) => setFormData({ ...formData, whatsappNumber: e.target.value })}
+                    placeholder="+234 800 000 0000"
+                    className="w-full p-2.5 rounded-xl bg-black border border-white/10 text-xs text-white focus:border-stadiumGreen focus:outline-none"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase">TELEGRAM HANDLE</label>
+                  <input
+                    type="text"
+                    value={formData.telegramHandle}
+                    onChange={(e) => setFormData({ ...formData, telegramHandle: e.target.value })}
+                    placeholder="@username"
+                    className="w-full p-2.5 rounded-xl bg-black border border-white/10 text-xs text-white focus:border-stadiumGreen focus:outline-none"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase">COUNTRY</label>
+                  <input
+                    type="text"
+                    value={formData.country}
+                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                    placeholder="Nigeria"
+                    className="w-full p-2.5 rounded-xl bg-black border border-white/10 text-xs text-white focus:border-stadiumGreen focus:outline-none"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase">CITY / REGION</label>
+                  <input
+                    type="text"
+                    value={formData.city}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    placeholder="Port Harcourt / Lagos"
+                    className="w-full p-2.5 rounded-xl bg-black border border-white/10 text-xs text-white focus:border-stadiumGreen focus:outline-none"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase">SUPPORTING CLUB</label>
+                  <select
+                    value={formData.club}
+                    onChange={(e) => setFormData({ ...formData, club: e.target.value })}
+                    className="w-full p-2.5 rounded-xl bg-black border border-white/10 text-xs text-white focus:border-stadiumGreen focus:outline-none"
                   >
-                    <span className="text-lg font-black text-purple-400">{referralsList.length}</span>
-                    <span className="text-[9px] text-gray-400 block">REFERRED PUNTERS ➔</span>
-                  </button>
-                  <div className="p-3 rounded-2xl bg-black/60 border border-gold/30">
-                    <span className="text-lg font-black text-gold">+{referralsList.length * 150}</span>
-                    <span className="text-[9px] text-gray-400 block">AURA EARNED</span>
-                  </div>
+                    {Object.keys(POPULAR_CLUBS).map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] text-gray-400 font-bold uppercase">DATE OF BIRTH</label>
+                  <input
+                    type="date"
+                    value={formData.birthDate}
+                    onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
+                    className="w-full p-2.5 rounded-xl bg-black border border-white/10 text-xs text-white focus:border-stadiumGreen focus:outline-none"
+                  />
                 </div>
               </div>
 
-              {/* Fast Navigation */}
-              <div className="p-5 rounded-3xl bg-panel/80 border border-white/10 space-y-2">
-                <span className="text-xs font-black text-white block mb-3">FAST NAVIGATION</span>
-                
-                <Link href="/settlement" className="p-3 rounded-2xl bg-black/60 border border-white/10 hover:border-stadiumGreen flex items-center justify-between text-xs text-gray-200 hover:text-white transition-all">
-                  <span>📜 Official Match Settlement Ledger</span>
-                  <span className="text-stadiumGreen font-bold">➔</span>
-                </Link>
-
-                <Link href="/birthdays" className="p-3 rounded-2xl bg-black/60 border border-white/10 hover:border-gold flex items-center justify-between text-xs text-gray-200 hover:text-white transition-all">
-                  <span>🎂 World Sports Star Birthday Hub</span>
-                  <span className="text-gold font-bold">➔</span>
-                </Link>
+              {/* Bio & Motto */}
+              <div className="space-y-1">
+                <label className="text-[10px] text-gray-400 font-bold uppercase">FAN BIO &amp; MOTTO</label>
+                <textarea
+                  rows={3}
+                  value={formData.bio}
+                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                  placeholder="Tell the community about your betting style, favorite club, or football passion..."
+                  className="w-full p-3 rounded-xl bg-black border border-white/10 text-xs text-white focus:border-stadiumGreen focus:outline-none"
+                />
               </div>
 
-            </div>
-          </div>
-        )}
-
-        {/* TAB 2: PLACED TICKETS (SYSTEM-WIDE SETTLEMENT) */}
-        {activeTab === 'TICKETS' && (
-          <div className="p-6 rounded-3xl bg-panel border border-white/10 space-y-4 shadow-xl">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
-              <div>
-                <h3 className="text-base font-black text-white flex items-center space-x-2">
-                  <Ticket className="w-5 h-5 text-stadiumGreen" />
-                  <span>PLACED TICKETS & AUTO-SETTLEMENT LEDGER</span>
-                </h3>
-                <span className="text-[10px] text-gray-400 font-sans">
-                  Automated settlement evaluates official full-time score sheets against your selections.
-                </span>
-              </div>
-              <div className="flex items-center space-x-2 text-[10px] font-mono font-bold">
-                <span className="px-2 py-1 rounded-lg bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/30">
-                  {wonTickets} WON
-                </span>
-                <span className="px-2 py-1 rounded-lg bg-crimson/20 text-crimson border border-crimson/30">
-                  {lostTickets} LOST
-                </span>
-                <span className="px-2 py-1 rounded-lg bg-gold/20 text-gold border border-gold/30">
-                  {pendingTickets} PENDING
-                </span>
+              {/* Submit Button */}
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-2xl bg-stadiumGreen text-black font-black text-xs hover:bg-emerald-400 transition-all shadow-lg glow-emerald flex items-center space-x-2 active:scale-95"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>Save All Personal Information</span>
+                </button>
               </div>
             </div>
-
-            {placedTickets.length === 0 ? (
-              <div className="p-12 rounded-3xl bg-black/40 border border-dashed border-white/10 text-center space-y-3">
-                <Ticket className="w-12 h-12 text-gray-600 mx-auto" />
-                <h4 className="text-sm font-black text-white">No Tickets Placed Yet</h4>
-                <p className="text-xs text-gray-400 font-sans max-w-md mx-auto">
-                  When you browse match predictions in the arena and tap "I Bet This 🎯", your tickets are recorded here and automatically settled when the match finishes!
-                </p>
-                <Link href="/" className="inline-block px-5 py-2.5 rounded-2xl bg-stadiumGreen text-black font-black text-xs mt-2">
-                  Browse Today's Fixtures ➔
-                </Link>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {placedTickets.map((ticket) => (
-                  <div key={ticket.id} className="p-4 rounded-2xl bg-black/70 border border-white/10 space-y-3 hover:border-stadiumGreen/60 transition-all shadow-md">
-                    <div className="flex items-center justify-between text-[10px] text-gray-400 border-b border-white/10 pb-2">
-                      <span className="font-bold text-white">{ticket.league}</span>
-                      <span className={cn(
-                        'px-2 py-0.5 rounded-lg text-[9px] font-black uppercase',
-                        ticket.status === 'WON' ? 'bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/30 font-black' :
-                        ticket.status === 'LOST' ? 'bg-crimson/20 text-crimson border border-crimson/30 font-black' :
-                        'bg-gold/20 text-gold border border-gold/30'
-                      )}>
-                        {ticket.status === 'WON' ? 'WON ✓' : ticket.status === 'LOST' ? 'LOST ✗' : 'PENDING ⏳'}
-                      </span>
-                    </div>
-
-                    <div className="space-y-1">
-                      <h4 className="text-sm font-black text-white">{ticket.homeTeam} vs {ticket.awayTeam}</h4>
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-stadiumGreen font-bold">{ticket.market}: {ticket.selection}</span>
-                        <span className="text-gold font-mono font-black">@{ticket.odds}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2 border-t border-white/10 text-[10px] text-gray-400">
-                      <span>Placed: {new Date(ticket.timestamp).toLocaleDateString()}</span>
-                      <span className="font-mono text-gray-500">ID: {ticket.id.slice(-8)}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          </form>
         )}
 
-        {/* TAB 3: FOLLOWED */}
-        {activeTab === 'FOLLOWED' && (
-          <div className="p-6 rounded-3xl bg-panel border border-white/10 space-y-4 shadow-xl">
-            <h3 className="text-base font-black text-white flex items-center space-x-2">
-              <Bell className="w-5 h-5 text-gold" />
-              <span>MY FOLLOWED FIXTURES ({followedMatches.length})</span>
-            </h3>
-
-            {followedMatches.length === 0 ? (
-              <div className="p-12 rounded-3xl bg-black/40 border border-dashed border-white/10 text-center space-y-3">
-                <Bell className="w-12 h-12 text-gray-600 mx-auto" />
-                <h4 className="text-sm font-black text-white">No Followed Matches</h4>
-                <p className="text-xs text-gray-400 font-sans max-w-md mx-auto">
-                  Click the bell icon 🔔 on any match card to receive live goal alerts and track them here.
-                </p>
-                <Link href="/" className="inline-block px-5 py-2.5 rounded-2xl bg-stadiumGreen text-black font-black text-xs mt-2">
-                  Browse Live Matches ➔
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {followedMatches.map((id) => (
-                  <div key={id} className="p-4 rounded-2xl bg-black/70 border border-white/10 flex items-center justify-between">
-                    <div>
-                      <span className="text-xs font-bold text-white block">Match: {id}</span>
-                      <span className="text-[10px] text-stadiumGreen font-bold">Live Goal Alerts Enabled 🔔</span>
-                    </div>
-                    <Link href="/" className="px-3 py-1.5 rounded-xl bg-stadiumGreen text-black font-black text-xs">
-                      View Match ➔
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* TAB 4: REFERRALS (CLICKABLE LIST BASED ON USERNAME) */}
-        {activeTab === 'REFERRALS' && (
-          <div className="p-6 rounded-3xl bg-panel border border-white/10 space-y-6 shadow-xl">
-            <div className="space-y-2">
-              <h3 className="text-base font-black text-white flex items-center space-x-2">
-                <Users className="w-5 h-5 text-purple-400" />
-                <span>YOUR RECRUITED PUNTERS & REFERRAL REWARDS</span>
-              </h3>
+        {/* ================= TAB 3: SETTINGS & SYSTEM ================= */}
+        {activeTab === 'SETTINGS' && (
+          <div className="p-5 sm:p-7 rounded-3xl bg-panel border border-white/15 space-y-6 shadow-2xl animate-fadeIn">
+            <div className="border-b border-white/10 pb-3">
+              <h2 className="text-base sm:text-lg font-black text-white flex items-center space-x-2">
+                <Sliders className="w-5 h-5 text-stadiumGreen" />
+                <span>EXPERIENCE &amp; SYSTEM SETTINGS</span>
+              </h2>
               <p className="text-xs text-gray-400 font-sans">
-                Your personal referral link is based on your username. Share it to recruit punters and earn rewards directly in your Aura wallet.
+                Customize your odds calculations, notification alerts, matchday vibrations, and sound effects.
               </p>
             </div>
 
-            <div className="p-5 rounded-2xl bg-black border border-stadiumGreen/40 space-y-3">
-              <span className="text-xs font-black text-stadiumGreen block">YOUR UNIQUE REFERRAL URL:</span>
-              <div className="flex gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Odds Format */}
+              <div className="p-4 rounded-2xl bg-black/60 border border-white/10 space-y-2">
+                <label className="text-[10px] text-gold font-bold uppercase block">ODDS DISPLAY FORMAT</label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {(['DECIMAL', 'FRACTIONAL', 'AMERICAN'] as const).map((fmt) => (
+                    <button
+                      key={fmt}
+                      type="button"
+                      onClick={() => handleSaveSettings({ oddsFormat: fmt })}
+                      className={`p-2 rounded-xl text-xs font-black transition-all border ${
+                        settingsData.oddsFormat === fmt
+                          ? 'bg-gold text-black border-gold shadow-md'
+                          : 'bg-black text-gray-400 border-white/10 hover:text-white'
+                      }`}
+                    >
+                      {fmt === 'DECIMAL' ? '1.50' : fmt === 'FRACTIONAL' ? '1/2' : '-200'}
+                    </button>
+                  ))}
+                </div>
+                <span className="text-[10px] text-gray-400 font-sans block">Currently applied across all Banker pick cards</span>
+              </div>
+
+              {/* Haptic Intensity */}
+              <div className="p-4 rounded-2xl bg-black/60 border border-white/10 space-y-2">
+                <label className="text-[10px] text-cyan-400 font-bold uppercase block">MATCHDAY HAPTIC VIBRATION</label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {(['HIGH', 'MEDIUM', 'OFF'] as const).map((lvl) => (
+                    <button
+                      key={lvl}
+                      type="button"
+                      onClick={() => handleSaveSettings({ hapticIntensity: lvl })}
+                      className={`p-2 rounded-xl text-xs font-black transition-all border ${
+                        settingsData.hapticIntensity === lvl
+                          ? 'bg-cyan-500 text-black border-cyan-400 shadow-md'
+                          : 'bg-black text-gray-400 border-white/10 hover:text-white'
+                      }`}
+                    >
+                      {lvl}
+                    </button>
+                  ))}
+                </div>
+                <span className="text-[10px] text-gray-400 font-sans block">Physical vibration on live goals &amp; ticket cashouts</span>
+              </div>
+            </div>
+
+            {/* Notification Toggles */}
+            <div className="space-y-3 pt-2">
+              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">NOTIFICATION ALERTS</span>
+              
+              <div className="space-y-2">
+                <div className="p-3.5 rounded-2xl bg-black/50 border border-white/10 flex items-center justify-between">
+                  <div>
+                    <span className="font-bold text-xs text-white block">Telegram Banker Direct Alerts</span>
+                    <span className="text-[10px] text-gray-400 font-sans">Receive verified high-probability banker slips straight to @mivajsport</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={settingsData.notifyTelegramBankers}
+                    onChange={(e) => handleSaveSettings({ notifyTelegramBankers: e.target.checked })}
+                    className="w-4 h-4 accent-stadiumGreen rounded"
+                  />
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-black/50 border border-white/10 flex items-center justify-between">
+                  <div>
+                    <span className="font-bold text-xs text-white block">Sound Effects &amp; Goal Chimes</span>
+                    <span className="text-[10px] text-gray-400 font-sans">Play crowd roars and referee whistles when matches settle</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={settingsData.soundEffects}
+                    onChange={(e) => handleSaveSettings({ soundEffects: e.target.checked })}
+                    className="w-4 h-4 accent-stadiumGreen rounded"
+                  />
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-black/50 border border-white/10 flex items-center justify-between">
+                  <div>
+                    <span className="font-bold text-xs text-white block">Nightly Audit &amp; Reconciliation Alert</span>
+                    <span className="text-[10px] text-gray-400 font-sans">Daily evening summary of all won tickets recorded in the official referee ledger</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={settingsData.notifyNightlyAudit}
+                    onChange={(e) => handleSaveSettings({ notifyNightlyAudit: e.target.checked })}
+                    className="w-4 h-4 accent-stadiumGreen rounded"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ================= TAB 4: MY TICKETS ================= */}
+        {activeTab === 'TICKETS' && (
+          <div className="space-y-4 animate-fadeIn">
+            <div className="p-4 rounded-3xl bg-panel border border-white/15 flex items-center justify-between">
+              <div>
+                <h2 className="font-black text-sm text-white">MY PLACED TICKETS &amp; SLIPS</h2>
+                <span className="text-[10px] text-gray-400 font-sans">Automatic referee settlement &bull; Payout verification</span>
+              </div>
+              <span className="text-xs font-mono font-bold text-stadiumGreen">{placedTickets.length} Placed</span>
+            </div>
+
+            {placedTickets.length === 0 ? (
+              <div className="p-8 rounded-3xl bg-black/40 border border-white/10 text-center space-y-2">
+                <Ticket className="w-8 h-8 text-gray-500 mx-auto" />
+                <span className="text-xs text-gray-400 block font-sans">No tickets placed yet. Add bankers from the match center to track your slips here!</span>
+                <Link href="/" className="inline-block px-4 py-2 rounded-xl bg-stadiumGreen text-black font-black text-xs">
+                  Explore Today's Bankers ➔
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {placedTickets.map((t) => (
+                  <div key={t.id} className="p-4 rounded-2xl bg-black/60 border border-white/10 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="font-bold text-white block">{t.fixture}</span>
+                      <span className="text-[10px] text-gray-400 font-sans">{t.league} &bull; Pick: <b>{t.selection}</b> @ {t.odds}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className={`px-2.5 py-0.5 rounded-full font-black text-[10px] border ${
+                        t.status === 'WON'
+                          ? 'bg-stadiumGreen text-black border-stadiumGreen'
+                          : t.status === 'LOST'
+                          ? 'bg-red-500/20 text-red-400 border-red-500/40'
+                          : 'bg-gold/20 text-gold border-gold/30 animate-pulse'
+                      }`}>
+                        {t.status === 'WON' ? 'WON ✅' : t.status === 'LOST' ? 'LOST ❌' : 'PENDING ⏳'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ================= TAB 5: REFERRALS ================= */}
+        {activeTab === 'REFERRALS' && (
+          <div className="p-5 sm:p-7 rounded-3xl bg-panel border border-white/15 space-y-5 shadow-2xl animate-fadeIn">
+            <div className="border-b border-white/10 pb-3">
+              <h2 className="text-base sm:text-lg font-black text-white flex items-center space-x-2">
+                <Gift className="w-5 h-5 text-gold" />
+                <span>REFERRAL NETWORK &amp; AURA DROPS</span>
+              </h2>
+              <p className="text-xs text-gray-400 font-sans">
+                Earn 500 Aura Points + ₦500 commission for every friend who joins Mivaj Sports via your link.
+              </p>
+            </div>
+
+            {/* Share Box */}
+            <div className="p-4 rounded-2xl bg-black/60 border border-gold/40 space-y-2">
+              <span className="text-[10px] text-gold font-bold uppercase block">YOUR UNIQUE REFERRAL LINK</span>
+              <div className="flex items-center gap-2">
                 <input
                   type="text"
                   readOnly
-                  value={referralUrl}
-                  className="flex-1 p-3 rounded-xl bg-panel border border-white/15 text-white font-mono text-xs"
+                  value={`https://mivaj.com?ref=${profile.username}`}
+                  className="flex-1 p-2.5 rounded-xl bg-black border border-white/10 text-xs text-gray-300 font-mono focus:outline-none"
                 />
                 <button
-                  onClick={copyReferralLink}
-                  className="px-5 py-3 rounded-xl bg-stadiumGreen text-black font-black text-xs hover:bg-emerald-400 transition-all flex items-center space-x-1.5"
+                  onClick={handleCopyReferral}
+                  className="px-4 py-2.5 rounded-xl bg-gold text-black font-black text-xs hover:bg-amber-300 transition-all flex items-center space-x-1"
                 >
-                  <Copy className="w-4 h-4" />
-                  <span>{copiedLink ? 'Copied! ✓' : 'Copy Link'}</span>
+                  {copiedLink ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  <span>{copiedLink ? 'Copied!' : 'Copy'}</span>
                 </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-4 rounded-2xl bg-black/60 border border-white/10 text-center space-y-1">
-                <span className="text-2xl font-black text-purple-400">{referralsList.length}</span>
-                <span className="text-xs font-bold text-white block">Total Referrals</span>
-                <span className="text-[10px] text-gray-400 block font-sans">Tracked via @{cleanUsername}</span>
-              </div>
-              <div className="p-4 rounded-2xl bg-black/60 border border-white/10 text-center space-y-1">
-                <span className="text-2xl font-black text-gold">+{referralsList.length * 150}</span>
-                <span className="text-xs font-bold text-white block">Earned Aura Bonus</span>
-                <span className="text-[10px] text-gray-400 block font-sans">Credited instantly</span>
-              </div>
-              <div className="p-4 rounded-2xl bg-black/60 border border-white/10 text-center space-y-1">
-                <span className="text-2xl font-black text-stadiumGreen">+{referralsList.length * 150} XP</span>
-                <span className="text-xs font-bold text-white block">Progression XP</span>
-                <span className="text-[10px] text-gray-400 block font-sans">+150 XP per signup</span>
-              </div>
-            </div>
-
-            {/* DETAILED REFERRED PUNTERS BREAKDOWN */}
-            <div className="space-y-3 pt-2">
-              <h4 className="text-sm font-black text-white flex items-center space-x-2">
-                <Award className="w-4 h-4 text-gold" />
-                <span>REFERRAL MEMBERSHIP ROSTER ({referralsList.length})</span>
-              </h4>
-
-              {referralsList.length === 0 ? (
-                <div className="p-8 rounded-2xl bg-black/40 border border-dashed border-white/10 text-center space-y-3">
-                  <Users className="w-10 h-10 text-gray-600 mx-auto" />
-                  <p className="text-xs text-white font-bold">No friends have joined via your link yet.</p>
-                  <p className="text-[10px] text-gray-400 font-sans max-w-sm mx-auto">
-                    Copy your personal link <code className="text-stadiumGreen">{referralUrl}</code> and share it on WhatsApp or Telegram to earn +150 Aura and +150 XP for each punter!
-                  </p>
-                  <button
-                    onClick={copyReferralLink}
-                    className="px-4 py-2 rounded-xl bg-stadiumGreen text-black font-black text-xs"
-                  >
-                    Share Link Now ➔
-                  </button>
+            {/* Referrals List */}
+            <div className="space-y-2 pt-2">
+              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">
+                REFERRED FRIENDS ({profile.referrals.length})
+              </span>
+              {profile.referrals.length === 0 ? (
+                <div className="p-4 rounded-xl bg-black/40 border border-white/5 text-center text-xs text-gray-500 font-sans">
+                  No friends joined yet. Share your link above on WhatsApp or Telegram to earn +500 Aura instantly!
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {referralsList.map((ref, idx) => (
-                    <div key={ref.id || idx} className="p-3.5 rounded-2xl bg-black/60 border border-white/10 flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-500/40 text-purple-400 flex items-center justify-center font-black text-sm">
-                          {idx + 1}
-                        </div>
-                        <div>
-                          <span className="font-black text-white text-xs block">{ref.username}</span>
-                          <span className="text-[10px] text-gray-400 font-sans">Joined: {ref.joinedAt}</span>
-                        </div>
+                  {profile.referrals.map((r) => (
+                    <div key={r.id} className="p-3 rounded-xl bg-black/50 border border-white/5 flex items-center justify-between text-xs">
+                      <div>
+                        <span className="font-bold text-white">{r.username}</span>
+                        <span className="text-[10px] text-gray-400 block font-sans">Joined {r.joinedAt}</span>
                       </div>
-
-                      <div className="text-right">
-                        <span className="text-xs font-black text-gold block">+{ref.auraCredited} AURA</span>
-                        <span className="text-[9px] text-stadiumGreen font-bold uppercase">{ref.status || 'ACTIVE ✓'}</span>
-                      </div>
+                      <span className="text-stadiumGreen font-bold font-mono">+{r.auraCredited} Aura</span>
                     </div>
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* ================= TAB 6: SECURITY & EXPORT ================= */}
+        {activeTab === 'SECURITY' && (
+          <div className="p-5 sm:p-7 rounded-3xl bg-panel border border-white/15 space-y-5 shadow-2xl animate-fadeIn">
+            <div className="border-b border-white/10 pb-3">
+              <h2 className="text-base sm:text-lg font-black text-white flex items-center space-x-2">
+                <Shield className="w-5 h-5 text-stadiumGreen" />
+                <span>SECURITY, GDPR &amp; DATA EXPORT</span>
+              </h2>
+              <p className="text-xs text-gray-400 font-sans">
+                Military-grade personal data protection, complete portability, and session controls.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <div className="p-4 rounded-2xl bg-black/60 border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <span className="font-bold text-xs text-white block">Download Complete Personal Data (GDPR Portability)</span>
+                  <span className="text-[10px] text-gray-400 font-sans">Export all profile info, ticket history, referrals, and settings as a clean JSON file</span>
+                </div>
+                <button
+                  onClick={handleExportUserData}
+                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold text-white flex items-center space-x-1.5 transition-all self-start sm:self-auto"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download Backup (.JSON)</span>
+                </button>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-black/60 border border-white/10 flex items-center justify-between">
+                <div>
+                  <span className="font-bold text-xs text-white block">Two-Factor Authentication (2FA)</span>
+                  <span className="text-[10px] text-gray-400 font-sans">Enforce verification codes for high-value wallet actions</span>
+                </div>
+                <button
+                  onClick={() => handleSaveSettings({ twoFactorEnabled: !settingsData.twoFactorEnabled })}
+                  className={`px-3 py-1 rounded-xl text-xs font-bold transition-all border ${
+                    settingsData.twoFactorEnabled
+                      ? 'bg-stadiumGreen text-black border-stadiumGreen'
+                      : 'bg-white/10 text-gray-400 border-white/10'
+                  }`}
+                >
+                  {settingsData.twoFactorEnabled ? 'Enabled 🔒' : 'Disabled'}
+                </button>
+              </div>
             </div>
           </div>
         )}
 
       </div>
 
-      {/* EDIT PROFILE MODAL */}
-      {isEditingProfile && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-[#0a0d14] border border-stadiumGreen/40 rounded-3xl p-6 space-y-4 shadow-2xl text-white">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <h3 className="font-black text-base text-white flex items-center space-x-2">
-                <Edit3 className="w-4 h-4 text-stadiumGreen" />
-                <span>EDIT FAN PROFILE</span>
-              </h3>
-              <button
-                onClick={() => setIsEditingProfile(false)}
-                className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveProfile} className="space-y-4">
-              <div>
-                <label className="text-[10px] text-gray-400 font-bold block mb-1">USERNAME (USED FOR REFERRALS & CLOUT):</label>
-                <div className="flex items-center bg-black border border-white/20 rounded-xl px-3 py-2">
-                  <span className="text-stadiumGreen font-bold mr-1">@</span>
-                  <input
-                    type="text"
-                    value={editUsername}
-                    onChange={(e) => setEditUsername(e.target.value)}
-                    className="flex-1 bg-transparent text-white font-mono text-xs focus:outline-none"
-                    placeholder="your_handle"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[10px] text-gray-400 font-bold block mb-1.5">CHOOSE AVATAR ICON:</label>
-                <div className="grid grid-cols-5 gap-2">
-                  {AVAILABLE_AVATARS.map((av) => (
-                    <button
-                      type="button"
-                      key={av}
-                      onClick={() => setEditAvatar(av)}
-                      className={cn(
-                        'w-10 h-10 rounded-xl text-xl flex items-center justify-center transition-all',
-                        editAvatar === av
-                          ? 'bg-stadiumGreen text-black scale-110 shadow-md'
-                          : 'bg-white/5 border border-white/10 hover:bg-white/10'
-                      )}
-                    >
-                      {av}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[10px] text-gray-400 font-bold block mb-1">LOYALTY CLUB:</label>
-                <select
-                  value={editClub}
-                  onChange={(e) => setEditClub(e.target.value)}
-                  className="w-full p-2.5 rounded-xl bg-black border border-white/20 text-white font-mono text-xs focus:outline-none"
-                >
-                  {AVAILABLE_CLUBS.map((c) => (
-                    <option key={c} value={c} className="bg-black text-white">{c}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="pt-2 flex items-center space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setIsEditingProfile(false)}
-                  className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-400 hover:text-white font-bold text-xs"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-stadiumGreen text-black font-black text-xs hover:bg-emerald-400 transition-all shadow"
-                >
-                  Save Profile Changes ✓
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-    </div>
+      {/* Club Selector Modal */}
+      <ClubSelectorModal
+        isOpen={showClubModal}
+        onClose={() => setShowClubModal(false)}
+        currentClub={profile.club}
+      />
+    </main>
   );
 }

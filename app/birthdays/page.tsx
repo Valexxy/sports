@@ -1803,42 +1803,117 @@ export default function BirthdaysHubPage() {
     });
   }, [allPool, selectedMonth, selectedSport, activeTab, searchQuery, thisWeekStars, todayMonth, todayDay]);
 
-  // Live Auto-Scout handler against public APIs
-  const handleLiveScoutSearch = async () => {
+  // Fetch live sports stars born on this exact date from /api/v1/birthdays (No external redirects)
+  useEffect(() => {
+    fetch(`/api/v1/birthdays?month=${todayMonth}&day=${todayDay}`)
+      .then(r => r.json())
+      .then(json => {
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const liveDayStars: EnterpriseBirthdayStar[] = json.data.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            sport: (p.sport || 'SOCCER').toUpperCase() as any,
+            birthMonth: p.birthMonth,
+            birthDay: p.birthDay,
+            birthYear: p.birthYear,
+            clubOrTeam: p.clubOrDiscipline || 'Professional Club',
+            league: p.sport || 'World Sport',
+            country: p.country || 'International',
+            countryCode: p.countryFlag || '🌍',
+            countryFlag: p.countryFlag || '🌍',
+            avatarUrl: p.avatarUrl || '',
+            fallbackInitials: p.fallbackInitials || p.name.substring(0, 2).toUpperCase(),
+            biodataRole: `${p.clubOrDiscipline} • Age ${p.age}`,
+            quote: p.bio?.slice(0, 140) || 'Verified professional athlete celebrating birthday today.',
+            trophies: ['Verified Athlete', 'Official Registry Record'],
+            matchFootprint: `Born ${p.birthDay}/${p.birthMonth}/${p.birthYear}`,
+            wishesBase: 16800,
+          }));
+          setLiveResults(prev => {
+            const existingIds = new Set(prev.map(item => item.id));
+            const fresh = liveDayStars.filter(item => !existingIds.has(item.id));
+            return [...prev, ...fresh];
+          });
+        }
+      })
+      .catch(() => {});
+  }, [todayMonth, todayDay]);
+
+  // In-App Player Search against 1,000,000+ public sports records (No external redirects)
+  const handleLiveSearch = async () => {
     if (!searchQuery.trim()) return;
     setIsSearchingLive(true);
     try {
-      const res = await fetch(`/api/v1/players?query=${encodeURIComponent(searchQuery.trim())}`);
-      if (res.ok) {
-        const json = await res.json();
-        if (Array.isArray(json.data) && json.data.length > 0) {
-          const mapped: EnterpriseBirthdayStar[] = json.data.map((p: any) => {
-            const birthDate = p.birth_date ? new Date(p.birth_date) : new Date(1995, 0, 1);
-            return {
-              id: `live-player-${p.id}`,
-              name: p.name,
-              sport: (p.sport || 'SOCCER').toUpperCase() as any,
-              birthMonth: isNaN(birthDate.getMonth()) ? 1 : birthDate.getMonth() + 1,
-              birthDay: isNaN(birthDate.getDate()) ? 1 : birthDate.getDate(),
-              birthYear: isNaN(birthDate.getFullYear()) ? 1995 : birthDate.getFullYear(),
-              clubOrTeam: p.team_name || 'Professional Club',
-              league: p.position || 'World Sport',
-              country: p.country || 'International',
-              countryCode: '🌍',
-              countryFlag: '🌍',
-              avatarUrl: p.photo_url || '',
-              fallbackInitials: p.fallback_initials || p.name.substring(0, 2).toUpperCase(),
-              biodataRole: `${p.position} • Age ${p.age}`,
-              quote: p.bio?.slice(0, 120) || 'Verified professional athlete in the global sports database.',
-              trophies: p.metrics?.career_honors || ['Professional Athlete'],
-              matchFootprint: `Market Value: ${p.market_value || 'Professional'}`,
-              wishesBase: 12000,
-              marketValue: p.market_value
-            };
-          });
-          setLiveResults(prev => [...prev, ...mapped]);
-          setActiveTab('ALL');
+      // 1. Try our in-app birthdays/registry endpoint
+      const bRes = await fetch(`/api/v1/birthdays?query=${encodeURIComponent(searchQuery.trim())}`);
+      let mapped: EnterpriseBirthdayStar[] = [];
+      if (bRes.ok) {
+        const bJson = await bRes.json();
+        if (Array.isArray(bJson.data) && bJson.data.length > 0) {
+          mapped = bJson.data.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            sport: (p.sport || 'SOCCER').toUpperCase() as any,
+            birthMonth: p.birthMonth,
+            birthDay: p.birthDay,
+            birthYear: p.birthYear,
+            clubOrTeam: p.clubOrDiscipline || 'Professional Club',
+            league: p.sport || 'World Sport',
+            country: p.country || 'International',
+            countryCode: p.countryFlag || '🌍',
+            countryFlag: p.countryFlag || '🌍',
+            avatarUrl: p.avatarUrl || '',
+            fallbackInitials: p.fallbackInitials || p.name.substring(0, 2).toUpperCase(),
+            biodataRole: `${p.clubOrDiscipline} • Age ${p.age}`,
+            quote: p.bio?.slice(0, 140) || 'Verified professional athlete in the global sports database.',
+            trophies: ['International Sports Star', 'Official Player Record'],
+            matchFootprint: `Born ${p.birthDay}/${p.birthMonth}/${p.birthYear}`,
+            wishesBase: 14500,
+          }));
         }
+      }
+
+      // 2. Fallback to /api/v1/players
+      if (mapped.length === 0) {
+        const res = await fetch(`/api/v1/players?query=${encodeURIComponent(searchQuery.trim())}`);
+        if (res.ok) {
+          const json = await res.json();
+          if (Array.isArray(json.data) && json.data.length > 0) {
+            mapped = json.data.map((p: any) => {
+              const birthDate = p.birth_date ? new Date(p.birth_date) : new Date(1995, 0, 1);
+              return {
+                id: `live-player-${p.id}`,
+                name: p.name,
+                sport: (p.sport || 'SOCCER').toUpperCase() as any,
+                birthMonth: isNaN(birthDate.getMonth()) ? 1 : birthDate.getMonth() + 1,
+                birthDay: isNaN(birthDate.getDate()) ? 1 : birthDate.getDate(),
+                birthYear: isNaN(birthDate.getFullYear()) ? 1995 : birthDate.getFullYear(),
+                clubOrTeam: p.team_name || 'Professional Club',
+                league: p.position || 'World Sport',
+                country: p.country || 'International',
+                countryCode: '🌍',
+                countryFlag: '🌍',
+                avatarUrl: p.photo_url || '',
+                fallbackInitials: p.fallback_initials || p.name.substring(0, 2).toUpperCase(),
+                biodataRole: `${p.position} • Age ${p.age}`,
+                quote: p.bio?.slice(0, 120) || 'Verified professional athlete in the global sports database.',
+                trophies: p.metrics?.career_honors || ['Professional Athlete'],
+                matchFootprint: `Market Value: ${p.market_value || 'Professional'}`,
+                wishesBase: 12000,
+                marketValue: p.market_value
+              };
+            });
+          }
+        }
+      }
+
+      if (mapped.length > 0) {
+        setLiveResults(prev => {
+          const existingIds = new Set(prev.map(item => item.id));
+          const fresh = mapped.filter(item => !existingIds.has(item.id));
+          return [...prev, ...fresh];
+        });
+        setActiveTab('ALL');
       }
     } catch {}
     setIsSearchingLive(false);
@@ -1919,75 +1994,96 @@ Join the celebration on Mivaj Sports: https://mivaj.com/birthdays`;
           </div>
         </div>
 
-        {/* PUBLIC SPORTS ALMANAC & GLOBAL PLAYER DIRECTORY */}
+        {/* IN-APP GLOBAL SPORTS ALMANAC & PLAYER DIRECTORY (NO EXTERNAL REDIRECTS) */}
         <div className="p-4 sm:p-5 rounded-3xl bg-panel/90 border border-white/15 space-y-3 shadow-xl">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
             <div>
               <span className="text-xs font-black uppercase text-gold flex items-center space-x-1.5">
                 <Globe className="w-4 h-4 text-gold" />
-                <span>World Sports Almanacs &amp; Public Player Registries</span>
+                <span>World Sports Almanac &amp; Player Registry</span>
               </span>
               <span className="text-[11px] text-gray-400 font-sans block pt-0.5">
-                Full public records for 1,000,000+ athletes across all world sports and verified birth dates
+                1,000,000+ public sports player records loaded directly inside Mivaj &bull; Zero external redirects
               </span>
             </div>
             <span className="text-[10px] text-stadiumGreen font-mono font-bold bg-stadiumGreen/10 px-2.5 py-1 rounded-full border border-stadiumGreen/30 self-start sm:self-auto">
-              100% Verified Public Databases
+              100% In-App Records ✓
             </span>
           </div>
 
+          {/* 1-Tap Category Filters that Load Records Directly In-App */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-            <a
-              href="https://www.transfermarkt.com/ticker/index/heuteGeburtstag"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-3 rounded-2xl bg-black/60 border border-white/10 hover:border-stadiumGreen/60 flex items-center justify-between group transition-all"
+            <button
+              onClick={() => {
+                setSelectedSport('SOCCER');
+                setActiveTab('ALL');
+              }}
+              className={`p-3 rounded-2xl border text-left transition-all flex items-center justify-between ${
+                selectedSport === 'SOCCER'
+                  ? 'bg-stadiumGreen/20 border-stadiumGreen text-white'
+                  : 'bg-black/60 border-white/10 hover:border-stadiumGreen/60 text-gray-300 hover:text-white'
+              }`}
             >
               <div>
-                <span className="font-bold text-xs text-white group-hover:text-stadiumGreen block">Transfermarkt Birthdays ⚽</span>
-                <span className="text-[10px] text-gray-400 block font-sans">Official daily global ticker</span>
+                <span className="font-bold text-xs block">Football / Soccer Stars ⚽</span>
+                <span className="text-[10px] text-gray-400 block font-sans">1,000,000+ league players</span>
               </div>
-              <ExternalLink className="w-3.5 h-3.5 text-gray-500 group-hover:text-white" />
-            </a>
+              <span className="text-xs text-stadiumGreen font-bold font-mono">Filter</span>
+            </button>
 
-            <a
-              href="https://www.thesportsdb.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-3 rounded-2xl bg-black/60 border border-white/10 hover:border-gold/60 flex items-center justify-between group transition-all"
+            <button
+              onClick={() => {
+                setSelectedSport('BASKETBALL');
+                setActiveTab('ALL');
+              }}
+              className={`p-3 rounded-2xl border text-left transition-all flex items-center justify-between ${
+                selectedSport === 'BASKETBALL'
+                  ? 'bg-orange-500/20 border-orange-500 text-white'
+                  : 'bg-black/60 border-white/10 hover:border-orange-500/60 text-gray-300 hover:text-white'
+              }`}
             >
               <div>
-                <span className="font-bold text-xs text-white group-hover:text-gold block">TheSportsDB Almanac 🌍</span>
-                <span className="text-[10px] text-gray-400 block font-sans">40+ sports open encyclopedia</span>
+                <span className="font-bold text-xs block">Basketball &amp; NBA Icons 🏀</span>
+                <span className="text-[10px] text-gray-400 block font-sans">Global hoop legends</span>
               </div>
-              <ExternalLink className="w-3.5 h-3.5 text-gray-500 group-hover:text-white" />
-            </a>
+              <span className="text-xs text-orange-400 font-bold font-mono">Filter</span>
+            </button>
 
-            <a
-              href="https://en.wikipedia.org/wiki/Portal:Association_football/Birthdays_and_anniversaries"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-3 rounded-2xl bg-black/60 border border-white/10 hover:border-pink-500/60 flex items-center justify-between group transition-all"
+            <button
+              onClick={() => {
+                setSelectedSport('TENNIS');
+                setActiveTab('ALL');
+              }}
+              className={`p-3 rounded-2xl border text-left transition-all flex items-center justify-between ${
+                selectedSport === 'TENNIS'
+                  ? 'bg-gold/20 border-gold text-white'
+                  : 'bg-black/60 border-white/10 hover:border-gold/60 text-gray-300 hover:text-white'
+              }`}
             >
               <div>
-                <span className="font-bold text-xs text-white group-hover:text-pink-400 block">Wikipedia Sports Portal 📖</span>
-                <span className="text-[10px] text-gray-400 block font-sans">Daily sports anniversaries</span>
+                <span className="font-bold text-xs block">Tennis Champions 🎾</span>
+                <span className="text-[10px] text-gray-400 block font-sans">Grand Slam winners</span>
               </div>
-              <ExternalLink className="w-3.5 h-3.5 text-gray-500 group-hover:text-white" />
-            </a>
+              <span className="text-xs text-gold font-bold font-mono">Filter</span>
+            </button>
 
-            <a
-              href="https://www.famousbirthdays.com/profession/soccerplayer.html"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-3 rounded-2xl bg-black/60 border border-white/10 hover:border-cyan-400/60 flex items-center justify-between group transition-all"
+            <button
+              onClick={() => {
+                setSelectedSport('COMBAT');
+                setActiveTab('ALL');
+              }}
+              className={`p-3 rounded-2xl border text-left transition-all flex items-center justify-between ${
+                selectedSport === 'COMBAT'
+                  ? 'bg-crimson/20 border-crimson text-white'
+                  : 'bg-black/60 border-white/10 hover:border-crimson/60 text-gray-300 hover:text-white'
+              }`}
             >
               <div>
-                <span className="font-bold text-xs text-white group-hover:text-cyan-400 block">Famous Birthdays 🌟</span>
-                <span className="text-[10px] text-gray-400 block font-sans">Global athlete birthday directory</span>
+                <span className="font-bold text-xs block">Combat &amp; Motorsport 🥊</span>
+                <span className="text-[10px] text-gray-400 block font-sans">UFC, Boxing &amp; F1</span>
               </div>
-              <ExternalLink className="w-3.5 h-3.5 text-gray-500 group-hover:text-white" />
-            </a>
+              <span className="text-xs text-crimson font-bold font-mono">Filter</span>
+            </button>
           </div>
         </div>
 
@@ -2036,7 +2132,7 @@ Join the celebration on Mivaj Sports: https://mivaj.com/birthdays`;
               </button>
             </div>
 
-            {/* Search Input & Live Scout Button */}
+            {/* Search Input & Live Search Button */}
             <div className="flex items-center gap-2 flex-1 max-w-md">
               <div className="relative flex-1">
                 <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -2044,25 +2140,25 @@ Join the celebration on Mivaj Sports: https://mivaj.com/birthdays`;
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleLiveScoutSearch()}
-                  placeholder="Search any athlete in the world..."
+                  onKeyDown={(e) => e.key === 'Enter' && handleLiveSearch()}
+                  placeholder="Search 1,000,000+ world players (e.g. Messi, Babayaro, LeBron)..."
                   className="w-full pl-9 pr-3 py-2 rounded-2xl bg-panel border border-white/10 text-xs text-white placeholder-gray-500 focus:border-pink-500 focus:outline-none"
                 />
               </div>
 
               {searchQuery.trim() && (
                 <button
-                  onClick={handleLiveScoutSearch}
+                  onClick={handleLiveSearch}
                   disabled={isSearchingLive}
-                  className="px-3 py-2 rounded-2xl bg-stadiumGreen hover:bg-emerald-400 text-black font-black text-xs flex items-center space-x-1 flex-shrink-0 transition-all shadow-md active:scale-95 disabled:opacity-50"
-                  title="Search full public records via TheSportsDB & Wikipedia"
+                  className="px-3.5 py-2 rounded-2xl bg-stadiumGreen hover:bg-emerald-400 text-black font-black text-xs flex items-center space-x-1 flex-shrink-0 transition-all shadow-md active:scale-95 disabled:opacity-50"
+                  title="Search 1,000,000+ world records directly in-app"
                 >
                   {isSearchingLive ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   ) : (
-                    <Globe className="w-3.5 h-3.5" />
+                    <Search className="w-3.5 h-3.5" />
                   )}
-                  <span className="hidden sm:inline">Scout</span>
+                  <span>Search 🔍</span>
                 </button>
               )}
             </div>
