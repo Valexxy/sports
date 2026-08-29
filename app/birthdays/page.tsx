@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { phoneHardware } from '../../lib/phone-hardware-engine';
+import { GlobalLanguageSwitcher } from '../../components/global-language-switcher';
 
 export interface EnterpriseBirthdayStar {
   id: string;
@@ -1887,7 +1888,8 @@ Join the celebration on Mivaj Sports: https://mivaj.com/birthdays`;
           </Link>
 
           <div className="flex items-center space-x-2">
-            <span className="text-stadiumGreen font-black text-sm">MIVAJ SPORTS</span>
+            <GlobalLanguageSwitcher />
+            <span className="text-stadiumGreen font-black text-sm hidden sm:inline">MIVAJ SPORTS</span>
             <span className="px-2.5 py-0.5 rounded bg-pink-500/20 text-pink-400 text-[10px] font-black border border-pink-500/30">
               GLOBAL SPORTS BIRTHDAYS 🎂
             </span>

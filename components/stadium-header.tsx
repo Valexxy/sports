@@ -136,6 +136,9 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
 
         {/* Right Controls */}
         <div className="flex items-center space-x-2 flex-shrink-0">
+          {/* Global Language Switcher */}
+          <GlobalLanguageSwitcher />
+
           {/* App Install Button */}
           {!isInstalled && (
             <button

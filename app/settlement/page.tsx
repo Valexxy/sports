@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ShieldCheck, Trophy, ArrowLeft, CheckCircle2, XCircle, Calendar, Search, RotateCcw } from 'lucide-react';
 import { ArchivedMatch } from '../../lib/prediction-archive-engine';
 import { ProfessionalSettlementEngine } from '../../lib/settlement-engine';
+import { GlobalLanguageSwitcher } from '../../components/global-language-switcher';
 
 type PeriodType = 'TODAY' | 'YESTERDAY' | 'WEEK' | 'MONTH' | 'ALL' | 'CUSTOM';
 
@@ -161,7 +162,8 @@ export default function SettlementPage() {
           </Link>
 
           <div className="flex items-center space-x-2">
-            <span className="text-stadiumGreen font-black text-sm">MIVAJ SPORTS</span>
+            <GlobalLanguageSwitcher />
+            <span className="text-stadiumGreen font-black text-sm hidden sm:inline">MIVAJ SPORTS</span>
             <span className="px-2 py-0.5 rounded bg-stadiumGreen/20 text-stadiumGreen text-[9px] font-black border border-stadiumGreen/30">
               LEDGER VERIFIED ✓
             </span>
