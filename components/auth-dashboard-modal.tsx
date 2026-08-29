@@ -10,6 +10,8 @@ import confetti from 'canvas-confetti';
 import { stadiumAudio } from '../lib/sound-synthesizer';
 import { phoneHardware } from '../lib/phone-hardware-engine';
 import { ReferralEngine, UserReferralStats } from '../lib/referral-engine';
+import { GlobalLanguageSwitcher } from './global-language-switcher';
+import { UserProfileEngine } from '../lib/user-profile-engine';
 
 interface AuthDashboardModalProps {
   isOpen: boolean;
@@ -274,7 +276,7 @@ export const AuthDashboardModal: React.FC<AuthDashboardModalProps> = ({
                 { key: 'OVERVIEW', label: '🏠 Overview' },
                 { key: 'REFERRALS', label: '👥 Referral Studio' },
                 { key: 'AURA_VAULT', label: '💎 Aura Vault' },
-                { key: 'PERFORMANCE', label: '📈 Win ROI' },
+                { key: 'SETTINGS', label: '⚙️ Settings' },
               ].map((t) => (
                 <button
                   key={t.key}
@@ -311,18 +313,18 @@ export const AuthDashboardModal: React.FC<AuthDashboardModalProps> = ({
               <div className="p-4 rounded-2xl bg-black/60 border border-stadiumGreen/40 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="font-black text-white text-xs">YOUR TRACKABLE REFERRAL LINK</span>
-                  <span className="text-[10px] text-gold font-bold">Earn ₦500 + 750 Aura / Friend</span>
+                  <span className="text-[10px] text-gold font-bold">+500 Aura / Friend</span>
                 </div>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     readOnly
-                    value={`https://mivaj.com?ref=${session.username}`}
+                    value={`https://mivaj.com?ref=@${session.username.replace(/^@/, '')}`}
                     className="flex-1 p-2 rounded-xl bg-black border border-white/20 text-white font-mono text-xs focus:outline-none"
                   />
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(`https://mivaj.com?ref=${session.username}`);
+                      navigator.clipboard.writeText(`https://mivaj.com?ref=@${session.username.replace(/^@/, '')}`);
                       setCopiedRef(true);
                       phoneHardware.triggerHaptic('SUCCESS');
                       setTimeout(() => setCopiedRef(false), 2000);
@@ -332,6 +334,26 @@ export const AuthDashboardModal: React.FC<AuthDashboardModalProps> = ({
                     {copiedRef ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
+
+                {/* Recruited Punters List */}
+                <div className="space-y-1.5 pt-2">
+                  <span className="text-[10px] text-gray-400 font-bold block uppercase">
+                    Recruited Punters ({UserProfileEngine.getReferrals().length}):
+                  </span>
+                  <div className="max-h-40 overflow-y-auto space-y-1.5">
+                    {UserProfileEngine.getReferrals().map((ref) => (
+                      <div key={ref.id} className="p-2.5 rounded-xl bg-panel border border-white/10 flex items-center justify-between text-xs">
+                        <span className="font-bold text-white">{ref.username}</span>
+                        <div className="flex items-center space-x-2 text-[10px]">
+                          <span className="text-gray-400">{ref.joinedAt}</span>
+                          <span className="px-2 py-0.5 rounded-md bg-stadiumGreen/20 text-stadiumGreen font-black font-mono">
+                            +{ref.auraCredited} AURA
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
 
@@ -339,17 +361,40 @@ export const AuthDashboardModal: React.FC<AuthDashboardModalProps> = ({
               <div className="p-4 rounded-2xl bg-black/60 border border-gold/40 space-y-2">
                 <span className="font-black text-gold text-xs block">DAILY STREAK & AURA VAULT</span>
                 <p className="text-[11px] text-gray-300 font-sans">
-                  Keep your daily check-in streak alive to maintain your 1.5x commission multiplier!
+                  Check in daily to build your streak and unlock maximum multiplier rewards on all banker bets!
                 </p>
               </div>
             )}
 
-            {activeTab === 'PERFORMANCE' && (
-              <div className="p-4 rounded-2xl bg-black/60 border border-cyan-400/40 space-y-2">
-                <span className="font-black text-cyan-400 text-xs block">VERIFIED STATISTICAL YIELD</span>
-                <p className="text-[11px] text-gray-300 font-sans">
-                  Your followed slips are audited 24/7 against official referee match score sheets.
-                </p>
+            {activeTab === 'SETTINGS' && (
+              <div className="p-4 rounded-2xl bg-black/60 border border-white/10 space-y-4">
+                <span className="font-black text-white text-xs block">APPLICATION SETTINGS & PREFERENCES</span>
+                
+                {/* Language Switcher */}
+                <div className="space-y-1">
+                  <span className="text-[10px] text-gray-400 font-bold block uppercase">Language Preference</span>
+                  <GlobalLanguageSwitcher />
+                </div>
+
+                {/* Theme Toggle */}
+                {onToggleTheme && (
+                  <div className="pt-2 border-t border-white/10 flex items-center justify-between">
+                    <span className="text-xs text-gray-300">Theme Mode</span>
+                    <button
+                      onClick={onToggleTheme}
+                      className="px-3 py-1.5 rounded-xl bg-panel border border-white/10 text-xs font-bold text-white flex items-center space-x-1.5"
+                    >
+                      {currentTheme === 'dark' ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" />}
+                      <span>{currentTheme === 'dark' ? 'Dark Arena' : 'Light Field'}</span>
+                    </button>
+                  </div>
+                )}
+
+                <div className="pt-2 border-t border-white/10">
+                  <span className="text-[10px] text-gray-500">
+                    Official Support Contact: <strong className="text-gold">mivajtips@gmail.com</strong>
+                  </span>
+                </div>
               </div>
             )}
 

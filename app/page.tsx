@@ -24,7 +24,6 @@ import { PredictionHistoryModal } from '../components/prediction-history-modal';
 import { TeamExplorerModal } from '../components/team-explorer-modal';
 import { DailyAuraHarvestModal } from '../components/daily-aura-harvest-modal';
 import { WhaleLeaderboardModal } from '../components/whale-leaderboard-modal';
-import { AdminChatDrawer } from '../components/admin-chat-drawer';
 import { BirthdayCenterModal } from '../components/birthday-center-modal';
 import { NaijaBanterLoungeModal } from '../components/naija-banter-lounge-modal';
 import { GrassrootsScoutingModal } from '../components/grassroots-scouting-modal';
@@ -148,7 +147,6 @@ export default function Home() {
   const [showTeamsModal, setShowTeamsModal] = useState(false);
   const [showHarvestModal, setShowHarvestModal] = useState(false);
   const [showWhaleModal, setShowWhaleModal] = useState(false);
-  const [showAdminChatDrawer, setShowAdminChatDrawer] = useState(false);
   const [showBirthdaysModal, setShowBirthdaysModal] = useState(false);
   const [showLeaderboardModal, setShowLeaderboardModal] = useState(false);
   const [showLegalModal, setShowLegalModal] = useState(false);

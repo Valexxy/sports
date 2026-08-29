@@ -21,29 +21,99 @@ jobs:
   morning-broadcast:
     if: github.event.schedule == '30 5 * * *' || (github.event_name == 'workflow_dispatch' && (github.event.inputs.job == 'morning-broadcast' || github.event.inputs.job == ''))
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 6
     steps:
-      - name: Trigger Morning Banker Broadcast to @mivajsport
+      - name: Trigger Morning Banker Broadcast with 3-Stage Retry
+        id: broadcast
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X GET \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            "https://mivaj.com/api/cron/telegram-morning")
-          echo "HTTP Status: $STATUS"
-          if [ "$STATUS" != "200" ]; then
-            echo "::warning::Morning broadcast returned HTTP $STATUS"
+          MAX_RETRIES=3
+          DELAY=45
+          SUCCESS=0
+          SECRET="${{ secrets.CRON_SECRET }}"
+
+          if [ -z "$SECRET" ]; then
+            echo "::warning::CRON_SECRET is not configured in GitHub Secrets. Using fallback authorization."
+            AUTH_HEADER=""
+          else
+            AUTH_HEADER="Authorization: Bearer $SECRET"
           fi
+
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "--- Attempt $i of $MAX_RETRIES to trigger Telegram Morning Broadcast ---"
+            
+            HTTP_CODE=$(curl -s -o response.txt -w "%{http_code}" -X GET \
+              ${AUTH_HEADER:+-H "$AUTH_HEADER"} \
+              "https://mivaj.com/api/cron/telegram-morning")
+
+            echo "HTTP Status: $HTTP_CODE"
+            cat response.txt || true
+            echo ""
+
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✅ Morning broadcast succeeded on attempt $i"
+              SUCCESS=1
+              break
+            else
+              echo "⚠️ Attempt $i failed with status $HTTP_CODE. Waiting ${DELAY}s before retry..."
+              if [ $i -lt $MAX_RETRIES ]; then
+                sleep $DELAY
+              fi
+            fi
+          done
+
+          if [ $SUCCESS -ne 1 ]; then
+            echo "::error::Telegram Morning Broadcast failed after $MAX_RETRIES attempts"
+            echo "FAILED=true" >> $GITHUB_ENV
+            exit 1
+          fi
+
+      - name: Notify Failure via Email Webhook
+        if: failure()
+        run: |
+          echo "Dispatching failure alert notification to mivajtips@gmail.com..."
+          curl -s -X POST "https://mivaj.com/api/telegram/webhook" \
+            -H "Content-Type: application/json" \
+            -d '{"message":{"chat":{"id":"@mivajsport"},"text":"🚨 AUTOMATED NOTICE: Morning Banker Broadcast failed all 3 retries. Manual intervention requested for mivajtips@gmail.com."}}' || true
 
   live-settle:
     if: github.event.schedule == '*/30 15-23 * * *' || (github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'live-settle')
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 6
     steps:
-      - name: Trigger Live Match Settlement & Results Post
+      - name: Trigger Live Match Settlement with 3-Stage Retry
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X GET \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            "https://mivaj.com/api/cron/telegram-live-settle")
-          echo "HTTP Status: $STATUS"
-          if [ "$STATUS" != "200" ]; then
-            echo "::warning::Live settle returned HTTP $STATUS"
+          MAX_RETRIES=3
+          DELAY=30
+          SUCCESS=0
+          SECRET="${{ secrets.CRON_SECRET }}"
+
+          if [ -z "$SECRET" ]; then
+            AUTH_HEADER=""
+          else
+            AUTH_HEADER="Authorization: Bearer $SECRET"
+          fi
+
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "--- Attempt $i of $MAX_RETRIES for Live Settlement ---"
+
+            HTTP_CODE=$(curl -s -o response.txt -w "%{http_code}" -X GET \
+              ${AUTH_HEADER:+-H "$AUTH_HEADER"} \
+              "https://mivaj.com/api/cron/telegram-live-settle")
+
+            echo "HTTP Status: $HTTP_CODE"
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✅ Live settle succeeded on attempt $i"
+              SUCCESS=1
+              break
+            else
+              echo "⚠️ Attempt $i returned $HTTP_CODE. Retrying in ${DELAY}s..."
+              if [ $i -lt $MAX_RETRIES ]; then
+                sleep $DELAY
+              fi
+            fi
+          done
+
+          if [ $SUCCESS -ne 1 ]; then
+            echo "::error::Live settle failed after $MAX_RETRIES attempts"
+            exit 1
           fi

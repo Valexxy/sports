@@ -151,6 +151,22 @@ export const EdgeAiCommentator: React.FC<LiveCommentaryProps> = ({
         {
           minNum: 0,
           min: 'PRE',
+          icon: '🥊',
+          title: `Head-to-Head & Team Form Index`,
+          text: `${resolvedHome} enters with positive attacking momentum, scoring in recent fixtures. ${resolvedAway} has maintained disciplined defensive positioning on the counter.`,
+          type: 'info',
+        },
+        {
+          minNum: 0,
+          min: 'PRE',
+          icon: '🌦️',
+          title: `Tactical Pitch & Weather Impact`,
+          text: `Optimal turf conditions expected at kickoff. Normal ball rollout speed favours fast wing transitions and dangerous box entries.`,
+          type: 'info',
+        },
+        {
+          minNum: 0,
+          min: 'PRE',
           icon: '🏟️',
           title: `Match Venue & Officiating: ${venue}`,
           text: `Sanctioned under ${league}. Pitch conditions verified; head referee: ${referee}.`,
