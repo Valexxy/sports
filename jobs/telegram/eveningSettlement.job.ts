@@ -22,9 +22,10 @@ export async function processEveningSettlementBroadcast(settledPicks: SettledMat
   message += "<i>Full Model Transparency &amp; Outcome Verification</i>\n\n";
 
   settledPicks.forEach((p) => {
-    const badge = p.won ? "🟢 WON" : "🔴 MISSED";
+    const badge = p.won ? "🟢 WON ✅ 💰" : "🔴 LOST ❌";
     message += badge + " | <b>" + p.matchup + "</b> (FT: " + p.score + ")\n";
-    message += "Pick: <code>" + p.pick + "</code> (@" + p.odds.toFixed(2) + ")\n\n";
+    message += "🎯 Pick: <code>" + p.pick + "</code> (@" + p.odds.toFixed(2) + ")\n";
+    message += "⚡ Outcome: " + (p.won ? "<b>WON ✅ 💰</b>" : "<b>LOST ❌</b>") + "\n\n";
   });
 
   message += "📈 <b>Daily Scorecard:</b>\n";

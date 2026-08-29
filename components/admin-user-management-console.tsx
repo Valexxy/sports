@@ -99,7 +99,6 @@ export const AdminUserManagementConsole: React.FC<AdminUserManagementConsoleProp
 
   // Aggregate Metrics
   const totalAura = users.reduce((acc, u) => acc + (u.aura_balance || 0), 0);
-  const totalNaira = users.reduce((acc, u) => acc + (u.naira_balance || 0), 0);
   const activeCount = users.filter((u) => u.status === 'ACTIVE').length;
   const suspendedCount = users.filter((u) => u.status === 'SUSPENDED' || u.status === 'BANNED').length;
 
@@ -183,16 +182,17 @@ export const AdminUserManagementConsole: React.FC<AdminUserManagementConsoleProp
     phoneHardware.triggerHaptic('SUCCESS');
     const headers = [
       'User ID', 'Username', 'Full Name', 'Email', 'Phone', 'WhatsApp', 'Telegram',
-      'Club', 'Streak Days', 'Country', 'City', 'Aura Balance', 'Naira Balance',
-      'VIP Tier', 'Role', 'Status', 'Total Picks', 'Win Rate %', 'Created At', 'IP Address'
+      'Club', 'Streak Days', 'Country', 'City', 'Aura Balance', 'VIP Tier', 'Role',
+      'Status', 'Total Bets', 'Win Rate %', 'Created At', 'Last Active', 'IP Address'
     ];
 
-    const rows = filteredUsers.map(u => [
+    const rows = filteredUsers.map((u) => [
       `"${u.id}"`, `"${u.username}"`, `"${u.fullName || ''}"`, `"${u.email}"`,
       `"${u.phone || ''}"`, `"${u.whatsappNumber || ''}"`, `"${u.telegramHandle || ''}"`,
       `"${u.club}"`, `"${u.supporter_streak_days || 0}"`, `"${u.country || ''}"`, `"${u.city || ''}"`,
-      `"${u.aura_balance}"`, `"${u.naira_balance}"`, `"${u.vip_tier}"`, `"${u.role}"`,
-      `"${u.status}"`, `"${u.total_picks}"`, `"${u.win_rate}"`, `"${u.created_at}"`, `"${u.ip_address || ''}"`
+      `"${u.aura_balance}"`, `"${u.vip_tier}"`, `"${u.role}"`,
+      `"${u.status}"`, `"${u.total_picks || 0}"`, `"${u.win_rate || 0}"`,
+      `"${u.created_at}"`, `"${u.last_active || ''}"`, `"${u.ip_address || ''}"`
     ]);
 
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
@@ -239,12 +239,12 @@ export const AdminUserManagementConsole: React.FC<AdminUserManagementConsoleProp
         </div>
 
         <div className="p-4 rounded-2xl bg-panel border border-white/10 space-y-1">
-          <span className="text-[10px] text-gray-400 font-bold uppercase block">NAIRA VAULT HOLDINGS</span>
+          <span className="text-[10px] text-gray-400 font-bold uppercase block">ACTIVE SUPPORTER STREAKS</span>
           <div className="flex items-center space-x-2">
-            <DollarSign className="w-5 h-5 text-stadiumGreen" />
-            <span className="text-xl font-black text-stadiumGreen">₦{totalNaira.toLocaleString()}</span>
+            <span className="text-xl">🔥</span>
+            <span className="text-xl font-black text-stadiumGreen">{users.reduce((acc, u) => acc + (u.supporter_streak_days || 0), 0)} Days</span>
           </div>
-          <span className="text-[9px] text-gray-400 block font-mono">Verified Deposits &amp; Rewards</span>
+          <span className="text-[9px] text-gray-400 block font-mono">Daily Matchday Check-ins</span>
         </div>
 
         <div className="p-4 rounded-2xl bg-panel border border-white/10 space-y-1">
@@ -354,7 +354,7 @@ export const AdminUserManagementConsole: React.FC<AdminUserManagementConsoleProp
               <tr className="border-b border-white/15 bg-black/60 text-gray-400 text-[10px] font-mono uppercase tracking-wider">
                 <th className="py-3 px-3">MEMBER &amp; CONTACTS</th>
                 <th className="py-3 px-3">CLUB &amp; STREAK</th>
-                <th className="py-3 px-3">AURA / NAIRA</th>
+                <th className="py-3 px-3">AURA BALANCE</th>
                 <th className="py-3 px-3">GAMING STATS</th>
                 <th className="py-3 px-3">ROLE / VIP</th>
                 <th className="py-3 px-3">SECURITY STATUS</th>
@@ -411,7 +411,7 @@ export const AdminUserManagementConsole: React.FC<AdminUserManagementConsoleProp
                     <td className="py-3 px-3">
                       <div className="space-y-0.5">
                         <span className="font-bold text-gold block">{(u.aura_balance || 0).toLocaleString()} AURA</span>
-                        <span className="font-bold text-stadiumGreen text-[10px] block">₦{(u.naira_balance || 0).toLocaleString()}</span>
+                        <span className="text-[10px] text-gray-400 font-mono block">Ecosystem Points</span>
                       </div>
                     </td>
 
@@ -613,12 +613,12 @@ export const AdminUserManagementConsole: React.FC<AdminUserManagementConsoleProp
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] text-gray-400 font-bold uppercase">NAIRA BALANCE (₦)</label>
+                  <label className="text-[10px] text-gray-400 font-bold uppercase">SUPPORTER STREAK (DAYS 🔥)</label>
                   <input
                     type="number"
-                    value={editingUser.naira_balance}
-                    onChange={(e) => setEditingUser({ ...editingUser, naira_balance: parseInt(e.target.value, 10) || 0 })}
-                    className="w-full p-2.5 rounded-xl bg-black border border-white/15 text-stadiumGreen font-bold focus:border-gold focus:outline-none"
+                    value={editingUser.supporter_streak_days || 0}
+                    onChange={(e) => setEditingUser({ ...editingUser, supporter_streak_days: parseInt(e.target.value, 10) || 0 })}
+                    className="w-full p-2.5 rounded-xl bg-black border border-white/15 text-orange-400 font-bold focus:border-gold focus:outline-none"
                   />
                 </div>
 

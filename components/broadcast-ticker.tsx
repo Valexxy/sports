@@ -102,7 +102,7 @@ export const BroadcastTicker: React.FC<TickerProps> = ({ matches = [], onSelectU
         <div className="flex-1 min-w-0 overflow-hidden relative">
           <div
             className={`flex items-center whitespace-nowrap will-change-transform ${isPaused ? '' : 'animate-ticker-marquee'}`}
-            style={isPaused ? undefined : { animationDuration: "25s" }}
+            style={isPaused ? undefined : { animationDuration: "12s" }}
           >
             {Array.from({ length: loopCount }).map((_, i) => {
               const item = triggerUpdates[i % triggerUpdates.length];

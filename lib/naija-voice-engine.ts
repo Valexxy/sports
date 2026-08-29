@@ -70,7 +70,8 @@ export function speakNaija(
     const audioUrl = `/api/tts?text=${encodeURIComponent(speechText.slice(0, 180))}&lang=${langCode}`;
     const audio = new Audio(audioUrl);
     currentAudio = audio;
-    audio.playbackRate = 1.14; // High tempo, fast energetic Nigerian radio commentator pace
+    audio.playbackRate = 1.28; // Fast, authentic human Nigerian radio presenter pace
+    (audio as any).preservesPitch = true;
 
     audio.onended = () => {
       currentAudio = null;
@@ -103,8 +104,8 @@ function speakSynthesisFallback(
 
   try {
     const utterance = new SpeechSynthesisUtterance(speechText);
-    utterance.rate = 1.22;
-    utterance.pitch = 0.92;
+    utterance.rate = 1.28;
+    utterance.pitch = 1.0;
     utterance.volume = 1.0;
 
     const voices = window.speechSynthesis.getVoices();

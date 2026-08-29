@@ -58,6 +58,7 @@ import { stadiumAudio } from '../lib/sound-synthesizer';
 import { speakNaija, allowSpeechOnUserGesture } from '../lib/naija-voice-engine';
 import { playerFollowEngine } from '../lib/player-follow-engine';
 import { SettlementLedgerSection } from '../components/settlement-ledger-section';
+import { LiveVisitorsPulse } from '../components/live-visitors-pulse';
 import { RealtimeCaptureStatus } from '../components/realtime-capture-status';
 import { MatchAlertScheduler } from '../lib/match-alert-scheduler';
 import { LiveMatchFxEngine } from '../lib/live-match-fx-engine';
@@ -763,8 +764,9 @@ export default function Home() {
           {/* 9. 1v1 P2P SOCIAL WAGERS */}
           
 
-          {/* 10. WONDERKID AURA STOCK EXCHANGE */}
-          
+          {/* 10. REAL-TIME STADIUM FAN PULSE & LIVE VISITORS TELEMETRY */}
+          <LiveVisitorsPulse />
+
           {/* 11. FULL SETTLEMENT LEDGER & AUDIT SUMMARY ON HOMEPAGE */}
           <SettlementLedgerSection onOpenAuditModal={() => setShowTrackRecord(true)} />
 

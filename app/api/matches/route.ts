@@ -1,17 +1,16 @@
 import { NextResponse } from 'next/server';
 import { getRealLiveAndPlayedMatches } from '../../../lib/real-sports-stream';
 
+import { getCdnHeaders } from '../../../lib/cdn-cache-engine';
+
 // In-memory process cache to guarantee instant < 5ms response
 let inMemoryCache: { data: any[]; timestamp: number } | null = null;
 const MEMORY_CACHE_TTL_MS = 30 * 1000; // 30 seconds
 
 export const dynamic = 'force-dynamic';
 
-// Vercel edge cache headers for fast mobile delivery
-const EDGE_HEADERS = {
-  'Cache-Control': 's-maxage=30, stale-while-revalidate=60',
-  'X-Powered-By': 'Mivaj Sports AI',
-};
+// Cloudflare & Vercel edge cache headers
+const EDGE_HEADERS = getCdnHeaders('MATCHES');
 
 export async function GET() {
   try {

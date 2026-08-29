@@ -74,7 +74,7 @@ export async function GET(req: Request) {
 
       if (isWon) {
         wonToday++;
-        scoreLines.push(`🟢 ${sportIcon} <b>${m.homeTeam} vs ${m.awayTeam}</b> (${m.league})\n   🎯 <b>Prediction:</b> <code>${pick}</code> @ <b>${odds}</b>\n   🏁 <b>Outcome:</b> <code>${score} (FT)</code>\n   ⚡ <b>VERIFIED RESULT: WON ✅</b>`);
+        scoreLines.push(`🟢 ${sportIcon} <b>${m.homeTeam} vs ${m.awayTeam}</b> (${m.league})\n   🎯 <b>Prediction:</b> <code>${pick}</code> @ <b>${odds}</b>\n   🏁 <b>Outcome:</b> <code>${score} (FT)</code>\n   ⚡ <b>VERIFIED RESULT: WON ✅ 💰</b>`);
       } else {
         lostToday++;
         scoreLines.push(`🔴 ${sportIcon} <b>${m.homeTeam} vs ${m.awayTeam}</b> (${m.league})\n   🎯 <b>Prediction:</b> <code>${pick}</code> @ <b>${odds}</b>\n   🏁 <b>Outcome:</b> <code>${score} (FT)</code>\n   ⚡ <b>VERIFIED RESULT: LOST ❌</b>`);

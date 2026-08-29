@@ -177,35 +177,38 @@ export const Daily10OddsAccumulator: React.FC<Daily10OddsAccumulatorProps> = ({
       </div>
 
       {/* Stake & Projected Returns Bar */}
-      <div className="p-3.5 rounded-2xl bg-black/80 border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="p-3.5 rounded-2xl bg-black/80 border border-stadiumGreen/30 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="flex items-center space-x-2">
-          <span className="text-[10px] text-gray-400 font-bold">STAKE (₦):</span>
-          {[500, 1000, 2000, 5000].map((val) => (
+          <span className="text-[10px] text-stadiumGreen font-bold flex items-center space-x-1">
+            <span>✨</span>
+            <span>STAKE (AURA):</span>
+          </span>
+          {[500, 1000, 2500, 5000].map((val) => (
             <button
               key={val}
               onClick={() => setStakeAmount(val)}
               className={`px-2.5 py-1 rounded-xl text-[10px] font-black transition-all ${
                 stakeAmount === val
-                  ? 'bg-gold text-black shadow-md'
+                  ? 'bg-stadiumGreen text-black shadow-md'
                   : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'
               }`}
             >
-              ₦{val.toLocaleString()}
+              {val.toLocaleString()} AURA
             </button>
           ))}
         </div>
 
         <div className="flex items-center space-x-4 text-right">
           <div>
-            <span className="text-[9px] text-gray-400 block font-bold">ALL WIN RETURN</span>
+            <span className="text-[9px] text-gray-400 block font-bold">ESTIMATED AURA RETURN</span>
             <span className="text-sm font-black text-stadiumGreen">
-              ₦{potentialReturn.toLocaleString()}
+              {potentialReturn.toLocaleString()} AURA ✨
             </span>
           </div>
           <div>
-            <span className="text-[9px] text-amber-400 block font-bold">CUT-1 RETURN</span>
+            <span className="text-[9px] text-amber-400 block font-bold">CUT-1 SHIELD</span>
             <span className="text-sm font-black text-amber-300">
-              ₦{cut1Return.toLocaleString()}
+              {cut1Return.toLocaleString()} AURA ✨
             </span>
           </div>
         </div>

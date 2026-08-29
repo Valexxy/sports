@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getRedisCache, setRedisCache } from '../../../../lib/upstash-redis-engine';
+import { getCdnHeaders } from '../../../../lib/cdn-cache-engine';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 45;
@@ -161,7 +162,7 @@ export async function GET(request: Request) {
       count: deals.length,
       source: 'Mivaj Global Transfer & Market Value Wire',
       data: deals,
-    });
+    }, { headers: getCdnHeaders('TRANSFERS') });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message, data: [] }, { status: 500 });
   }

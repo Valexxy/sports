@@ -117,7 +117,7 @@ export const BetSlipDrawer: React.FC<BetSlipProps> = ({
       '🔥 MIVAJ SPORTS VERIFIED ACCUMULATOR (' + items.length + ' LEGS) 🔥\n\n' +
       items.map((it, idx) => (idx + 1) + '. ' + it.matchTitle + ' ➔ ' + it.selection + ' @ ' + it.odds).join('\n') +
       '\n\nTotal Combined Odds: @' + totalOdds.toFixed(2) +
-      '\nPotential Payout on ₦' + stake.toLocaleString() + ': ₦' + potentialPayout.toLocaleString() +
+      '\nEstimated Aura Return on ' + stake.toLocaleString() + ' AURA: ' + potentialPayout.toLocaleString() + ' AURA ✨' +
       '\nJoin VIP Channel: https://t.me/mivajsport' +
       '\nPlace Live on https://mivaj.com';
 
@@ -226,20 +226,23 @@ export const BetSlipDrawer: React.FC<BetSlipProps> = ({
               ))}
             </div>
 
-            {/* Stake Selector & Return Calculation */}
-            <div className="p-3 rounded-2xl bg-black/80 border border-white/10 space-y-2 flex-shrink-0">
+            {/* Stake Selector & Return Calculation in Aura Points */}
+            <div className="p-3 rounded-2xl bg-black/80 border border-stadiumGreen/30 space-y-2 flex-shrink-0">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-400 font-bold">STAKE (₦):</span>
+                <span className="text-stadiumGreen font-bold flex items-center space-x-1">
+                  <span>✨</span>
+                  <span>STAKE (AURA):</span>
+                </span>
                 <div className="flex gap-1.5">
-                  {[500, 1000, 2000, 5000].map((amt) => (
+                  {[500, 1000, 2500, 5000].map((amt) => (
                     <button
                       key={amt}
                       onClick={() => setStake(amt)}
                       className={`px-2.5 py-1 rounded-xl text-[10px] font-black transition-all ${
-                        stake === amt ? 'bg-gold text-black shadow' : 'bg-white/5 text-gray-300'
+                        stake === amt ? 'bg-stadiumGreen text-black shadow-md' : 'bg-white/5 text-gray-300 hover:bg-white/10'
                       }`}
                     >
-                      ₦{amt.toLocaleString()}
+                      {amt.toLocaleString()} AURA
                     </button>
                   ))}
                 </div>
@@ -247,12 +250,12 @@ export const BetSlipDrawer: React.FC<BetSlipProps> = ({
 
               <div className="flex items-center justify-between border-t border-white/10 pt-2 text-xs">
                 <div>
-                  <span className="text-[9px] text-gray-400 block font-bold">POTENTIAL WIN:</span>
-                  <span className="text-sm font-black text-stadiumGreen font-mono">₦{potentialPayout.toLocaleString()}</span>
+                  <span className="text-[9px] text-gray-400 block font-bold">ESTIMATED AURA RETURN:</span>
+                  <span className="text-sm font-black text-stadiumGreen font-mono">{potentialPayout.toLocaleString()} AURA ✨</span>
                 </div>
                 <div className="text-right">
                   <span className="text-[9px] text-amber-400 block font-bold">CUT-1 SHIELD:</span>
-                  <span className="text-sm font-black text-amber-300 font-mono">₦{cut1Payout.toLocaleString()}</span>
+                  <span className="text-sm font-black text-amber-300 font-mono">{cut1Payout.toLocaleString()} AURA ✨</span>
                 </div>
               </div>
             </div>

@@ -76,8 +76,8 @@ export const PublicLedgerModal: React.FC<LedgerModalProps> = ({ onClose, matches
           </div>
 
           <div className="p-3 rounded-2xl bg-black/60 border border-gold/40">
-            <span className="text-[9px] text-gray-400 block font-bold">PROFIT (₦1,000 STAKES)</span>
-            <span className="text-lg sm:text-xl font-black text-gold">+₦28,450</span>
+            <span className="text-[9px] text-gray-400 block font-bold">AURA GAINED (1k STAKES)</span>
+            <span className="text-lg sm:text-xl font-black text-gold">+28,450 AURA ✨</span>
           </div>
 
           <div className="p-3 rounded-2xl bg-black/60 border border-white/10">
@@ -147,7 +147,7 @@ export const PublicLedgerModal: React.FC<LedgerModalProps> = ({ onClose, matches
                     {m.homeTeam} <strong className="text-gold font-mono">[{m.homeScore ?? 0} - {m.awayScore ?? 0}]</strong> {m.awayTeam}
                   </span>
                   <span className="text-xs font-mono font-black text-stadiumGreen">
-                    {isWon ? `+₦${payout.toLocaleString()}` : '-₦1,000'}
+                    {isWon ? `+${payout.toLocaleString()} AURA ✨` : '-1,000 AURA'}
                   </span>
                 </div>
 

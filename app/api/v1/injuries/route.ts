@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getRedisCache, setRedisCache } from '../../../../lib/upstash-redis-engine';
+import { getCdnHeaders } from '../../../../lib/cdn-cache-engine';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 45;
@@ -134,7 +135,7 @@ export async function GET(request: Request) {
           count: resData.length,
           source: 'cache',
           data: resData,
-        });
+        }, { headers: getCdnHeaders('INJURIES') });
       }
     } catch {}
 
@@ -217,7 +218,7 @@ export async function GET(request: Request) {
             count: finalInjuries.length,
             source: 'Premier League Official Medical & Suspension Feed',
             data: finalInjuries,
-          });
+          }, { headers: getCdnHeaders('INJURIES') });
         }
       }
     } catch {}
@@ -231,13 +232,13 @@ export async function GET(request: Request) {
       count: seedData.length,
       source: 'seed_medical_wire',
       data: seedData,
-    });
+    }, { headers: getCdnHeaders('INJURIES') });
   } catch (err: any) {
     return NextResponse.json({
       success: true,
       count: SEED_INJURIES.length,
       source: 'fallback_active',
       data: SEED_INJURIES,
-    });
+    }, { headers: getCdnHeaders('INJURIES') });
   }
 }

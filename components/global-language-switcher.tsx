@@ -27,7 +27,7 @@ export const GlobalLanguageSwitcher: React.FC = () => {
       >
         <Globe className="w-3.5 h-3.5 text-stadiumGreen" />
         <span className="text-sm">{meta.flag}</span>
-        <span className="text-[10px] text-stadiumGreen uppercase font-black">{meta.code.toUpperCase()}</span>
+        <span className="text-[11px] text-stadiumGreen font-black">{meta.code === 'pidgin' ? 'Pidgin 🇳🇬' : meta.name}</span>
         <ChevronDown className="w-3 h-3 text-gray-400" />
       </button>
 

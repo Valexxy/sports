@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getRedisCache, setRedisCache } from '../../../../lib/upstash-redis-engine';
+import { getCdnHeaders } from '../../../../lib/cdn-cache-engine';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 45;
@@ -63,7 +64,7 @@ export async function GET(request: Request) {
           count: cached.length,
           source: 'cache',
           data: cached,
-        });
+        }, { headers: getCdnHeaders('STANDINGS') });
       }
     } catch {}
 
@@ -151,7 +152,7 @@ export async function GET(request: Request) {
           count: standings.length,
           source: 'live_espn_core',
           data: standings,
-        });
+        }, { headers: getCdnHeaders('STANDINGS') });
       }
     }
 
@@ -162,7 +163,7 @@ export async function GET(request: Request) {
       count: SEED_EPL.length,
       source: 'seed_calibrated',
       data: SEED_EPL,
-    });
+    }, { headers: getCdnHeaders('STANDINGS') });
   } catch (err: any) {
     return NextResponse.json({
       success: true,
@@ -170,6 +171,6 @@ export async function GET(request: Request) {
       count: SEED_EPL.length,
       source: 'fallback_active',
       data: SEED_EPL,
-    });
+    }, { headers: getCdnHeaders('STANDINGS') });
   }
 }

@@ -296,13 +296,13 @@ export default function EnterpriseUserDashboardPage() {
                 <span className="text-[10px] text-gold/80 block font-sans">Used for unlocks &amp; prediction tools</span>
               </div>
 
-              {/* Naira Balance */}
+              {/* Supporter Aura Streak */}
               <div className="p-4 rounded-3xl bg-panel border border-stadiumGreen/30 space-y-2 relative overflow-hidden shadow-xl">
-                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">NAIRA VAULT</span>
+                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">MATCHDAY STREAK</span>
                 <div className="flex items-center space-x-1.5">
-                  <span className="text-2xl font-black text-stadiumGreen">₦{(profile.nairaBalance || 25000).toLocaleString()}</span>
+                  <span className="text-2xl font-black text-stadiumGreen">🔥 {profile.streakDays || 12} Days</span>
                 </div>
-                <span className="text-[10px] text-gray-400 block font-sans">Verified referral earnings &amp; rewards</span>
+                <span className="text-[10px] text-gray-400 block font-sans">Active fan check-in multiplier (2.5x Aura Boost)</span>
               </div>
 
               {/* XP & Level */}
@@ -746,7 +746,7 @@ export default function EnterpriseUserDashboardPage() {
                 <span>REFERRAL NETWORK &amp; AURA DROPS</span>
               </h2>
               <p className="text-xs text-gray-400 font-sans">
-                Earn 500 Aura Points + ₦500 commission for every friend who joins Mivaj Sports via your link.
+                Earn 1,000 Aura Points + Supporter Streak Level Boost for every friend who joins Mivaj Sports via your link.
               </p>
             </div>
 

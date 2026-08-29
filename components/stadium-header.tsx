@@ -171,50 +171,67 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({ onOpenPlayers, cur
         </div>
       </div>
 
-      {/* Fast Mobile/Tablet Navigation Bar */}
-      <div className="xl:hidden border-t border-white/10 px-3 py-1.5 overflow-x-auto flex items-center space-x-2 scrollbar-none bg-black/60">
-        <Link 
-          href="/standings" 
-          className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-amber-400 bg-amber-400/10 border border-amber-400/20 whitespace-nowrap flex items-center space-x-1"
-        >
-          <span>🏆 Standings</span>
-        </Link>
-        <Link 
-          href="/injuries" 
-          className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-red-400 bg-red-400/10 border border-red-400/20 whitespace-nowrap flex items-center space-x-1"
-        >
-          <span>🏥 Injuries</span>
-        </Link>
-        <Link 
-          href="/transfers" 
-          className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 whitespace-nowrap flex items-center space-x-1"
-        >
-          <span>💰 Transfers</span>
-        </Link>
-        <Link 
-          href="/birthdays" 
-          className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-pink-400 bg-pink-400/10 border border-pink-400/20 whitespace-nowrap flex items-center space-x-1"
-        >
-          <span>🎂 Birthdays</span>
-        </Link>
-        <Link 
-          href="/settlement" 
-          className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-gold bg-gold/10 border border-gold/20 whitespace-nowrap flex items-center space-x-1"
-        >
-          <span>📜 Ledger</span>
-        </Link>
-        <Link 
-          href="/converter" 
-          className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-cyan-400 bg-cyan-400/10 border border-cyan-400/20 whitespace-nowrap flex items-center space-x-1"
-        >
-          <span>🔄 Revealer</span>
-        </Link>
-        <Link 
-          href="/dashboard" 
-          className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-purple-400 bg-purple-400/10 border border-purple-400/20 whitespace-nowrap flex items-center space-x-1"
-        >
-          <span>👤 Account</span>
-        </Link>
+      {/* Fast Balanced Mobile Navigation Grid (Zero Scrolling) */}
+      <div className="xl:hidden border-t border-white/10 px-2 py-2 bg-black/80">
+        <div className="grid grid-cols-4 gap-1.5 text-center">
+          <Link 
+            href="/standings" 
+            className="py-1.5 px-1 rounded-xl text-[10px] sm:text-xs font-bold text-amber-400 bg-amber-400/10 border border-amber-400/20 hover:bg-amber-400/20 transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5"
+          >
+            <span>🏆</span>
+            <span className="truncate">Standings</span>
+          </Link>
+          <Link 
+            href="/injuries" 
+            className="py-1.5 px-1 rounded-xl text-[10px] sm:text-xs font-bold text-red-400 bg-red-400/10 border border-red-400/20 hover:bg-red-400/20 transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5"
+          >
+            <span>🏥</span>
+            <span className="truncate">Injuries</span>
+          </Link>
+          <Link 
+            href="/transfers" 
+            className="py-1.5 px-1 rounded-xl text-[10px] sm:text-xs font-bold text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 hover:bg-emerald-400/20 transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5"
+          >
+            <span>💰</span>
+            <span className="truncate">Transfers</span>
+          </Link>
+          <Link 
+            href="/birthdays" 
+            className="py-1.5 px-1 rounded-xl text-[10px] sm:text-xs font-bold text-pink-400 bg-pink-400/10 border border-pink-400/20 hover:bg-pink-400/20 transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5"
+          >
+            <span>🎂</span>
+            <span className="truncate">Birthdays</span>
+          </Link>
+
+          <Link 
+            href="/settlement" 
+            className="py-1.5 px-1 rounded-xl text-[10px] sm:text-xs font-bold text-gold bg-gold/10 border border-gold/20 hover:bg-gold/20 transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5"
+          >
+            <span>📜</span>
+            <span className="truncate">Ledger</span>
+          </Link>
+          <Link 
+            href="/converter" 
+            className="py-1.5 px-1 rounded-xl text-[10px] sm:text-xs font-bold text-cyan-400 bg-cyan-400/10 border border-cyan-400/20 hover:bg-cyan-400/20 transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5"
+          >
+            <span>🔄</span>
+            <span className="truncate">Revealer</span>
+          </Link>
+          <Link 
+            href="/news" 
+            className="py-1.5 px-1 rounded-xl text-[10px] sm:text-xs font-bold text-blue-400 bg-blue-400/10 border border-blue-400/20 hover:bg-blue-400/20 transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5"
+          >
+            <span>📰</span>
+            <span className="truncate">News</span>
+          </Link>
+          <Link 
+            href="/dashboard" 
+            className="py-1.5 px-1 rounded-xl text-[10px] sm:text-xs font-bold text-purple-400 bg-purple-400/10 border border-purple-400/20 hover:bg-purple-400/20 transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5"
+          >
+            <span>👤</span>
+            <span className="truncate">Account</span>
+          </Link>
+        </div>
       </div>
     </header>
   );

@@ -33,6 +33,7 @@ import { UserProfileEngine } from '../lib/user-profile-engine';
 import { ProfessionalSettlementEngine } from '../lib/settlement-engine';
 import { LiveStadiumCommentaryModal } from './live-stadium-commentary-modal';
 import { HeadToHeadArenaModal } from './head-to-head-arena-modal';
+import { MatchIntelligenceDrawer } from './match-intelligence-drawer';
 import { useModalBackHandler } from '../lib/history-back-navigation';
 
 export interface DailyMatchCardProps {
@@ -636,6 +637,13 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
             </button>
           </div>
         ) : null}
+
+        {/* 9. Standings, Injuries & Transfers Intelligence Accordion */}
+        <MatchIntelligenceDrawer
+          homeTeam={match.homeTeam}
+          awayTeam={match.awayTeam}
+          league={match.league}
+        />
       </div>
 
       {/* Live Stadium Commentary Modal */}

@@ -200,10 +200,10 @@ export const EnvironmentIntelHeader: React.FC = () => {
                 ? 'bg-gold/20 text-gold border-gold/40'
                 : 'bg-panel text-gray-400 border-white/10'
             }`}
-            title="Toggle Live Match Goal Vibrations & Flash"
+            title="Live Goal Alerts & Haptic Vibrations: Click to toggle (Followed Matches 📳 / All Live Games 🔥 / Muted 🔕)"
           >
-            <Zap className="w-3 h-3" />
-            <span>FX: {fxMode === 'FOLLOWED_ONLY' ? 'Followed 📳' : fxMode === 'ALL_LIVE' ? 'All Live 🔥' : 'Muted'}</span>
+            <Zap className={`w-3 h-3 ${fxMode === 'FOLLOWED_ONLY' ? 'text-stadiumGreen' : fxMode === 'ALL_LIVE' ? 'text-gold animate-pulse' : 'text-gray-500'}`} />
+            <span>{fxMode === 'FOLLOWED_ONLY' ? '📳 Goal Alerts: Followed' : fxMode === 'ALL_LIVE' ? '🔥 Goal Alerts: All Live' : '🔕 Goal Alerts: Off'}</span>
           </button>
 
           {/* Profile Name (Edited ONLY in profile dashboard) */}

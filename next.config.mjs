@@ -16,6 +16,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  compress: true,
   images: {
     unoptimized: true,
     remotePatterns: [
@@ -24,21 +25,28 @@ const nextConfig = {
   },
   async headers() {
     return [
+      // 1. Static Assets & Chunks: 100% Immutable Cloudflare Edge Cache (1 Year)
       {
-        source: '/(.*)',
+        source: '/_next/static/(.*)',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'no-cache, no-store, must-revalidate',
+            value: 'public, max-age=31536000, immutable',
           },
           {
-            key: 'Pragma',
-            value: 'no-cache',
+            key: 'CDN-Cache-Control',
+            value: 'public, max-age=31536000',
           },
           {
-            key: 'Expires',
-            value: '0',
+            key: 'Cloudflare-CDN-Cache-Control',
+            value: 'public, max-age=31536000',
           },
+        ],
+      },
+      // 2. Global Security & Edge Revalidation Headers
+      {
+        source: '/(.*)',
+        headers: [
           {
             key: 'X-Frame-Options',
             value: 'SAMEORIGIN',

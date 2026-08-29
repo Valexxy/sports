@@ -190,11 +190,11 @@ interface TranslationContextType {
   meta: LanguageMeta;
 }
 
-const defaultMeta = SUPPORTED_LANGUAGES.find((l) => l.code === 'en') || SUPPORTED_LANGUAGES[0];
+const defaultMeta = SUPPORTED_LANGUAGES.find((l) => l.code === 'pidgin') || SUPPORTED_LANGUAGES[0];
 
 const TranslationContext = createContext<TranslationContextType>({
-  currentLang: 'en',
-  lang: 'en',
+  currentLang: 'pidgin',
+  lang: 'pidgin',
   setLanguage: () => {},
   setLang: () => {},
   t: (key: string, fallback?: string) => fallback || key,
@@ -204,14 +204,36 @@ const TranslationContext = createContext<TranslationContextType>({
 });
 
 export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentLang, setCurrentLang] = useState<LanguageCode>('en');
+  const [currentLang, setCurrentLang] = useState<LanguageCode>('pidgin');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem(STORAGE_KEY) as LanguageCode | null;
       if (saved && SUPPORTED_LANGUAGES.some((l) => l.code === saved)) {
         setCurrentLang(saved);
+        const meta = SUPPORTED_LANGUAGES.find((l) => l.code === saved);
+        document.documentElement.dir = meta?.dir || 'ltr';
+        document.documentElement.lang = saved;
+      } else {
+        // First page load: default to Nigerian Pidgin site-wide
+        setCurrentLang('pidgin');
+        localStorage.setItem(STORAGE_KEY, 'pidgin');
+        document.documentElement.dir = 'ltr';
+        document.documentElement.lang = 'pidgin';
       }
+
+      // Detect and persist location for regional precision
+      try {
+        fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(4000) })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((geo) => {
+            if (geo && geo.country_name) {
+              localStorage.setItem('mivaj_detected_country', geo.country_name);
+              localStorage.setItem('mivaj_detected_city', geo.city || '');
+            }
+          })
+          .catch(() => {});
+      } catch {}
     }
   }, []);
 

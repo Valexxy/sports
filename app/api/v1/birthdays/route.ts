@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getRedisCache, setRedisCache } from '../../../../lib/upstash-redis-engine';
+import { getCdnHeaders } from '../../../../lib/cdn-cache-engine';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 45;
@@ -253,7 +254,7 @@ export async function GET(request: Request) {
       date: `${formattedMonth}-${formattedDay}`,
       source: 'Global Open Sports Registry (CC-BY-SA)',
       data: filtered,
-    });
+    }, { headers: getCdnHeaders('BIRTHDAYS') });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message, data: [] }, { status: 500 });
   }
