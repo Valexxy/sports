@@ -23,6 +23,22 @@ export const FooterComplianceDisclaimer: React.FC = () => {
         Mivaj Sports (mivaj.com) is an independent sports analytics and digital media platform. Mivaj is <strong>not</strong> a bookmaker, does not accept or hold player deposits, and does not provide financial investment advisory services. All "Aura Points" and "Fan Challenges" are 100% free-to-play gamification features.
       </p>
 
+      {/* Live Sports Intelligence & Registries Hub Links */}
+      <div className="flex flex-wrap items-center gap-2.5 text-[11px] font-bold border-t border-white/10 pt-3">
+        <span className="text-gray-400 font-mono text-[10px] uppercase">Live Hubs:</span>
+        <Link href="/standings" className="text-amber-400 hover:underline">🏆 Live Standings &amp; Form</Link>
+        <span className="text-white/20">&bull;</span>
+        <Link href="/injuries" className="text-red-400 hover:underline">🏥 Hospital Ward &amp; Injuries</Link>
+        <span className="text-white/20">&bull;</span>
+        <Link href="/transfers" className="text-emerald-400 hover:underline">💰 Transfer Radar</Link>
+        <span className="text-white/20">&bull;</span>
+        <Link href="/birthdays" className="text-pink-400 hover:underline">🎂 World Sports Birthdays</Link>
+        <span className="text-white/20">&bull;</span>
+        <Link href="/settlement" className="text-gold hover:underline">📜 Audited Ledger</Link>
+        <span className="text-white/20">&bull;</span>
+        <Link href="/converter" className="text-cyan-400 hover:underline">🔄 Booking Code Revealer</Link>
+      </div>
+
       {/* Clean Exclusive Links Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-3">
         <div className="flex flex-wrap items-center gap-4 text-[10px] text-gray-300 font-bold">

@@ -12,7 +12,9 @@ import {
   Layers,
   Scale,
   Newspaper,
-  UserCheck
+  UserCheck,
+  Activity,
+  DollarSign
 } from 'lucide-react';
 import { useTranslation } from '../lib/translation-engine';
 import { GlobalLanguageSwitcher } from './global-language-switcher';
@@ -23,19 +25,9 @@ import { stadiumAudio } from '../lib/sound-synthesizer';
 interface StadiumHeaderProps {
   onOpenPlayers?: () => void;
   currentTheme?: 'dark' | 'light';
-  onToggleTheme?: () => void;
-  onOpenReceipt?: () => void;
-  onOpenLedger?: () => void;
-  onOpenProfile?: () => void;
-  onOpenTeams?: () => void;
-  onOpenBirthdays?: () => void;
-  onOpenLeaderboard?: () => void;
-  onOpenSuitesMenu?: () => void;
 }
 
-export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
-  onOpenBirthdays,
-}) => {
+export const StadiumHeader: React.FC<StadiumHeaderProps> = ({ onOpenPlayers, currentTheme = 'dark' }) => {
   const { t } = useTranslation();
 
   const [isInstalled, setIsInstalled] = useState(false);
@@ -43,9 +35,9 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('aurascore_installed');
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
-      if (stored === 'true' || isStandalone) {
+      const isLocalFlag = localStorage.getItem('aurascore_installed') === 'true';
+      if (isStandalone || isLocalFlag) {
         setIsInstalled(true);
       }
     }
@@ -73,7 +65,7 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-black/85 backdrop-blur-3xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.8)]">
+    <header className="sticky top-0 z-40 bg-black/90 backdrop-blur-3xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.8)]">
       {/* iOS Dynamic Island Top Line Accent */}
       <div className="h-[2px] bg-gradient-to-r from-stadiumGreen via-cyan-400 to-gold w-full" />
 
@@ -95,39 +87,60 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
           </div>
         </Link>
 
-        {/* Center: Segmented Navigation Pills */}
-        <nav className="hidden lg:flex items-center space-x-1 bg-white/[0.04] p-1 rounded-full border border-white/10 backdrop-blur-2xl shadow-inner">
+        {/* Center: Segmented Navigation Pills (Desktop & Tablet) */}
+        <nav className="hidden xl:flex items-center space-x-1 bg-white/[0.04] p-1 rounded-full border border-white/10 backdrop-blur-2xl shadow-inner">
           <Link 
-            href="/converter" 
-            className="px-3.5 py-1.5 rounded-full text-xs font-bold text-cyan-400 hover:bg-cyan-500/15 transition-all flex items-center space-x-1"
+            href="/standings" 
+            className="px-3 py-1.5 rounded-full text-xs font-bold text-amber-400 hover:bg-amber-500/15 transition-all flex items-center space-x-1"
           >
-            <Layers className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Revealer</span>
+            <Trophy className="w-3.5 h-3.5 text-amber-400" />
+            <span>Standings</span>
+          </Link>
+          <Link 
+            href="/injuries" 
+            className="px-3 py-1.5 rounded-full text-xs font-bold text-red-400 hover:bg-red-500/15 transition-all flex items-center space-x-1"
+          >
+            <Activity className="w-3.5 h-3.5 text-red-400" />
+            <span>Injuries</span>
+          </Link>
+          <Link 
+            href="/transfers" 
+            className="px-3 py-1.5 rounded-full text-xs font-bold text-emerald-400 hover:bg-emerald-500/15 transition-all flex items-center space-x-1"
+          >
+            <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Transfers</span>
           </Link>
           <Link 
             href="/settlement" 
-            className="px-3.5 py-1.5 rounded-full text-xs font-bold text-gold hover:bg-gold/15 transition-all flex items-center space-x-1"
+            className="px-3 py-1.5 rounded-full text-xs font-bold text-gold hover:bg-gold/15 transition-all flex items-center space-x-1"
           >
             <Scale className="w-3.5 h-3.5 text-gold" />
             <span>Ledger</span>
           </Link>
           <Link 
-            href="/news" 
-            className="px-3.5 py-1.5 rounded-full text-xs font-bold text-emerald-400 hover:bg-emerald-500/15 transition-all flex items-center space-x-1"
+            href="/converter" 
+            className="px-3 py-1.5 rounded-full text-xs font-bold text-cyan-400 hover:bg-cyan-500/15 transition-all flex items-center space-x-1"
           >
-            <Newspaper className="w-3.5 h-3.5 text-emerald-400" />
-            <span>News Wire</span>
+            <Layers className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Revealer</span>
+          </Link>
+          <Link 
+            href="/news" 
+            className="px-3 py-1.5 rounded-full text-xs font-bold text-gray-300 hover:bg-white/10 transition-all flex items-center space-x-1"
+          >
+            <Newspaper className="w-3.5 h-3.5 text-gray-400" />
+            <span>News</span>
           </Link>
           <Link 
             href="/birthdays" 
-            className="px-3.5 py-1.5 rounded-full text-xs font-bold text-pink-400 hover:bg-pink-500/15 transition-all flex items-center space-x-1"
+            className="px-3 py-1.5 rounded-full text-xs font-bold text-pink-400 hover:bg-pink-500/15 transition-all flex items-center space-x-1"
           >
             <Cake className="w-3.5 h-3.5 text-pink-400" />
             <span>Birthdays</span>
           </Link>
           <Link 
             href="/dashboard" 
-            className="px-3.5 py-1.5 rounded-full text-xs font-bold text-purple-400 hover:bg-purple-500/15 transition-all flex items-center space-x-1"
+            className="px-3 py-1.5 rounded-full text-xs font-bold text-purple-400 hover:bg-purple-500/15 transition-all flex items-center space-x-1"
           >
             <UserCheck className="w-3.5 h-3.5 text-purple-400" />
             <span>Account</span>
@@ -156,7 +169,52 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({
             </button>
           )}
         </div>
+      </div>
 
+      {/* Fast Mobile/Tablet Navigation Bar */}
+      <div className="xl:hidden border-t border-white/10 px-3 py-1.5 overflow-x-auto flex items-center space-x-2 scrollbar-none bg-black/60">
+        <Link 
+          href="/standings" 
+          className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-amber-400 bg-amber-400/10 border border-amber-400/20 whitespace-nowrap flex items-center space-x-1"
+        >
+          <span>🏆 Standings</span>
+        </Link>
+        <Link 
+          href="/injuries" 
+          className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-red-400 bg-red-400/10 border border-red-400/20 whitespace-nowrap flex items-center space-x-1"
+        >
+          <span>🏥 Injuries</span>
+        </Link>
+        <Link 
+          href="/transfers" 
+          className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 whitespace-nowrap flex items-center space-x-1"
+        >
+          <span>💰 Transfers</span>
+        </Link>
+        <Link 
+          href="/birthdays" 
+          className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-pink-400 bg-pink-400/10 border border-pink-400/20 whitespace-nowrap flex items-center space-x-1"
+        >
+          <span>🎂 Birthdays</span>
+        </Link>
+        <Link 
+          href="/settlement" 
+          className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-gold bg-gold/10 border border-gold/20 whitespace-nowrap flex items-center space-x-1"
+        >
+          <span>📜 Ledger</span>
+        </Link>
+        <Link 
+          href="/converter" 
+          className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-cyan-400 bg-cyan-400/10 border border-cyan-400/20 whitespace-nowrap flex items-center space-x-1"
+        >
+          <span>🔄 Revealer</span>
+        </Link>
+        <Link 
+          href="/dashboard" 
+          className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-purple-400 bg-purple-400/10 border border-purple-400/20 whitespace-nowrap flex items-center space-x-1"
+        >
+          <span>👤 Account</span>
+        </Link>
       </div>
     </header>
   );

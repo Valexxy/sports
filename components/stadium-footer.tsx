@@ -23,7 +23,19 @@ export const StadiumFooter: React.FC<StadiumFooterProps> = ({ onOpenLedger, onOp
             <span>• 100% Free Live Football Match Center & Predictions</span>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <a href="/standings" className="hover:text-amber-400 transition-colors font-bold">
+              🏆 Standings
+            </a>
+            <a href="/injuries" className="hover:text-red-400 transition-colors font-bold">
+              🏥 Injuries
+            </a>
+            <a href="/transfers" className="hover:text-emerald-400 transition-colors font-bold">
+              💰 Transfers
+            </a>
+            <a href="/birthdays" className="hover:text-pink-400 transition-colors font-bold">
+              🎂 Birthdays
+            </a>
             {onOpenLedger && (
               <button onClick={onOpenLedger} className="hover:text-stadiumGreen transition-colors font-bold">
                 📜 {t('Audited Ledger')}
