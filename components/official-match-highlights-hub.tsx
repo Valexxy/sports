@@ -300,16 +300,58 @@ export const OfficialMatchHighlightsHub: React.FC = () => {
             </div>
 
             {/* In-App Native Player Container */}
-            <div className="rounded-2xl overflow-hidden border border-white/20 bg-black shadow-inner">
+            <div className="rounded-2xl overflow-hidden border border-white/20 bg-black shadow-inner relative">
               {activeVideo.embedHtml ? (
-                <div
-                  dangerouslySetInnerHTML={{ __html: activeVideo.embedHtml }}
-                  className="w-full aspect-video"
-                />
+                (() => {
+                  const srcMatch = activeVideo.embedHtml.match(/src=['"]([^'"]+)['"]/i);
+                  const iframeSrc = srcMatch ? srcMatch[1] : '';
+
+                  return (
+                    <div className="space-y-2">
+                      <div className="w-full aspect-video relative bg-black">
+                        {iframeSrc ? (
+                          <iframe
+                            src={iframeSrc}
+                            width="100%"
+                            height="100%"
+                            className="w-full h-full border-0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                            allowFullScreen
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                          />
+                        ) : (
+                          <div
+                            dangerouslySetInnerHTML={{ __html: activeVideo.embedHtml }}
+                            className="w-full h-full"
+                          />
+                        )}
+                      </div>
+
+                      {/* Direct Stream Fallback Link (Guaranteed Zero-Block) */}
+                      {iframeSrc && (
+                        <div className="p-2.5 bg-black/80 border-t border-white/10 flex items-center justify-between gap-2 flex-wrap text-xs">
+                          <span className="text-[11px] text-gray-300 font-sans">
+                            Having playback issues on your browser?
+                          </span>
+                          <a
+                            href={iframeSrc}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1.5 rounded-xl bg-stadiumGreen text-black font-black text-[11px] hover:bg-emerald-400 transition-all flex items-center space-x-1.5 shadow"
+                          >
+                            <Play className="w-3.5 h-3.5 fill-current" />
+                            <span>Play Full HD Stream ➔</span>
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()
               ) : (
-                <div className="aspect-video flex items-center justify-center text-center p-6 space-y-2">
+                <div className="aspect-video flex flex-col items-center justify-center text-center p-6 space-y-2">
                   <span className="text-4xl block">⚽</span>
-                  <p className="text-xs text-gray-400">Highlights not available now, return later.</p>
+                  <p className="text-xs text-gray-400 font-sans">Highlights are processing. Check back in a few moments.</p>
                 </div>
               )}
             </div>
@@ -324,7 +366,7 @@ export const OfficialMatchHighlightsHub: React.FC = () => {
                   const text = `🔥 Watch ${activeVideo.title} match highlights live on Mivaj Sports! 👉 https://mivaj.com`;
                   window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
                 }}
-                className="px-4 py-2 rounded-xl bg-[#25D366] text-black font-black text-xs flex items-center space-x-1.5"
+                className="px-4 py-2 rounded-xl bg-[#25D366] text-black font-black text-xs flex items-center space-x-1.5 shadow-md active:scale-95"
               >
                 <Share2 className="w-3.5 h-3.5" />
                 <span>Share to WhatsApp Status</span>

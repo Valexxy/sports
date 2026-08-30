@@ -31,7 +31,26 @@ export async function GET(req: Request) {
 
     const pool = todayMatches.length > 0 ? todayMatches : matches;
     const scheduled = pool.filter((m) => m.status === 'SCHEDULED');
-    const fixturesPool = scheduled.length > 0 ? scheduled : pool;
+    
+    // Sort chronologically by earliest kickoff time
+    const sortedScheduled = [...scheduled].sort((a, b) => {
+      const timeA = a.utcDate ? new Date(a.utcDate).getTime() : Infinity;
+      const timeB = b.utcDate ? new Date(b.utcDate).getTime() : Infinity;
+      return timeA - timeB;
+    });
+
+    const fixturesPool = sortedScheduled.length > 0 ? sortedScheduled : pool;
+
+    // Detect earliest kickoff of the day
+    const firstMatch = fixturesPool[0];
+    const firstMatchKickoff = firstMatch?.matchTime || (firstMatch?.utcDate ? new Date(firstMatch.utcDate).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '06:00');
+    
+    // Check if earliest fixture plays early before 6:00 AM
+    let isEarlyBird = false;
+    if (firstMatch?.utcDate) {
+      const firstHour = new Date(firstMatch.utcDate).getUTCHours() + 1; // WAT is UTC+1
+      if (firstHour < 6) isEarlyBird = true;
+    }
 
     const FREE_TEASER_COUNT = 3;
     const teaserCount = Math.min(FREE_TEASER_COUNT, fixturesPool.length);
@@ -50,9 +69,12 @@ export async function GET(req: Request) {
       teaserFixtures.reduce((acc, m) => acc + (m.prediction?.topPick?.probability || 85), 0) / (teaserFixtures.length || 1)
     );
 
-    let msg = `🔥 <b>6:00 AM MIVAJ BANKER SLIP IS LIVE! 🚨</b>\n`;
-    msg += `📅 <i>${new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} • Model Win Rate: ${avgProb}% 🎯</i>\n\n`;
-    msg += `👑 <b>TODAY'S TOP FEATURED BANKERS (${teaserCount} of ${fixturesPool.length} Fixtures):</b>\n\n`;
+    let msg = isEarlyBird
+      ? `⚡ <b>EARLY-BIRD MATCH ALERT: FIRST KICKOFF AT ${firstMatchKickoff} WAT! 🚨</b>\n`
+      : `🔥 <b>TODAY'S OFFICIAL MIVAJ BANKER SLIP IS LIVE! 🚨</b>\n`;
+    msg += `📅 <i>${new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} • Model Win Rate: ${avgProb}% 🎯</i>\n`;
+    msg += `⏳ <b>Earliest Match Starts:</b> <code>${firstMatchKickoff} WAT</code>\n\n`;
+    msg += `👑 <b>TODAY'S EARLIEST HIGH-CONFIDENCE BANKERS (${teaserCount} of ${fixturesPool.length} Fixtures):</b>\n\n`;
 
     teaserFixtures.forEach((m, idx) => {
       const p = m.prediction?.topPick;
@@ -63,7 +85,7 @@ export async function GET(req: Request) {
       msg += `   🎯 Pick: <code>${p?.selection || 'Home Win'}</code> @ <b>${p?.odds || 1.15}</b> (${p?.probability || 85}% Confidence)\n\n`;
     });
 
-    msg += `📊 <b>Featured 3-Fold Odds:</b> <code>${teaserOdds}x</code>\n`;
+    msg += `📊 <b>Featured ${teaserCount}-Fold Odds:</b> <code>${teaserOdds}x</code>\n`;
     msg += `🚀 <b>Full Master Accumulator:</b> <code>${fullAccumulatorOdds}x Total Odds</code>\n\n`;
 
     if (remainingCount > 0) {
