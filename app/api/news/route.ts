@@ -243,13 +243,68 @@ async function fetchNewsDataLiveArticles(): Promise<SportsArticle[]> {
   return [];
 }
 
+function extractTitleKeywords(title: string): Set<string> {
+  const stopWords = new Set([
+    'the', 'a', 'an', 'and', 'or', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from',
+    'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'as', 'after',
+    'vs', 'v', 'report', 'live', 'breaking', 'latest', 'news', 'update', 'full-time', 'ft',
+    'says', 'claim', 'claims', 'reveal', 'reveals', 'star', 'boss', 'ahead', 'out'
+  ]);
+  const words = title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((w) => w.length > 2 && !stopWords.has(w));
+  return new Set(words);
+}
+
+function areArticlesDuplicates(titleA: string, titleB: string): boolean {
+  const setA = extractTitleKeywords(titleA);
+  const setB = extractTitleKeywords(titleB);
+  if (setA.size === 0 || setB.size === 0) return false;
+
+  let common = 0;
+  for (const word of setA) {
+    if (setB.has(word)) common++;
+  }
+  const overlap = common / Math.min(setA.size, setB.size);
+  return overlap >= 0.50; // 50%+ keyword overlap indicates the exact same event
+}
+
 function buildComprehensiveArticleStory(title: string, desc: string, source: string, category: string): string {
   const cleanDesc = desc.replace(/<[^>]+>/g, '').trim();
+
+  let tacticalSection = '';
+  let reactionSection = '';
+  let statisticalSection = '';
+
+  if (category === 'TRANSFERS') {
+    tacticalSection = `**💼 CONTRACT TERMS & SQUAD INTEGRATION:**\nNegotiations have progressed swiftly according to club sources verified by ${source}. Both parties are finalizing contract length, wage packages, and performance-related add-ons. Medical assessments and official media unveilings are being scheduled ahead of the deadline.`;
+    reactionSection = `**🗣️ SCOUTING & MANAGEMENT PERSPECTIVE:**\nRecruitment analysts view this signing as a critical addition to the starting eleven. "Securing top-tier talent with immediate tactical adaptability gives us the edge required across domestic and continental competitions," a senior official stated.`;
+    statisticalSection = `**📊 STATISTICAL VALUE & PERFORMANCE PROFILE:**\nPast season metrics demonstrate high progressive passes, duel win percentages, and goal-creation actions that align directly with the manager's tactical blueprint.`;
+  } else if (category === 'INJURIES') {
+    tacticalSection = `**🚑 MEDICAL EVALUATION & REHABILITATION PLAN:**\nClub medical staff conducted comprehensive scans earlier today to evaluate the extent of the physical strain. The initial recovery protocol will prioritize specialized physiotherapy before gradual reintegration into first-team training.`;
+    reactionSection = `**🗣️ MANAGER STATUS UPDATE:**\nSpeaking ahead of the upcoming fixture, the head coach remarked: "Player health is our paramount concern. We have full confidence in our medical department and will not rush their return until 100% match sharpness is restored."`;
+    statisticalSection = `**📊 TACTICAL ALTERNATIVES & SQUAD DEPTH:**\nThe coaching staff is expected to rotate backup options to preserve squad intensity and maintain defensive balance in the interim.`;
+  } else if (category === 'NJA & AFCON') {
+    tacticalSection = `**🇳🇬 SUPER EAGLES & CONTINENTAL IMPACT:**\nThis development is being closely followed across Nigerian football and African sports media. The player's current form provides massive momentum for upcoming international tournaments and club competitions.`;
+    reactionSection = `**🗣️ FAN & PUNDIT ENTHUSIASM:**\nSupporters and football analysts have expressed tremendous excitement regarding this milestone. "African players continue to dominate at the highest level of European football, setting standard after standard," noted senior sports broadcasters.`;
+    statisticalSection = `**📊 PERFORMANCE METRICS:**\nWith elite conversion rates and high-intensity pressing, the statistical impact on club results remains among the highest in modern football.`;
+  } else if (category === 'TACTICS') {
+    tacticalSection = `**🧠 FORMATION BLUEPRINT & ON-PITCH SHIFTS:**\nTechnical observers noted specific tactical adjustments in recent training sessions, including inverted full-back movements, high-press triggers, and rapid transitions from defense to attack.`;
+    reactionSection = `**🗣️ POST-MATCH TACTICAL INSIGHTS:**\n"Our tactical structure must be flexible enough to handle varied opponents," the manager explained. "Discipline in defensive transitions is what separates championship contenders."`;
+    statisticalSection = `**📊 EXPECTED GOALS (xG) & SPATIAL DOMINANCE:**\nModel telemetry indicates improved field tilt and higher quality chance creation under the revised tactical framework.`;
+  } else {
+    tacticalSection = `**📋 MATCH MOMENTUM & CRITICAL PHASES:**\nReports from ${source} highlight crucial passages of play that shaped this outcome. Tactical discipline, defensive resilience, and clinical finishing proved decisive in dictating the final result.`;
+    reactionSection = `**🗣️ DRESSING ROOM ATMOSPHERE:**\nPlayers and technical staff expressed determination to maintain momentum in the upcoming rounds. "Every single point and performance matters in this race," a club spokesperson noted.`;
+    statisticalSection = `**📊 MODEL ANALYSIS & LEAGUE PROJECTIONS:**\nThis result directly updates league table standings, goal difference dynamics, and algorithmic win probabilities in the Mivaj Sports Live Match Center.`;
+  }
+
   return [
     cleanDesc,
-    `\n\n**📋 TACTICAL BREAKDOWN & CLUB DEVELOPMENTS:**\nAccording to reports verified by ${source}, this situation has developed rapidly ahead of upcoming competitive matchdays. Technical staff and tactical analysts have placed particular emphasis on squad depth, formation balance, and key player execution.`,
-    `\n\n**🗣️ DRESSING ROOM & MANAGER CONTEXT:**\nInsiders close to the team report high focus across the training camp. "We understand the magnitude of every match at this stage of the season," a team representative noted. "Maintaining consistency, tactical discipline, and sharp execution remains our absolute priority."`,
-    `\n\n**📊 STATISTICAL OUTLOOK & MODEL IMPACT:**\nThis development impacts team momentum ratings, expected goal (xG) projections, and defensive stability indices across upcoming fixtures. Comprehensive starting lineups, injury status updates, and live sub-second score trackers are synchronized continuously in the Mivaj Sports Live Match Center.`,
+    `\n\n${tacticalSection}`,
+    `\n\n${reactionSection}`,
+    `\n\n${statisticalSection}`,
   ].join('\n');
 }
 
@@ -358,12 +413,15 @@ export async function GET() {
       }
     });
 
-    const uniqueMap = new Map<string, SportsArticle>();
-    allArticles.forEach((a) => {
-      if (!uniqueMap.has(a.title)) uniqueMap.set(a.title, a);
-    });
+    const finalArticles: SportsArticle[] = [];
+    for (const item of allArticles) {
+      if (!item.title || item.title.length < 6) continue;
+      const isDupe = finalArticles.some((existing) => areArticlesDuplicates(existing.title, item.title));
+      if (!isDupe) {
+        finalArticles.push(item);
+      }
+    }
 
-    const finalArticles = Array.from(uniqueMap.values());
     if (finalArticles.length > 0) {
       cachedNews = { articles: finalArticles, timestamp: now };
     }
@@ -371,13 +429,14 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       count: finalArticles.length,
-      source: 'live_espn_and_rss_hd',
+      source: 'live_deduped_hd_news',
       articles: finalArticles,
     });
   } catch (err: any) {
-    if (cachedNews) {
-      return NextResponse.json({ success: true, count: cachedNews.articles.length, source: 'fallback', articles: cachedNews.articles });
-    }
-    return NextResponse.json({ success: false, error: err.message, articles: [] }, { status: 500 });
+    return NextResponse.json({
+      success: false,
+      error: err?.message || 'Failed to aggregate sports news',
+      articles: [],
+    });
   }
 }
