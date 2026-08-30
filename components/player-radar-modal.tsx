@@ -4,10 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { 
   Star, X, Search, Shield, Zap, Trophy, Flame, 
   Target, Award, Activity, CheckCircle2, TrendingUp, 
-  Sparkles, ArrowLeft, Calendar, Share2, Globe, Heart, RefreshCw, UserCheck, Check
+  Sparkles, ArrowLeft, Calendar, Share2, Globe, Heart, RefreshCw, UserCheck, Check,
+  ExternalLink, BookOpen
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { phoneHardware } from '../lib/phone-hardware-engine';
+import { generatePlayerExternalLinks } from '../lib/player-intelligence-engine';
 
 export interface SportSpecificMetrics {
   primary_metric_label: string;
@@ -445,14 +447,92 @@ export const PlayerRadarModal: React.FC<PlayerRadarModalProps> = ({
 
               {/* Wikipedia Career Overview */}
               <div className="space-y-1.5 pt-1">
-                <span className="text-xs font-black text-white flex items-center space-x-1.5 font-mono">
-                  <Globe className="w-3.5 h-3.5 text-gold" />
-                  <span>WIKIPEDIA DOSSIER &amp; CAREER OVERVIEW</span>
-                </span>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-white flex items-center space-x-1.5 font-mono">
+                    <Globe className="w-3.5 h-3.5 text-gold" />
+                    <span>WIKIPEDIA DOSSIER &amp; CAREER OVERVIEW</span>
+                  </span>
+                  <a
+                    href={`https://en.wikipedia.org/wiki/${encodeURIComponent(selectedPlayer.name.replace(/\s+/g, '_'))}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[10px] text-gold hover:underline flex items-center space-x-1 font-mono font-bold"
+                  >
+                    <span>Read on Wikipedia</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
                 <p className="text-xs text-neutral-300 font-sans leading-relaxed">
                   {selectedPlayer.bio}
                 </p>
               </div>
+
+              {/* 🌐 FEDERATED MULTI-SOURCE EXTERNAL RECORDS & SCOUTING INTEL */}
+              {(() => {
+                const links = generatePlayerExternalLinks(selectedPlayer.name);
+                return (
+                  <div className="pt-3 border-t border-neutral-800 space-y-2">
+                    <span className="text-[11px] font-black text-gray-300 flex items-center space-x-1.5 font-mono">
+                      <BookOpen className="w-3.5 h-3.5 text-stadiumGreen" />
+                      <span>FEDERATED EXTERNAL SPORTS INTELLIGENCE SOURCES:</span>
+                    </span>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
+                      <a
+                        href={links.wikipediaUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2.5 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-700 text-white flex items-center justify-between group transition-all"
+                      >
+                        <div className="flex items-center space-x-2 truncate">
+                          <span className="text-sm">📖</span>
+                          <span className="truncate font-bold text-[11px]">Wikipedia</span>
+                        </div>
+                        <ExternalLink className="w-3.5 h-3.5 text-gray-400 group-hover:text-gold transition-colors flex-shrink-0" />
+                      </a>
+
+                      <a
+                        href={links.transfermarktUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2.5 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-700 text-white flex items-center justify-between group transition-all"
+                      >
+                        <div className="flex items-center space-x-2 truncate">
+                          <span className="text-sm">💶</span>
+                          <span className="truncate font-bold text-[11px]">Transfermarkt</span>
+                        </div>
+                        <ExternalLink className="w-3.5 h-3.5 text-gray-400 group-hover:text-gold transition-colors flex-shrink-0" />
+                      </a>
+
+                      <a
+                        href={links.fbrefUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2.5 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-700 text-white flex items-center justify-between group transition-all"
+                      >
+                        <div className="flex items-center space-x-2 truncate">
+                          <span className="text-sm">📊</span>
+                          <span className="truncate font-bold text-[11px]">FBref Scouting</span>
+                        </div>
+                        <ExternalLink className="w-3.5 h-3.5 text-gray-400 group-hover:text-gold transition-colors flex-shrink-0" />
+                      </a>
+
+                      <a
+                        href={links.sofascoreUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2.5 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-700 text-white flex items-center justify-between group transition-all"
+                      >
+                        <div className="flex items-center space-x-2 truncate">
+                          <span className="text-sm">🏆</span>
+                          <span className="truncate font-bold text-[11px]">Sofascore Live</span>
+                        </div>
+                        <ExternalLink className="w-3.5 h-3.5 text-gray-400 group-hover:text-gold transition-colors flex-shrink-0" />
+                      </a>
+                    </div>
+                  </div>
+                );
+              })()}
 
             </div>
           ) : (
