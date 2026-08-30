@@ -661,49 +661,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
           </button>
         </div>
 
-        {/* IN-CARD REAL-TIME PLAY-BY-PLAY COMMENTARY TICKER (SHOWN ON LIVE MATCHES) */}
-        {isLive && (
-          <div 
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowCommentaryModal(true);
-            }}
-            className="p-2.5 rounded-2xl bg-gradient-to-r from-[#0c1322] via-[#09101d] to-[#070c16] border border-stadiumGreen/40 flex items-center justify-between gap-2 shadow-inner hover:border-stadiumGreen/80 transition-all cursor-pointer group/commentary active:scale-[0.99]"
-            title="Click to expand full stadium commentary"
-          >
-            <div className="flex items-center space-x-2 min-w-0 flex-1">
-              <span className="px-2 py-0.5 rounded-lg bg-crimson/25 border border-crimson/50 text-crimson font-mono font-black text-[9px] flex-shrink-0 flex items-center space-x-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-crimson animate-ping" />
-                <span className="tabular-nums">{liveCommentaryFeed[commentaryIndex]?.minute || `${Math.floor(liveSeconds / 60)}'`}</span>
-              </span>
-              <p className="text-[11px] text-gray-200 font-sans truncate leading-tight group-hover/commentary:text-white transition-colors">
-                {liveCommentaryFeed[commentaryIndex]?.text}
-              </p>
-            </div>
-            <div className="flex items-center space-x-1.5 flex-shrink-0">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  stadiumAudio.playCrowdCheer();
-                  phoneHardware.triggerHaptic('SELECTION');
-                  setIsAudioListening(!isAudioListening);
-                }}
-                className={`p-1.5 rounded-xl border transition-all ${
-                  isAudioListening 
-                    ? 'bg-stadiumGreen text-black border-stadiumGreen shadow-sm' 
-                    : 'bg-white/5 text-gray-300 border-white/10 hover:text-white'
-                }`}
-                title="Toggle Stadium Mic Ambience"
-              >
-                <Volume2 className="w-3.5 h-3.5" />
-              </button>
-              <span className="px-2 py-1 rounded-xl bg-stadiumGreen/15 border border-stadiumGreen/40 text-stadiumGreen text-[9px] font-black group-hover/commentary:bg-stadiumGreen group-hover/commentary:text-black transition-all">
-                Commentary ➔
-              </span>
-            </div>
-          </div>
-        )}
+
 
 
         {/* 7. Gen Z Emoji Quick Reactions Bar */}
@@ -800,13 +758,6 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
             </button>
           </div>
         ) : null}
-
-        {/* 9. Standings, Injuries & Transfers Intelligence Accordion */}
-        <MatchIntelligenceDrawer
-          homeTeam={match.homeTeam}
-          awayTeam={match.awayTeam}
-          league={match.league}
-        />
       </div>
 
       {/* Live Stadium Commentary Modal */}

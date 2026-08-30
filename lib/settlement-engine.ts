@@ -249,6 +249,22 @@ export class ProfessionalSettlementEngine {
       };
     }
 
+    // 1b. WATCH-ONLY / NO PREDICTION FIXTURES (Never count as lost bet)
+    if (selection.toLowerCase().includes('watch only') || market === 'N/A' || match.prediction?.hasPrediction === false) {
+      return {
+        isFinished: true,
+        isWon: false,
+        isVoid: true,
+        voidReason: 'WATCH_ONLY',
+        statusText: 'VOID',
+        homeScore,
+        awayScore,
+        evaluatedSelection: 'Watch Only',
+        settledOdds: 1.00,
+        auditExplanation: 'Watch-Only match (low data coverage). No tip was recommended.',
+      };
+    }
+
     // 2. ACTIVE / SCHEDULED (NOT YET CONCLUDED)
     const isFinished = this.isMatchFinished(match);
     if (!isFinished) {
