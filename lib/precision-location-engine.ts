@@ -248,6 +248,34 @@ export async function getUltraPreciseLocation(forceRefresh = false): Promise<Hyp
     } catch {}
   }
 
+  // 0. User-Selected Custom City Override (1-Tap Switcher Top Priority)
+  if (typeof window !== 'undefined') {
+    const custom = localStorage.getItem('mivaj_custom_city') || localStorage.getItem('mivaj_custom_location');
+    if (custom && custom.trim()) {
+      const city = custom.trim().toUpperCase();
+      const isAnambra = ['AWKA', 'ONITSHA', 'NNEWI', 'EKWULOBIA', 'IHIALA', 'AGULU', 'OGIDI'].includes(city);
+      const state = isAnambra ? 'Anambra' : 'Nigeria';
+      const weather = await fetchLocalWeatherIntel(isAnambra ? 6.2108 : 9.0765, isAnambra ? 7.0707 : 7.3986);
+      return {
+        city,
+        state,
+        country: 'Nigeria',
+        countryFlag: '🇳🇬',
+        formattedAddress: `${custom.trim()}, ${state}, Nigeria`,
+        latitude: isAnambra ? 6.2108 : 9.0765,
+        longitude: isAnambra ? 7.0707 : 7.3986,
+        isGpsPrecise: true,
+        formattedTimezone: 'WAT (UTC+1)',
+        isp: 'Territory Verified 👑',
+        weatherSummary: weather.weather,
+        temperatureC: weather.temp,
+        pitchCondition: weather.pitch,
+        viewingCentersNearby: `Sports Lounges Active in ${custom.trim()} 📺`,
+        matchLightingKickoff: 'Golden Hour Match Lighting (18:00 WAT)',
+      };
+    }
+  }
+
   // Check short cache if not force-refreshing
   if (!forceRefresh && typeof window !== 'undefined') {
     try {
