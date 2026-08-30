@@ -2,15 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/telegram-morning",
-      "schedule": "0 4,5,6 * * *"
-    },
-    {
-      "path": "/api/cron/telegram-news",
-      "schedule": "0 11,17 * * *"
-    },
-    {
-      "path": "/api/cron/telegram-live-settle",
-      "schedule": "*/30 14-23 * * *"
+      "schedule": "0 5 * * *"
     }
   ],
   "headers": [
