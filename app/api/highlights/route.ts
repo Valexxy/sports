@@ -36,7 +36,7 @@ async function fetchDailyMotionHighlights(searchQuery: string = 'highlights'): P
       id: v.id,
       title: v.title.replace(/^Highlights_/i, '').replace(/_Matchday.*$/i, '').replace(/_ACT$/i, ''),
       thumbnail: v.thumbnail_720_url || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=600&auto=format&fit=crop&q=80',
-      embedUrl: v.embed_url,
+      embedUrl: `https://www.dailymotion.com/embed/video/${v.id}?autoplay=1&mute=0&ui-logo=0&sharing-enable=0&queue-enable=0`,
       duration: v.duration || 180,
       date: new Date(v.created_time * 1000).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }),
       source: 'dailymotion_verified',

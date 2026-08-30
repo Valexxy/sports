@@ -71,9 +71,9 @@ export const MatchdayPushBell: React.FC = () => {
         <span className={`w-2 h-2 rounded-full ${subscribed ? 'bg-stadiumGreen shadow-[0_0_8px_#00e676]' : 'bg-gold animate-ping'}`} />
       </button>
 
-      {/* iOS 17 Style Specular Glass Popover Sheet */}
+      {/* iOS 17 Style Specular Glass Popover Sheet (Mobile Responsive) */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-[26px] bg-[#0c1017]/95 backdrop-blur-2xl border border-stadiumGreen/50 shadow-[0_20px_50px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.15)] p-4 space-y-3 z-50 animate-fadeIn text-white">
+        <div className="fixed sm:absolute inset-x-3 sm:inset-x-auto sm:right-0 top-20 sm:top-full mt-2 w-auto sm:w-96 rounded-[26px] bg-[#0c1017]/98 backdrop-blur-2xl border border-stadiumGreen/50 shadow-[0_20px_50px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.15)] p-4 space-y-3 z-50 animate-fadeIn text-white">
           
           <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
             <div className="flex items-center space-x-2">

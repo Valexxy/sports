@@ -11,6 +11,7 @@ import { phoneHardware } from '../lib/phone-hardware-engine';
 import { stadiumAudio } from '../lib/sound-synthesizer';
 import { PowerSaverEngine } from '../lib/power-saver-engine';
 import { LiveMatchFxEngine, LiveFxMode, LiveGoalEvent } from '../lib/live-match-fx-engine';
+import { LiveActiveFansWidget } from './tracker/LiveActiveFansWidget';
 import confetti from 'canvas-confetti';
 
 const POPULAR_HUBS = [
@@ -192,6 +193,9 @@ export const EnvironmentIntelHeader: React.FC = () => {
             <span>👋</span>
             <span className="truncate">{intel.localGreeting}</span>
           </div>
+
+          {/* Real-time Live Fans Online Tracker */}
+          <LiveActiveFansWidget />
         </div>
 
         {/* Right: FX Toggle + User Profile Link + Refresh */}
