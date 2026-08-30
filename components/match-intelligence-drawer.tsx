@@ -186,35 +186,6 @@ export const MatchIntelligenceDrawer: React.FC<MatchIntelligenceDrawerProps> = (
         </button>
       </div>
 
-      {/* 1-Row Compact Intel Information Strip when Collapsed */}
-      {!isOpen && (
-        <div
-          onClick={() => {
-            setIsOpen(true);
-            setActiveTab('STANDINGS');
-          }}
-          className="mt-1 px-2.5 py-1.5 rounded-xl bg-black/50 border border-white/5 hover:border-stadiumGreen/40 flex items-center justify-between text-[10px] cursor-pointer transition-all text-gray-300"
-        >
-          <div className="flex items-center space-x-2 truncate">
-            <span className="text-amber-400 font-bold">{homeTeam} #{homeData.rank}</span>
-            <span className="text-gray-500 font-mono">vs</span>
-            <span className="text-amber-400 font-bold">{awayTeam} #{awayData.rank}</span>
-            <span className="text-gray-500 hidden sm:inline">&bull; Form: {homeData.form.slice(0, 3).join('')} / {awayData.form.slice(0, 3).join('')}</span>
-          </div>
-          <div className="flex items-center space-x-2 flex-shrink-0 text-[9px] font-mono">
-            {injuries.length > 0 ? (
-              <span className="text-red-400 font-bold">🏥 {injuries.length} out</span>
-            ) : (
-              <span className="text-gray-500">🏥 0 out</span>
-            )}
-            {transfers.length > 0 && (
-              <span className="text-emerald-400 font-bold hidden sm:inline">🔄 {transfers.length} tx</span>
-            )}
-            <span className="text-stadiumGreen font-bold underline">Details ▾</span>
-          </div>
-        </div>
-      )}
-
       {/* Embedded In-Card Intel Content Panel */}
       {isOpen && (
         <div className="mt-2 p-3 rounded-2xl bg-black/80 border border-white/15 space-y-3 animate-fadeIn">

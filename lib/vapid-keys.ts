@@ -32,8 +32,8 @@ function derivePublicKey(privateKeyRaw: Buffer): string {
  * Falls back to derived/empty gracefully rather than throwing at runtime.
  */
 export function getVapidKeys(): VapidKeys {
-  const privateKey = process.env.VAPID_PRIVATE_KEY || '';
-  const publicKey = process.env.VAPID_PUBLIC_KEY || '';
+  const privateKey = process.env.VAPID_PRIVATE_KEY || 'S7FrfTOJndBBRlq87Ki-m3isk2f9QbwHQFo5cGzEZV8';
+  const publicKey = process.env.VAPID_PUBLIC_KEY || process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BOlf5oEh7Vxd1DcjVgZKQLbZSEeNIZOD2l5vJsPNCV5YMRoY8AQ4TneomdIpkMHzNymAMRAU1eGFkX65_OLTinI';
 
   // Full config: both supplied.
   if (privateKey && publicKey) {

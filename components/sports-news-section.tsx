@@ -14,9 +14,11 @@ import {
   ExternalLink, 
   ArrowLeft,
   BookOpen,
-  CheckCircle2
+  CheckCircle2,
+  PenTool
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { GhostBloggerModal } from './news/GhostBloggerModal';
 
 export interface SportsArticle {
   id: string;
@@ -53,6 +55,8 @@ export const SportsNewsSection: React.FC = () => {
   const [autoSync, setAutoSync] = useState(true);
   const [isOpen, setIsOpen] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('ALL');
+
+  const [showGhostModal, setShowGhostModal] = useState(false);
 
   const loadNews = async () => {
     try {
@@ -194,6 +198,15 @@ export const SportsNewsSection: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setShowGhostModal(true)}
+            className="px-3 py-1.5 rounded-xl bg-stadiumGreen text-black font-black text-xs flex items-center space-x-1.5 hover:bg-emerald-400 transition-all shadow-md active:scale-95"
+            title="Submit a sports news post as a ghost writer"
+          >
+            <PenTool className="w-3.5 h-3.5" />
+            <span className="hidden xs:inline">Ghost Write Post</span>
+          </button>
+
           <button
             onClick={loadNews}
             className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-gray-300 flex items-center space-x-1.5 transition-all shadow"
@@ -439,6 +452,12 @@ export const SportsNewsSection: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Ghost Blogger Submission Suite Modal */}
+      <GhostBloggerModal
+        isOpen={showGhostModal}
+        onClose={() => setShowGhostModal(false)}
+      />
     </section>
   );
 };

@@ -433,34 +433,23 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
               </span>
             </button>
 
-            {/* Dynamic Status / Color-Coded Kickoff Countdown Pill */}
+            {/* Status Indicator (Clean, non-duplicate single time in center) */}
             {isLive ? (
               <span className="flex-shrink-0 flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-crimson/25 border border-crimson/60 text-crimson text-[9px] font-mono font-black shadow-sm">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-crimson opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-crimson"></span>
                 </span>
-                <span className="tabular-nums">LIVE {formattedLiveClock}</span>
+                <span>LIVE</span>
               </span>
             ) : isFinished ? (
               <span className={`flex-shrink-0 flex items-center space-x-1 px-2 py-0.5 rounded-full text-[9px] font-black border ${
                 isWon ? 'bg-stadiumGreen/20 border-stadiumGreen/60 text-stadiumGreen' : 'bg-gray-800 border-gray-700 text-gray-300'
               }`}>
                 <CheckCircle2 className="w-3 h-3" />
-                <span>FT • {match.homeScore ?? 0}-{match.awayScore ?? 0}</span>
+                <span>FINAL</span>
               </span>
-            ) : (
-              <span className={`flex-shrink-0 flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[9px] font-black border transition-all ${
-                countdown.status === 'URGENT'
-                  ? 'bg-stadiumGreen/20 border-stadiumGreen text-stadiumGreen animate-pulse shadow-sm'
-                  : countdown.status === 'SOON'
-                  ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
-                  : 'bg-white/10 border-white/10 text-gray-300'
-              }`}>
-                <Clock className="w-3 h-3" />
-                <span>{countdown.text}</span>
-              </span>
-            )}
+            ) : null}
           </div>
 
           {/* Quick Header Actions: Follow & Bookmark */}

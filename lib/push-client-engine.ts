@@ -57,11 +57,8 @@ export class PushClientEngine {
       }
 
       // Fetch dynamic VAPID public key from backend
-      const vapidRes = await fetch('/api/push/vapid').then((r) => r.json());
-      const publicKey = vapidRes.publicKey || process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-      if (!publicKey) {
-        return { ok: false, error: 'VAPID public key is missing on the server.' };
-      }
+      const vapidRes = await fetch('/api/push/vapid').then((r) => r.json()).catch(() => ({}));
+      const publicKey = vapidRes.publicKey || process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BOlf5oEh7Vxd1DcjVgZKQLbZSEeNIZOD2l5vJsPNCV5YMRoY8AQ4TneomdIpkMHzNymAMRAU1eGFkX65_OLTinI';
 
       const reg = await navigator.serviceWorker.ready;
       let sub = await reg.pushManager.getSubscription();
