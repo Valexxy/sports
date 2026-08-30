@@ -36,7 +36,7 @@ import { UserProfileEngine } from '../lib/user-profile-engine';
 import { ProfessionalSettlementEngine } from '../lib/settlement-engine';
 import { LiveStadiumCommentaryModal } from './live-stadium-commentary-modal';
 import { HeadToHeadArenaModal } from './head-to-head-arena-modal';
-import { MatchIntelligenceDrawer } from './match-intelligence-drawer';
+import { LocationIntelligenceEngine } from '../lib/location-intelligence-engine';
 import { useModalBackHandler } from '../lib/history-back-navigation';
 
 export interface DailyMatchCardProps {
@@ -161,7 +161,12 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   const [isAddedToSlip, setIsAddedToSlip] = useState<boolean>(false);
   const [showCommentaryModal, setShowCommentaryModal] = useState<boolean>(false);
   const [showH2HModal, setShowH2HModal] = useState<boolean>(false);
+  const [showVenueIntel, setShowVenueIntel] = useState<boolean>(false);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
+
+  const venueIntel = useMemo(() => {
+    return LocationIntelligenceEngine.getMatchVenueIntel(match.homeTeam, match.awayTeam, match.league);
+  }, [match.homeTeam, match.awayTeam, match.league]);
 
   // Hook to handle phone back button when modals are open
   useModalBackHandler(showCommentaryModal, () => setShowCommentaryModal(false));
@@ -615,6 +620,68 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
 
 
 
+
+        {/* 6. Venue & Geo-Physics Intelligence Bar */}
+        <div 
+          onClick={(e) => { e.stopPropagation(); setShowVenueIntel(!showVenueIntel); }}
+          className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 cursor-pointer transition-all text-[10px] font-mono text-gray-300 shadow-sm"
+        >
+          <div className="flex items-center space-x-1.5 truncate">
+            <span className="text-stadiumGreen font-black">🏟️ {venueIntel.stadiumName}</span>
+            <span className="text-gray-600">•</span>
+            <span className="text-gray-400">{venueIntel.elevationMeters}m Alt</span>
+            <span className="text-gray-600">•</span>
+            <span className={venueIntel.travelFatigueTier === 'LOCAL_DERBY' ? 'text-amber-400 font-bold' : 'text-gray-400'}>
+              {venueIntel.travelFatigueTier === 'LOCAL_DERBY' ? '⚔️ Derby' : `✈️ ${venueIntel.travelDistanceKm}km`}
+            </span>
+          </div>
+          <span className="text-gray-400 text-[9px] font-bold hover:text-stadiumGreen transition-colors flex-shrink-0">
+            {showVenueIntel ? '▲ Hide Dossier' : '▼ Geo Physics'}
+          </span>
+        </div>
+
+        {/* Collapsible Venue Geo-Physics Dossier */}
+        {showVenueIntel && (
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="p-3 rounded-2xl bg-[#090f1d] border border-stadiumGreen/40 space-y-2 text-xs font-sans text-gray-200 animate-fadeIn shadow-xl"
+          >
+            <div className="flex items-center justify-between border-b border-white/10 pb-1.5 text-[11px]">
+              <strong className="text-white font-mono flex items-center space-x-1.5">
+                <span>📍</span>
+                <span>{venueIntel.stadiumName} ({venueIntel.stadiumCity})</span>
+              </strong>
+              <span className="px-2 py-0.5 rounded-full bg-stadiumGreen/20 text-stadiumGreen font-mono font-bold text-[9px]">
+                {venueIntel.pitchSurface}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 text-[10px] font-mono">
+              <div className="p-2 rounded-xl bg-black/50 border border-white/10 space-y-0.5">
+                <span className="text-gray-400 block">⛰️ Elevation / Ball Drag:</span>
+                <span className="text-white font-bold block">{venueIntel.elevationMeters}m ({venueIntel.altitudeTier})</span>
+                {venueIntel.altitudeNote && (
+                  <span className="text-amber-400 text-[9px] block leading-tight font-sans">{venueIntel.altitudeNote}</span>
+                )}
+              </div>
+
+              <div className="p-2 rounded-xl bg-black/50 border border-white/10 space-y-0.5">
+                <span className="text-gray-400 block">✈️ Away Travel Burden:</span>
+                <span className="text-white font-bold block">{venueIntel.travelDistanceKm} km ({venueIntel.travelFatigueTier.replace(/_/g, ' ')})</span>
+                {venueIntel.derbyAlert ? (
+                  <span className="text-crimson text-[9px] block leading-tight font-sans">{venueIntel.derbyAlert}</span>
+                ) : venueIntel.travelNote ? (
+                  <span className="text-gray-300 text-[9px] block leading-tight font-sans">{venueIntel.travelNote}</span>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-1 text-[9px] font-mono text-gray-400 border-t border-white/5">
+              <span>🏟️ Capacity: {venueIntel.stadiumCapacity.toLocaleString()} (Intimidation: {venueIntel.crowdIntimidationScore}/100)</span>
+              <span className="text-stadiumGreen font-bold">{venueIntel.airQualityStatus}</span>
+            </div>
+          </div>
+        )}
 
         {/* 7. Gen Z Emoji Quick Reactions Bar */}
         <div className="flex items-center justify-between gap-1 pt-1 border-t border-white/5" onClick={(e) => e.stopPropagation()}>
