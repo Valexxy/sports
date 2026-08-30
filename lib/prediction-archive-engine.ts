@@ -237,6 +237,10 @@ function toArchivedMatch(m: MatchData): ArchivedMatch {
     result = 'VOID';
     odds = 1.00;
     note = `Match fixture officially ${voidCheck.reason}. Selection settled as VOID (1.00x Odds) — Stake 100% Refunded.`;
+  } else if (pickInfo.selection.toLowerCase().includes('watch only') || pickInfo.market === 'N/A' || m.prediction?.hasPrediction === false) {
+    result = 'VOID';
+    odds = 1.00;
+    note = `Watch-Only Match (Low League Coverage). Neutral fixture — No betting pick was published.`;
   } else {
     result = evaluatePredictionResult(
       pickInfo.selection,
