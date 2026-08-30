@@ -58,7 +58,6 @@ import { stadiumAudio } from '../lib/sound-synthesizer';
 import { speakNaija, allowSpeechOnUserGesture } from '../lib/naija-voice-engine';
 import { playerFollowEngine } from '../lib/player-follow-engine';
 import { SettlementLedgerSection } from '../components/settlement-ledger-section';
-import { LiveVisitorsPulse } from '../components/live-visitors-pulse';
 import { RealtimeCaptureStatus } from '../components/realtime-capture-status';
 import { MatchAlertScheduler } from '../lib/match-alert-scheduler';
 import { LiveMatchFxEngine } from '../lib/live-match-fx-engine';
@@ -160,6 +159,8 @@ export default function Home() {
   const [showConverterModal, setShowConverterModal] = useState(false);
   const [collapseBankers, setCollapseBankers] = useState(false);
   const [collapseAllMatches, setCollapseAllMatches] = useState(true);
+  const [collapsedLeagues, setCollapsedLeagues] = useState<Record<string, boolean>>({});
+  const [expandedLeagueRows, setExpandedLeagueRows] = useState<Record<string, boolean>>({});
   const [showBanterModal, setShowBanterModal] = useState(false);
   const [showGrassrootsModal, setShowGrassrootsModal] = useState(false);
   const [showStandingsModal, setShowStandingsModal] = useState(false);
@@ -479,6 +480,21 @@ export default function Home() {
 
   const displayedMatches = filteredMatches.slice(0, visibleCount);
 
+  const leagueGroupedMatches = useMemo(() => {
+    const groups: { [league: string]: { flag: string; matches: MatchData[] } } = {};
+    displayedMatches.forEach((m) => {
+      const leagueName = m.league || 'World Fixtures';
+      if (!groups[leagueName]) {
+        groups[leagueName] = {
+          flag: m.leagueFlag || '⚽',
+          matches: [],
+        };
+      }
+      groups[leagueName].matches.push(m);
+    });
+    return groups;
+  }, [displayedMatches]);
+
   const todayLabel = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' });
 
   type PillDef = { key: FilterType; emoji: string; label: string; count: number; activeClass: string };
@@ -732,41 +748,128 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Matches Grid */}
+            {/* Matches Grouped By Collapsible League Sections */}
             {loadingMatches ? (
               <AnimatedPredictionSkeleton />
             ) : filteredMatches.length > 0 ? (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {displayedMatches.map(match => (
-                    <DailyMatchCard
-                      key={match.id}
-                      match={match}
-                      onOpenInsights={setSelectedMatchForInsights}
-                      onSelectOdds={handleAddBetItem}
-                      onBookmarkMatch={handleBookmarkToggle}
-                      onSelectClub={(club) => { setSelectedClubForProfile(club); setShowTeamsModal(true); }}
-                      followedMatchIds={followedMatchIds}
-                      onToggleFollow={handleToggleFollow}
-                      onOpenStandings={(league) => {
-                        setSelectedLeagueForTable(league);
-                        setShowStandingsModal(true);
-                      }}
-                      onOpenTeam={(teamName) => { setSelectedClubForProfile(teamName); setShowTeamsModal(true); }}
-                    />
-                  ))}
-                </div>
+              <div className="space-y-6">
+                {Object.entries(leagueGroupedMatches).map(([leagueName, group]) => {
+                  const isLeagueCollapsed = !!collapsedLeagues[leagueName];
+                  const isExpandedRows = !!expandedLeagueRows[leagueName];
+                  const totalLeagueMatches = group.matches.length;
+                  const visibleMatches = (!isExpandedRows && totalLeagueMatches > 3)
+                    ? group.matches.slice(0, 3)
+                    : group.matches;
+
+                  return (
+                    <div
+                      key={`league-section-${leagueName}`}
+                      className="p-3.5 sm:p-4 rounded-3xl bg-black/60 border border-white/10 shadow-xl space-y-3 font-mono"
+                    >
+                      {/* League Section Header with Collapse Toggle */}
+                      <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5">
+                        <div className="flex items-center space-x-2.5 min-w-0">
+                          <span className="text-base sm:text-lg flex-shrink-0">{group.flag}</span>
+                          <div className="min-w-0">
+                            <h3 className="font-extrabold text-xs sm:text-sm text-white truncate flex items-center space-x-1.5">
+                              <span>{leagueName}</span>
+                            </h3>
+                            <span className="text-[10px] text-gray-400 font-sans block">
+                              {totalLeagueMatches} {totalLeagueMatches === 1 ? 'Fixture' : 'Fixtures'} Scheduled
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-2 flex-shrink-0">
+                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-white/10 text-gray-300 font-bold hidden sm:inline">
+                            {totalLeagueMatches} Matches
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setCollapsedLeagues((prev) => ({
+                                ...prev,
+                                [leagueName]: !prev[leagueName],
+                              }))
+                            }
+                            className="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white text-[10px] font-black flex items-center space-x-1 border border-white/10 transition-all"
+                            title={isLeagueCollapsed ? 'Expand League' : 'Collapse League'}
+                          >
+                            <span>{isLeagueCollapsed ? 'Expand ▾' : 'Collapse ▴'}</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* League Match Cards (Collapsible to 1 Row if > 3 matches) */}
+                      {!isLeagueCollapsed && (
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                            {visibleMatches.map((match) => (
+                              <DailyMatchCard
+                                key={match.id}
+                                match={match}
+                                onOpenInsights={setSelectedMatchForInsights}
+                                onSelectOdds={handleAddBetItem}
+                                onBookmarkMatch={handleBookmarkToggle}
+                                onSelectClub={(club) => {
+                                  setSelectedClubForProfile(club);
+                                  setShowTeamsModal(true);
+                                }}
+                                followedMatchIds={followedMatchIds}
+                                onToggleFollow={handleToggleFollow}
+                                onOpenStandings={(league) => {
+                                  setSelectedLeagueForTable(league);
+                                  setShowStandingsModal(true);
+                                }}
+                                onOpenTeam={(teamName) => {
+                                  setSelectedClubForProfile(teamName);
+                                  setShowTeamsModal(true);
+                                }}
+                              />
+                            ))}
+                          </div>
+
+                          {/* 1-Row Expansion Control for Large League Fixture Lists */}
+                          {totalLeagueMatches > 3 && (
+                            <div className="text-center pt-1">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setExpandedLeagueRows((prev) => ({
+                                    ...prev,
+                                    [leagueName]: !prev[leagueName],
+                                  }))
+                                }
+                                className="px-4 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-bold text-stadiumGreen hover:text-emerald-400 inline-flex items-center space-x-1.5 transition-all"
+                              >
+                                <span>
+                                  {isExpandedRows
+                                    ? `Collapse to 1 Row (3 Matches) ▴`
+                                    : `View All ${totalLeagueMatches} ${leagueName} Matches ▾`}
+                                </span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
                 {filteredMatches.length > visibleCount && (
                   <div className="text-center pt-2">
-                    <button onClick={() => setVisibleCount(prev => prev + 6)}
-                      className="px-6 py-3 rounded-2xl bg-stadiumGreen/20 hover:bg-stadiumGreen/30 border border-stadiumGreen/40 text-stadiumGreen font-black text-sm inline-flex items-center space-x-2 transition-all hover:scale-105">
+                    <button
+                      onClick={() => setVisibleCount((prev) => prev + 12)}
+                      className="px-6 py-3 rounded-2xl bg-stadiumGreen/20 hover:bg-stadiumGreen/30 border border-stadiumGreen/40 text-stadiumGreen font-black text-sm inline-flex items-center space-x-2 transition-all hover:scale-105"
+                    >
                       <Zap className="w-4 h-4" />
-                      <span>Show 6 More Matches</span>
+                      <span>Show More League Matches</span>
                       <ChevronDown className="w-4 h-4" />
                     </button>
                   </div>
                 )}
-              </>
+              </div>
             ) : (
               <div className="p-10 text-center rounded-3xl glass-panel border border-white/10 space-y-3">
                 <Radio className="w-8 h-8 text-gold mx-auto" />
@@ -797,9 +900,6 @@ export default function Home() {
           
           {/* 9. 1v1 P2P SOCIAL WAGERS */}
           
-
-          {/* 10. REAL-TIME STADIUM FAN PULSE & LIVE VISITORS TELEMETRY */}
-          <LiveVisitorsPulse />
 
           {/* 11. FULL SETTLEMENT LEDGER & AUDIT SUMMARY ON HOMEPAGE */}
           <SettlementLedgerSection onOpenAuditModal={() => setShowTrackRecord(true)} />
