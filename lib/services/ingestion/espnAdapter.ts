@@ -1,5 +1,5 @@
 /**
- * Mivaj / AuraScore Stadium 2.0 - ESPN & Multi-Source Ingestion Pipeline
+ * Mivaj Sports Pro - ESPN & Multi-Source Ingestion Pipeline
  * High-performance, decoupled background workers for deep entity telemetry.
  */
 

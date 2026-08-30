@@ -73,7 +73,7 @@ export const BetSlipDrawer: React.FC<BetSlipProps> = ({
     {
       id: 'bet9ja',
       name: `Bet9ja (${bet9jaCode})`,
-      url: 'https://sports.bet9ja.com?ref=aurascore',
+      url: 'https://sports.bet9ja.com?ref=mivaj',
       badge: 'NAIJA #1 🔴',
       bgClass: 'bg-green-700 hover:bg-green-600 text-white',
       borderClass: 'border-green-400',
@@ -82,7 +82,7 @@ export const BetSlipDrawer: React.FC<BetSlipProps> = ({
     {
       id: '1xbet',
       name: `1xBet (${onexCode})`,
-      url: 'https://1xbet.ng?ref=aurascore',
+      url: 'https://1xbet.ng?ref=mivaj',
       badge: '300% WELCOME 🔵',
       bgClass: 'bg-cyan-700 hover:bg-cyan-600 text-white',
       borderClass: 'border-cyan-400',

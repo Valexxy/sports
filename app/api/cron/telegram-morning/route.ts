@@ -3,6 +3,7 @@ import { getRealLiveAndPlayedMatches } from '../../../../lib/real-sports-stream'
 import { TelegramBotService } from '../../../../services/telegram/botService';
 import { TelegramVipDispatcher } from '../../../../lib/telegram-vip-dispatcher';
 import { AFFILIATE_PARTNERS } from '../../../../config/affiliates';
+import { broadcastPushMessage } from '../../../../lib/push-broadcast-engine';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -136,6 +137,18 @@ export async function GET(req: Request) {
       }
     } catch (e: any) {
       console.warn('Direct member dispatch warning:', e?.message);
+    }
+
+    // Web Push Fanout to all subscribed devices
+    try {
+      await broadcastPushMessage({
+        title: `🔥 8:00 AM MIVAJ BANKER SLIP IS LIVE!`,
+        body: `Top ${teaserCount} bankers @ ${teaserOdds} odds are ready. Win rate: ${avgProb}%. Tap to view matches.`,
+        url: '/?ref=morning_push',
+        tag: 'mivaj-morning-banker',
+      });
+    } catch (e: any) {
+      console.warn('Web push broadcast warning:', e?.message);
     }
 
     return NextResponse.json({

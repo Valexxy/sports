@@ -54,7 +54,7 @@ export async function fetchFreePlayerMetadata(playerName: string): Promise<FreeP
       } LIMIT 1
     `;
     const url = `https://query.wikidata.org/sparql?query=${encodeURIComponent(sparqlQuery)}&format=json`;
-    const res = await fetch(url, { headers: { 'User-Agent': 'AuraScoreStadium/2.0' } });
+    const res = await fetch(url, { headers: { 'User-Agent': 'MivajSportsPro/2.0' } });
     const data = await res.json();
     if (data && data.results && data.results.bindings.length > 0) {
       const binding = data.results.bindings[0];

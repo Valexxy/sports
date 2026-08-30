@@ -3,6 +3,7 @@ import { PwaInstallPromptModal } from '../components/pwa/PwaInstallPromptModal';
 import { PersistentDynamicIslandPlayer } from '../components/audio/PersistentDynamicIslandPlayer';
 import { PageviewMonetizer } from '../components/monetization/PageviewMonetizer';
 import { EnvironmentIntelHeader } from '../components/environment-intel-header';
+import { TelegramViralReferralBanner } from '../components/viral/telegram-viral-referral-banner';
 import './globals.css';
 import { LanguageProvider } from '../lib/translation-engine';
 import type { Metadata, Viewport } from 'next';
@@ -97,43 +98,61 @@ export default function RootLayout({
 }) {
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'SportsOrganization',
-    name: 'Mivaj Sports',
-    url: 'https://mivaj.com',
-    logo: 'https://mivaj.com/logo.svg',
-    email: 'mivajtips@gmail.com',
-    description: 'World-First Free Football Match Predictions, Live Goal Heartbeat Haptics, Referee-Audited Settlement Ledger, and Real-time Matchday Intelligence.',
-    sport: 'Football, Soccer',
-    sameAs: [
-      'https://t.me/mivasport',
-      'https://twitter.com/MivajSports',
+    '@graph': [
+      {
+        '@type': 'SportsOrganization',
+        '@id': 'https://mivaj.com/#organization',
+        name: 'Mivaj Sports',
+        url: 'https://mivaj.com',
+        logo: 'https://mivaj.com/logo.svg',
+        email: 'contact@mivaj.com',
+        description: 'World-First Free Football Match Predictions, Live Goal Heartbeat Haptics, Referee-Audited Settlement Ledger, and Real-time Matchday Intelligence.',
+        sport: 'Football, Soccer',
+        sameAs: [
+          'https://t.me/mivajsport',
+          'https://twitter.com/MivajSports',
+        ],
+        contactPoint: {
+          '@type': 'ContactPoint',
+          email: 'contact@mivaj.com',
+          contactType: 'Customer Support & Tips Inquiries',
+        },
+      },
+      {
+        '@type': 'WebSite',
+        '@id': 'https://mivaj.com/#website',
+        url: 'https://mivaj.com',
+        name: 'Mivaj Sports',
+        description: 'Real-time live scores, xG pitch heatmaps, referee-audited match settlement ledger, and sports intelligence.',
+        publisher: { '@id': 'https://mivaj.com/#organization' },
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: 'https://mivaj.com/players?query={search_term_string}',
+          },
+          'query-input': 'required name=search_term_string',
+        },
+      },
     ],
-    contactPoint: {
-      '@type': 'ContactPoint',
-      email: 'mivajtips@gmail.com',
-      contactType: 'Customer Support & Tips Inquiries',
-    },
   };
 
   return (
     <html lang="en" className="dark">
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
-        <meta name="theme-color" content="#05070B" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Mivaj Sports" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
         <link rel="icon" href="/icons/icon-192.png" sizes="192x192" type="image/png" />
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+        <link rel="alternate" type="application/rss+xml" title="Mivaj Sports Breaking Wire & Matchday Previews" href="/feed.xml" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Mivaj Sports" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="format-detection" content="telephone=no" />
-        <meta name="description" content="Real-time live scores, xG analytics, and match commentary across top football leagues." />
 
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
         />
       </head>
       <body className="bg-void text-white min-h-screen antialiased selection:bg-stadiumGreen selection:text-black">
@@ -156,6 +175,9 @@ export default function RootLayout({
 
           {/* Pageview Monetization Core */}
           <PageviewMonetizer />
+
+          {/* Telegram Channel Viral Acquisition Banner */}
+          <TelegramViralReferralBanner />
         </LanguageProvider>
 
         {/* Universal Script for Google Translate */}

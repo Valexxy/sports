@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ArrowLeft, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Mail } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AboutPage() {
@@ -51,21 +51,22 @@ export default function AboutPage() {
             </div>
           </div>
 
-          {/* WhatsApp Direct Communication Desk */}
+          {/* Direct Communication Desk */}
           <div className="p-4 rounded-2xl bg-panel border border-stadiumGreen/40 space-y-3">
             <span className="font-mono font-black text-white text-xs block">Official Communication Desk:</span>
             <p className="text-[11px] text-gray-300 font-sans">
-              For corporate sponsorships, brand partnerships, grassroots scouting inquiries, or general communication, reach our official team directly on WhatsApp:
+              For corporate sponsorships, brand partnerships, grassroots scouting inquiries, or general communication, reach our official team directly via email:
             </p>
-            <a
-              href="https://wa.me/2348072015725"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-5 py-2.5 rounded-xl bg-[#25D366] text-black font-black text-xs inline-flex items-center space-x-2 shadow-lg hover:scale-105 transition-all"
+            <button
+              type="button"
+              onClick={() => {
+                window.location.href = 'mailto:contact@mivaj.com?subject=Partnership%20%26%20Inquiry%20-%20Mivaj%20Sports';
+              }}
+              className="px-5 py-2.5 rounded-xl bg-stadiumGreen text-black font-black text-xs inline-flex items-center space-x-2 shadow-lg hover:scale-105 transition-all cursor-pointer border-0"
             >
-              <MessageCircle className="w-4 h-4 text-black fill-black" />
-              <span>Chat Directly on WhatsApp (+234 807 201 5725) ➔</span>
-            </a>
+              <Mail className="w-4 h-4 text-black" />
+              <span>Contact Support Directly (Email Desk) ➔</span>
+            </button>
           </div>
 
           <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-[11px] text-gray-400 font-mono">

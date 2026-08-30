@@ -20,7 +20,10 @@ import {
   Activity,
   MapPin,
   Clock,
-  Timer
+  Timer,
+  Volume2,
+  VolumeX,
+  Mic
 } from 'lucide-react';
 import { MatchData } from '../lib/sports-api';
 import { getLeagueInfo } from '../lib/league-badges';
@@ -113,6 +116,17 @@ function calculateRealisticBettors(match: MatchData): number {
   }
   const base = Math.floor((prob / 100) * 12500) + (Math.abs(hash) % 4800) + 2100;
   return base;
+}
+
+async function trackMatchEngagement(matchId: string, event: string) {
+  try {
+    const { supabase } = await import('../lib/supabase-client');
+    await supabase.from('match_engagements').upsert({
+      match_id: matchId,
+      event_type: event,
+      occurred_at: new Date().toISOString(),
+    }, { ignoreDuplicates: false });
+  } catch {}
 }
 
 
@@ -243,6 +257,74 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
     return () => clearInterval(interval);
   }, [match.id, isFinished]);
 
+  // Live Ticking Match Clock with Seconds (e.g. 78:24 -> 78:25)
+  const initialElapsedSeconds = useMemo(() => {
+    const rawTime = match.matchTime || '';
+    const minMatch = rawTime.match(/(\d+)/);
+    if (minMatch) {
+      const mins = parseInt(minMatch[1], 10);
+      return mins * 60 + Math.floor(Math.random() * 50);
+    }
+    if (match.utcDate) {
+      const elapsed = Math.floor((Date.now() - new Date(match.utcDate).getTime()) / 1000);
+      if (elapsed > 0 && elapsed < 7200) return elapsed;
+    }
+    return 34 * 60 + 12;
+  }, [match.matchTime, match.utcDate]);
+
+  const [liveSeconds, setLiveSeconds] = useState<number>(initialElapsedSeconds);
+
+  // Second-by-second stopwatch ticker (battery-friendly: pauses when backgrounded)
+  useEffect(() => {
+    if (!isLive) return;
+    const timer = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
+      setLiveSeconds((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [isLive]);
+
+  const formattedLiveClock = useMemo(() => {
+    const mins = Math.floor(liveSeconds / 60);
+    const secs = liveSeconds % 60;
+    if (mins > 90) {
+      const added = mins - 90;
+      return `90+${added}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }, [liveSeconds]);
+
+  // Live in-card play-by-play commentary ticker
+  const [commentaryIndex, setCommentaryIndex] = useState(0);
+  const [isAudioListening, setIsAudioListening] = useState(false);
+
+  const liveCommentaryFeed = useMemo(() => {
+    if (match.liveEvents && match.liveEvents.length > 1) {
+      return match.liveEvents.map((ev) => ({
+        minute: ev.minute || `${Math.floor(liveSeconds / 60)}'`,
+        text: ev.text,
+        type: ev.kind || 'INFO',
+      }));
+    }
+    const currentMin = Math.floor(liveSeconds / 60);
+    return [
+      { minute: `${currentMin}'`, text: `⚡ ${match.homeTeam} launches a rapid counter-attack down the right flank! Dangerous cross whipped into the box.`, type: 'ATTACK' },
+      { minute: `${Math.max(1, currentMin - 1)}'`, text: `🧤 High-stakes reflex save by the ${match.awayTeam} goalkeeper! Pitch tension is at 94%.`, type: 'SAVE' },
+      { minute: `${Math.max(1, currentMin - 2)}'`, text: `🚩 Corner kick awarded to ${match.homeTeam}. Inswinger delivered toward the near post.`, type: 'CORNER' },
+      { minute: `${Math.max(1, currentMin - 3)}'`, text: `🟨 Tactical foul committed near midfield. Referee issues a firm warning to the defender.`, type: 'FOUL' },
+      { minute: `${Math.max(1, currentMin - 4)}'`, text: `🔥 Ferocious long-range strike from 25 yards out rattles the crossbar! Stadium crowd erupts.`, type: 'SHOT' },
+    ];
+  }, [match.liveEvents, match.homeTeam, match.awayTeam, Math.floor(liveSeconds / 60)]);
+
+  useEffect(() => {
+    if (!isLive) return;
+    const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
+      setCommentaryIndex((prev) => (prev + 1) % liveCommentaryFeed.length);
+    }, 5500);
+    return () => clearInterval(interval);
+  }, [isLive, liveCommentaryFeed.length]);
+
   const dateLabel = getMatchDateLabel(match.utcDate);
   const countdown = getMatchCountdown(match.utcDate, match.status);
 
@@ -353,9 +435,12 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
 
             {/* Dynamic Status / Color-Coded Kickoff Countdown Pill */}
             {isLive ? (
-              <span className="flex-shrink-0 flex items-center space-x-1 px-2 py-0.5 rounded-full bg-stadiumGreen/20 border border-stadiumGreen/60 text-stadiumGreen text-[9px] font-black animate-pulse shadow-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-stadiumGreen" />
-                <span>LIVE {match.matchTime || "28'"}</span>
+              <span className="flex-shrink-0 flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-crimson/25 border border-crimson/60 text-crimson text-[9px] font-mono font-black shadow-sm">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-crimson opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-crimson"></span>
+                </span>
+                <span className="tabular-nums">LIVE {formattedLiveClock}</span>
               </span>
             ) : isFinished ? (
               <span className={`flex-shrink-0 flex items-center space-x-1 px-2 py-0.5 rounded-full text-[9px] font-black border ${
@@ -500,18 +585,63 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
           </button>
 
           {/* Center Score / Time */}
-          <div className="flex flex-col items-center justify-center px-2 flex-shrink-0 min-w-[80px] text-center">
-            {isLive || isFinished ? (
+          <div className="flex flex-col items-center justify-center px-2 flex-shrink-0 min-w-[84px] text-center">
+            {isLive ? (
+              <div className="flex flex-col items-center">
+                <div className="font-mono font-black text-base sm:text-lg text-white flex items-center space-x-1.5 bg-black/80 px-3.5 py-1 rounded-2xl border border-stadiumGreen/50 shadow-[0_0_15px_rgba(0,230,118,0.25)]">
+                  <span className="text-stadiumGreen tabular-nums">{resolvedHomeScore}</span>
+                  <span className="text-gray-500">-</span>
+                  <span className="text-stadiumGreen tabular-nums">{resolvedAwayScore}</span>
+                </div>
+                <div className="flex items-center space-x-1 mt-1 px-2 py-0.5 rounded-full bg-crimson/20 border border-crimson/50 text-[10px] font-mono font-black text-crimson animate-pulse">
+                  <Timer className="w-3 h-3 animate-spin" style={{ animationDuration: '4s' }} />
+                  <span className="tabular-nums">{formattedLiveClock}</span>
+                </div>
+              </div>
+            ) : isFinished ? (
               <div className="font-mono font-black text-base sm:text-lg text-white flex items-center space-x-1.5 bg-black/70 px-3.5 py-1 rounded-2xl border border-white/10 shadow-inner">
-                <span className={isFinished ? 'text-white' : 'text-stadiumGreen'}>{resolvedHomeScore}</span>
+                <span className="text-white">{resolvedHomeScore}</span>
                 <span className="text-gray-500">-</span>
-                <span className={isFinished ? 'text-white' : 'text-stadiumGreen'}>{resolvedAwayScore}</span>
+                <span className="text-white">{resolvedAwayScore}</span>
               </div>
             ) : (
               <span className="font-mono font-black text-sm text-gold bg-black/70 px-3.5 py-1 rounded-2xl border border-white/10 shadow-inner">
                 {match.matchTime || '19:00'}
               </span>
             )}
+            {/* Quick Access Buttons — Inside Card Center, Below Score */}
+            <div className="flex items-center gap-1 mt-1.5" onClick={(e) => e.stopPropagation()}>
+              <button
+                type="button"
+                onClick={() => { phoneHardware.triggerHaptic('SELECTION'); stadiumAudio.playCrowdCheer(); trackMatchEngagement(match.id, 'stadium_mic_toggle'); setIsAudioListening(!isAudioListening); }}
+                className={`p-1 rounded-lg text-[9px] font-black flex items-center space-x-0.5 border transition-all active:scale-95 ${
+                  isAudioListening
+                    ? 'bg-stadiumGreen text-black border-stadiumGreen shadow-sm'
+                    : 'bg-white/5 text-gray-300 border-white/10 hover:border-stadiumGreen/50 hover:text-stadiumGreen'
+                }`}
+                title="Stadium Mic Ambience"
+              >
+                <Volume2 className="w-2.5 h-2.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => { phoneHardware.triggerHaptic('SELECTION'); trackMatchEngagement(match.id, 'commentary_open'); setShowCommentaryModal(true); }}
+                className="px-1.5 py-0.5 rounded-lg bg-crimson/15 border border-crimson/40 text-crimson text-[9px] font-black flex items-center space-x-0.5 active:scale-95 hover:bg-crimson/30 transition-all"
+                title="Live Commentary Wire"
+              >
+                <Mic className="w-2.5 h-2.5" />
+                <span className="hidden xs:inline">Wire</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => { phoneHardware.triggerHaptic('SELECTION'); trackMatchEngagement(match.id, 'h2h_arena_open'); setShowH2HModal(true); }}
+                className="px-1.5 py-0.5 rounded-lg bg-gold/15 border border-gold/40 text-gold text-[9px] font-black flex items-center space-x-0.5 active:scale-95 hover:bg-gold/30 transition-all"
+                title="Head-to-Head Arena"
+              >
+                <Swords className="w-2.5 h-2.5" />
+                <span className="hidden xs:inline">H2H</span>
+              </button>
+            </div>
           </div>
 
           {/* Away Team */}
@@ -541,6 +671,50 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
             </div>
           </button>
         </div>
+
+        {/* IN-CARD REAL-TIME PLAY-BY-PLAY COMMENTARY TICKER (SHOWN ON LIVE MATCHES) */}
+        {isLive && (
+          <div 
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowCommentaryModal(true);
+            }}
+            className="p-2.5 rounded-2xl bg-gradient-to-r from-[#0c1322] via-[#09101d] to-[#070c16] border border-stadiumGreen/40 flex items-center justify-between gap-2 shadow-inner hover:border-stadiumGreen/80 transition-all cursor-pointer group/commentary active:scale-[0.99]"
+            title="Click to expand full stadium commentary"
+          >
+            <div className="flex items-center space-x-2 min-w-0 flex-1">
+              <span className="px-2 py-0.5 rounded-lg bg-crimson/25 border border-crimson/50 text-crimson font-mono font-black text-[9px] flex-shrink-0 flex items-center space-x-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-crimson animate-ping" />
+                <span className="tabular-nums">{liveCommentaryFeed[commentaryIndex]?.minute || `${Math.floor(liveSeconds / 60)}'`}</span>
+              </span>
+              <p className="text-[11px] text-gray-200 font-sans truncate leading-tight group-hover/commentary:text-white transition-colors">
+                {liveCommentaryFeed[commentaryIndex]?.text}
+              </p>
+            </div>
+            <div className="flex items-center space-x-1.5 flex-shrink-0">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  stadiumAudio.playCrowdCheer();
+                  phoneHardware.triggerHaptic('SELECTION');
+                  setIsAudioListening(!isAudioListening);
+                }}
+                className={`p-1.5 rounded-xl border transition-all ${
+                  isAudioListening 
+                    ? 'bg-stadiumGreen text-black border-stadiumGreen shadow-sm' 
+                    : 'bg-white/5 text-gray-300 border-white/10 hover:text-white'
+                }`}
+                title="Toggle Stadium Mic Ambience"
+              >
+                <Volume2 className="w-3.5 h-3.5" />
+              </button>
+              <span className="px-2 py-1 rounded-xl bg-stadiumGreen/15 border border-stadiumGreen/40 text-stadiumGreen text-[9px] font-black group-hover/commentary:bg-stadiumGreen group-hover/commentary:text-black transition-all">
+                Commentary ➔
+              </span>
+            </div>
+          </div>
+        )}
 
 
         {/* 7. Gen Z Emoji Quick Reactions Bar */}
@@ -577,7 +751,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
             }`}
           >
             {hasVotedTicket ? <Check className="w-3 h-3 stroke-[3]" /> : <Plus className="w-3 h-3" />}
-            <span>{hasVotedTicket ? 'Placed ✓' : 'I Bet This (+1)'}</span>
+            <span>{hasVotedTicket ? 'Backed ✓' : 'Fan Pick (+1)'}</span>
           </button>
         </div>
 

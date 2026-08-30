@@ -91,7 +91,7 @@ export const BetSlipConverter: React.FC = () => {
     } catch (err: any) {
       setTimeout(() => {
         setLoading(false);
-        setErrorMsg('Network error connecting to Converter Engine.');
+        setErrorMsg('Network error connecting to Decoder Engine.');
       }, 1200);
     }
   };

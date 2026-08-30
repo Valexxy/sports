@@ -57,8 +57,15 @@ export default function TermsPage() {
             </p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-[11px] text-gray-400">
-            Last Updated: August 2026 &bull; Mivaj Sports &bull; https://wa.me/2348072015725
+          <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-[11px] text-gray-400 flex items-center justify-between flex-wrap gap-2">
+            <span>Last Updated: August 2026 &bull; Mivaj Sports Legal Desk</span>
+            <button
+              type="button"
+              onClick={() => { window.location.href = 'mailto:contact@mivaj.com?subject=Terms%20of%20Service%20Inquiry'; }}
+              className="text-stadiumGreen font-black hover:underline cursor-pointer bg-transparent border-0 p-0"
+            >
+              Contact Legal (contact@mivaj.com) ✉️
+            </button>
           </div>
 
         </div>

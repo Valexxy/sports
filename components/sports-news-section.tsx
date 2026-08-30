@@ -415,7 +415,7 @@ export const SportsNewsSection: React.FC = () => {
               <div className="text-gray-300 leading-relaxed whitespace-pre-line space-y-3 pt-2">
                 {((lang !== 'en' && translatedMap[activeArticle.id]?.fullContent) 
                   ? translatedMap[activeArticle.id].fullContent 
-                  : (activeArticle.fullContent || 'Full tactical updates and in-play coverage continue on AuraScore Stadium Match Center.'))
+                  : (activeArticle.fullContent || 'Full tactical updates and in-play coverage continue on Mivaj Sports Match Center.'))
                   .replace(activeArticle.description, '')
                   .trim()}
               </div>

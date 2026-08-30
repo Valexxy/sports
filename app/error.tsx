@@ -12,7 +12,7 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error('Unhandled AuraScore runtime exception:', error);
+    console.error('Unhandled Mivaj Sports runtime exception:', error);
   }, [error]);
 
   return (

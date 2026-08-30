@@ -88,11 +88,11 @@ export const CodeConverterForm: React.FC = () => {
         
         <div className="flex items-center justify-between border-b border-white/10 pb-3">
           <div className="flex items-center space-x-2">
-            <span className="p-2 rounded-xl bg-stadiumGreen/20 text-stadiumGreen">🔄</span>
-            <span className="font-black text-white text-sm">Cross-Platform Code Converter</span>
+            <span className="p-2 rounded-xl bg-stadiumGreen/20 text-stadiumGreen">🔍</span>
+            <span className="font-black text-white text-sm">Booking Code Decoder &amp; Slip Inspector</span>
           </div>
           <span className="px-2.5 py-0.5 rounded-full bg-stadiumGreen/20 text-stadiumGreen text-[10px] font-black border border-stadiumGreen/40">
-            Instant 5-Bookie Parser
+            Instant 5-Bookie Decoder
           </span>
         </div>
 
@@ -166,13 +166,13 @@ export const CodeConverterForm: React.FC = () => {
         >
           {loading ? (
             <>
-              <RefreshCw className="w-4 h-4 animate-spin text-black" />
-              <span>Translating Betting Slip...</span>
+              <RefreshCw className="w-4 h-4 text-black animate-spin" />
+              <span>Inspecting Ticket Slip...</span>
             </>
           ) : (
             <>
               <Zap className="w-4 h-4 text-black" />
-              <span>Translate &amp; Convert Booking Code</span>
+              <span>Inspect &amp; Reveal Slip Details</span>
             </>
           )}
         </button>

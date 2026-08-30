@@ -30,9 +30,9 @@ export const CloutCardGenerator: React.FC<SocialFlexSlipProps> = ({
   const handleShare = (platform: 'WHATSAPP' | 'TWITTER' | 'TELEGRAM') => {
     stadiumAudio.playCrowdRoar();
     const text = encodeURIComponent(
-      `🔥 Locked in my Banker Pick on AuraScore Stadium 2.0!\n\n⚽ Fixture: ${matchTitle}\n💎 System Pick: ${pickSelection} @ ${odds}\n👑 Winning Confidence: ${winRate}%\n⚡ Predicted by: @${digitalHandle}\n\nJoin the live stadium experience: http://localhost:3000`
+      `🔥 Locked in my Banker Pick on Mivaj Sports Pro!\n\n⚽ Fixture: ${matchTitle}\n💎 System Pick: ${pickSelection} @ ${odds}\n👑 Winning Confidence: ${winRate}%\n⚡ Predicted by: @${digitalHandle}\n\nJoin the live stadium experience: https://mivaj.com`
     );
-    const url = encodeURIComponent('http://localhost:3000');
+    const url = encodeURIComponent('https://mivaj.com');
 
     if (platform === 'WHATSAPP') window.open(`https://api.whatsapp.com/send?text=${text}`);
     if (platform === 'TWITTER') window.open(`https://twitter.com/intent/tweet?text=${text}`);
@@ -148,7 +148,7 @@ export const CloutCardGenerator: React.FC<SocialFlexSlipProps> = ({
 
         {/* Watermark Footer */}
         <div className="text-center text-[9px] text-gray-500 pt-1 border-t border-white/5">
-          AURASCORE STADIUM 2.0 • 100% PROBABILITY LEDGER
+          MIVAJ SPORTS PRO • 100% PROBABILITY LEDGER
         </div>
       </div>
 

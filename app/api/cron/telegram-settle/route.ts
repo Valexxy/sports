@@ -3,6 +3,7 @@ import { getRealLiveAndPlayedMatches } from '../../../../lib/real-sports-stream'
 import { TelegramBotService } from '../../../../services/telegram/botService';
 import { buildDynamicArchive, getLedgerStats } from '../../../../lib/prediction-archive-engine';
 import { AFFILIATE_PARTNERS } from '../../../../config/affiliates';
+import { broadcastPushMessage } from '../../../../lib/push-broadcast-engine';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -132,6 +133,18 @@ export async function GET(req: Request) {
     ];
 
     const result = await TelegramBotService.sendBroadcastMessage(msg, keyboard);
+
+    // Web Push Fanout to all subscribed devices
+    try {
+      await broadcastPushMessage({
+        title: `🌙 MIVAJ SPORTS NIGHTLY AUDIT: ${todayWinRate}% WIN RATE!`,
+        body: `${wonToday} of ${totalPlayed} matches won today. Official ledger verified. Tap to view your ROI.`,
+        url: '/settlement?ref=nightly_push',
+        tag: 'mivaj-nightly-settlement',
+      });
+    } catch (e: any) {
+      console.warn('Web push broadcast warning:', e?.message);
+    }
 
     return NextResponse.json({
       success: true,

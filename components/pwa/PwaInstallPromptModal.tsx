@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Download, Bell, Share, PlusSquare, X, Check, Sparkles, Smartphone, ShieldCheck, Zap } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { phoneHardware } from '../../lib/phone-hardware-engine';
+import { PushClientEngine } from '../../lib/push-client-engine';
 
 export const PwaInstallPromptModal: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -48,8 +49,15 @@ export const PwaInstallPromptModal: React.FC = () => {
       }).catch((err) => console.log('SW registration error:', err));
     }
 
+    const handleGlobalInstalled = () => {
+      setIsStandalone(true);
+      setShowModal(false);
+    };
+    window.addEventListener('mivaj_app_installed', handleGlobalInstalled);
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('mivaj_app_installed', handleGlobalInstalled);
     };
   }, []);
 
@@ -61,6 +69,10 @@ export const PwaInstallPromptModal: React.FC = () => {
       if (outcome === 'accepted') {
         confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
         setShowModal(false);
+        localStorage.setItem('mivaj_app_installed', 'true');
+        localStorage.setItem('aurascore_installed', 'true');
+        localStorage.setItem('mivaj_pwa_dismissed', 'true');
+        window.dispatchEvent(new CustomEvent('mivaj_app_installed'));
       }
       setDeferredPrompt(null);
     }
@@ -71,34 +83,16 @@ export const PwaInstallPromptModal: React.FC = () => {
     setLoading(true);
 
     try {
-      if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-        alert('Push notifications are not supported on this browser version.');
-        setLoading(false);
-        return;
-      }
-
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        const reg = await navigator.serviceWorker.ready;
-        const sub = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBKr3qBUYIhbQFLXYp5Nksh8U'
-        });
-
-        // Sync subscription with backend
-        await fetch('/api/push/subscribe', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ subscription: sub })
-        }).catch(() => {});
-
+      const result = await PushClientEngine.subscribe();
+      if (result.ok) {
         setPushSubscribed(true);
+        phoneHardware.triggerHaptic('SUCCESS');
         confetti({ particleCount: 50, spread: 60, origin: { y: 0.5 } });
         alert('🔔 Instant Match & Goal Alerts Activated!');
       } else {
-        alert('Please allow notification permission in your browser settings to receive live goal alerts.');
+        alert(result.error || 'Please allow notification permission in your browser settings.');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.warn('Push subscription error:', err);
     } finally {
       setLoading(false);

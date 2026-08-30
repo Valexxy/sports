@@ -83,6 +83,7 @@ import { StadiumUserWeatherPanel } from '../components/stadium-user-weather-pane
 import { registerPushClient, pushClientId } from '../lib/push-client';
 import { cacheOffline } from '../lib/offline-manager';
 import { AffiliateConversionPopup } from '../components/affiliate-conversion-popup';
+import { OfficialMatchHighlightsHub } from '../components/official-match-highlights-hub';
 
 
 import { useTranslation } from '../lib/translation-engine';
@@ -158,6 +159,8 @@ export default function Home() {
   const [showSuitesMenu, setShowSuitesMenu] = useState(false);
   const [showViralArcade, setShowViralArcade] = useState(false);
   const [showConverterModal, setShowConverterModal] = useState(false);
+  const [collapseBankers, setCollapseBankers] = useState(false);
+  const [collapseAllMatches, setCollapseAllMatches] = useState(true);
   const [showBanterModal, setShowBanterModal] = useState(false);
   const [showGrassrootsModal, setShowGrassrootsModal] = useState(false);
   const [showStandingsModal, setShowStandingsModal] = useState(false);
@@ -512,6 +515,9 @@ export default function Home() {
         />
 
         <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 py-4 space-y-5">
+          <h1 className="sr-only">
+            Mivaj Sports — 100% Free Football Predictions, Live Scores &amp; Referee Settlement Ledger
+          </h1>
 
           {/* 1. GOOGLE DATE NAVIGATOR & DATE-SCOPED SPORT SELECTOR */}
           <GoogleDateNavigator onSelectDate={(dateStr, label, isToday, isPast) => { setSelectedDateStr(dateStr); setSelectedDateLabel(label); setIsViewingToday(isToday); setActiveFilter('ALL'); setSearchQuery(''); setVisibleCount(6); }} />
@@ -546,47 +552,61 @@ export default function Home() {
                   </div>
                 </div>
 
-                <span className="text-[9px] px-2.5 py-0.5 rounded-full bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/40 font-black">
-                  94%+ CONSENSUS
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-                {topBankersList.map((m) => {
-                  const p = m.prediction?.topPick;
-                  const raw = p?.selection || '1X';
-                  const cleanPick = raw.replace(/(.+) or Draw \(1X\)/i, '1X ($1)').replace(/(.+) or Draw \(X2\)/i, '2X ($1)');
-                  return (
-                    <div
-                      key={`top-banker-${m.id}`}
-                      className="p-3 rounded-2xl bg-black/70 border border-white/10 flex items-center justify-between gap-2 hover:border-stadiumGreen/60 transition-all shadow-md"
+                <div className="flex items-center space-x-2">
+                  <span className="hidden sm:inline text-[9px] px-2.5 py-0.5 rounded-full bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/40 font-black">
+                    94%+ CONSENSUS
+                  </span>
+                  {topBankersList.length > 3 && (
+                    <button
+                      type="button"
+                      onClick={() => setCollapseBankers(!collapseBankers)}
+                      className="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white text-[10px] font-black flex items-center space-x-1 border border-white/10"
+                      title={collapseBankers ? 'Show all bankers' : 'Collapse to 1 row'}
                     >
-                      <div className="min-w-0 flex-1 space-y-0.5">
-                        <span className="text-[9px] text-gray-400 font-bold block truncate">{m.league}</span>
-                        <h4 className="text-xs font-black text-white truncate">{m.homeTeam} vs {m.awayTeam}</h4>
-                        <div className="flex items-center space-x-1.5 text-[11px]">
-                          <span className="text-gold font-black">{cleanPick}</span>
-                          <span className="text-gray-300 font-mono font-bold">@{p?.odds || 1.15}</span>
-                          <span className="text-[9px] text-stadiumGreen font-bold">({p?.probability || 85}%)</span>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          try { phoneHardware.triggerHaptic('SUCCESS'); } catch {}
-                          try { stadiumAudio.playAddPickSound(); } catch {}
-                          handleSelectOdds(m, cleanPick, p?.odds || 1.15);
-                          confetti({ particleCount: 30, spread: 50, origin: { y: 0.3 } });
-                        }}
-                        className="px-3 py-2 rounded-xl bg-stadiumGreen text-black font-black text-[11px] hover:bg-emerald-400 transition-all active:scale-95 flex-shrink-0 shadow"
-                      >
-                        + Add
-                      </button>
-                    </div>
-                  );
-                })}
+                      <span>{collapseBankers ? `View All (${topBankersList.length}) ▾` : '1 Row (Compact) ▴'}</span>
+                    </button>
+                  )}
+                </div>
               </div>
+
+              {/* Always display at least 1 row of cards (top 3 in compact mode, or all when expanded) */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+                {(collapseBankers ? topBankersList.slice(0, 3) : topBankersList).map((m) => {
+                    const p = m.prediction?.topPick;
+                    const raw = p?.selection || '1X';
+                    const cleanPick = raw.replace(/(.+) or Draw \(1X\)/i, '1X ($1)').replace(/(.+) or Draw \(X2\)/i, '2X ($1)');
+                    return (
+                      <div
+                        key={`top-banker-${m.id}`}
+                        className="p-3 rounded-2xl bg-black/70 border border-white/10 flex items-center justify-between gap-2 hover:border-stadiumGreen/60 transition-all shadow-md"
+                      >
+                        <div className="min-w-0 flex-1 space-y-0.5">
+                          <span className="text-[9px] text-gray-400 font-bold block truncate">{m.league}</span>
+                          <h4 className="text-xs font-black text-white truncate">{m.homeTeam} vs {m.awayTeam}</h4>
+                          <div className="flex items-center space-x-1.5 text-[11px]">
+                            <span className="text-gold font-black">{cleanPick}</span>
+                            <span className="text-gray-300 font-mono font-bold">@{p?.odds || 1.15}</span>
+                            <span className="text-[9px] text-stadiumGreen font-bold">({p?.probability || 85}%)</span>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            try { phoneHardware.triggerHaptic('SUCCESS'); } catch {}
+                            try { stadiumAudio.playAddPickSound(); } catch {}
+                            handleSelectOdds(m, cleanPick, p?.odds || 1.15);
+                            confetti({ particleCount: 30, spread: 50, origin: { y: 0.3 } });
+                          }}
+                          className="px-3 py-2 rounded-xl bg-stadiumGreen text-black font-black text-[11px] hover:bg-emerald-400 transition-all active:scale-95 flex-shrink-0 shadow"
+                        >
+                          + Add
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
@@ -615,9 +635,26 @@ export default function Home() {
                   <p className="text-[11px] text-gray-400">{isViewingToday ? todayLabel : selectedDateStr} &bull; {filteredMatches.length} fixtures</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = !collapseAllMatches;
+                    setCollapseAllMatches(next);
+                    window.dispatchEvent(new CustomEvent('mivaj_collapse_matches', { detail: !next }));
+                  }}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center space-x-1.5 border shadow-sm ${
+                    collapseAllMatches
+                      ? 'bg-stadiumGreen/20 text-stadiumGreen border-stadiumGreen/50'
+                      : 'bg-white/10 text-gray-300 hover:text-white border-white/10'
+                  }`}
+                  title={collapseAllMatches ? "Expand all match intelligence" : "Collapse all match intelligence for rapid scrolling"}
+                >
+                  <span>{collapseAllMatches ? '⊟ Collapsed (Easy Scroll)' : '⊞ Expanded Intel'}</span>
+                </button>
+
                 {lastSynced && (
-                  <span className="text-[10px] text-gray-500 flex items-center space-x-1">
+                  <span className="text-[10px] text-gray-500 hidden sm:flex items-center space-x-1">
                     <Clock className="w-3 h-3" />
                     <span>Synced {lastSynced.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                   </span>
@@ -626,7 +663,6 @@ export default function Home() {
                   className="p-2 rounded-xl bg-panel border border-white/10 text-stadiumGreen hover:bg-stadiumGreen/20 transition-all disabled:opacity-50">
                   <RefreshCw className={loadingMatches ? 'w-3.5 h-3.5 animate-spin' : 'w-3.5 h-3.5'} />
                 </button>
-
               </div>
             </div>
 
@@ -776,8 +812,12 @@ export default function Home() {
           {/* 13. SPORTS NEWS SECTION */}
           <SportsNewsSection />
 
+          {/* 14. OFFICIAL MATCH HIGHLIGHTS HUB — Videos from yesterday & today */}
+          <OfficialMatchHighlightsHub />
+
           {/* REGULATORY COMPLIANCE DISCLAIMER */}
           
+
 
           <FooterComplianceDisclaimer />
 

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { TelegramVipDispatcher } from '../../../../lib/telegram-vip-dispatcher';
+import { TelegramModeratorService } from '../../../../lib/telegram-moderator-service';
+import { supabase } from '../../../../lib/supabase-client';
 
 export async function POST(req: NextRequest) {
   try {
@@ -8,6 +10,27 @@ export async function POST(req: NextRequest) {
 
     if (!botToken) {
       return NextResponse.json({ ok: false, message: 'TELEGRAM_BOT_TOKEN not configured' }, { status: 200 });
+    }
+
+    // 0. Handle Owner Moderation Inline Button Clicks (Approve / Reject Posts)
+    if (body.callback_query) {
+      const result = await TelegramModeratorService.handleCallbackQuery(body.callback_query);
+      if (result.handled && result.postId) {
+        const isApprove = result.action === 'approve';
+        try {
+          await supabase
+            .from('fan_comments')
+            .update({
+              status: isApprove ? 'APPROVED' : 'REJECTED',
+              moderated_at: new Date().toISOString(),
+              moderated_by: body.callback_query.from?.username || 'owner',
+            })
+            .eq('id', result.postId);
+        } catch (dbErr) {
+          console.warn('Supabase post moderation status update warning:', dbErr);
+        }
+        return NextResponse.json({ ok: true, type: 'moderation_callback_handled', action: result.action, postId: result.postId });
+      }
     }
 
     // 1. Detect Channel / Group Member Join (chat_member update)

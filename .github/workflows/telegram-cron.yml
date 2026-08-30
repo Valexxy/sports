@@ -4,6 +4,12 @@ on:
   schedule:
     # Morning banker broadcast — 6:30 AM WAT (5:30 AM UTC)
     - cron: '30 5 * * *'
+    # Breaking sports news broadcast — 12:00 PM and 6:00 PM WAT (11:00 AM & 5:00 PM UTC)
+    - cron: '0 11,17 * * *'
+    # Daily Facebook Page tipsbrosNG Auto-Post — 8:00 AM WAT (7:00 AM UTC)
+    - cron: '0 7 * * *'
+    # Daily automated high-DA guest posting & search engine indexing — 9:00 AM WAT (8:00 AM UTC)
+    - cron: '0 8 * * *'
     # Live settlement check — every 30 min from 3PM to 11PM UTC (4PM-12AM WAT)
     - cron: '*/30 15-23 * * *'
   workflow_dispatch:
@@ -16,6 +22,9 @@ on:
         options:
           - morning-broadcast
           - live-settle
+          - breaking-news
+          - syndicate-guest-post
+          - facebook-page-post
 
 jobs:
   morning-broadcast:
@@ -42,6 +51,8 @@ jobs:
             echo "--- Attempt $i of $MAX_RETRIES to trigger Telegram Morning Broadcast ---"
             
             HTTP_CODE=$(curl -s -o response.txt -w "%{http_code}" -X GET \
+              -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" \
+              --max-time 45 \
               ${AUTH_HEADER:+-H "$AUTH_HEADER"} \
               "https://mivaj.com/api/cron/telegram-morning")
 
@@ -73,17 +84,19 @@ jobs:
           echo "Dispatching failure alert notification to mivajtips@gmail.com..."
           curl -s -X POST "https://mivaj.com/api/telegram/webhook" \
             -H "Content-Type: application/json" \
+            -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" \
+            --max-time 15 \
             -d '{"message":{"chat":{"id":"@mivajsport"},"text":"🚨 AUTOMATED NOTICE: Morning Banker Broadcast failed all 3 retries. Manual intervention requested for mivajtips@gmail.com."}}' || true
 
   live-settle:
     if: github.event.schedule == '*/30 15-23 * * *' || (github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'live-settle')
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 5
     steps:
       - name: Trigger Live Match Settlement with 3-Stage Retry
         run: |
           MAX_RETRIES=3
-          DELAY=30
+          DELAY=20
           SUCCESS=0
           SECRET="${{ secrets.CRON_SECRET }}"
 
@@ -97,10 +110,15 @@ jobs:
             echo "--- Attempt $i of $MAX_RETRIES for Live Settlement ---"
 
             HTTP_CODE=$(curl -s -o response.txt -w "%{http_code}" -X GET \
+              -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" \
+              --max-time 30 \
               ${AUTH_HEADER:+-H "$AUTH_HEADER"} \
               "https://mivaj.com/api/cron/telegram-live-settle")
 
             echo "HTTP Status: $HTTP_CODE"
+            cat response.txt || true
+            echo ""
+
             if [ "$HTTP_CODE" = "200" ]; then
               echo "✅ Live settle succeeded on attempt $i"
               SUCCESS=1
@@ -117,3 +135,98 @@ jobs:
             echo "::error::Live settle failed after $MAX_RETRIES attempts"
             exit 1
           fi
+
+  breaking-news:
+    if: github.event.schedule == '0 11,17 * * *' || (github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'breaking-news')
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Trigger Breaking News Broadcast to Telegram
+        run: |
+          SECRET="${{ secrets.CRON_SECRET }}"
+          if [ -z "$SECRET" ]; then
+            AUTH_HEADER=""
+          else
+            AUTH_HEADER="Authorization: Bearer $SECRET"
+          fi
+
+          echo "--- Broadcasting Top Breaking Sports News to Telegram ---"
+          HTTP_CODE=$(curl -s -o response.txt -w "%{http_code}" -X GET \
+            -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" \
+            --max-time 30 \
+            ${AUTH_HEADER:+-H "$AUTH_HEADER"} \
+            "https://mivaj.com/api/cron/telegram-news")
+
+          echo "HTTP Status: $HTTP_CODE"
+          cat response.txt || true
+          echo ""
+
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Breaking news successfully broadcast to @mivajsport"
+          else
+            echo "::warning::News broadcast returned $HTTP_CODE"
+          fi
+
+  syndicate-guest-post:
+    if: github.event.schedule == '0 8 * * *' || (github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'syndicate-guest-post')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger Automated Guest Blogging & Search Engine Indexing
+        run: |
+          SECRET="${{ secrets.CRON_SECRET }}"
+          if [ -z "$SECRET" ]; then
+            AUTH_HEADER=""
+          else
+            AUTH_HEADER="Authorization: Bearer $SECRET"
+          fi
+
+          echo "--- Publishing Automated High-DA Guest Article & Pinging IndexNow ---"
+          HTTP_CODE=$(curl -s -o response.txt -w "%{http_code}" -X GET \
+            -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" \
+            --max-time 45 \
+            ${AUTH_HEADER:+-H "$AUTH_HEADER"} \
+            "https://mivaj.com/api/cron/syndicate")
+
+          echo "HTTP Status: $HTTP_CODE"
+          cat response.txt || true
+          echo ""
+
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Automated guest post published & IndexNow search engines notified"
+          else
+            echo "::warning::Syndication returned $HTTP_CODE"
+          fi
+
+  facebook-page-post:
+    if: github.event.schedule == '0 7 * * *' || (github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'facebook-page-post')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Auto-Post Matchday Banker Radar to Facebook Page (tipsbrosNG)
+        run: |
+          SECRET="${{ secrets.CRON_SECRET }}"
+          if [ -z "$SECRET" ]; then
+            AUTH_HEADER=""
+          else
+            AUTH_HEADER="Authorization: Bearer $SECRET"
+          fi
+
+          echo "--- Auto-Posting Matchday Intelligence to facebook.com/tipsbrosNG ---"
+          HTTP_CODE=$(curl -s -o response.txt -w "%{http_code}" -X GET \
+            -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" \
+            --max-time 45 \
+            ${AUTH_HEADER:+-H "$AUTH_HEADER"} \
+            "https://mivaj.com/api/cron/facebook-autopost")
+
+          echo "HTTP Status: $HTTP_CODE"
+          cat response.txt || true
+          echo ""
+
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Successfully auto-posted to facebook.com/tipsbrosNG"
+          else
+            echo "::warning::Facebook post returned $HTTP_CODE"
+          fi
+
+

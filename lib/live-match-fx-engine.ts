@@ -173,7 +173,17 @@ export class LiveMatchFxEngine {
         colors: ['#00FF87', '#FFD700', '#FFFFFF'],
       });
 
-      // 4. Notify in-app subscribers (e.g. Dynamic Island toast)
+      // 4. Update Lock Screen & Dynamic Island Live Activity (iOS & Android)
+      phoneHardware.publishLockScreenMatch(
+        event.homeTeam,
+        event.awayTeam,
+        event.homeScore,
+        event.awayScore,
+        event.matchTime,
+        true
+      );
+
+      // 5. Notify in-app subscribers (e.g. Dynamic Island toast)
       this.goalListeners.forEach((l) => l(event));
     } catch {}
   }

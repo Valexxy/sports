@@ -222,18 +222,20 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
         document.documentElement.lang = 'pidgin';
       }
 
-      // Detect and persist location for regional precision
-      try {
-        fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(4000) })
-          .then((r) => (r.ok ? r.json() : null))
-          .then((geo) => {
-            if (geo && geo.country_name) {
-              localStorage.setItem('mivaj_detected_country', geo.country_name);
-              localStorage.setItem('mivaj_detected_city', geo.city || '');
-            }
-          })
-          .catch(() => {});
-      } catch {}
+      // Detect and persist location once (do not overwrite if already detected)
+      if (!localStorage.getItem('mivaj_detected_country')) {
+        try {
+          fetch('https://ipwho.is/', { signal: AbortSignal.timeout(4000) })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((geo) => {
+              if (geo && geo.country) {
+                localStorage.setItem('mivaj_detected_country', geo.country);
+                localStorage.setItem('mivaj_detected_city', geo.city || '');
+              }
+            })
+            .catch(() => {});
+        } catch {}
+      }
     }
   }, []);
 

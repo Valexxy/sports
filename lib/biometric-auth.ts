@@ -1,5 +1,5 @@
 /**
- * Biometric WebAuthn / Passkey Authentication Engine for AuraScore (mivaj.com)
+ * Biometric WebAuthn / Passkey Authentication Engine for Mivaj Sports (mivaj.com)
  * Supports Face ID, Touch ID, Windows Hello, and Android Biometrics
  */
 
@@ -41,7 +41,7 @@ export const biometricAuthEngine = {
       const publicKeyCredentialCreationOptions: PublicKeyCredentialCreationOptions = {
         challenge,
         rp: {
-          name: 'AuraScore Stadium',
+          name: 'Mivaj Sports Pro',
           id: window.location.hostname || 'mivaj.com',
         },
         user: {
@@ -107,3 +107,5 @@ export const biometricAuthEngine = {
     }
   },
 };
+
+export const BiometricAuthEngine = biometricAuthEngine;

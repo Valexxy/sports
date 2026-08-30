@@ -22,8 +22,8 @@ export const StadiumSmartPreloader: React.FC = () => {
       {/* Title & Status */}
       <div className="space-y-2 max-w-sm">
         <h3 className="font-black text-base text-white uppercase tracking-widest flex items-center justify-center space-x-2">
-          <span>AuraScore Stadium</span>
-          <span className="px-2 py-0.5 rounded-full bg-stadiumGreen/20 text-stadiumGreen text-[10px] font-black">2.0</span>
+          <span>Mivaj Sports Center</span>
+          <span className="px-2 py-0.5 rounded-full bg-stadiumGreen/20 text-stadiumGreen text-[10px] font-black">PRO</span>
         </h3>
         <p className="text-xs text-gray-400 font-sans">
           {t('Synchronizing live fixtures, Poisson odds & referee feeds...')}

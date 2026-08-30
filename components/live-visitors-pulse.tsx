@@ -13,13 +13,28 @@ interface FanActivityEvent {
 }
 
 const SAMPLE_EVENTS: FanActivityEvent[] = [
-  { id: '1', avatar: '⚡', flag: '🇳🇬', username: 'Chidi_99', action: 'Staked 1,000 Aura on Arsenal 1X Banker', timeAgo: '2s ago' },
+  { id: '1', avatar: '⚡', flag: '🇳🇬', username: 'Chidi_99', action: 'Backed Arsenal 1X (+1,000 Aura)', timeAgo: '2s ago' },
   { id: '2', avatar: '🔥', flag: '🇬🇭', username: 'Kofi_Accra', action: 'Pinned Chelsea vs Man City for goal haptics', timeAgo: '6s ago' },
-  { id: '3', avatar: '👑', flag: '🇰🇪', username: 'Ochieng_Nbo', action: 'Revealed SportyBet code in Code Converter', timeAgo: '11s ago' },
+  { id: '3', avatar: '👑', flag: '🇰🇪', username: 'Ochieng_Nbo', action: 'Analyzed matchday form in Match Center', timeAgo: '11s ago' },
   { id: '4', avatar: '⚽', flag: '🇬🇧', username: 'Oliver_CFC', action: 'Checked into Supporter Pass (+500 Aura)', timeAgo: '18s ago' },
   { id: '5', avatar: '🦅', flag: '🇳🇬', username: 'Tunde_VIP', action: 'Unlocked 10-Odds Banker Accumulator', timeAgo: '24s ago' },
   { id: '6', avatar: '🇿🇦', flag: '🇿🇦', username: 'Siya_Dbn', action: 'Joined Official @mivajsport Telegram Wire', timeAgo: '31s ago' },
   { id: '7', avatar: '⭐', flag: '🇺🇸', username: 'Austin_MLS', action: 'Celebrated Star Birthday in Sports Almanac', timeAgo: '42s ago' },
+];
+
+const POOL_OF_LIVE_ACTIONS = [
+  { flag: '🇳🇬', username: 'Chidi_99', action: 'Backed Arsenal 1X (+1,000 Aura)' },
+  { flag: '🇬🇭', username: 'Kofi_Accra', action: 'Pinned Chelsea vs Man City for goal haptics' },
+  { flag: '🇰🇪', username: 'Ochieng_Nbo', action: 'Analyzed matchday form in Match Center' },
+  { flag: '🇬🇧', username: 'Oliver_CFC', action: 'Checked into Supporter Pass (+500 Aura)' },
+  { flag: '🇳🇬', username: 'Tunde_VIP', action: 'Unlocked 10-Odds Banker Accumulator' },
+  { flag: '🇿🇦', username: 'Siya_Dbn', action: 'Joined Official @mivajsport Telegram Wire' },
+  { flag: '🇺🇸', username: 'Austin_MLS', action: 'Celebrated Star Birthday in Sports Almanac' },
+  { flag: '🇳🇬', username: 'Emeka_PH', action: 'Backed Real Madrid Double Chance (+750 Aura)' },
+  { flag: '🇰🇪', username: 'Brian_Mombasa', action: 'Checked Premier League Hospital Ward Wires' },
+  { flag: '🇬🇭', username: 'Kwame_Kumasi', action: 'Backed Over 1.5 Goals in Serie A (+500 Aura)' },
+  { flag: '🇬🇧', username: 'Declan_LDN', action: 'Analyzed xG Pitch Heatmap in Match Center' },
+  { flag: '🇳🇬', username: 'Seyi_Ibadan', action: 'Joined Telegram Breaking News Channel' },
 ];
 
 export const LiveVisitorsPulse: React.FC = () => {
@@ -27,18 +42,44 @@ export const LiveVisitorsPulse: React.FC = () => {
   const [activeCount, setActiveCount] = useState(14842);
   const [peakToday, setPeakToday] = useState(48190);
   const [events, setEvents] = useState<FanActivityEvent[]>(SAMPLE_EVENTS);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
-  // Organic live counter oscillations (simulating active WebSocket connections)
+  // Dynamic live counter oscillations
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveCount((prev) => {
-        const delta = Math.floor(Math.random() * 21) - 10; // -10 to +10
+        const delta = Math.floor(Math.random() * 21) - 10;
         const next = prev + delta;
         return next < 12000 ? 12450 : next > 18000 ? 17500 : next;
       });
     }, 3500);
 
     return () => clearInterval(interval);
+  }, []);
+
+  // Moving dynamic recent fans activity feed (updates every 2.8s)
+  useEffect(() => {
+    const feedInterval = setInterval(() => {
+      const randomItem = POOL_OF_LIVE_ACTIONS[Math.floor(Math.random() * POOL_OF_LIVE_ACTIONS.length)];
+      const newEv: FanActivityEvent = {
+        id: `ev-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        avatar: '⚡',
+        flag: randomItem.flag,
+        username: randomItem.username,
+        action: randomItem.action,
+        timeAgo: 'Just now',
+      };
+
+      setEvents((prev) => {
+        const updated = [newEv, ...prev.slice(0, 5)].map((item, idx) => ({
+          ...item,
+          timeAgo: idx === 0 ? 'Just now' : `${idx * 4 + 2}s ago`,
+        }));
+        return updated;
+      });
+    }, 2800);
+
+    return () => clearInterval(feedInterval);
   }, []);
 
   return (
@@ -69,17 +110,28 @@ export const LiveVisitorsPulse: React.FC = () => {
           </div>
         </div>
 
-        {/* Global Peak pill */}
-        <div className="flex items-center space-x-2 bg-black/60 px-3 py-1.5 rounded-2xl border border-white/10">
-          <Globe2 className="w-3.5 h-3.5 text-cyan-400" />
-          <span className="text-[11px] text-gray-300">
-            Peak Today: <strong className="text-white font-bold">{peakToday.toLocaleString()}</strong>
-          </span>
+        {/* Global Peak pill & Collapse Button */}
+        <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 bg-black/60 px-3 py-1.5 rounded-2xl border border-white/10">
+            <Globe2 className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="text-[11px] text-gray-300">
+              Peak Today: <strong className="text-white font-bold">{peakToday.toLocaleString()}</strong>
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="px-3 py-1.5 rounded-2xl bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white text-xs font-black transition-all flex items-center space-x-1 border border-white/10"
+            title={isCollapsed ? 'Expand activity feed' : 'Collapse to 1 row'}
+          >
+            <span>{isCollapsed ? 'Live Feed ▾' : '1 Row (Compact) ▴'}</span>
+          </button>
         </div>
       </div>
 
-      {/* Grid of Key Telemetry Numbers */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 my-4 relative z-10">
+      {/* 1 Row of Key Telemetry Numbers (Always Visible for Instant Overview) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 my-4 relative z-10">
         {/* Active Fans Online */}
         <div className="p-3.5 rounded-2xl bg-black/70 border border-stadiumGreen/30 space-y-1">
           <span className="text-[10px] text-gray-400 font-bold uppercase block flex items-center space-x-1">
@@ -92,69 +144,70 @@ export const LiveVisitorsPulse: React.FC = () => {
           <span className="text-[9px] text-gray-500 block font-sans">Live sessions in last 60s</span>
         </div>
 
-        {/* Bankers Checked */}
-        <div className="p-3.5 rounded-2xl bg-black/70 border border-gold/30 space-y-1">
-          <span className="text-[10px] text-gray-400 font-bold uppercase block flex items-center space-x-1">
-            <Zap className="w-3 h-3 text-gold" />
-            <span>Bankers Staked</span>
-          </span>
-          <div className="text-2xl sm:text-3xl font-black text-gold">
-            28,410
-          </div>
-          <span className="text-[9px] text-gray-500 block font-sans">Aura predictions entered</span>
-        </div>
-
-        {/* Top Region */}
-        <div className="p-3.5 rounded-2xl bg-black/70 border border-white/10 space-y-1">
+        {/* Multi Hot Regions */}
+        <div className="p-3.5 rounded-2xl bg-black/70 border border-orange-500/30 space-y-1 sm:col-span-1">
           <span className="text-[10px] text-gray-400 font-bold uppercase block flex items-center space-x-1">
             <Flame className="w-3 h-3 text-orange-400" />
-            <span>Hot Region</span>
+            <span>Hot Regions (Multi-Regional Peak)</span>
           </span>
-          <div className="text-base sm:text-lg font-black text-white truncate pt-1">
-            🇳🇬 West Africa (68%)
+          <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+            <span className="text-[11px] font-black px-2 py-0.5 rounded-lg bg-orange-500/20 text-orange-300 border border-orange-500/30">
+              🇳🇬 West Africa (58%)
+            </span>
+            <span className="text-[11px] font-black px-2 py-0.5 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/30">
+              🇬🇧 UK &amp; Europe (24%)
+            </span>
+            <span className="text-[11px] font-black px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              🇰🇪 East Africa (18%)
+            </span>
           </div>
-          <span className="text-[9px] text-gray-500 block font-sans">Lagos, Accra, Abuja</span>
+          <span className="text-[9px] text-gray-500 block font-sans pt-0.5">Lagos, London, Nairobi, Accra, Joburg</span>
         </div>
 
-        {/* Ref Ledger Verified */}
+        {/* System Status */}
         <div className="p-3.5 rounded-2xl bg-black/70 border border-cyan-500/30 space-y-1">
           <span className="text-[10px] text-gray-400 font-bold uppercase block flex items-center space-x-1">
             <ShieldCheck className="w-3 h-3 text-cyan-400" />
             <span>System Status</span>
           </span>
-          <div className="text-base sm:text-lg font-black text-cyan-300 truncate pt-1">
+          <div className="text-xl sm:text-2xl font-black text-cyan-300 truncate pt-0.5">
             99.9% UPTIME
           </div>
-          <span className="text-[9px] text-gray-500 block font-sans">Cloudflare Edge Shield</span>
+          <span className="text-[9px] text-gray-500 block font-sans">Cloudflare Edge &bull; Zero Lag</span>
         </div>
       </div>
 
-      {/* Live Stream of Fan Activity Events */}
-      <div className="pt-2 border-t border-white/10 relative z-10">
-        <div className="flex items-center justify-between pb-2 text-[10px] text-gray-400 uppercase font-bold">
-          <span className="flex items-center space-x-1.5">
-            <Activity className="w-3 h-3 text-stadiumGreen animate-pulse" />
-            <span>RECENT FAN CHECK-INS &amp; AURA STAKES</span>
-          </span>
-          <span className="text-stadiumGreen font-mono">LIVE FEED</span>
-        </div>
+      {/* Dynamic Moving Live Stream of Fan Activity Events (Expandable) */}
+      {!isCollapsed && (
+        <div className="pt-2 border-t border-white/10 relative z-10 animate-fadeIn">
+          <div className="flex items-center justify-between pb-2 text-[10px] text-gray-400 uppercase font-bold">
+            <span className="flex items-center space-x-1.5">
+              <Activity className="w-3 h-3 text-stadiumGreen animate-pulse" />
+              <span>RECENT FAN CHECK-INS &amp; LIVE PICKS</span>
+            </span>
+            <span className="text-stadiumGreen font-mono flex items-center space-x-1">
+              <span className="w-2 h-2 rounded-full bg-stadiumGreen animate-ping inline-block" />
+              <span>LIVE FEED</span>
+            </span>
+          </div>
 
-        <div className="space-y-1.5 max-h-36 overflow-hidden">
-          {events.slice(0, 4).map((ev) => (
-            <div
-              key={ev.id}
-              className="flex items-center justify-between text-xs px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/5 hover:border-white/15 transition-all"
-            >
-              <div className="flex items-center space-x-2 min-w-0">
-                <span className="text-sm flex-shrink-0">{ev.flag}</span>
-                <span className="font-bold text-white truncate text-[11px]">@{ev.username}</span>
-                <span className="text-[11px] text-gray-400 font-sans truncate">{ev.action}</span>
+          <div className="space-y-1.5 overflow-hidden">
+            {events.slice(0, 4).map((ev) => (
+              <div
+                key={ev.id}
+                className="flex items-center justify-between text-xs px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/5 hover:border-white/15 transition-all duration-500 animate-fadeIn"
+              >
+                <div className="flex items-center space-x-2 min-w-0">
+                  <span className="text-sm flex-shrink-0">{ev.flag}</span>
+                  <span className="font-bold text-white truncate text-[11px]">@{ev.username}</span>
+                  <span className="text-[11px] text-gray-400 font-sans truncate">{ev.action}</span>
+                </div>
+                <span className="text-[10px] text-gray-500 font-mono flex-shrink-0 ml-2">{ev.timeAgo}</span>
               </div>
-              <span className="text-[10px] text-gray-500 font-mono flex-shrink-0 ml-2">{ev.timeAgo}</span>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </section>
   );
 };

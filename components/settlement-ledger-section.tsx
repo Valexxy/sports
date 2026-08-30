@@ -157,11 +157,42 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
           </Link>
 
           <div className="flex items-center space-x-1 text-gray-400 text-xs font-bold pl-2 border-l border-white/10">
-            <span className="hidden sm:inline">{isOpen ? 'Collapse' : 'Expand'}</span>
+            <span className="hidden sm:inline">{isOpen ? '1 Row (Compact)' : 'Expand'}</span>
             {isOpen ? <ChevronUp className="w-4 h-4 text-stadiumGreen" /> : <ChevronDown className="w-4 h-4 text-gold" />}
           </div>
         </div>
       </div>
+
+      {/* 1 Row of Information Cards when Collapsed */}
+      {!isOpen && (
+        <div 
+          onClick={() => setIsOpen(true)}
+          className="pt-1 flex flex-col sm:flex-row items-center justify-between gap-2 cursor-pointer select-none"
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full flex-1">
+            {filteredArchive.slice(0, 3).map((record) => (
+              <div key={record.id} className="p-2.5 rounded-2xl bg-black/60 border border-white/5 flex items-center justify-between hover:border-stadiumGreen/40 transition-all">
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <div className="flex items-center space-x-1 text-[9px] text-gray-400">
+                    <span>{record.leagueFlag}</span>
+                    <span className="truncate">{record.league}</span>
+                  </div>
+                  <h4 className="text-xs font-bold text-white truncate">{record.homeTeam} {record.homeScore} - {record.awayScore} {record.awayTeam}</h4>
+                  <span className="text-[10px] text-gold font-mono">{record.prediction.selection}</span>
+                </div>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-black ${
+                  record.prediction.result === 'WON' ? 'bg-stadiumGreen text-black' : record.prediction.result === 'VOID' ? 'bg-amber-500 text-black' : 'bg-crimson text-white'
+                }`}>
+                  {record.prediction.result}
+                </span>
+              </div>
+            ))}
+          </div>
+          <span className="text-[10px] text-stadiumGreen font-black underline whitespace-nowrap sm:pl-2">
+            View All ({filteredArchive.length}) Settled Rows ▾
+          </span>
+        </div>
+      )}
 
       {isOpen && (
         <div className="space-y-4">

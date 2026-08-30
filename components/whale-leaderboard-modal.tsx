@@ -134,7 +134,7 @@ export const WhaleLeaderboardModal: React.FC<WhaleModalProps> = ({ isOpen, onClo
 
               <div className="text-right">
                 <span className="font-black text-sm text-gold font-mono">{w.auraScore.toLocaleString()}</span>
-                <span className="text-[8px] text-gray-400 block font-bold">AURA SCORE</span>
+                <span className="text-[8px] text-stadiumGreen block font-bold">AURA POINTS</span>
               </div>
             </div>
           ))}

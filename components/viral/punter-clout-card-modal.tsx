@@ -17,7 +17,7 @@ export const PunterCloutCardModal: React.FC<{ onClose: () => void }> = ({ onClos
             <div><span className="text-[10px] text-gray-400">Accuracy</span><div className="font-black text-gold">94.8% Verified</div></div>
           </div>
         </div>
-        <button onClick={() => { phoneHardware.triggerHaptic('SELECTION'); window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent('🔥 Check my Certified AuraScore Punter Diploma: 7 Wins in a row! https://sports-teal-psi.vercel.app/'), '_blank'); }} className="w-full py-3 rounded-2xl bg-gold text-black font-black flex items-center justify-center space-x-2">
+        <button onClick={() => { phoneHardware.triggerHaptic('SELECTION'); window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent('🔥 Check my Certified Mivaj Sports Punter Diploma: 7 Wins in a row! https://mivaj.com/'), '_blank'); }} className="w-full py-3 rounded-2xl bg-gold text-black font-black flex items-center justify-center space-x-2">
           <Share2 className="w-4 h-4" /><span>Share Diploma on WhatsApp & Twitter</span>
         </button>
       </div>

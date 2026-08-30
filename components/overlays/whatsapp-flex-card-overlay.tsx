@@ -50,7 +50,7 @@ export const WhatsAppFlexCardOverlay: React.FC<WhatsAppFlexCardOverlayProps> = (
     ctx.fillStyle = '#00FFA3';
     ctx.font = 'bold 54px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('⚡ AURASCORE STADIUM 2.0 ⚡', 540, 240);
+    ctx.fillText('⚡ MIVAJ SPORTS PRO ⚡', 540, 240);
 
     ctx.fillStyle = '#94a3b8';
     ctx.font = '36px sans-serif';
@@ -98,7 +98,7 @@ export const WhatsAppFlexCardOverlay: React.FC<WhatsAppFlexCardOverlayProps> = (
   };
 
   const handleShareWhatsApp = () => {
-    const text = '🔥 *Omo! Check my AuraScore streak: ' + streak + ' with ' + winRate + ' Win Rate!* 🔥\n\nI just bagged +' + auraWon.toLocaleString() + ' Aura XP! Match my aura or pass: 👉 https://mivaj.com';
+    const text = '🔥 *Omo! Check my Mivaj Sports streak: ' + streak + ' with ' + winRate + ' Win Rate!* 🔥\n\nI just bagged +' + auraWon.toLocaleString() + ' Aura XP! Match my aura or pass: 👉 https://mivaj.com';
     const url = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(text);
     window.open(url, '_blank');
   };

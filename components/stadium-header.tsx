@@ -21,6 +21,7 @@ import { GlobalLanguageSwitcher } from './global-language-switcher';
 import confetti from 'canvas-confetti';
 import { phoneHardware } from '../lib/phone-hardware-engine';
 import { stadiumAudio } from '../lib/sound-synthesizer';
+import { MatchdayPushBell } from './matchday-push-bell';
 
 interface StadiumHeaderProps {
   onOpenPlayers?: () => void;
@@ -36,10 +37,18 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({ onOpenPlayers, cur
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
-      const isLocalFlag = localStorage.getItem('aurascore_installed') === 'true';
+      const isLocalFlag = localStorage.getItem('mivaj_app_installed') === 'true' || localStorage.getItem('aurascore_installed') === 'true';
       if (isStandalone || isLocalFlag) {
         setIsInstalled(true);
       }
+
+      const handleGlobalInstalled = () => setIsInstalled(true);
+      window.addEventListener('mivaj_app_installed', handleGlobalInstalled);
+      window.addEventListener('appinstalled', handleGlobalInstalled);
+      return () => {
+        window.removeEventListener('mivaj_app_installed', handleGlobalInstalled);
+        window.removeEventListener('appinstalled', handleGlobalInstalled);
+      };
     }
   }, []);
 
@@ -55,13 +64,14 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({ onOpenPlayers, cur
       } catch {}
     }
 
-    setTimeout(() => {
-      setIsDownloading(false);
-      setIsInstalled(true);
-      localStorage.setItem('aurascore_installed', 'true');
-      confetti({ particleCount: 60, spread: 70, origin: { y: 0.2 } });
-      try { stadiumAudio.playSuccessSound(); } catch {}
-    }, 600);
+    setIsDownloading(false);
+    setIsInstalled(true);
+    localStorage.setItem('mivaj_app_installed', 'true');
+    localStorage.setItem('aurascore_installed', 'true');
+    localStorage.setItem('aurascore_pwa_dismissed', 'true');
+    window.dispatchEvent(new CustomEvent('mivaj_app_installed'));
+    confetti({ particleCount: 60, spread: 70, origin: { y: 0.2 } });
+    try { stadiumAudio.playSuccessSound(); } catch {}
   };
 
   return (
@@ -149,6 +159,9 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({ onOpenPlayers, cur
 
         {/* Right Controls */}
         <div className="flex items-center space-x-2 flex-shrink-0">
+          {/* Matchday Web Push Notification Bell & Trigger Switch */}
+          <MatchdayPushBell />
+
           {/* Global Language Switcher */}
           <GlobalLanguageSwitcher />
 

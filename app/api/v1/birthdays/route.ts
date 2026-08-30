@@ -227,7 +227,7 @@ export async function GET(request: Request) {
               country: page.description || 'International',
               countryFlag: getCountryFlag(b.text + ' ' + (page.description || '')),
               clubOrDiscipline: page.description || `${sport} Professional`,
-              avatarUrl: page.thumbnail?.source || '',
+              avatarUrl: page.thumbnail?.source || page.originalimage?.source || `https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=300&h=300&fit=crop&auto=format`,
               fallbackInitials: initials,
               bio: page.extract || b.text,
               articleUrl: page.content_urls?.desktop?.page || `https://en.wikipedia.org/wiki/${encodeURIComponent(name.replace(/\s+/g, '_'))}`,

@@ -91,7 +91,7 @@ class PersistentDatabaseStore {
       siteName: 'Mivaj Sports & Media',
       maintenanceMode: false,
       supportPhone: '+234 807 201 5725',
-      supportWhatsApp: 'https://wa.me/2348072015725',
+      supportWhatsApp: 'mailto:contact@mivaj.com',
       telegramChannel: 'https://t.me/mivajsport',
       welcomeAuraBonus: 500,
       referralNairaCommission: 500,

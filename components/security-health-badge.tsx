@@ -20,7 +20,7 @@ export const SecurityHealthBadge: React.FC = () => {
         <div className="flex items-center space-x-2">
           <span className="w-2.5 h-2.5 rounded-full bg-stadiumGreen animate-ping" />
           <span className="font-black text-stadiumGreen text-xs">
-            {t('AuraScore Enterprise Security Shield & WAF 2.0')}
+            {t('Mivaj Sports Enterprise Security Shield & WAF')}
           </span>
         </div>
 

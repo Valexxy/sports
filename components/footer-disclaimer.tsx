@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ShieldCheck, MessageCircle } from 'lucide-react';
+import { ShieldCheck, Mail } from 'lucide-react';
 import Link from 'next/link';
 
 export const FooterComplianceDisclaimer: React.FC = () => {
@@ -54,15 +54,17 @@ export const FooterComplianceDisclaimer: React.FC = () => {
           <span className="text-[9px] px-2 py-0.5 rounded bg-emerald-950 border border-emerald-500/40 text-emerald-400 font-bold">
             🔒 SSL 256-BIT ENCRYPTED
           </span>
-          <a
-            href="https://wa.me/2348072015725"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[10px] font-black text-[#25D366] hover:underline flex items-center space-x-1.5"
+          <button
+            type="button"
+            onClick={() => {
+              window.location.href = 'mailto:contact@mivaj.com?subject=Inquiry%20-%20Mivaj%20Sports';
+            }}
+            className="text-[10px] font-black text-stadiumGreen hover:underline flex items-center space-x-1.5 cursor-pointer bg-transparent border-0 p-0"
+            title="Directly email Mivaj Support"
           >
-            <MessageCircle className="w-3.5 h-3.5 fill-[#25D366] text-black" />
-            <span>Official VIP Matchday Channel 🟢</span>
-          </a>
+            <Mail className="w-3.5 h-3.5 text-stadiumGreen" />
+            <span>Contact Support ✉️</span>
+          </button>
         </div>
       </div>
 

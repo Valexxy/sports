@@ -39,10 +39,12 @@ const KNOWN_HUBS: Record<string, { lat: number; lon: number; country: string; co
   'abuja': { lat: 9.0765, lon: 7.3986, country: 'Nigeria', code: 'NG', state: 'FCT' },
   'port harcourt': { lat: 4.8156, lon: 7.0498, country: 'Nigeria', code: 'NG', state: 'Rivers' },
   'ibadan': { lat: 7.3775, lon: 3.9470, country: 'Nigeria', code: 'NG', state: 'Oyo' },
-  'enugu': { lat: 6.4584, lon: 7.5464, country: 'Nigeria', code: 'NG', state: 'Enugu' },
-  'kano': { lat: 12.0022, lon: 8.5920, country: 'Nigeria', code: 'NG', state: 'Kano' },
-  'benin city': { lat: 6.3350, lon: 5.6037, country: 'Nigeria', code: 'NG', state: 'Edo' },
+  'awka': { lat: 6.2108, lon: 7.0707, country: 'Nigeria', code: 'NG', state: 'Anambra' },
   'onitsha': { lat: 6.1667, lon: 6.7833, country: 'Nigeria', code: 'NG', state: 'Anambra' },
+  'nnewi': { lat: 6.0199, lon: 6.9149, country: 'Nigeria', code: 'NG', state: 'Anambra' },
+  'ekwulobia': { lat: 6.0247, lon: 7.0818, country: 'Nigeria', code: 'NG', state: 'Anambra' },
+  'ihiala': { lat: 5.8544, lon: 6.8594, country: 'Nigeria', code: 'NG', state: 'Anambra' },
+  'enugu': { lat: 6.4584, lon: 7.5464, country: 'Nigeria', code: 'NG', state: 'Enugu' },
   'accra': { lat: 5.6037, lon: -0.1870, country: 'Ghana', code: 'GH', state: 'Greater Accra' },
   'nairobi': { lat: -1.2921, lon: 36.8219, country: 'Kenya', code: 'KE', state: 'Nairobi' },
   'johannesburg': { lat: -26.2041, lon: 28.0473, country: 'South Africa', code: 'ZA', state: 'Gauteng' },
@@ -88,6 +90,10 @@ export class LocationIntelligenceEngine {
     };
   }
 
+  public static detectLocation(): Promise<LocationIntelData> {
+    return this.fetchHyperAccurateLocationIntel();
+  }
+
   public static getUserNickname(): string {
     if (typeof window === 'undefined') return 'Sports Fan';
     return localStorage.getItem('mivaj_user_nickname') || 'Champion';
@@ -117,7 +123,7 @@ export class LocationIntelligenceEngine {
     localStorage.removeItem('mivaj_custom_city');
   }
 
-  public static async fetchHyperAccurateLocationIntel(): Promise<LocationIntelData> {
+  public static async fetchHyperAccurateLocationIntel(forceRefresh = false): Promise<LocationIntelData> {
     if (typeof window === 'undefined') {
       return this.getFallbackIntel();
     }
@@ -155,9 +161,9 @@ export class LocationIntelligenceEngine {
           formattedAddress = `${city}, ${state}`;
         }
       } else {
-        // Run our ultra-precise location engine (GPS first, Nominatim street & house level)
-        const precise = await getUltraPreciseLocation();
-        city = precise.city || 'LOCAL';
+        // Run our ultra-stable location engine with 24hr cache lock
+        const precise = await getUltraPreciseLocation(forceRefresh);
+        city = precise.city || 'LAGOS';
         state = precise.state || '';
         countryName = precise.country || 'Nigeria';
         countryCode = precise.countryFlag === '🇳🇬' ? 'NG' : 'NG';

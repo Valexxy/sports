@@ -16,7 +16,7 @@ export const ViralMatchSlipModal: React.FC<ViralMatchSlipModalProps> = ({ match,
   const [copied, setCopied] = useState(false);
 
   const p = match.prediction;
-  const shareText = `🔥 AuraScore Banker Pick: ${match.homeTeam} vs ${match.awayTeam}\n🎯 Selection: ${p.topPick.selection} (@${p.topPick.odds.toFixed(2)})\n📊 Confidence: ${p.topPick.probability}% (${p.topPick.confidenceTier})\n⚡ Verified on https://sports-teal-psi.vercel.app/?match=${match.id}`;
+  const shareText = `🔥 Mivaj Sports Banker Pick: ${match.homeTeam} vs ${match.awayTeam}\n🎯 Selection: ${p.topPick.selection} (@${p.topPick.odds.toFixed(2)})\n📊 Confidence: ${p.topPick.probability}% (${p.topPick.confidenceTier})\n⚡ Verified on https://mivaj.com/?match=${match.id}`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(shareText);
@@ -92,9 +92,9 @@ export const ViralMatchSlipModal: React.FC<ViralMatchSlipModalProps> = ({ match,
             </div>
           </div>
 
-          {/* AuraScore Branding Footer */}
+          {/* Mivaj Sports Branding Footer */}
           <div className="text-[9px] text-gray-400 font-mono pt-1">
-            AuraScore Stadium 2.0 • sports-teal-psi.vercel.app
+            Mivaj Sports Pro • mivaj.com
           </div>
         </div>
 

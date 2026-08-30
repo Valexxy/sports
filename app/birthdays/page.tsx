@@ -1230,7 +1230,7 @@ export const GLOBAL_SPORT_STARS: EnterpriseBirthdayStar[] = [
     "country": "Czech Republic",
     "countryCode": "CZ",
     "countryFlag": "🇨🇿",
-    "avatarUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Pavel_Nedv%C4%9Bd.jpg/440px-Pavel_Nedv%C4%9Bd.jpg",
+    "avatarUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Pavel_Nedv%C4%9Bd.jpg/330px-Pavel_Nedv%C4%9Bd.jpg",
     "fallbackInitials": "PN",
     "biodataRole": "Midfield Dynamo • Ballon d'Or Winner (2003)",
     "quote": "The Czech Fury with unstoppable long-range strikes and relentless stamina.",
@@ -1256,7 +1256,7 @@ export const GLOBAL_SPORT_STARS: EnterpriseBirthdayStar[] = [
     "country": "United Kingdom",
     "countryCode": "GB",
     "countryFlag": "🇬🇧",
-    "avatarUrl": "https://a.espncdn.com/combiner/i?img=/i/headshots/tennis/players/full/3785.png&w=350&h=254",
+    "avatarUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Norrie_MCM23_%2817%29_%2852883520940%29.jpg/330px-Norrie_MCM23_%2817%29_%2852883520940%29.jpg",
     "fallbackInitials": "CN",
     "biodataRole": "Tennis Pro • Indian Wells Masters Champion & British No. 1",
     "quote": "Fight for every baseline rally with relentless grit.",
@@ -1749,24 +1749,6 @@ export default function BirthdaysHubPage() {
   const todayMonth = today.getMonth() + 1;
   const todayDay = today.getDate();
 
-  // Find stars celebrating TODAY
-  const todayStars = useMemo(() => {
-    return GLOBAL_SPORT_STARS.filter((star) => star.birthMonth === todayMonth && star.birthDay === todayDay);
-  }, [todayMonth, todayDay]);
-
-  // Find stars celebrating this week
-  const thisWeekStars = useMemo(() => {
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay());
-    const endOfWeek = new Date(today);
-    endOfWeek.setDate(today.getDate() + (6 - today.getDay()));
-
-    return GLOBAL_SPORT_STARS.filter((star) => {
-      const starDate = new Date(2026, star.birthMonth - 1, star.birthDay);
-      return starDate >= startOfWeek && starDate <= endOfWeek;
-    });
-  }, [today]);
-
   // Combined stars (Curated + Live Search Results)
   const allPool = useMemo(() => {
     const map = new Map<string, EnterpriseBirthdayStar>();
@@ -1774,6 +1756,24 @@ export default function BirthdaysHubPage() {
     liveResults.forEach(s => map.set(s.id, s));
     return Array.from(map.values());
   }, [liveResults]);
+
+  // Find stars celebrating TODAY across all pool athletes
+  const todayStars = useMemo(() => {
+    return allPool.filter((star) => star.birthMonth === todayMonth && star.birthDay === todayDay);
+  }, [allPool, todayMonth, todayDay]);
+
+  // Find stars celebrating this week across all pool athletes
+  const thisWeekStars = useMemo(() => {
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay());
+    const endOfWeek = new Date(today);
+    endOfWeek.setDate(today.getDate() + (6 - today.getDay()));
+
+    return allPool.filter((star) => {
+      const starDate = new Date(2026, star.birthMonth - 1, star.birthDay);
+      return starDate >= startOfWeek && starDate <= endOfWeek;
+    });
+  }, [allPool, today]);
 
   const filteredStars = useMemo(() => {
     return allPool.filter((star) => {
@@ -2255,7 +2255,9 @@ Join the celebration on Mivaj Sports: https://mivaj.com/birthdays`;
                 <div className="px-4 py-3 bg-black/60 border-t border-white/5 flex items-center justify-between text-[10px]">
                   <span className="text-gold font-bold flex items-center space-x-1 truncate max-w-[170px]">
                     <Trophy className="w-3.5 h-3.5 inline text-gold flex-shrink-0" />
-                    <span className="truncate">{star.trophies[0] || 'Top World Athlete'}</span>
+                    <span className="truncate">
+                      {star.trophies.find(t => !t.toLowerCase().includes('verified')) || star.biodataRole || 'Pro Sports Icon'}
+                    </span>
                   </span>
 
                   <button
@@ -2270,7 +2272,7 @@ Join the celebration on Mivaj Sports: https://mivaj.com/birthdays`;
           })}
         </div>
 
-        {/* FULL PLAYER PROFILE DOSSIER MODAL */}
+        {/* FULL LIFETIME PLAYER DOSSIER MODAL (ALL CAREER & LIFETIME INFORMATION) */}
         {activeProfile && (
           <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md overflow-y-auto animate-fadeIn flex flex-col p-4">
             <div className="max-w-2xl mx-auto w-full glass-panel-premium rounded-3xl p-6 border border-pink-500/40 space-y-5 my-auto shadow-2xl relative">
@@ -2281,6 +2283,7 @@ Join the celebration on Mivaj Sports: https://mivaj.com/birthdays`;
                 <X className="w-5 h-5" />
               </button>
 
+              {/* Profile Header */}
               <div className="flex items-center space-x-4">
                 <div className="w-20 h-20 rounded-2xl bg-black border-2 border-pink-500 p-1 flex-shrink-0 shadow-xl relative">
                   {!imgErrors[activeProfile.id] && activeProfile.avatarUrl ? (
@@ -2311,9 +2314,45 @@ Join the celebration on Mivaj Sports: https://mivaj.com/birthdays`;
                 </div>
               </div>
 
-              {/* Trophies & Accolades */}
+              {/* Lifetime Player Dossier Telemetry Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center font-mono">
+                <div className="p-2.5 rounded-xl bg-black/60 border border-white/10 space-y-0.5">
+                  <span className="text-[9px] text-gray-400 uppercase block font-bold">Sport / Role</span>
+                  <span className="text-xs font-black text-stadiumGreen truncate block">{activeProfile.sport}</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-black/60 border border-white/10 space-y-0.5">
+                  <span className="text-[9px] text-gray-400 uppercase block font-bold">Market Valuation</span>
+                  <span className="text-xs font-black text-gold truncate block">{activeProfile.marketValue || 'World Icon'}</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-black/60 border border-white/10 space-y-0.5">
+                  <span className="text-[9px] text-gray-400 uppercase block font-bold">Nationality</span>
+                  <span className="text-xs font-black text-white truncate block">{activeProfile.country}</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-black/60 border border-white/10 space-y-0.5">
+                  <span className="text-[9px] text-gray-400 uppercase block font-bold">Fan Aura Wishes</span>
+                  <span className="text-xs font-black text-pink-400 truncate block">{(activeProfile.wishesBase || 24000).toLocaleString()}+</span>
+                </div>
+              </div>
+
+              {/* Career Summary & Historical Footprint */}
+              <div className="p-3.5 rounded-2xl bg-black/60 border border-white/10 space-y-1.5 font-sans">
+                <span className="text-[10px] font-mono uppercase text-stadiumGreen font-bold block">
+                  Lifetime Career Dossier &bull; Historical Footprint
+                </span>
+                <p className="text-xs text-gray-300 leading-relaxed">
+                  {activeProfile.quote}
+                </p>
+                <div className="pt-1 flex items-center justify-between text-[11px] font-mono text-gray-400 border-t border-white/5">
+                  <span>Footprint: <strong className="text-white">{activeProfile.matchFootprint}</strong></span>
+                  <span className="text-pink-400 font-bold">{activeProfile.biodataRole}</span>
+                </div>
+              </div>
+
+              {/* Lifetime Trophies & Accolades Cabinet */}
               <div className="space-y-2">
-                <span className="text-[10px] text-gold font-bold uppercase tracking-wider block">Career Honors &amp; Trophies</span>
+                <span className="text-[10px] text-gold font-bold uppercase tracking-wider block font-mono">
+                  Lifetime Trophy Cabinet &amp; Major Honors ({activeProfile.trophies.length})
+                </span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                   {activeProfile.trophies.map((t, idx) => (
                     <div key={idx} className="p-2.5 rounded-xl bg-black/60 border border-white/5 flex items-center space-x-2">
@@ -2322,23 +2361,6 @@ Join the celebration on Mivaj Sports: https://mivaj.com/birthdays`;
                     </div>
                   ))}
                 </div>
-              </div>
-
-              {/* Public Database Reference Link */}
-              <div className="p-3 rounded-2xl bg-black/70 border border-white/10 flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-white block">Official Public Database Records</span>
-                  <span className="text-[10px] text-gray-400 font-sans">Search and verify stats on TheSportsDB &amp; Transfermarkt</span>
-                </div>
-                <a
-                  href={`https://www.thesportsdb.com/search.php?s=${encodeURIComponent(activeProfile.name)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center space-x-1"
-                >
-                  <span>Verify</span>
-                  <ExternalLink className="w-3 h-3" />
-                </a>
               </div>
 
               <div className="flex justify-end pt-2">

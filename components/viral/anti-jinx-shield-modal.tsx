@@ -25,7 +25,7 @@ export const AntiJinxShieldModal: React.FC<{ onClose: () => void }> = ({ onClose
         </div>
         <div className="p-5 rounded-2xl bg-black/60 border border-white/10 space-y-3">
           <span className="text-3xl block">🛡️⚡</span>
-          <h4 className="font-black text-sm text-white">Official AuraScore Jinx Insurance</h4>
+          <h4 className="font-black text-sm text-white">Official Mivaj Sports Jinx Insurance</h4>
           <p className="text-xs text-gray-300 font-sans">Protects your team from sudden 90th-minute heartbreaks and rival witchcraft!</p>
           {activated && (
             <div className="p-2 rounded-xl bg-stadiumGreen/20 text-stadiumGreen font-black text-xs">

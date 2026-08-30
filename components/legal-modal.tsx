@@ -36,7 +36,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ onClose }) => {
           <div className="p-3.5 rounded-xl bg-panel border border-white/10 space-y-1">
             <span className="font-extrabold text-gold text-xs block font-mono">1. ENTERTAINMENT & INFORMATION DISCLAIMER</span>
             <p className="text-xs text-gray-300">
-              AuraScore Stadium 2.0 is an independent sports prediction, live score, and fan engagement platform. We are NOT a sports betting operator or bookmaker. All match win probabilities and odds matrices are for statistical analysis and fan fun only.
+              Mivaj Sports Pro is an independent sports prediction, live score, and fan engagement platform. We are NOT a sports betting operator or bookmaker. All match win probabilities and odds matrices are for statistical analysis and fan fun only.
             </p>
           </div>
 

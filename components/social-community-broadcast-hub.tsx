@@ -18,17 +18,17 @@ export const SocialCommunityBroadcastHub: React.FC<SocialBroadcastHubProps> = ({
 
   // Generate Daily Morning 8:00 AM Banker Broadcast Message
   const topBankers = matches.filter((m) => (m.prediction?.topPick?.probability || 0) >= 70).slice(0, 5);
-  const morningSlipText = `🔥 *AURASCORE VIP DAILY BANKER PICKS (8:00 AM)* 🔥\n\n` +
+  const morningSlipText = `🔥 *MIVAJ SPORTS VIP DAILY BANKER PICKS (8:00 AM)* 🔥\n\n` +
     topBankers.map((m, i) => `${i + 1}️⃣ *${m.homeTeam} vs ${m.awayTeam}*\n   🎯 Pick: ${m.prediction?.topPick?.selection || '1X'} @ ${m.prediction?.topPick?.odds.toFixed(2) || '1.30'}\n   🛡️ Confidence: ${m.prediction?.topPick?.probability || 85}% (Poisson AI)`).join('\n\n') +
-    `\n\n💰 *10.00 ODDS ACCUMULATOR CODE:* SB-10X994\n🛡️ *Cut-1 Insurance Protected*\n\n👉 Bet Live & Listen Audio: https://mivaj.com`;
+    `\n\n✨ *AURA ACCUMULATOR CODE:* SB-10X994\n🛡️ *Cut-1 Insurance Protected*\n\n👉 Bet Live & Listen Audio: https://mivaj.com`;
 
   // Generate Daily Evening 10:30 PM Outcome vs Prediction Audit Report
   const playedMatches = matches.filter((m) => m.status === 'FINISHED').slice(0, 5);
-  const eveningReportText = `📜 *AURASCORE OFFICIAL MATCHDAY SETTLEMENT REPORT (10:30 PM)* 📜\n\n` +
+  const eveningReportText = `📜 *MIVAJ SPORTS OFFICIAL MATCHDAY SETTLEMENT REPORT (10:30 PM)* 📜\n\n` +
     (playedMatches.length > 0
       ? playedMatches.map((m, i) => `${i + 1}️⃣ *${m.homeTeam} ${m.homeScore} - ${m.awayScore} ${m.awayTeam}*\n   🎯 Prediction: ${m.prediction?.topPick?.selection || '1X'}\n   ✅ Status: WON & AUDITED`).join('\n\n')
       : '🎯 5/5 Banker Predictions Settled as WON ✅ Today!') +
-    `\n\n📈 *Today's Win Rate: 100% Verified*\n👉 View Audit Ledger: https://aurascore-stadium.netlify.app?tab=played`;
+    `\n\n📈 *Today's Win Rate: 100% Verified*\n👉 View Audit Ledger: https://mivaj.com/settlement`;
 
   const handleShareWhatsApp = (text: string) => {
     phoneHardware.triggerHaptic('SUCCESS');
@@ -40,7 +40,7 @@ export const SocialCommunityBroadcastHub: React.FC<SocialBroadcastHubProps> = ({
   const handleShareTelegram = (text: string) => {
     phoneHardware.triggerHaptic('SUCCESS');
     confetti({ particleCount: 35, spread: 50, origin: { y: 0.6 } });
-    const url = `https://t.me/share/url?url=${encodeURIComponent('https://aurascore-stadium.netlify.app')}&text=${encodeURIComponent(text)}`;
+    const url = `https://t.me/share/url?url=${encodeURIComponent('https://mivaj.com')}&text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
   };
 

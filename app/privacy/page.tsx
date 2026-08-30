@@ -50,8 +50,15 @@ export default function PrivacyPage() {
             </p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-[11px] text-gray-400">
-            Last Updated: August 2026 &bull; Data Protection Officer: https://wa.me/2348072015725
+          <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-[11px] text-gray-400 flex items-center justify-between flex-wrap gap-2">
+            <span>Last Updated: August 2026 &bull; Data Protection Desk</span>
+            <button
+              type="button"
+              onClick={() => { window.location.href = 'mailto:contact@mivaj.com?subject=Privacy%20%26%20Data%20Request'; }}
+              className="text-stadiumGreen font-black hover:underline cursor-pointer bg-transparent border-0 p-0"
+            >
+              Email DPO Desk (contact@mivaj.com) ✉️
+            </button>
           </div>
 
         </div>

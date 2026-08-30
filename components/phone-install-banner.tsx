@@ -26,11 +26,12 @@ export const PhoneHardwareBanner: React.FC = () => {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    // Check if already installed
-    const storedInstalled = localStorage.getItem('aurascore_installed');
+    // Check if already installed or dismissed
+    const storedInstalled = localStorage.getItem('mivaj_app_installed') || localStorage.getItem('aurascore_installed');
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
     if (storedInstalled === 'true' || isStandalone) {
       setIsInstalled(true);
+      setDismissed(true);
       return;
     }
 
@@ -39,6 +40,13 @@ export const PhoneHardwareBanner: React.FC = () => {
     if (isDismissed === 'true') {
       setDismissed(true);
     }
+
+    // Global listener: dismiss all install prompts immediately upon installation
+    const handleGlobalInstalled = () => {
+      setIsInstalled(true);
+      setDismissed(true);
+    };
+    window.addEventListener('mivaj_app_installed', handleGlobalInstalled);
 
     // Listen for beforeinstallprompt
     const handleBeforeInstall = (e: Event) => {
@@ -51,11 +59,14 @@ export const PhoneHardwareBanner: React.FC = () => {
 
     window.addEventListener('appinstalled', () => {
       setIsInstalled(true);
+      setDismissed(true);
+      localStorage.setItem('mivaj_app_installed', 'true');
       localStorage.setItem('aurascore_installed', 'true');
     });
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      window.removeEventListener('mivaj_app_installed', handleGlobalInstalled);
     };
   }, []);
 
@@ -116,26 +127,19 @@ export const PhoneHardwareBanner: React.FC = () => {
     // Automatically trigger app package download
     triggerDirectAutomaticDownload();
 
-    // Fast simulated download & registration progress
-    const interval = setInterval(() => {
-      setDownloadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsDownloading(false);
-          setJustCompleted(true);
-          setIsInstalled(true);
-          localStorage.setItem('aurascore_installed', 'true');
-          localStorage.setItem('aurascore_pwa_dismissed', 'true');
-          confetti({ particleCount: 70, spread: 80, origin: { y: 0.5 } });
-          stadiumAudio.playSuccessSound();
-          setTimeout(() => {
-            setDismissed(true);
-          }, 600);
-          return 100;
-        }
-        return prev + 50;
-      });
-    }, 100);
+    // Fast 1-click install completion & permanent dismissal
+    setIsDownloading(false);
+    setJustCompleted(true);
+    setIsInstalled(true);
+    localStorage.setItem('mivaj_app_installed', 'true');
+    localStorage.setItem('aurascore_installed', 'true');
+    localStorage.setItem('aurascore_pwa_dismissed', 'true');
+    window.dispatchEvent(new CustomEvent('mivaj_app_installed'));
+    confetti({ particleCount: 70, spread: 80, origin: { y: 0.5 } });
+    stadiumAudio.playSuccessSound();
+    setTimeout(() => {
+      setDismissed(true);
+    }, 500);
   };
 
   const handleDismiss = () => {

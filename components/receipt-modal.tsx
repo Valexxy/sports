@@ -28,8 +28,8 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ match, onClose }) =>
   const shareMsg = '🔥 GEN-Z MATCH SLIP: ' + match.homeTeam + ' vs ' + match.awayTeam +
     '\n\n🎯 Pick: ' + p.topPick.selection + ' @ ' + p.topPick.odds + ' (' + p.topPick.probability + '% confidence)' +
     '\n💬 ' + selectedSlogan +
-    '\n\n⚡ Staked by @CyberStriker_99 on AuraScore Stadium\n' +
-    (typeof window !== 'undefined' ? window.location.origin : 'https://aurascore.app');
+    '\n\n⚡ Staked by @CyberStriker_99 on Mivaj Sports Pro\n' +
+    (typeof window !== 'undefined' ? window.location.origin : 'https://mivaj.com');
 
   const shareUrl = encodeURIComponent(shareMsg);
 
@@ -85,7 +85,7 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ match, onClose }) =>
           <div className="flex items-center justify-between border-b border-white/10 pb-2">
             <div className="flex items-center space-x-1.5">
               <span className="text-base">⚡</span>
-              <span className="font-black text-stadiumGreen text-xs">AURASCORE STADIUM</span>
+              <span className="font-black text-stadiumGreen text-xs">MIVAJ SPORTS PRO</span>
             </div>
             <span className="px-2 py-0.5 rounded-full bg-stadiumGreen/20 text-stadiumGreen font-black text-[9px] border border-stadiumGreen/30">
               OFFICIAL FLEX SLIP ✓

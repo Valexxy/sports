@@ -16,6 +16,7 @@ import { MatchShotMapViewer } from './match-shot-map-viewer';
 import { LivePlayerRatingsMatrix } from './live-player-ratings-matrix';
 import { H2HAndRefereeAnalytics } from './h2h-and-referee-analytics';
 import { HeadToHeadArenaModal } from './head-to-head-arena-modal';
+import { NairalandMatchThread } from './match-thread/NairalandMatchThread';
 import { MatchAlertScheduler } from '../lib/match-alert-scheduler';
 import { X, Send, MessageSquare, Flame, Trophy, ExternalLink, Zap, Activity, Radio, Sun, Heart, Plus, ShieldCheck, Newspaper, ThumbsUp, Bell, BellRing, Volume2, Swords } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -475,44 +476,12 @@ export const MatchInsightsModal: React.FC<InsightsModalProps> = ({ match, onClos
               </div>
             </div>
 
-            {/* 2. Live Fan Reaction & Chat Wall */}
-            <div className="p-4 rounded-3xl bg-panel border border-white/10 space-y-3">
-              <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                <span className="text-xs font-black uppercase text-white flex items-center space-x-1.5">
-                  <MessageSquare className="w-3.5 h-3.5 text-stadiumGreen" />
-                  <span>Live Match Chat</span>
-                </span>
-                <span className="text-[10px] text-gray-400">{chatFeed.length} comments</span>
-              </div>
-
-              <div className="h-40 overflow-y-auto space-y-2 text-xs font-sans pr-1 scrollbar-thin">
-                {chatFeed.map((c) => (
-                  <div key={c.id} className="p-2 rounded-xl bg-black/40 border border-white/5 space-y-0.5">
-                    <div className="flex items-center justify-between text-[10px]">
-                      <span className="font-bold text-stadiumGreen">{c.sender} <span className="text-[9px] text-gray-500">({c.badge})</span></span>
-                      <span className="text-[9px] text-gray-500 font-mono">{c.time}</span>
-                    </div>
-                    <p className="text-gray-300 text-[11px]">{c.text}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex items-center space-x-2 pt-1">
-                <input
-                  type="text"
-                  value={chatMessage}
-                  onChange={(e) => setChatMessage(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSendChatMessage()}
-                  placeholder={`Comment on ${match.homeTeam} vs ${match.awayTeam}...`}
-                  className="flex-1 px-3.5 py-2 rounded-xl bg-black/70 border border-white/10 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-stadiumGreen font-mono"
-                />
-                <button
-                  onClick={handleSendChatMessage}
-                  className="p-2 rounded-xl bg-stadiumGreen text-black font-bold hover:bg-emerald-400 transition-all"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
-              </div>
+            {/* 2. Nairaland-Style Forum Banter & Tactical Match Thread */}
+            <div className="p-4 rounded-3xl bg-panel border border-white/10 space-y-3 shadow-lg">
+              <NairalandMatchThread
+                matchId={match.id}
+                matchTitle={`${match.homeTeam} vs ${match.awayTeam}`}
+              />
             </div>
 
           </div>

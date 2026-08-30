@@ -28,53 +28,35 @@ export const OfficialMatchHighlightsHub: React.FC = () => {
   const fetchHighlights = async () => {
     setLoading(true);
     try {
-      const res = await fetch('https://www.scorebat.com/video-api/v3/');
+      const res = await fetch('/api/highlights');
       const data = await res.json();
-      if (data?.response && Array.isArray(data.response)) {
-        const formatted: HighlightItem[] = data.response.map((item: any, idx: number) => ({
+      if (data?.videos && Array.isArray(data.videos) && data.videos.length > 0) {
+        const formatted: HighlightItem[] = data.videos.map((item: any, idx: number) => ({
           id: `hl-${idx}`,
           title: item.title?.replace(' - ', ' vs ') || 'Match Highlights',
-          competition: item.competition || 'Top European League',
-          thumbnail: item.thumbnail || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=600&auto=format&fit=crop&q=80',
-          date: item.date ? new Date(item.date).toLocaleDateString([], { month: 'short', day: 'numeric' }) : 'Recently Played',
-          rawDate: item.date || new Date().toISOString(),
-          embedHtml: item.videos?.[0]?.embed || '',
+          competition: 'Top Flight Highlights',
+          thumbnail: data.thumbnail || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=600&auto=format&fit=crop&q=80',
+          date: item.date || 'Yesterday',
+          rawDate: new Date(Date.now() - 86400000).toISOString(),
+          embedHtml: `<iframe src="${item.embedUrl}" width="100%" height="100%" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>`,
         }));
-
-        // Sort latest matches first
-        formatted.sort((a, b) => new Date(b.rawDate).getTime() - new Date(a.rawDate).getTime());
-        
-        const freshDailyHighlights: HighlightItem[] = [
-          {
-            id: 'hl-live-1',
-            title: 'Arsenal vs Chelsea (Highlights & Goals)',
-            competition: 'Premier League',
-            thumbnail: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=600&auto=format&fit=crop&q=80',
-            date: 'Today',
-            rawDate: new Date().toISOString(),
-            embedHtml: '<div style="width:100%;height:100%;position:relative;background:#000;display:flex;align-items:center;justify-content:center;color:#00e676;font-family:monospace;font-weight:bold;"><iframe width="100%" height="100%" src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>',
-          },
-          {
-            id: 'hl-live-2',
-            title: 'Real Madrid vs Barcelona (El Clasico Thriller)',
-            competition: 'La Liga',
-            thumbnail: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=600&auto=format&fit=crop&q=80',
-            date: 'Today',
-            rawDate: new Date().toISOString(),
-            embedHtml: '<div style="width:100%;height:100%;position:relative;background:#000;display:flex;align-items:center;justify-content:center;color:#00e676;font-family:monospace;font-weight:bold;"><iframe width="100%" height="100%" src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>',
-          },
-          {
-            id: 'hl-live-3',
-            title: 'Man City vs Liverpool (Tactical Masterclass)',
-            competition: 'Premier League',
-            thumbnail: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=600&auto=format&fit=crop&q=80',
-            date: 'Yesterday',
-            rawDate: new Date(Date.now() - 86400000).toISOString(),
-            embedHtml: '<div style="width:100%;height:100%;position:relative;background:#000;display:flex;align-items:center;justify-content:center;color:#00e676;font-family:monospace;font-weight:bold;"><iframe width="100%" height="100%" src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>',
-          }
-        ];
-
-        setHighlights([...freshDailyHighlights, ...formatted]);
+        setHighlights(formatted);
+      } else {
+        // Fallback to Scorebat if empty
+        const sRes = await fetch('https://www.scorebat.com/video-api/v3/');
+        const sData = await sRes.json();
+        if (sData?.response && Array.isArray(sData.response)) {
+          const sFormatted: HighlightItem[] = sData.response.map((item: any, idx: number) => ({
+            id: `hl-${idx}`,
+            title: item.title?.replace(' - ', ' vs ') || 'Match Highlights',
+            competition: item.competition || 'Top European League',
+            thumbnail: item.thumbnail || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=600&auto=format&fit=crop&q=80',
+            date: item.date ? new Date(item.date).toLocaleDateString([], { month: 'short', day: 'numeric' }) : 'Recently Played',
+            rawDate: item.date || new Date().toISOString(),
+            embedHtml: item.videos?.[0]?.embed || '',
+          }));
+          setHighlights(sFormatted);
+        }
       }
     } catch (e) {
       console.warn('Highlights fetch fallback active:', e);

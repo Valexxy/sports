@@ -99,11 +99,43 @@ export const LeagueStandingsTable: React.FC = () => {
 
           {/* Toggle Indicator */}
           <div className="flex items-center space-x-1 text-gray-400 text-xs font-bold pl-2 border-l border-white/10">
-            <span className="hidden sm:inline">{isOpen ? 'Collapse' : 'Expand'}</span>
+            <span className="hidden sm:inline">{isOpen ? '1 Row (Compact)' : 'Expand'}</span>
             {isOpen ? <ChevronUp className="w-4 h-4 text-stadiumGreen" /> : <ChevronDown className="w-4 h-4 text-gold" />}
           </div>
         </div>
       </div>
+
+      {/* 1 Row of Information Cards when Collapsed */}
+      {!isOpen && (
+        <div
+          onClick={() => setIsOpen(true)}
+          className="pt-1 flex flex-col sm:flex-row items-center justify-between gap-2 cursor-pointer select-none"
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full flex-1">
+            {(tableData.length > 0 ? tableData.slice(0, 3) : [
+              { pos: 1, team: 'Manchester City', played: 2, won: 2, drawn: 0, points: 6 },
+              { pos: 2, team: 'Arsenal', played: 2, won: 2, drawn: 0, points: 6 },
+              { pos: 3, team: 'Liverpool', played: 2, won: 2, drawn: 0, points: 6 },
+            ]).map((row: any) => (
+              <div key={row.pos} className="p-2.5 rounded-2xl bg-black/60 border border-white/5 flex items-center justify-between hover:border-gold/40 transition-all">
+                <div className="flex items-center space-x-2 min-w-0">
+                  <span className="w-5 h-5 rounded-md bg-gold/20 text-gold font-black text-[10px] flex items-center justify-center flex-shrink-0">
+                    #{row.pos}
+                  </span>
+                  <span className="font-bold text-white text-xs truncate">{row.team}</span>
+                </div>
+                <div className="flex items-center space-x-2 text-[11px] font-mono">
+                  <span className="text-stadiumGreen font-black">{row.points} PTS</span>
+                  <span className="text-gray-400 text-[10px]">({row.won}W-{row.drawn}D)</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <span className="text-[10px] text-stadiumGreen font-black underline whitespace-nowrap sm:pl-2">
+            View Full Table ({tableData.length || 20} Clubs) ▾
+          </span>
+        </div>
+      )}
 
       {/* Standings Table Body */}
       {isOpen && (

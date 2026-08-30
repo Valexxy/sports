@@ -3,6 +3,7 @@ import { getRealLiveAndPlayedMatches } from '../../../../lib/real-sports-stream'
 import { TelegramBotService } from '../../../../services/telegram/botService';
 import { getRedisCache, setRedisCache } from '../../../../lib/upstash-redis-engine';
 import { AFFILIATE_PARTNERS } from '../../../../config/affiliates';
+import { broadcastPushMessage } from '../../../../lib/push-broadcast-engine';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -24,16 +25,32 @@ export async function GET(req: Request) {
 
   try {
     const matches = await getRealLiveAndPlayedMatches();
-    const todayIso = new Date().toISOString().split('T')[0];
+    const now = Date.now();
 
-    const finishedMatches = matches.filter((m) => {
-      const isToday = !m.utcDate || m.utcDate.startsWith(todayIso);
-      return m.status === 'FINISHED' && isToday;
-    });
+    // 1. Only consider matches finished recently (within the last 3.5 hours from kickoff)
+    // Matches finished earlier belong in the Evening Audit, not the live in-day ticker.
+    const recentFinishedMatches = matches
+      .filter((m) => {
+        if (m.status !== 'FINISHED') return false;
+        if (!m.utcDate) return true;
+        const kickoff = new Date(m.utcDate).getTime();
+        if (isNaN(kickoff)) return true;
+        const elapsedHours = (now - kickoff) / (1000 * 60 * 60);
+        // Match must have kicked off between 1.5 and 4 hours ago (just finished in last 45 mins)
+        return elapsedHours >= 1.5 && elapsedHours <= 4.0;
+      })
+      .sort((a, b) => {
+        const timeA = a.utcDate ? new Date(a.utcDate).getTime() : 0;
+        const timeB = b.utcDate ? new Date(b.utcDate).getTime() : 0;
+        return timeB - timeA; // Newest first
+      });
 
     const settledResults = [];
 
-    for (const match of finishedMatches) {
+    // 2. Drop at most 1 newly finished match per trigger to prevent spamming and rate limits
+    for (const match of recentFinishedMatches) {
+      if (settledResults.length >= 1) break;
+
       const cacheKey = `mivaj:tg_settled:${match.id}`;
       
       const alreadyNotified = (await getRedisCache<boolean>(cacheKey)) || processedMatchIds.has(match.id);
@@ -129,6 +146,18 @@ export async function GET(req: Request) {
       ];
 
       const res = await TelegramBotService.sendBroadcastMessage(msg, keyboard);
+
+      // Web Push Fanout for in-play settlement
+      try {
+        await broadcastPushMessage({
+          title: isWon ? `✅ GREEN TICK WON! ${match.homeTeam} ${homeScore}-${awayScore} ${match.awayTeam}` : `⚡ FULLTIME: ${match.homeTeam} ${homeScore}-${awayScore} ${match.awayTeam}`,
+          body: isWon ? `Our banker selection "${cleanPick}" @ ${odds} WON! Check ledger ROI.` : `Match finished. Official referee audit recorded.`,
+          url: `/?match=${match.id}&ref=live_settle_push`,
+          tag: `mivaj-match-${match.id}`,
+        });
+      } catch (e: any) {
+        console.warn('Live settle push warning:', e?.message);
+      }
 
       await setRedisCache(cacheKey, true, 60 * 60 * 48);
       processedMatchIds.add(match.id);

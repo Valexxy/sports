@@ -14,17 +14,24 @@ import { LiveMatchFxEngine, LiveFxMode, LiveGoalEvent } from '../lib/live-match-
 import confetti from 'canvas-confetti';
 
 const POPULAR_HUBS = [
+  // Anambra Priority Hubs
+  { city: 'Awka', state: 'Anambra', country: 'Nigeria', flag: '🇳🇬' },
+  { city: 'Onitsha', state: 'Anambra', country: 'Nigeria', flag: '🇳🇬' },
+  { city: 'Nnewi', state: 'Anambra', country: 'Nigeria', flag: '🇳🇬' },
+  { city: 'Ekwulobia', state: 'Anambra', country: 'Nigeria', flag: '🇳🇬' },
+  { city: 'Ihiala', state: 'Anambra', country: 'Nigeria', flag: '🇳🇬' },
+  // Major Nigerian Hubs
   { city: 'Lagos', state: 'Lagos', country: 'Nigeria', flag: '🇳🇬' },
   { city: 'Abuja', state: 'FCT', country: 'Nigeria', flag: '🇳🇬' },
+  { city: 'Enugu', state: 'Enugu', country: 'Nigeria', flag: '🇳🇬' },
   { city: 'Port Harcourt', state: 'Rivers', country: 'Nigeria', flag: '🇳🇬' },
   { city: 'Ibadan', state: 'Oyo', country: 'Nigeria', flag: '🇳🇬' },
-  { city: 'Enugu', state: 'Enugu', country: 'Nigeria', flag: '🇳🇬' },
-  { city: 'Kano', state: 'Kano', country: 'Nigeria', flag: '🇳🇬' },
-  { city: 'Accra', state: 'Greater Accra', country: 'Ghana', flag: '🇬🇭' },
-  { city: 'Nairobi', state: 'Nairobi', country: 'Kenya', flag: '🇰🇪' },
-  { city: 'Johannesburg', state: 'Gauteng', country: 'South Africa', flag: '🇿🇦' },
+  // International Hubs
   { city: 'London', state: 'England', country: 'United Kingdom', flag: '🇬🇧' },
   { city: 'Manchester', state: 'England', country: 'United Kingdom', flag: '🇬🇧' },
+  { city: 'Nairobi', state: 'Nairobi', country: 'Kenya', flag: '🇰🇪' },
+  { city: 'Johannesburg', state: 'Gauteng', country: 'South Africa', flag: '🇿🇦' },
+  { city: 'Accra', state: 'Greater Accra', country: 'Ghana', flag: '🇬🇭' },
   { city: 'New York', state: 'NY', country: 'United States', flag: '🇺🇸' },
 ];
 
@@ -40,9 +47,9 @@ export const EnvironmentIntelHeader: React.FC = () => {
   const [latestGoal, setLatestGoal] = useState<LiveGoalEvent | null>(null);
   const { lang, setLang } = useTranslation();
 
-  const loadIntel = async () => {
+  const loadIntel = async (forceRefresh = false) => {
     setLoading(true);
-    const data = await LocationIntelligenceEngine.fetchHyperAccurateLocationIntel();
+    const data = await LocationIntelligenceEngine.fetchHyperAccurateLocationIntel(forceRefresh);
     setIntel(data);
     setUserProfile(UserProfileEngine.getProfile());
     setLoading(false);
@@ -52,12 +59,13 @@ export const EnvironmentIntelHeader: React.FC = () => {
     LiveMatchFxEngine.init();
     setFxMode(LiveMatchFxEngine.getFxMode());
 
-    loadIntel();
+    // Initial mount: load cached or detect once
+    loadIntel(false);
 
-    // Battery-friendly refresh: pauses automatically when phone screen is locked or tab is hidden
+    // Weather refresh only (every 5 minutes, leaves city locked)
     PowerSaverEngine.setBatteryFriendlyInterval('weather-intel-refresh', () => {
-      loadIntel();
-    }, 60000);
+      loadIntel(false);
+    }, 300000);
 
     // Subscribe to live goal events for toast notification
     const unsubscribeGoal = LiveMatchFxEngine.subscribeGoalEvents((event) => {
@@ -149,22 +157,21 @@ export const EnvironmentIntelHeader: React.FC = () => {
         {/* Left: Hyper-Accurate Location, Weather & Pitch Condition */}
         <div className="flex flex-wrap items-center gap-2 text-xs min-w-0">
           
-          {/* Location Badge (Shows exact street, house number, or neighbourhood) */}
+          {/* Location Badge — click to open 1-Tap City Switcher */}
           <button
             onClick={() => {
               try { phoneHardware.triggerHaptic('SELECTION'); } catch {}
-              loadIntel();
+              setShowLocationPicker(true);
             }}
             className="flex items-center space-x-1.5 bg-black/80 hover:bg-white/10 px-2.5 py-1 rounded-xl border border-white/10 text-[11px] text-white transition-all group"
-            title="Auto-detected GPS location. Click to refresh."
+            title="Click to change location"
           >
             <MapPin className="w-3.5 h-3.5 text-stadiumGreen animate-pulse flex-shrink-0" />
             <span className="font-bold truncate max-w-[210px] sm:max-w-[280px]">
-              {intel.houseNumber ? `No. ${intel.houseNumber}, ` : ''}
-              {intel.street || intel.neighbourhood || (intel.city && !intel.city.includes('Match Hub') && !intel.city.includes('LOCAL') ? `${intel.city}, ` : '')}{intel.countryName}
+              {intel.formattedAddress || `${intel.city}, ${intel.countryName}`}
             </span>
             <span className="text-[9px] text-stadiumGreen">
-              (Auto GPS) 📍
+              📍
             </span>
           </button>
 
@@ -230,6 +237,81 @@ export const EnvironmentIntelHeader: React.FC = () => {
         </div>
 
       </div>
+
+      {/* 1-TAP CITY / AREA LOCATION SWITCHER MODAL */}
+      {showLocationPicker && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+          onClick={() => setShowLocationPicker(false)}
+        >
+          <div
+            className="bg-[#0a0f1a] border border-stadiumGreen/40 rounded-3xl p-5 max-w-sm w-full shadow-2xl space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center space-x-2">
+                <Compass className="w-5 h-5 text-stadiumGreen" />
+                <h3 className="font-extrabold text-sm text-white">Select Your Location</h3>
+              </div>
+              <button
+                onClick={() => setShowLocationPicker(false)}
+                className="p-1 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* GPS Auto-Detect */}
+            <button
+              onClick={handleAutoDetectGps}
+              className="w-full flex items-center justify-center space-x-2 py-2.5 px-4 rounded-xl bg-stadiumGreen hover:bg-emerald-400 text-black font-extrabold text-xs transition-all shadow-md active:scale-95"
+            >
+              <MapPin className="w-4 h-4" />
+              <span>Auto-Detect via GPS (Satellite Accurate)</span>
+            </button>
+
+            {/* Custom City Search */}
+            <form onSubmit={handleCustomCitySubmit} className="relative">
+              <Search className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" />
+              <input
+                type="text"
+                value={customCitySearch}
+                onChange={(e) => setCustomCitySearch(e.target.value)}
+                placeholder="Type any city or area worldwide..."
+                className="w-full bg-black/60 border border-white/10 rounded-xl pl-9 pr-16 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-stadiumGreen"
+              />
+              <button
+                type="submit"
+                className="absolute right-1.5 top-1.5 px-3 py-1 bg-white/10 hover:bg-stadiumGreen hover:text-black rounded-lg text-[10px] font-bold transition-colors"
+              >
+                Set
+              </button>
+            </form>
+
+            {/* Quick Location Chips */}
+            <div className="space-y-1.5">
+              <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Quick Select:</span>
+              <div className="grid grid-cols-3 gap-1.5 max-h-48 overflow-y-auto pr-0.5">
+                {POPULAR_HUBS.map((hub) => (
+                  <button
+                    key={hub.city}
+                    onClick={() => handleSelectCity(hub.city)}
+                    className={`p-2 rounded-xl border text-left text-[10px] transition-all flex flex-col ${
+                      intel?.city?.toLowerCase() === hub.city.toLowerCase()
+                        ? 'bg-stadiumGreen/20 border-stadiumGreen text-white font-bold'
+                        : 'bg-black/40 border-white/5 text-gray-300 hover:border-stadiumGreen/50 hover:bg-white/5'
+                    }`}
+                  >
+                    <span className="truncate">{hub.flag} {hub.city}</span>
+                    <span className="text-[8px] text-gray-500 truncate">{hub.state}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

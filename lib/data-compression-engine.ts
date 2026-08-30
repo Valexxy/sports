@@ -1,5 +1,5 @@
 /**
- * AURASCORE ULTRA-LIGHTWEIGHT DATA COMPRESSION & PRUNING ENGINE
+ * MIVAJ SPORTS ULTRA-LIGHTWEIGHT DATA COMPRESSION & PRUNING ENGINE
  * Ensures Postgres/Redis databases remain lightweight under high matchday volume.
  * 1. Prunes transient match events after 30 days while preserving cryptographic settlement records.
  * 2. Compresses JSON payloads with bitmask encoding & compact strings.

@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const text = searchParams.get('text') || 'Welcome to AuraScore Live Match Center!';
+  const text = searchParams.get('text') || 'Welcome to Mivaj Sports Live Match Center!';
   const lang = searchParams.get('lang') || 'en-NG';
 
   try {

@@ -1,5 +1,5 @@
 /**
- * Production Environment Validator for AuraScore (mivaj.com)
+ * Production Environment Validator for Mivaj Sports (mivaj.com)
  * Ensures required keys exist and alerts for missing configurations
  */
 
