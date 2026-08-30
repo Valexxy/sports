@@ -5,50 +5,33 @@
   xmlns:atom="http://www.w3.org/2005/Atom"
   xmlns:media="http://search.yahoo.com/mrss/">
   <channel>
-    <title>TipsBros NG &amp; Mivaj Sports — Daily Football Banker Radar &amp; News Wire</title>
+    <title>Mivaj Sports — Live Football Intelligence, Banker Predictions &amp; News Wire</title>
     <link>https://mivaj.com</link>
     <description>Daily high-confidence football predictions, Dixon-Coles Poisson Banker models, referee-audited match settlement ledger, and sub-second live score intelligence across top world leagues.</description>
     <language>en-US</language>
-    <lastBuildDate>Sun, 30 Aug 2026 06:30:00 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 30 Aug 2026 08:30:00 GMT</lastBuildDate>
     <atom:link href="https://mivaj.com/feed.xml" rel="self" type="application/rss+xml"/>
     <image>
       <url>https://mivaj.com/icons/icon-192.png</url>
-      <title>TipsBros NG &amp; Mivaj Sports</title>
+      <title>Mivaj Sports</title>
       <link>https://mivaj.com</link>
     </image>
     <item>
       <title><![CDATA[🔥 Arsenal vs Chelsea — Match Intelligence, xG & Banker Pick]]></title>
       <link>https://mivaj.com/?match=arsenal-chelsea</link>
       <guid isPermaLink="false">mivaj-match-arsenal-chelsea</guid>
-      <pubDate>Sun, 30 Aug 2026 06:30:00 GMT</pubDate>
+      <pubDate>Sun, 30 Aug 2026 08:30:00 GMT</pubDate>
       <category><![CDATA[Premier League]]></category>
-      <author>contact@mivaj.com (TipsBros &amp; Mivaj Sports Desk)</author>
+      <author>contact@mivaj.com (Mivaj Sports Desk)</author>
       <description><![CDATA[
         <p><strong>Fixture:</strong> Arsenal vs Chelsea</p>
         <p><strong>League:</strong> Premier League</p>
-        <p><strong>TipsBros AI Top Banker:</strong> Arsenal or Draw (1X) (ULTRA-BANKER 🔥 @ 1.38)</p>
+        <p><strong>Mivaj AI Top Banker:</strong> Arsenal or Draw (1X) (ULTRA-BANKER 🔥 @ 1.38)</p>
         <p><strong>Poisson Probability:</strong> 85% Model Confidence</p>
         <p>Verified in Mivaj Referee-Audited Settlement Ledger. Live goal haptics available at https://mivaj.com.</p>
-        <p>📢 <strong>Join 50,000+ Football Fans on Telegram:</strong> <a href="https://t.me/mivajsport">👉 Tap to Join @mivajsport for Free Daily Banker Drops &amp; Sub-Second Goal Heartbeats</a></p>
+        <p>📢 <strong>Join 50,000+ Football Fans on Telegram:</strong> <a href="https://t.me/mivajsport">👉 Tap to Join @mivajsport for Free Daily Banker Drops</a></p>
       ]]></description>
-      <enclosure url="https://mivaj.com/logo.svg" length="1024" type="image/svg+xml" />
-    </item>
-    <item>
-      <title><![CDATA[🔥 Real Madrid vs Barcelona — El Clasico Tactical Breakdown & Value Selection]]></title>
-      <link>https://mivaj.com/?match=madrid-barca</link>
-      <guid isPermaLink="false">mivaj-match-madrid-barca</guid>
-      <pubDate>Sun, 30 Aug 2026 06:30:00 GMT</pubDate>
-      <category><![CDATA[La Liga]]></category>
-      <author>contact@mivaj.com (TipsBros &amp; Mivaj Sports Desk)</author>
-      <description><![CDATA[
-        <p><strong>Fixture:</strong> Real Madrid vs Barcelona</p>
-        <p><strong>League:</strong> La Liga</p>
-        <p><strong>TipsBros AI Top Banker:</strong> Over 2.5 Goals (BANKER 👑 @ 1.55)</p>
-        <p><strong>Poisson Probability:</strong> 82% Model Confidence</p>
-        <p>Verified in Mivaj Referee-Audited Settlement Ledger.</p>
-        <p>📢 <strong>Join 50,000+ Football Fans on Telegram:</strong> <a href="https://t.me/mivajsport">👉 Tap to Join @mivajsport for Free Daily Banker Drops &amp; Sub-Second Goal Heartbeats</a></p>
-      ]]></description>
-      <enclosure url="https://mivaj.com/logo.svg" length="1024" type="image/svg+xml" />
+      <enclosure url="https://mivaj.com/icons/icon-192.png" length="1024" type="image/png" />
     </item>
   </channel>
 </rss>
