@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Mivaj Sports</string>
+    <string name="title_activity_main">Mivaj Sports</string>
+    <string name="package_name">com.mivaj.sports</string>
+    <string name="custom_url_scheme">com.mivaj.sports</string>
+</resources>
