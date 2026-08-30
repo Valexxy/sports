@@ -24,8 +24,9 @@ export interface LanguageMeta {
 }
 
 export const SUPPORTED_LANGUAGES: LanguageMeta[] = [
-  // NIGERIA PRIORITY AT TOP
-  { code: 'pidgin',  name: 'Nigerian Pidgin', nativeName: 'Naija Pidgin',       flag: '🇳🇬', dir: 'ltr', greeting: 'Welcome to Mivaj! Correct banker don land!' },
+  // PRIMARY GLOBAL & NIGERIAN DIALECTS
+  { code: 'en',      name: 'English (Standard)', nativeName: 'English (UK / Global)', flag: '🇬🇧', dir: 'ltr', greeting: 'Welcome to Mivaj Sports Intelligence!' },
+  { code: 'pidgin',  name: 'Nigerian Pidgin', nativeName: 'Warri / Naija Street', flag: '🇳🇬', dir: 'ltr', greeting: 'Welcome to Mivaj! Correct banker don land!' },
   { code: 'yoruba',  name: 'Yorùbá',          nativeName: 'Èdè Yorùbá',         flag: '🇳🇬', dir: 'ltr', greeting: 'Káàbọ̀ sí Mivaj Sports! Ìsọtẹ́lẹ̀ tòní!' },
   { code: 'hausa',   name: 'Hausa',           nativeName: 'Harshen Hausa',      flag: '🇳🇬', dir: 'ltr', greeting: 'Barka da zuwa Mivaj Sports! Hasashen yau!' },
   { code: 'igbo',    name: 'Igbo',            nativeName: 'Asụsụ Igbo',         flag: '🇳🇬', dir: 'ltr', greeting: 'Nnọọ na Mivaj Sports! Amụma bọọlụ taa!' },
@@ -35,8 +36,7 @@ export const SUPPORTED_LANGUAGES: LanguageMeta[] = [
   { code: 'swahili', name: 'Swahili (East Africa)', nativeName: 'Kiswahili',   flag: '🇰🇪', dir: 'ltr', greeting: 'Karibu Mivaj Sports! Bashiri za leo!' },
   { code: 'zulu',    name: 'isiZulu (South Africa)', nativeName: 'isiZulu',    flag: '🇿🇦', dir: 'ltr', greeting: 'Siyakwamukela ku Mivaj Sports!' },
   
-  // GLOBAL & FRANCOPHONE/LUSOPHONE AFRICA
-  { code: 'en',      name: 'English (Primary)', nativeName: 'English (UK)',     flag: '🇬🇧', dir: 'ltr', greeting: 'Welcome to Mivaj Sports Intelligence!' },
+  // FRANCOPHONE/LUSOPHONE AFRICA & GLOBAL
   { code: 'fr',      name: 'French (Afrique)',  nativeName: 'Français',         flag: '🇫🇷', dir: 'ltr', greeting: 'Bienvenue sur Mivaj Sports!' },
   { code: 'pt',      name: 'Portuguese (PALOP)', nativeName: 'Português',       flag: '🇵🇹', dir: 'ltr', greeting: 'Bem-vindo ao Mivaj Sports!' },
 ];

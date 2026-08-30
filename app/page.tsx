@@ -159,8 +159,8 @@ export default function Home() {
   const [showConverterModal, setShowConverterModal] = useState(false);
   const [collapseBankers, setCollapseBankers] = useState(false);
   const [collapseAllMatches, setCollapseAllMatches] = useState(true);
-  const [collapsedLeagues, setCollapsedLeagues] = useState<Record<string, boolean>>({});
-  const [expandedLeagueRows, setExpandedLeagueRows] = useState<Record<string, boolean>>({});
+  const [collapsedStatusSections, setCollapsedStatusSections] = useState<Record<string, boolean>>({});
+  const [expandedStatusRows, setExpandedStatusRows] = useState<Record<string, boolean>>({});
   const [showBanterModal, setShowBanterModal] = useState(false);
   const [showGrassrootsModal, setShowGrassrootsModal] = useState(false);
   const [showStandingsModal, setShowStandingsModal] = useState(false);
@@ -480,18 +480,67 @@ export default function Home() {
 
   const displayedMatches = filteredMatches.slice(0, visibleCount);
 
-  const leagueGroupedMatches = useMemo(() => {
-    const groups: { [league: string]: { flag: string; matches: MatchData[] } } = {};
+  const statusGroupedMatches = useMemo(() => {
+    const live: MatchData[] = [];
+    const upcoming: MatchData[] = [];
+    const played: MatchData[] = [];
+
     displayedMatches.forEach((m) => {
-      const leagueName = m.league || 'World Fixtures';
-      if (!groups[leagueName]) {
-        groups[leagueName] = {
-          flag: m.leagueFlag || '⚽',
-          matches: [],
-        };
+      if (m.status === 'LIVE') {
+        live.push(m);
+      } else if (m.status === 'FINISHED' || m.status === 'FT') {
+        played.push(m);
+      } else {
+        upcoming.push(m);
       }
-      groups[leagueName].matches.push(m);
     });
+
+    const groups: Array<{
+      id: string;
+      title: string;
+      subtitle: string;
+      flag: string;
+      count: number;
+      badgeColor: string;
+      matches: MatchData[];
+    }> = [];
+
+    if (live.length > 0) {
+      groups.push({
+        id: 'LIVE',
+        title: '🔴 LIVE MATCHES (AS E DEY HOT 🔥)',
+        subtitle: 'Real-time pitch action, sub-second scores & live vibration tremors',
+        flag: '🔥',
+        count: live.length,
+        badgeColor: 'bg-crimson text-white border border-crimson/50 animate-pulse',
+        matches: live,
+      });
+    }
+
+    if (upcoming.length > 0) {
+      groups.push({
+        id: 'UPCOMING',
+        title: '⏰ UPCOMING MATCHES (DEY COME ⚽)',
+        subtitle: 'Today\'s kickoff schedule, Poisson AI model consensus & banker tips',
+        flag: '⏰',
+        count: upcoming.length,
+        badgeColor: 'bg-amber-500/20 text-amber-400 border border-amber-500/40',
+        matches: upcoming,
+      });
+    }
+
+    if (played.length > 0) {
+      groups.push({
+        id: 'PLAYED',
+        title: '🏁 PLAYED & FINISHED (DON FINISH 🏁)',
+        subtitle: 'Final full-time scores & official referee settlement ledger',
+        flag: '🏁',
+        count: played.length,
+        badgeColor: 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40',
+        matches: played,
+      });
+    }
+
     return groups;
   }, [displayedMatches]);
 
@@ -748,61 +797,64 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Matches Grouped By Collapsible League Sections */}
+            {/* Matches Grouped By Status (LIVE, UPCOMING, FINISHED) with Collapsible Rows */}
             {loadingMatches ? (
               <AnimatedPredictionSkeleton />
             ) : filteredMatches.length > 0 ? (
               <div className="space-y-6">
-                {Object.entries(leagueGroupedMatches).map(([leagueName, group]) => {
-                  const isLeagueCollapsed = !!collapsedLeagues[leagueName];
-                  const isExpandedRows = !!expandedLeagueRows[leagueName];
-                  const totalLeagueMatches = group.matches.length;
-                  const visibleMatches = (!isExpandedRows && totalLeagueMatches > 3)
+                {statusGroupedMatches.map((group) => {
+                  const isStatusCollapsed = !!collapsedStatusSections[group.id];
+                  const isExpandedRows = !!expandedStatusRows[group.id];
+                  const totalMatches = group.matches.length;
+                  const visibleMatches = (!isExpandedRows && totalMatches > 3)
                     ? group.matches.slice(0, 3)
                     : group.matches;
 
                   return (
                     <div
-                      key={`league-section-${leagueName}`}
-                      className="p-3.5 sm:p-4 rounded-3xl bg-black/60 border border-white/10 shadow-xl space-y-3 font-mono"
+                      key={`status-section-${group.id}`}
+                      className="p-3.5 sm:p-5 rounded-3xl bg-black/60 border border-white/10 shadow-xl space-y-3 font-mono"
                     >
-                      {/* League Section Header with Collapse Toggle */}
-                      <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5">
+                      {/* Status Section Header with Collapse Toggle */}
+                      <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-3">
                         <div className="flex items-center space-x-2.5 min-w-0">
-                          <span className="text-base sm:text-lg flex-shrink-0">{group.flag}</span>
+                          <span className="text-lg flex-shrink-0">{group.flag}</span>
                           <div className="min-w-0">
-                            <h3 className="font-extrabold text-xs sm:text-sm text-white truncate flex items-center space-x-1.5">
-                              <span>{leagueName}</span>
+                            <h3 className="font-black text-xs sm:text-sm text-white truncate flex items-center space-x-2">
+                              <span>{group.title}</span>
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-black ${group.badgeColor}`}>
+                                {totalMatches}
+                              </span>
                             </h3>
-                            <span className="text-[10px] text-gray-400 font-sans block">
-                              {totalLeagueMatches} {totalLeagueMatches === 1 ? 'Fixture' : 'Fixtures'} Scheduled
+                            <span className="text-[10px] text-gray-400 font-sans block truncate">
+                              {group.subtitle}
                             </span>
                           </div>
                         </div>
 
                         <div className="flex items-center space-x-2 flex-shrink-0">
-                          <span className="text-[9px] px-2 py-0.5 rounded-full bg-white/10 text-gray-300 font-bold hidden sm:inline">
-                            {totalLeagueMatches} Matches
+                          <span className="text-[9px] px-2.5 py-0.5 rounded-full bg-white/10 text-gray-300 font-bold hidden sm:inline">
+                            {totalMatches} {totalMatches === 1 ? 'Fixture' : 'Fixtures'}
                           </span>
 
                           <button
                             type="button"
                             onClick={() =>
-                              setCollapsedLeagues((prev) => ({
+                              setCollapsedStatusSections((prev) => ({
                                 ...prev,
-                                [leagueName]: !prev[leagueName],
+                                [group.id]: !prev[group.id],
                               }))
                             }
                             className="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white text-[10px] font-black flex items-center space-x-1 border border-white/10 transition-all"
-                            title={isLeagueCollapsed ? 'Expand League' : 'Collapse League'}
+                            title={isStatusCollapsed ? `Expand ${group.id} matches` : `Collapse ${group.id} matches`}
                           >
-                            <span>{isLeagueCollapsed ? 'Expand ▾' : 'Collapse ▴'}</span>
+                            <span>{isStatusCollapsed ? 'Expand ▾' : 'Collapse ▴'}</span>
                           </button>
                         </div>
                       </div>
 
-                      {/* League Match Cards (Collapsible to 1 Row if > 3 matches) */}
-                      {!isLeagueCollapsed && (
+                      {/* Status Match Cards (Collapsible to 1 Row if > 3 matches) */}
+                      {!isStatusCollapsed && (
                         <div className="space-y-3">
                           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                             {visibleMatches.map((match) => (
@@ -830,15 +882,15 @@ export default function Home() {
                             ))}
                           </div>
 
-                          {/* 1-Row Expansion Control for Large League Fixture Lists */}
-                          {totalLeagueMatches > 3 && (
+                          {/* 1-Row Expansion Control */}
+                          {totalMatches > 3 && (
                             <div className="text-center pt-1">
                               <button
                                 type="button"
                                 onClick={() =>
-                                  setExpandedLeagueRows((prev) => ({
+                                  setExpandedStatusRows((prev) => ({
                                     ...prev,
-                                    [leagueName]: !prev[leagueName],
+                                    [group.id]: !prev[group.id],
                                   }))
                                 }
                                 className="px-4 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-bold text-stadiumGreen hover:text-emerald-400 inline-flex items-center space-x-1.5 transition-all"
@@ -846,7 +898,7 @@ export default function Home() {
                                 <span>
                                   {isExpandedRows
                                     ? `Collapse to 1 Row (3 Matches) ▴`
-                                    : `View All ${totalLeagueMatches} ${leagueName} Matches ▾`}
+                                    : `View All ${totalMatches} ${group.id === 'LIVE' ? 'Live' : group.id === 'UPCOMING' ? 'Upcoming' : 'Played'} Matches ▾`}
                                 </span>
                               </button>
                             </div>
@@ -864,7 +916,7 @@ export default function Home() {
                       className="px-6 py-3 rounded-2xl bg-stadiumGreen/20 hover:bg-stadiumGreen/30 border border-stadiumGreen/40 text-stadiumGreen font-black text-sm inline-flex items-center space-x-2 transition-all hover:scale-105"
                     >
                       <Zap className="w-4 h-4" />
-                      <span>Show More League Matches</span>
+                      <span>Show More Matches</span>
                       <ChevronDown className="w-4 h-4" />
                     </button>
                   </div>

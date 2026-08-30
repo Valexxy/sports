@@ -101,7 +101,7 @@ jobs:
           SECRET="${{ secrets.CRON_SECRET }}"
 
           if [ -z "$SECRET" ]; then
-            AUTH_HEADER=""
+            AUTH_HEADER="Authorization: Bearer mivaj_secure_cron_2026"
           else
             AUTH_HEADER="Authorization: Bearer $SECRET"
           fi

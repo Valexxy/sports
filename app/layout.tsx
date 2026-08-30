@@ -54,10 +54,16 @@ export const metadata: Metadata = {
     siteName: 'Mivaj Sports',
     images: [
       {
-        url: '/logo.svg',
+        url: '/api/og/winning-card',
+        width: 1200,
+        height: 1000,
+        alt: 'Mivaj Sports Official Winning Slip Card',
+      },
+      {
+        url: '/icons/icon-512.png',
         width: 512,
         height: 512,
-        alt: 'Mivaj Sports Banner',
+        alt: 'Mivaj Sports Icon',
       },
     ],
     locale: 'en_US',
@@ -67,8 +73,8 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Mivaj Sports | 100% Free Football Predictions & Live Match Center',
     description: 'Real-time live scores, verified referee match settlement ledger, and football match intelligence.',
-    images: ['/logo.svg'],
-    creator: '@MivajSports',
+    images: ['/api/og/winning-card', '/icons/icon-512.png'],
+    creator: '@mivajsport',
   },
   robots: {
     index: true,
