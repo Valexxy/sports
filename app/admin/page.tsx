@@ -4,8 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { 
   ShieldCheck, Users, Trophy, Flame, DollarSign, Activity, RefreshCw, 
   AlertTriangle, CheckCircle, Lock, Server, Zap, ArrowUpRight, MessageSquare, 
-  Send, Gift, Search, CreditCard, Settings, FileText, Ban, UserCheck, ShieldAlert
+  Send, Gift, Search, CreditCard, Settings, FileText, Ban, UserCheck, ShieldAlert,
+  Globe, Compass, Layers, ExternalLink, Code, Radio, Newspaper, Cake, ScrollText, Play, Bot, Link as LinkIcon
 } from 'lucide-react';
+import Link from 'next/link';
 import { tipsterRecognition, RecognizedTipster } from '../../lib/tipster-recognition-engine';
 import { auraVault } from '../../lib/aura-vault-engine';
 import { warriAudio } from '../../lib/warri-commentary-engine';
@@ -16,7 +18,7 @@ import { AdminUserManagementConsole } from '../../components/admin-user-manageme
 import { AUTHORITY_SITES_REGISTRY } from '../../lib/authority-syndication-registry';
 
 export default function AdminCommandCenterPage() {
-  const [activeTab, setActiveTab] = useState<'TIPSTERS' | 'VAULT' | 'MATCHES' | 'GROWTH' | 'CHAT' | 'USERS' | 'TRANSACTIONS' | 'SETTINGS' | 'VIRALITY'>('TIPSTERS');
+  const [activeTab, setActiveTab] = useState<'TIPSTERS' | 'VAULT' | 'MATCHES' | 'GROWTH' | 'CHAT' | 'USERS' | 'TRANSACTIONS' | 'SETTINGS' | 'VIRALITY' | 'PAGES'>('PAGES');
   
   // Virality & Guest Blogging States
   const [syndicationLogs, setSyndicationLogs] = useState<any[]>([]);
@@ -193,9 +195,10 @@ export default function AdminCommandCenterPage() {
         </div>
       )}
 
-      {/* 9-Tab Enterprise Navigation Matrix */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-1.5 p-1.5 rounded-2xl bg-black/60 border border-white/10">
+      {/* 10-Tab Enterprise Navigation Matrix */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-10 gap-1.5 p-1.5 rounded-2xl bg-black/60 border border-white/10">
         {[
+          { id: 'PAGES', label: '🌐 Directory', icon: Globe },
           { id: 'TIPSTERS', label: '1. Tipsters 👑', icon: Trophy },
           { id: 'VAULT', label: '2. Vault 💰', icon: DollarSign },
           { id: 'MATCHES', label: '3. Telemetry ⚔️', icon: Activity },
@@ -222,6 +225,121 @@ export default function AdminCommandCenterPage() {
           );
         })}
       </div>
+
+      {/* 0. LINKED PAGES & PLATFORM CONTROL MATRIX */}
+      {activeTab === 'PAGES' && (
+        <section className="space-y-6">
+          
+          {/* Section 1: Core Consumer & Platform Pages */}
+          <div className="glass-panel-premium rounded-3xl border border-white/10 p-5 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div>
+                <h2 className="font-black text-sm text-white flex items-center space-x-2">
+                  <span>🌐 ALL PLATFORM LINKED PAGES (LIVE DIRECTORY)</span>
+                  <span className="px-2 py-0.5 rounded-full bg-stadiumGreen text-black text-[9px] font-black">15 ACTIVE ROUTES</span>
+                </h2>
+                <p className="text-[10px] text-gray-400">Click any card to open and inspect the live user experience with zero friction.</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {[
+                { title: '🏟️ Consumer Match Arena', path: '/', badge: 'Core Hub', desc: 'Live scoreboard, Dixon-Coles Poisson predictions, and 1-tap slips.', color: 'border-stadiumGreen/40' },
+                { title: '🏆 League Standings Table', path: '/standings', badge: 'Intelligence', desc: 'Real-time tables across Premier League, La Liga, Serie A, NPFL.', color: 'border-amber-500/40' },
+                { title: '🏥 Sidelined & Injury Radar', path: '/injuries', badge: 'Squads', desc: 'Physio updates, injury recovery timelines, and match suspensions.', color: 'border-red-500/40' },
+                { title: '🔄 Transfer Radar & Fees', path: '/transfers', badge: 'Market', desc: 'Verified European, Saudi, and African club transfer feeds.', color: 'border-emerald-500/40' },
+                { title: '📜 Referee Settlement Ledger', path: '/settlement', badge: 'Audited', desc: 'Public transparent referee-verified ledger, ROI audit, and settlements.', color: 'border-gold/40' },
+                { title: '⚡ Booking Code Converter', path: '/converter', badge: 'Tool', desc: 'Cross-platform code decoder for SportyBet, Bet9ja, and 1xBet.', color: 'border-cyan-500/40' },
+                { title: '📰 Sports News & Wire', path: '/news', badge: 'Media', desc: 'Breaking football journalism, tactical scoops, and ghost articles.', color: 'border-purple-500/40' },
+                { title: '🎂 Star Birthdays Center', path: '/birthdays', badge: 'Community', desc: 'Weekly football superstar birthdays, ages, and fan wishes.', color: 'border-pink-500/40' },
+                { title: '👑 Global Clout Leaderboard', path: '/leaderboard', badge: 'Territory', desc: 'Area rankings, Awka/Onitsha/Lagos clout cheering, and top tipsters.', color: 'border-yellow-500/40' },
+                { title: '🕹️ Viral Arcade & Games', path: '/arcade', badge: 'Viral', desc: 'Penalty shootout, trivia arena, and matchday mini-games.', color: 'border-sky-500/40' },
+                { title: '👤 User Account Vault', path: '/dashboard', badge: 'Profile', desc: 'Personal bankroll stats, custom city lock, and betting receipts.', color: 'border-indigo-500/40' },
+                { title: '📡 RSS 2.0 Dynamic Feed', path: '/feed.xml', badge: 'SEO / XML', desc: 'Search engine RSS 2.0 XML with live matches & predictions.', color: 'border-green-500/40' },
+                { title: '🗺️ Search Engine Sitemap', path: '/sitemap.xml', badge: 'Index', desc: 'Automated crawler sitemap indexing all public endpoints.', color: 'border-gray-500/40' },
+                { title: '🤖 Crawler Robots Policy', path: '/robots.txt', badge: 'Bot Policy', desc: 'Search engine access instructions and sitemap discovery pointers.', color: 'border-gray-500/40' },
+                { title: '🛡️ Root PAM Command Center', path: '/admin', badge: 'Admin Only', desc: 'Full administrative control, tipster recognition, user moderation.', color: 'border-crimson/50' },
+              ].map((page) => (
+                <a
+                  key={page.path}
+                  href={page.path}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`p-3.5 rounded-2xl bg-black/60 border ${page.color} hover:bg-white/5 transition-all flex flex-col justify-between group shadow-md hover:scale-[1.02]`}
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-extrabold text-xs text-white group-hover:text-gold transition-colors">{page.title}</span>
+                      <span className="px-2 py-0.5 rounded-full bg-white/10 text-[9px] font-bold text-gray-300">{page.badge}</span>
+                    </div>
+                    <p className="text-[10px] text-gray-400 font-sans leading-relaxed">{page.desc}</p>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t border-white/5 text-[10px] text-gray-400 font-mono mt-2">
+                    <code>{page.path}</code>
+                    <ExternalLink className="w-3.5 h-3.5 text-gold group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Section 2: Administrative Crons & Automated Dispatchers */}
+          <div className="glass-panel-premium rounded-3xl border border-white/10 p-5 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div>
+                <h2 className="font-black text-sm text-white flex items-center space-x-2">
+                  <span>⚡ AUTOMATED TELEGRAM &amp; SOCIAL CRON DISPATCHERS</span>
+                  <span className="px-2 py-0.5 rounded-full bg-gold text-black text-[9px] font-black">1-CLICK TRIGGER</span>
+                </h2>
+                <p className="text-[10px] text-gray-400">Trigger scheduled morning broadcasts, live settlements, and social media syndications on demand.</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {[
+                { title: '🌅 Morning Banker Broadcast', endpoint: '/api/cron/telegram-morning', desc: 'Dispatches earliest kickoff banker slip to @mivajsport.' },
+                { title: '📰 Breaking Sports News', endpoint: '/api/cron/telegram-news', desc: 'Dispatches curated top headlines to Telegram subscribers.' },
+                { title: '⚖️ Live Settlement Audit', endpoint: '/api/cron/telegram-live-settle', desc: 'Audits full-time fixtures and settles predictions in the ledger.' },
+                { title: '📢 Facebook Page Auto-Post', endpoint: '/api/cron/facebook-autopost', desc: 'Publishes daily tips to TipsBros NG Facebook page.' },
+                { title: '🚀 High-DA Guest Syndication', endpoint: '/api/admin/virality', desc: 'Dispatches guest articles and triggers IndexNow search pings.' },
+                { title: '🔔 Web Push Test Broadcast', endpoint: '/api/push/test', desc: 'Delivers real-time lock screen push alerts to active subscribers.' },
+              ].map((cron) => (
+                <div key={cron.endpoint} className="p-3.5 rounded-2xl bg-black/60 border border-white/10 flex flex-col justify-between space-y-3">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-xs text-white">{cron.title}</span>
+                      <span className="text-[9px] font-mono text-stadiumGreen">ACTIVE</span>
+                    </div>
+                    <p className="text-[10px] text-gray-400 font-sans mt-1">{cron.desc}</p>
+                    <code className="text-[9px] text-gray-500 font-mono block mt-1">{cron.endpoint}</code>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      phoneHardware.triggerHaptic('SELECTION');
+                      try {
+                        const res = await fetch(cron.endpoint, { method: cron.endpoint.includes('virality') || cron.endpoint.includes('push') ? 'POST' : 'GET' });
+                        const data = await res.json();
+                        setAdminActionStatus(`✅ Triggered ${cron.title}: ${JSON.stringify(data).slice(0, 80)}`);
+                        confetti({ particleCount: 40, spread: 60, origin: { y: 0.5 } });
+                        setTimeout(() => setAdminActionStatus(null), 5000);
+                      } catch (e: any) {
+                        setAdminActionStatus(`⚠️ ${cron.title} trigger notice: ${e.message}`);
+                        setTimeout(() => setAdminActionStatus(null), 5000);
+                      }
+                    }}
+                    className="w-full py-2 rounded-xl bg-stadiumGreen/20 hover:bg-stadiumGreen text-stadiumGreen hover:text-black font-extrabold text-[10px] transition-all flex items-center justify-center space-x-1.5 shadow"
+                  >
+                    <Play className="w-3 h-3 fill-current" />
+                    <span>Trigger {cron.title.split(' ')[0]} Now ➔</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </section>
+      )}
 
       {/* 1. TIPSTERS & BETTING KINGS MATRIX */}
       {activeTab === 'TIPSTERS' && (
