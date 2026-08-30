@@ -5,11 +5,14 @@ import {
   Star, X, Search, Shield, Zap, Trophy, Flame, 
   Target, Award, Activity, CheckCircle2, TrendingUp, 
   Sparkles, ArrowLeft, Calendar, Share2, Globe, Heart, RefreshCw, UserCheck, Check,
-  ExternalLink, BookOpen
+  BookOpen, Layers, DollarSign
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { phoneHardware } from '../lib/phone-hardware-engine';
-import { generatePlayerExternalLinks } from '../lib/player-intelligence-engine';
+import { 
+  getCompleteNativePlayerDossier, 
+  NativePlayerDossier 
+} from '../lib/player-intelligence-engine';
 
 export interface SportSpecificMetrics {
   primary_metric_label: string;
@@ -120,30 +123,56 @@ const DEFAULT_GLOBAL_LEGENDS: UniversalAthleteRecord[] = [
     isLegend: false
   },
   {
-    id: 'p-hamilton',
-    name: 'Lewis Hamilton',
-    sport: 'MOTORSPORT',
-    team_name: 'Scuderia Ferrari / Mercedes',
-    country: 'United Kingdom',
-    position: 'Formula 1 Driver',
-    jersey_number: '44',
-    birth_date: '1985-01-07',
-    age: 41,
-    photo_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Lewis_Hamilton_2022_F1_Austria.jpg/440px-Lewis_Hamilton_2022_F1_Austria.jpg',
-    fallback_initials: 'LH',
-    rating: 98,
-    market_value: '7x World Champion',
-    bio: 'Sir Lewis Carl Davidson Hamilton is a British racing driver competing in Formula One. Hamilton holds the records for the most race wins (105+), pole positions (104+), and podium finishes (200+), tied for the most World Drivers Championships (7).',
+    id: 'p-haaland',
+    name: 'Erling Haaland',
+    sport: 'SOCCER',
+    team_name: 'Manchester City',
+    country: 'Norway',
+    position: 'Striker',
+    jersey_number: '9',
+    birth_date: '2000-07-21',
+    age: 26,
+    photo_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Erling_Haaland_2023_%28cropped-v2%29.jpg/440px-Erling_Haaland_2023_%28cropped-v2%29.jpg',
+    fallback_initials: 'EH',
+    rating: 94,
+    market_value: '€180,000,000',
+    bio: 'Erling Braut Haaland is a Norwegian professional footballer who plays as a striker for Premier League club Manchester City and the Norway national team. Known for his speed, positioning, strength, and clinical finishing inside the penalty box.',
     metrics: {
-      primary_metric_label: 'Grid / Car Number',
-      primary_metric_value: '#44 (Scuderia Ferrari)',
-      secondary_metric_label: 'Grand Prix Race Wins',
-      secondary_metric_value: '105 GP Victories (Record)',
-      tertiary_metric_label: 'World Championships',
-      tertiary_metric_value: '7x F1 World Champion',
-      career_honors: ['7x FIA Formula One World Champion', '105+ Formula 1 Grand Prix Wins', '104+ F1 Pole Positions', 'Knight Bachelor (Sir)']
+      primary_metric_label: 'Preferred Foot',
+      primary_metric_value: 'Left Foot (Devastating Finisher)',
+      secondary_metric_label: 'Goal Ratio',
+      secondary_metric_value: '1.05 Goals Per Game (PL Record)',
+      tertiary_metric_label: 'Major Honors',
+      tertiary_metric_value: 'UEFA Champions League • Premier League Treble',
+      career_honors: ['UEFA Champions League Winner (2023)', 'Premier League Golden Boot (2x)', 'UEFA Men\'s Player of the Year', 'Gerd Müller Trophy']
     },
-    isLegend: true
+    isLegend: false
+  },
+  {
+    id: 'p-mbappe',
+    name: 'Kylian Mbappé',
+    sport: 'SOCCER',
+    team_name: 'Real Madrid',
+    country: 'France',
+    position: 'Forward / Winger',
+    jersey_number: '9',
+    birth_date: '1998-12-20',
+    age: 27,
+    photo_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/2019-07-17_SG_Dynamo_Dresden_vs._Paris_Saint-Germain_by_Sandro_Halank%E2%80%93129_%28cropped%29.jpg/440px-2019-07-17_SG_Dynamo_Dresden_vs._Paris_Saint-Germain_by_Sandro_Halank%E2%80%93129_%28cropped%29.jpg',
+    fallback_initials: 'KM',
+    rating: 95,
+    market_value: '€180,000,000',
+    bio: 'Kylian Mbappé Lottin is a French professional footballer who plays as a forward for La Liga club Real Madrid and captains the France national team. Renowned for his world-class speed, elite dribbling, and prolific goalscoring ability on the biggest stages.',
+    metrics: {
+      primary_metric_label: 'Preferred Foot',
+      primary_metric_value: 'Right Foot (Lightning Pace)',
+      secondary_metric_label: 'World Cup Record',
+      secondary_metric_value: 'World Cup Final Hat-Trick (2022)',
+      tertiary_metric_label: 'Major Honors',
+      tertiary_metric_value: 'FIFA World Cup Winner (2018) • Golden Boot',
+      career_honors: ['FIFA World Cup Champion (2018)', 'FIFA World Cup Golden Boot (2022)', 'UEFA Nations League Winner (2021)', 'Ligue 1 Player of the Year (5x)']
+    },
+    isLegend: false
   }
 ];
 
@@ -162,8 +191,11 @@ export const PlayerRadarModal: React.FC<PlayerRadarModalProps> = ({
   const [selectedSport, setSelectedSport] = useState<string>('ALL');
   const [playersList, setPlayersList] = useState<UniversalAthleteRecord[]>(DEFAULT_GLOBAL_LEGENDS);
   const [selectedPlayer, setSelectedPlayer] = useState<UniversalAthleteRecord>(DEFAULT_GLOBAL_LEGENDS[0]);
+  const [nativeDossier, setNativeDossier] = useState<NativePlayerDossier | null>(null);
+  const [activeTab, setActiveTab] = useState<'RADAR' | 'WIKI_BIO' | 'HONORS' | 'VALUATION'>('RADAR');
   const [followedIds, setFollowedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [dossierLoading, setDossierLoading] = useState(false);
   const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -172,6 +204,26 @@ export const PlayerRadarModal: React.FC<PlayerRadarModalProps> = ({
       if (saved) setFollowedIds(JSON.parse(saved));
     } catch {}
   }, []);
+
+  // Fetch full rich native dossier whenever selected player changes (100% in-app, zero external redirects)
+  useEffect(() => {
+    if (!selectedPlayer) return;
+    let isCurrent = true;
+    setDossierLoading(true);
+
+    getCompleteNativePlayerDossier(selectedPlayer.name, selectedPlayer.sport, selectedPlayer.team_name)
+      .then((dossier) => {
+        if (isCurrent) {
+          setNativeDossier(dossier);
+          setDossierLoading(false);
+        }
+      })
+      .catch(() => {
+        if (isCurrent) setDossierLoading(false);
+      });
+
+    return () => { isCurrent = false; };
+  }, [selectedPlayer?.name]);
 
   const handleToggleFollow = (playerId: string) => {
     phoneHardware.triggerHaptic('SUCCESS');
@@ -236,7 +288,7 @@ export const PlayerRadarModal: React.FC<PlayerRadarModalProps> = ({
         <div className="space-y-1">
           <div className="flex items-center space-x-2 text-xs font-bold text-gold">
             <Trophy className="w-4 h-4" />
-            <span>MULTI-TIER OPEN SPORTS ENCYCLOPEDIA • WIKIPEDIA &amp; THESPORTSDB</span>
+            <span>MIVAJ NATIVE SPORTS INTELLIGENCE HUB • 100% IN-APP ATHLETE DOSSIERS</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-white">
             GLOBAL PLAYERS &amp; ATHLETES DIRECTORY
@@ -280,11 +332,11 @@ export const PlayerRadarModal: React.FC<PlayerRadarModalProps> = ({
           </div>
         </div>
 
-        {/* Main Grid: Left Column Players List + Right Column Deep Sport Dossier */}
+        {/* Main Grid: Left Column Players List + Right Column Deep Native Dossier */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           
           {/* Left Column: Player Cards */}
-          <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+          <div className="space-y-2 max-h-[440px] overflow-y-auto pr-1">
             {filteredPlayers.map((player) => {
               const isSelected = selectedPlayer?.id === player.id;
               const isFollowed = followedIds.includes(player.id);
@@ -300,25 +352,25 @@ export const PlayerRadarModal: React.FC<PlayerRadarModalProps> = ({
                   }}
                   className={`w-full p-3 rounded-2xl text-left transition-all border flex items-center space-x-3 ${
                     isSelected
-                      ? 'bg-neutral-800 border-gold shadow-lg shadow-gold/20 ring-1 ring-gold'
-                      : 'bg-neutral-950/80 hover:bg-neutral-900 border-neutral-800'
+                      ? 'bg-gold/20 border-gold shadow-lg shadow-gold/15'
+                      : 'bg-neutral-950/80 border-neutral-800 hover:border-neutral-700'
                   }`}
                 >
                   {hasPhoto ? (
                     <img
                       src={player.photo_url}
                       alt={player.name}
-                      className="w-11 h-11 rounded-2xl object-cover object-top border border-white/10 flex-shrink-0 bg-neutral-900 shadow-md"
+                      className="w-12 h-12 rounded-xl object-cover object-top border border-gold/40 flex-shrink-0 bg-neutral-900"
                       onError={() => setImgErrors(prev => ({ ...prev, [player.id]: true }))}
                     />
                   ) : (
-                    <div className="w-11 h-11 rounded-2xl bg-neutral-900 border border-gold/40 flex items-center justify-center font-black text-xs text-gold flex-shrink-0 shadow-inner">
+                    <div className="w-12 h-12 rounded-xl bg-neutral-900 border border-gold/40 flex items-center justify-center font-bold text-xs text-gold flex-shrink-0">
                       {player.fallback_initials || '★'}
                     </div>
                   )}
 
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center space-x-1">
+                    <div className="flex items-center space-x-1.5">
                       <span className="font-bold text-xs text-white block truncate">{player.name}</span>
                       {player.isLegend && (
                         <span className="px-1.5 py-0.2 rounded bg-gold/20 text-gold text-[8px] font-black flex-shrink-0">GOAT</span>
@@ -334,9 +386,9 @@ export const PlayerRadarModal: React.FC<PlayerRadarModalProps> = ({
             })}
           </div>
 
-          {/* Right Column: Full Sport-Specific Dossier & Wikipedia Status */}
+          {/* Right Column: 100% Native In-App Player Dossier (Zero External Redirects) */}
           {selectedPlayer ? (
-            <div className="md:col-span-2 p-5 rounded-3xl bg-neutral-950 border border-neutral-800 space-y-4 max-h-[420px] overflow-y-auto">
+            <div className="md:col-span-2 p-5 rounded-3xl bg-neutral-950 border border-neutral-800 space-y-4 max-h-[440px] overflow-y-auto">
               
               {/* Header with Authentic Portrait & Follow CTA */}
               <div className="flex items-start justify-between gap-3 border-b border-neutral-800 pb-3">
@@ -366,7 +418,7 @@ export const PlayerRadarModal: React.FC<PlayerRadarModalProps> = ({
                       )}
                     </div>
                     <h3 className="text-lg sm:text-xl font-black text-white">{selectedPlayer.name}</h3>
-                    <span className="text-xs text-gray-400 font-sans">{selectedPlayer.team_name} • #{selectedPlayer.jersey_number}</span>
+                    <span className="text-xs text-gray-400 font-sans">{selectedPlayer.team_name} • #{selectedPlayer.jersey_number || '10'}</span>
                   </div>
                 </div>
 
@@ -384,155 +436,191 @@ export const PlayerRadarModal: React.FC<PlayerRadarModalProps> = ({
                 </button>
               </div>
 
-              {/* General Bio Stats Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-sans">
-                <div className="p-2.5 rounded-xl bg-neutral-900 border border-neutral-800">
-                  <span className="text-[10px] text-gray-400 block">🎂 Birth Date</span>
-                  <strong className="text-white text-xs block truncate">{selectedPlayer.birth_date}</strong>
-                </div>
-
-                <div className="p-2.5 rounded-xl bg-neutral-900 border border-neutral-800">
-                  <span className="text-[10px] text-gray-400 block">Age</span>
-                  <strong className="text-gold text-xs block">{selectedPlayer.age} Years</strong>
-                </div>
-
-                <div className="p-2.5 rounded-xl bg-neutral-900 border border-neutral-800">
-                  <span className="text-[10px] text-gray-400 block">Position</span>
-                  <strong className="text-white text-xs block truncate">{selectedPlayer.position}</strong>
-                </div>
-
-                <div className="p-2.5 rounded-xl bg-neutral-900 border border-neutral-800">
-                  <span className="text-[10px] text-gray-400 block">Status / Tier</span>
-                  <strong className="text-stadiumGreen text-xs block truncate">{selectedPlayer.market_value}</strong>
-                </div>
+              {/* 🗂️ 4 NATIVE IN-APP DOSSIER TABS (ZERO OUTBOUND REDIRECTS) */}
+              <div className="flex items-center space-x-1 border-b border-neutral-800 pb-2 text-[11px] font-mono">
+                <button
+                  onClick={() => setActiveTab('RADAR')}
+                  className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+                    activeTab === 'RADAR'
+                      ? 'bg-gold text-black font-black shadow-md'
+                      : 'bg-neutral-900 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  ⚡ Scouting Radar
+                </button>
+                <button
+                  onClick={() => setActiveTab('WIKI_BIO')}
+                  className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+                    activeTab === 'WIKI_BIO'
+                      ? 'bg-gold text-black font-black shadow-md'
+                      : 'bg-neutral-900 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  📖 Full Encyclopedia
+                </button>
+                <button
+                  onClick={() => setActiveTab('HONORS')}
+                  className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+                    activeTab === 'HONORS'
+                      ? 'bg-gold text-black font-black shadow-md'
+                      : 'bg-neutral-900 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  🏆 Trophies &amp; Honors
+                </button>
+                <button
+                  onClick={() => setActiveTab('VALUATION')}
+                  className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+                    activeTab === 'VALUATION'
+                      ? 'bg-gold text-black font-black shadow-md'
+                      : 'bg-neutral-900 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  💶 Valuation &amp; Clubs
+                </button>
               </div>
 
-              {/* 🌟 SPORT-SPECIFIC DEEP METRICS & HONORS (UNIQUE TO EACH SPORT) */}
-              {selectedPlayer.metrics && (
-                <div className="p-3.5 rounded-2xl bg-neutral-900/90 border border-gold/30 space-y-2.5 font-sans">
-                  <span className="text-[11px] font-black text-gold flex items-center space-x-1.5 font-mono">
-                    <Zap className="w-3.5 h-3.5 text-gold" />
-                    <span>SPORT-SPECIFIC ATTRIBUTES ({selectedPlayer.sport})</span>
-                  </span>
+              {/* TAB 1: SCOUTING RADAR & ATTRIBUTES */}
+              {activeTab === 'RADAR' && (
+                <div className="space-y-3 animate-fadeIn font-sans">
+                  {nativeDossier && (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs font-mono">
+                      <div className="p-2 rounded-xl bg-neutral-900 border border-neutral-800">
+                        <span className="text-[10px] text-gray-400 block">⚡ Pace / Speed</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="flex-1 h-2 bg-neutral-800 rounded-full overflow-hidden">
+                            <div className="h-full bg-stadiumGreen" style={{ width: `${nativeDossier.attributes.pace}%` }} />
+                          </div>
+                          <span className="text-white font-bold">{nativeDossier.attributes.pace}</span>
+                        </div>
+                      </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                    <div className="p-2 rounded-xl bg-neutral-950 border border-neutral-800">
-                      <span className="text-[10px] text-gray-400 block">{selectedPlayer.metrics.primary_metric_label}</span>
-                      <strong className="text-white text-xs block truncate">{selectedPlayer.metrics.primary_metric_value}</strong>
-                    </div>
+                      <div className="p-2 rounded-xl bg-neutral-900 border border-neutral-800">
+                        <span className="text-[10px] text-gray-400 block">🎯 Shooting</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="flex-1 h-2 bg-neutral-800 rounded-full overflow-hidden">
+                            <div className="h-full bg-gold" style={{ width: `${nativeDossier.attributes.shooting}%` }} />
+                          </div>
+                          <span className="text-white font-bold">{nativeDossier.attributes.shooting}</span>
+                        </div>
+                      </div>
 
-                    <div className="p-2 rounded-xl bg-neutral-950 border border-neutral-800">
-                      <span className="text-[10px] text-gray-400 block">{selectedPlayer.metrics.secondary_metric_label}</span>
-                      <strong className="text-white text-xs block truncate">{selectedPlayer.metrics.secondary_metric_value}</strong>
-                    </div>
+                      <div className="p-2 rounded-xl bg-neutral-900 border border-neutral-800">
+                        <span className="text-[10px] text-gray-400 block">🪄 Passing &amp; Vision</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="flex-1 h-2 bg-neutral-800 rounded-full overflow-hidden">
+                            <div className="h-full bg-cyan-400" style={{ width: `${nativeDossier.attributes.passing}%` }} />
+                          </div>
+                          <span className="text-white font-bold">{nativeDossier.attributes.passing}</span>
+                        </div>
+                      </div>
 
-                    <div className="p-2 rounded-xl bg-neutral-950 border border-neutral-800">
-                      <span className="text-[10px] text-gray-400 block">{selectedPlayer.metrics.tertiary_metric_label}</span>
-                      <strong className="text-gold text-xs block truncate">{selectedPlayer.metrics.tertiary_metric_value}</strong>
-                    </div>
-                  </div>
+                      <div className="p-2 rounded-xl bg-neutral-900 border border-neutral-800">
+                        <span className="text-[10px] text-gray-400 block">🕺 Dribbling</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="flex-1 h-2 bg-neutral-800 rounded-full overflow-hidden">
+                            <div className="h-full bg-purple-400" style={{ width: `${nativeDossier.attributes.dribbling}%` }} />
+                          </div>
+                          <span className="text-white font-bold">{nativeDossier.attributes.dribbling}</span>
+                        </div>
+                      </div>
 
-                  {selectedPlayer.metrics.career_honors && selectedPlayer.metrics.career_honors.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {selectedPlayer.metrics.career_honors.map((honor, idx) => (
-                        <span key={idx} className="px-2 py-0.5 rounded-md bg-gold/15 text-gold text-[10px] font-bold border border-gold/30 flex items-center space-x-1">
-                          <Check className="w-3 h-3 text-gold" />
-                          <span>{honor}</span>
-                        </span>
-                      ))}
+                      <div className="p-2 rounded-xl bg-neutral-900 border border-neutral-800">
+                        <span className="text-[10px] text-gray-400 block">🛡️ Defending</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="flex-1 h-2 bg-neutral-800 rounded-full overflow-hidden">
+                            <div className="h-full bg-blue-400" style={{ width: `${nativeDossier.attributes.defending}%` }} />
+                          </div>
+                          <span className="text-white font-bold">{nativeDossier.attributes.defending}</span>
+                        </div>
+                      </div>
+
+                      <div className="p-2 rounded-xl bg-neutral-900 border border-neutral-800">
+                        <span className="text-[10px] text-gray-400 block">💪 Physicality</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="flex-1 h-2 bg-neutral-800 rounded-full overflow-hidden">
+                            <div className="h-full bg-amber-500" style={{ width: `${nativeDossier.attributes.physicality}%` }} />
+                          </div>
+                          <span className="text-white font-bold">{nativeDossier.attributes.physicality}</span>
+                        </div>
+                      </div>
                     </div>
                   )}
+
+                  <div className="p-3 rounded-2xl bg-neutral-900/90 border border-neutral-800 text-xs">
+                    <strong className="text-gold font-mono block mb-1">🧠 TACTICAL STYLE &amp; MATCH IMPACT:</strong>
+                    <p className="text-gray-300 leading-relaxed font-sans">
+                      {nativeDossier?.styleOfPlay || 'High pressing intensity, exceptional off-the-ball movement, and decisive finishing.'}
+                    </p>
+                  </div>
                 </div>
               )}
 
-              {/* Wikipedia Career Overview */}
-              <div className="space-y-1.5 pt-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-white flex items-center space-x-1.5 font-mono">
-                    <Globe className="w-3.5 h-3.5 text-gold" />
-                    <span>WIKIPEDIA DOSSIER &amp; CAREER OVERVIEW</span>
-                  </span>
-                  <a
-                    href={`https://en.wikipedia.org/wiki/${encodeURIComponent(selectedPlayer.name.replace(/\s+/g, '_'))}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[10px] text-gold hover:underline flex items-center space-x-1 font-mono font-bold"
-                  >
-                    <span>Read on Wikipedia</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
-                <p className="text-xs text-neutral-300 font-sans leading-relaxed">
-                  {selectedPlayer.bio}
-                </p>
-              </div>
-
-              {/* 🌐 FEDERATED MULTI-SOURCE EXTERNAL RECORDS & SCOUTING INTEL */}
-              {(() => {
-                const links = generatePlayerExternalLinks(selectedPlayer.name);
-                return (
-                  <div className="pt-3 border-t border-neutral-800 space-y-2">
-                    <span className="text-[11px] font-black text-gray-300 flex items-center space-x-1.5 font-mono">
-                      <BookOpen className="w-3.5 h-3.5 text-stadiumGreen" />
-                      <span>FEDERATED EXTERNAL SPORTS INTELLIGENCE SOURCES:</span>
-                    </span>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
-                      <a
-                        href={links.wikipediaUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2.5 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-700 text-white flex items-center justify-between group transition-all"
-                      >
-                        <div className="flex items-center space-x-2 truncate">
-                          <span className="text-sm">📖</span>
-                          <span className="truncate font-bold text-[11px]">Wikipedia</span>
-                        </div>
-                        <ExternalLink className="w-3.5 h-3.5 text-gray-400 group-hover:text-gold transition-colors flex-shrink-0" />
-                      </a>
-
-                      <a
-                        href={links.transfermarktUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2.5 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-700 text-white flex items-center justify-between group transition-all"
-                      >
-                        <div className="flex items-center space-x-2 truncate">
-                          <span className="text-sm">💶</span>
-                          <span className="truncate font-bold text-[11px]">Transfermarkt</span>
-                        </div>
-                        <ExternalLink className="w-3.5 h-3.5 text-gray-400 group-hover:text-gold transition-colors flex-shrink-0" />
-                      </a>
-
-                      <a
-                        href={links.fbrefUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2.5 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-700 text-white flex items-center justify-between group transition-all"
-                      >
-                        <div className="flex items-center space-x-2 truncate">
-                          <span className="text-sm">📊</span>
-                          <span className="truncate font-bold text-[11px]">FBref Scouting</span>
-                        </div>
-                        <ExternalLink className="w-3.5 h-3.5 text-gray-400 group-hover:text-gold transition-colors flex-shrink-0" />
-                      </a>
-
-                      <a
-                        href={links.sofascoreUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2.5 rounded-xl bg-neutral-900/90 hover:bg-neutral-800 border border-neutral-700 text-white flex items-center justify-between group transition-all"
-                      >
-                        <div className="flex items-center space-x-2 truncate">
-                          <span className="text-sm">🏆</span>
-                          <span className="truncate font-bold text-[11px]">Sofascore Live</span>
-                        </div>
-                        <ExternalLink className="w-3.5 h-3.5 text-gray-400 group-hover:text-gold transition-colors flex-shrink-0" />
-                      </a>
+              {/* TAB 2: FULL WIKIPEDIA ENCYCLOPEDIA BIOGRAPHY (PULLED 100% IN-APP) */}
+              {activeTab === 'WIKI_BIO' && (
+                <div className="space-y-3 animate-fadeIn text-xs text-neutral-300 leading-relaxed font-sans">
+                  <div className="p-3.5 rounded-2xl bg-neutral-900/90 border border-gold/30">
+                    <strong className="text-gold font-mono block mb-1">📖 ENCYCLOPEDIC CAREER SUMMARY:</strong>
+                    <p className="text-white font-bold mb-2">
+                      {nativeDossier?.biographySummary || selectedPlayer.bio}
+                    </p>
+                    <div className="whitespace-pre-line text-gray-300 pt-2 border-t border-white/10 max-h-60 overflow-y-auto pr-1">
+                      {nativeDossier?.fullBiography || selectedPlayer.bio}
                     </div>
                   </div>
-                );
-              })()}
+                </div>
+              )}
+
+              {/* TAB 3: TROPHIES & CAREER HONORS */}
+              {activeTab === 'HONORS' && (
+                <div className="space-y-2.5 animate-fadeIn font-sans">
+                  <div className="p-3 rounded-2xl bg-neutral-900 border border-neutral-800">
+                    <span className="text-xs font-black text-gold font-mono block mb-2">🏆 VERIFIED TROPHY CABINET &amp; PERSONAL AWARDS:</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {(nativeDossier?.careerHonors || selectedPlayer.metrics.career_honors || []).map((honor, idx) => (
+                        <div key={idx} className="p-2.5 rounded-xl bg-neutral-950 border border-gold/30 flex items-center space-x-2 text-xs">
+                          <Trophy className="w-4 h-4 text-gold flex-shrink-0" />
+                          <span className="text-white font-bold">{honor}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 4: VALUATION & CAREER CLUBS */}
+              {activeTab === 'VALUATION' && (
+                <div className="space-y-3 animate-fadeIn font-mono text-xs">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="p-3 rounded-2xl bg-neutral-900 border border-neutral-800">
+                      <span className="text-gray-400 block text-[10px]">💶 Estimated Market Valuation:</span>
+                      <strong className="text-stadiumGreen text-sm block">{nativeDossier?.marketValue || selectedPlayer.market_value}</strong>
+                    </div>
+
+                    <div className="p-3 rounded-2xl bg-neutral-900 border border-neutral-800">
+                      <span className="text-gray-400 block text-[10px]">💰 Weekly Wage Package:</span>
+                      <strong className="text-gold text-sm block">{nativeDossier?.wageEstimate || '₦45,000,000 / Wk'}</strong>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-2">
+                    <strong className="text-white font-mono block">📜 CAREER CLUB TIMELINE:</strong>
+                    <div className="space-y-1.5 font-sans text-xs">
+                      {(nativeDossier?.careerTimeline || []).map((item, idx) => (
+                        <div key={idx} className="p-2 rounded-xl bg-neutral-950 border border-white/5 flex items-center justify-between">
+                          <div>
+                            <strong className="text-white font-mono block">{item.club}</strong>
+                            <span className="text-gray-400 text-[10px] block">{item.achievements}</span>
+                          </div>
+                          <span className="px-2 py-0.5 rounded-md bg-gold/15 text-gold text-[10px] font-mono font-bold flex-shrink-0">
+                            {item.period}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
 
             </div>
           ) : (
