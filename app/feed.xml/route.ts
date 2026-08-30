@@ -43,7 +43,7 @@ export async function GET() {
         pubDate = new Date(m.utcDate).toUTCString();
       }
 
-      const imageUrl = DEFAULT_IMAGES[idx % DEFAULT_IMAGES.length];
+      const matchCardUrl = `${baseUrl}/api/og/match?home=${encodeURIComponent(m.homeTeam)}&away=${encodeURIComponent(m.awayTeam)}&league=${encodeURIComponent(league)}&pick=${encodeURIComponent(topPick?.selection || '1X')}&odds=${topPick?.odds || 1.35}&prob=${topPick?.probability || 85}`;
       const probability = topPick?.probability ? `${topPick.probability}% Model Confidence` : '85% Confidence';
       const odds = topPick?.odds ? `@ ${topPick.odds}` : '@ 1.40';
       const tier = topPick?.confidenceTier || 'ULTRA-BANKER 🔥';
@@ -71,8 +71,8 @@ export async function GET() {
           <author>contact@mivaj.com (Mivaj Sports Desk)</author>
           <description><![CDATA[${description}]]></description>
           <content:encoded><![CDATA[${description}]]></content:encoded>
-          <enclosure url="${imageUrl}" length="102400" type="image/jpeg" />
-          <media:content url="${imageUrl}" medium="image">
+          <enclosure url="${matchCardUrl}" length="102400" type="image/png" />
+          <media:content url="${matchCardUrl}" medium="image">
             <media:title><![CDATA[${m.homeTeam} vs ${m.awayTeam}]]></media:title>
           </media:content>
         </item>
