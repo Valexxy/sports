@@ -53,11 +53,16 @@ export const PwaInstallPromptModal: React.FC = () => {
       setIsStandalone(true);
       setShowModal(false);
     };
+    const handleOpenModal = () => {
+      setShowModal(true);
+    };
     window.addEventListener('mivaj_app_installed', handleGlobalInstalled);
+    window.addEventListener('open_pwa_install_modal', handleOpenModal);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('mivaj_app_installed', handleGlobalInstalled);
+      window.removeEventListener('open_pwa_install_modal', handleOpenModal);
     };
   }, []);
 

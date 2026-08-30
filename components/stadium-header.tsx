@@ -37,10 +37,7 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({ onOpenPlayers, cur
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
-      const isLocalFlag = localStorage.getItem('mivaj_app_installed') === 'true' || localStorage.getItem('aurascore_installed') === 'true';
-      if (isStandalone || isLocalFlag) {
-        setIsInstalled(true);
-      }
+      setIsInstalled(!!isStandalone);
 
       const handleGlobalInstalled = () => setIsInstalled(true);
       window.addEventListener('mivaj_app_installed', handleGlobalInstalled);
@@ -57,6 +54,10 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({ onOpenPlayers, cur
     try { stadiumAudio.playCrowdRoar(); } catch {}
     setIsDownloading(true);
 
+    // 1. Dispatch modal open event for universal Android & iOS Guided Install
+    window.dispatchEvent(new CustomEvent('open_pwa_install_modal'));
+
+    // 2. Try native prompt if captured
     const promptEvent = (window as any).__pwaInstallPrompt;
     if (promptEvent) {
       try {
@@ -64,14 +65,7 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({ onOpenPlayers, cur
       } catch {}
     }
 
-    setIsDownloading(false);
-    setIsInstalled(true);
-    localStorage.setItem('mivaj_app_installed', 'true');
-    localStorage.setItem('aurascore_installed', 'true');
-    localStorage.setItem('aurascore_pwa_dismissed', 'true');
-    window.dispatchEvent(new CustomEvent('mivaj_app_installed'));
-    confetti({ particleCount: 60, spread: 70, origin: { y: 0.2 } });
-    try { stadiumAudio.playSuccessSound(); } catch {}
+    setTimeout(() => setIsDownloading(false), 800);
   };
 
   return (
