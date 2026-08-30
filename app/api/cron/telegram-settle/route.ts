@@ -27,12 +27,19 @@ export async function GET(req: Request) {
     const matches = await getRealLiveAndPlayedMatches();
     const todayIso = new Date().toISOString().split('T')[0];
 
-    const todayMatches = matches.filter((m) => {
+    const validMatches = matches.filter((m) => {
+      if (m.prediction?.hasPrediction === false) return false;
+      const sel = (m.prediction?.topPick?.selection || '').toLowerCase();
+      if (sel.includes('watch only') || sel === 'n/a') return false;
+      return true;
+    });
+
+    const todayMatches = validMatches.filter((m) => {
       if (m.utcDate && m.utcDate.startsWith(todayIso)) return true;
       return false;
     });
 
-    const pool = todayMatches.length > 0 ? todayMatches : matches;
+    const pool = todayMatches.length > 0 ? todayMatches : validMatches;
 
     const [archive, stats] = await Promise.all([buildDynamicArchive(), getLedgerStats()]);
 

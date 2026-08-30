@@ -26,12 +26,19 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
         fetch('/api/matches').then((r) => r.json()).catch(() => ({ matches: [] })),
       ]);
 
-      const baseArchive: ArchivedMatch[] = Array.isArray(settleRes?.archive) ? settleRes.archive : [];
+      const baseArchive: ArchivedMatch[] = (Array.isArray(settleRes?.archive) ? settleRes.archive : [])
+        .filter(a => !a.prediction?.selection?.toLowerCase().includes('watch only'));
       const liveMatches = Array.isArray(matchesRes?.matches) ? matchesRes.matches : [];
 
       // Dynamic Real-time Ingestion: Converted finished/void matches from today into audited ledger rows
       const finishedToday = liveMatches
-        .filter((m: any) => ProfessionalSettlementEngine.isMatchFinished(m))
+        .filter((m: any) => {
+          if (!ProfessionalSettlementEngine.isMatchFinished(m)) return false;
+          if (m.prediction?.hasPrediction === false) return false;
+          const sel = (m.prediction?.topPick?.selection || '').toLowerCase();
+          if (sel.includes('watch only') || sel === 'n/a') return false;
+          return true;
+        })
         .map((m: any): ArchivedMatch => {
           const settlement = ProfessionalSettlementEngine.settleMatch(m);
           const todayStr = new Date().toISOString().split('T')[0];
@@ -68,7 +75,7 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
         }
       }
 
-      setArchive(combined);
+      setArchive(combined.filter(a => !a.prediction?.selection?.toLowerCase().includes('watch only')));
     } catch {}
   };
 

@@ -302,11 +302,13 @@ export async function buildDynamicArchive(): Promise<ArchivedMatch[]> {
     if (allMatches && allMatches.length > 0) {
       const pastFinished = allMatches.filter(m => {
         if (m.status !== 'FINISHED') return false;
+        if (m.prediction?.hasPrediction === false) return false;
+        const sel = (m.prediction?.topPick?.selection || '').toLowerCase();
+        if (sel.includes('watch only') || sel === 'n/a') return false;
         if (m.utcDate) {
           const matchTime = new Date(m.utcDate).getTime();
           if (matchTime > (now + 3600000)) return false; // Strictly past only!
         }
-        // Removed erroneous 0-0 drop filter! All completed matches (including 0-0 draws) are valid settlements.
         return true;
       });
 

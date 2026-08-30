@@ -24,7 +24,13 @@ export async function GET() {
   // ==========================================
   try {
     const rawMatches = await getRealLiveAndPlayedMatches();
-    const matches = (rawMatches || []).slice(0, 15);
+    const validMatches = (rawMatches || []).filter((m: any) => {
+      if (m.prediction?.hasPrediction === false) return false;
+      const sel = (m.prediction?.topPick?.selection || '').toLowerCase();
+      if (sel.includes('watch only') || sel === 'n/a') return false;
+      return true;
+    });
+    const matches = validMatches.slice(0, 15);
 
     matches.forEach((m, idx) => {
       const isFinished = m.status === 'FINISHED';

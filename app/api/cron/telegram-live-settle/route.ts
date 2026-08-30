@@ -35,6 +35,9 @@ export async function GET(req: Request) {
     const recentFinishedMatches = matches
       .filter((m) => {
         if (m.status !== 'FINISHED') return false;
+        if (m.prediction?.hasPrediction === false) return false;
+        const sel = (m.prediction?.topPick?.selection || '').toLowerCase();
+        if (sel.includes('watch only') || sel === 'n/a') return false;
         if (!m.utcDate) return true;
         const kickoff = new Date(m.utcDate).getTime();
         if (isNaN(kickoff)) return true;
