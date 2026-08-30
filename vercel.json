@@ -12,5 +12,16 @@
       "path": "/api/cron/telegram-live-settle",
       "schedule": "*/30 14-23 * * *"
     }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    }
   ]
 }
