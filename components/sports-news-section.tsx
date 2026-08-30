@@ -425,12 +425,12 @@ export const SportsNewsSection: React.FC = () => {
                   : activeArticle.description}
               </p>
               
-              <div className="text-gray-300 leading-relaxed whitespace-pre-line space-y-3 pt-2">
+              <div className="text-gray-300 leading-relaxed whitespace-pre-line space-y-3 pt-2 text-sm sm:text-base">
                 {((lang !== 'en' && translatedMap[activeArticle.id]?.fullContent) 
                   ? translatedMap[activeArticle.id].fullContent 
-                  : (activeArticle.fullContent || 'Full tactical updates and in-play coverage continue on Mivaj Sports Match Center.'))
+                  : (activeArticle.fullContent || activeArticle.description || 'Full tactical updates and in-play coverage continue on Mivaj Sports Match Center.'))
                   .replace(activeArticle.description, '')
-                  .trim()}
+                  .trim() || activeArticle.fullContent || activeArticle.description}
               </div>
             </div>
 
