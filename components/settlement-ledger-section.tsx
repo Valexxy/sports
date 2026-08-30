@@ -2,8 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArchivedMatch } from '../lib/prediction-archive-engine';
-import { ShieldCheck, CheckCircle2, XCircle, ChevronDown, ChevronUp, ExternalLink, Calendar, ArrowUpRight, Search, Shield } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, XCircle, ChevronDown, ChevronUp, ExternalLink, Calendar, ArrowUpRight, Search, Shield, Image as ImageIcon } from 'lucide-react';
 import { ProfessionalSettlementEngine } from '../lib/settlement-engine';
+import { DailyWinningCardModal } from './viral/DailyWinningCardModal';
 
 interface SettlementLedgerSectionProps {
   onOpenAuditModal: (record?: ArchivedMatch) => void;
@@ -12,6 +13,7 @@ interface SettlementLedgerSectionProps {
 export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = ({ onOpenAuditModal }) => {
   const [archive, setArchive] = useState<ArchivedMatch[]>([]);
   const [isOpen, setIsOpen] = useState(true);
+  const [showWinningCardModal, setShowWinningCardModal] = useState(false);
   const [filter, setFilter] = useState<'ALL' | 'WON' | 'LOST' | 'VOID'>('ALL');
   const [period, setPeriod] = useState<'TODAY' | 'YESTERDAY' | 'WEEK' | 'MONTH' | 'ALL'>('TODAY');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -146,7 +148,20 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
           </div>
         </div>
 
-        <div className="flex items-center space-x-3 self-stretch sm:self-auto justify-between sm:justify-end">
+        <div className="flex items-center space-x-2 self-stretch sm:self-auto justify-between sm:justify-end flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowWinningCardModal(true);
+            }}
+            className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-stadiumGreen/20 via-stadiumGreen/30 to-gold/20 hover:from-stadiumGreen/40 hover:to-gold/30 border border-stadiumGreen/50 text-stadiumGreen hover:text-white text-xs font-black flex items-center space-x-1.5 transition-all shadow-md"
+            title="Generate high-resolution winning games card for WhatsApp, Facebook & Telegram"
+          >
+            <ImageIcon className="w-3.5 h-3.5 text-gold" />
+            <span>📸 Winning Slip Card (PNG)</span>
+          </button>
+
           <Link
             href="/settlement"
             onClick={(e) => e.stopPropagation()}
@@ -415,6 +430,15 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
 
         </div>
       )}
+
+      {/* High-Resolution Social Media Winning Card Modal */}
+      <DailyWinningCardModal
+        isOpen={showWinningCardModal}
+        onClose={() => setShowWinningCardModal(false)}
+        date={selectedDate || (period === 'YESTERDAY' ? yesterdayIso : todayIso)}
+        totalOdds="14.85"
+        winRate={(settledCount > 0 ? Math.round((wonCount / settledCount) * 100) : 100).toString()}
+      />
     </div>
   );
 };

@@ -297,7 +297,8 @@ export default function AdminCommandCenterPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {[
-                { title: '🌅 Morning Banker Broadcast', endpoint: '/api/cron/telegram-morning', desc: 'Dispatches earliest kickoff banker slip to @mivajsport.' },
+                { title: '🌅 Matchday Banker Broadcast', endpoint: '/api/cron/telegram-morning', desc: 'Dispatches earliest kickoff banker slip to @mivajsport.' },
+                { title: '📸 Daily Winning Social Card (PNG)', endpoint: '/api/og/winning-card', desc: 'High-res image card of today\'s winning games for WhatsApp, Facebook & Telegram.' },
                 { title: '📰 Breaking Sports News', endpoint: '/api/cron/telegram-news', desc: 'Dispatches curated top headlines to Telegram subscribers.' },
                 { title: '⚖️ Live Settlement Audit', endpoint: '/api/cron/telegram-live-settle', desc: 'Audits full-time fixtures and settles predictions in the ledger.' },
                 { title: '📢 Facebook Page Auto-Post', endpoint: '/api/cron/facebook-autopost', desc: 'Publishes daily tips to TipsBros NG Facebook page.' },
