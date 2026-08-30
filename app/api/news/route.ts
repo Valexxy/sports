@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { generateStableArticleId } from '../../../lib/article-extractor';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,7 +16,7 @@ export interface SportsArticle {
   fullContent: string;
 }
 
-// Official Free ESPN Football News Feeds (Full Articles + HD 1080p Photography)
+// Multi-Source Verified Global Football News Feeds
 const ESPN_NEWS_FEEDS = [
   { url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/news', source: 'ESPN Premier League' },
   { url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/news', source: 'ESPN La Liga' },
@@ -31,9 +32,6 @@ const FOOTBALL_RSS_FEEDS = [
   { url: 'https://talksport.com/football/feed/', source: 'talkSPORT Football' },
 ];
 
-const RSS_PROXY = '';
-
-// High-Resolution 1080p Sports Photography Bank
 const FOOTBALL_TOPIC_IMAGES: { keyword: string; url: string }[] = [
   { keyword: 'arsenal', url: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1200&q=90' },
   { keyword: 'chelsea', url: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&q=90' },
@@ -214,35 +212,6 @@ function parseRss(xml: string): { title: string; link: string; description: stri
 
 let cachedNews: { articles: SportsArticle[]; timestamp: number } | null = null;
 
-
-async function fetchNewsDataLiveArticles(): Promise<SportsArticle[]> {
-  const apiKey = process.env.NEWSDATA_API_KEY || 'pub_625fe9ca7be54774a6ce0f13aaa8f7e1';
-  try {
-    const res = await fetch(`https://newsdata.io/api/1/latest?apikey=${apiKey}&q=football%20OR%20soccer&language=en&category=sports`, {
-      next: { revalidate: 300 }
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    if (data && Array.isArray(data.results)) {
-      return data.results.slice(0, 10).map((item: any, i: number) => ({
-        id: `newsdata-${i}-${Date.now()}`,
-        title: item.title || 'Breaking Football Update',
-        description: item.description || item.content || 'Latest live football updates and match coverage.',
-        link: item.link || 'https://sports-teal-psi.vercel.app/',
-        pubDate: item.pubDate || new Date().toISOString(),
-        source: item.source_id ? item.source_id.toUpperCase() : 'NewsData Sport',
-        category: 'GLOBAL FOOTBALL',
-        categoryBadge: '⚡ GLOBAL',
-        imageUrl: item.image_url || DEFAULT_FOOTBALL_IMAGE,
-        fullContent: item.content || item.description || '',
-      }));
-    }
-  } catch (err) {
-    console.warn('NewsData.io fetch fallback active.');
-  }
-  return [];
-}
-
 function extractTitleKeywords(title: string): Set<string> {
   const stopWords = new Set([
     'the', 'a', 'an', 'and', 'or', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from',
@@ -331,7 +300,7 @@ export async function GET() {
         const data = await res.json();
         if (!data.articles || !Array.isArray(data.articles)) return [];
 
-        return data.articles.slice(0, 6).map((art: any, i: number) => {
+        return data.articles.slice(0, 5).map((art: any, i: number) => {
           const title = (art.headline || art.title || 'Breaking Football Update').trim();
           let desc = (art.description || art.story || '').trim();
           if (!desc || desc.length < 20) {
@@ -341,12 +310,13 @@ export async function GET() {
           const img = resolveHdFootballImage(rawImg, title);
           const { category, categoryBadge } = classifyFootballArticle(title, desc);
           const fullContent = buildComprehensiveArticleStory(title, desc, feed.source, category);
+          const link = art.links?.web?.href || `https://www.espn.com/soccer/${encodeURIComponent(title)}`;
 
           return {
-            id: `espn-${feed.source.toLowerCase().replace(/[^a-z]/g, '')}-${i}-${Date.now()}`,
+            id: generateStableArticleId(link, title),
             title,
             description: desc,
-            link: art.links?.web?.href || 'https://www.espn.com/soccer/',
+            link,
             pubDate: timeAgo(art.published, (i * 2 + Math.floor(Math.random() * 2)) % REALISTIC_INTERVALS.length),
             source: feed.source,
             category,
@@ -375,12 +345,13 @@ export async function GET() {
             const img = resolveHdFootballImage(p.imageUrl, p.title);
             const { category, categoryBadge } = classifyFootballArticle(p.title, rawDesc);
             const fullContent = buildComprehensiveArticleStory(p.title, rawDesc, feed.source, category);
+            const link = p.link || `https://www.bbc.com/sport/football/${encodeURIComponent(p.title)}`;
 
             return {
-              id: `${feed.source.toLowerCase().replace(/[^a-z]/g, '')}-${i}-${Date.now()}`,
+              id: generateStableArticleId(link, p.title),
               title: p.title,
               description: rawDesc.slice(0, 240),
-              link: p.link || 'https://www.bbc.com/sport/football',
+              link,
               pubDate: timeAgo(p.pubDate),
               source: feed.source,
               category,
@@ -413,6 +384,7 @@ export async function GET() {
       }
     });
 
+    // 🚀 Robust Fuzzy & Cross-Source Deduplication
     const finalArticles: SportsArticle[] = [];
     for (const item of allArticles) {
       if (!item.title || item.title.length < 6) continue;

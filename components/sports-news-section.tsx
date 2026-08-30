@@ -108,6 +108,29 @@ export const SportsNewsSection: React.FC = () => {
     }
   }, [articles]);
 
+  // Live Exact Website Copy Extraction Engine
+  useEffect(() => {
+    if (!activeArticle || !activeArticle.link || !activeArticle.link.startsWith('http')) return;
+    let isCurrent = true;
+
+    async function loadExactArticle() {
+      try {
+        const res = await fetch(`/api/news/extract?url=${encodeURIComponent(activeArticle!.link)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.body && data.body.length > 80 && isCurrent) {
+            setActiveArticle((prev) => prev ? { ...prev, fullContent: data.body } : null);
+          }
+        }
+      } catch (err) {
+        // Fallback to pre-generated story
+      }
+    }
+
+    loadExactArticle();
+    return () => { isCurrent = false; };
+  }, [activeArticle?.id, activeArticle?.link]);
+
   const openArticle = (article: SportsArticle) => {
     setActiveArticle(article);
     if (typeof window !== 'undefined') {
