@@ -72,9 +72,15 @@ export async function GET() {
           <description><![CDATA[${description}]]></description>
           <content:encoded><![CDATA[${description}]]></content:encoded>
           <enclosure url="${matchCardUrl}" length="102400" type="image/png" />
+          <media:thumbnail url="${matchCardUrl}" />
           <media:content url="${matchCardUrl}" medium="image">
             <media:title><![CDATA[${m.homeTeam} vs ${m.awayTeam}]]></media:title>
           </media:content>
+          <image>
+            <url>${matchCardUrl}</url>
+            <title><![CDATA[${m.homeTeam} vs ${m.awayTeam}]]></title>
+            <link>${link}</link>
+          </image>
         </item>
       `);
     });
