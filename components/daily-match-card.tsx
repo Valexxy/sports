@@ -432,24 +432,6 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
                 {leagueInfo.name}
               </span>
             </button>
-
-            {/* Status Indicator (Clean, non-duplicate single time in center) */}
-            {isLive ? (
-              <span className="flex-shrink-0 flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-crimson/25 border border-crimson/60 text-crimson text-[9px] font-mono font-black shadow-sm">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-crimson opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-crimson"></span>
-                </span>
-                <span>LIVE</span>
-              </span>
-            ) : isFinished ? (
-              <span className={`flex-shrink-0 flex items-center space-x-1 px-2 py-0.5 rounded-full text-[9px] font-black border ${
-                isWon ? 'bg-stadiumGreen/20 border-stadiumGreen/60 text-stadiumGreen' : 'bg-gray-800 border-gray-700 text-gray-300'
-              }`}>
-                <CheckCircle2 className="w-3 h-3" />
-                <span>FINAL</span>
-              </span>
-            ) : null}
           </div>
 
           {/* Quick Header Actions: Follow & Bookmark */}

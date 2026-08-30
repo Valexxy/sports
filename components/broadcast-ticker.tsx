@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
-import { Zap, Pause, Play } from 'lucide-react';
+import Link from 'next/link';
+import { Zap, Pause, Play, Smartphone } from 'lucide-react';
 import { MatchData } from '../lib/sports-api';
 
 export interface TriggerUpdate {
@@ -124,14 +125,24 @@ export const BroadcastTicker: React.FC<TickerProps> = ({ matches = [], onSelectU
           </div>
         </div>
 
-        {/* Pause / play control */}
-        <button
-          onClick={() => setIsPaused((p) => !p)}
-          className="pl-2 pr-2 sm:pl-3 flex-shrink-0 z-10 text-stadiumGreen hover:text-white"
-          title={isPaused ? 'Resume ticker' : 'Pause ticker'}
-        >
-          {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-3.5 h-3.5" />}
-        </button>
+        {/* App Download Link & Pause / play control */}
+        <div className="flex items-center space-x-1.5 pl-2 pr-2 sm:pl-3 sm:pr-4 flex-shrink-0 z-10">
+          <Link
+            href="/download"
+            className="px-2 py-0.5 rounded-lg bg-stadiumGreen/20 hover:bg-stadiumGreen/30 text-stadiumGreen border border-stadiumGreen/40 font-mono font-black text-[10px] sm:text-[11px] flex items-center space-x-1 transition-all shadow-sm active:scale-95"
+            title="Download Native Android APK & Install iOS App"
+          >
+            <Smartphone className="w-3 h-3" />
+            <span>App (APK)</span>
+          </Link>
+          <button
+            onClick={() => setIsPaused((p) => !p)}
+            className="p-1 text-stadiumGreen hover:text-white transition-colors"
+            title={isPaused ? 'Resume ticker' : 'Pause ticker'}
+          >
+            {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-3.5 h-3.5" />}
+          </button>
+        </div>
       </div>
     </div>
   );

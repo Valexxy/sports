@@ -58,6 +58,7 @@ import { stadiumAudio } from '../lib/sound-synthesizer';
 import { speakNaija, allowSpeechOnUserGesture } from '../lib/naija-voice-engine';
 import { playerFollowEngine } from '../lib/player-follow-engine';
 import { SettlementLedgerSection } from '../components/settlement-ledger-section';
+import { FloatingTelegramBar } from '../components/viral/FloatingTelegramBar';
 import { RealtimeCaptureStatus } from '../components/realtime-capture-status';
 import { MatchAlertScheduler } from '../lib/match-alert-scheduler';
 import { LiveMatchFxEngine } from '../lib/live-match-fx-engine';
@@ -1136,6 +1137,9 @@ export default function Home() {
           isOpen={showAffiliatePopup}
           onClose={() => setShowAffiliatePopup(false)}
         />
+
+        {/* High-Converting Floating Telegram VIP & WhatsApp Viral Share Bar */}
+        <FloatingTelegramBar />
 
       </div>
     </ErrorBoundary>
