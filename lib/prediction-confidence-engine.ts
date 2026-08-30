@@ -341,10 +341,11 @@ export function buildSmartPrediction(
   let selection = dcOutput.topPick?.selection ?? defaultSelection;
   let market    = dcOutput.topPick?.market    ?? 'Double Chance';
 
-  // Enforce allowed markets for the league
-  if (profile.allowedMarkets.length > 0) {
+  // Preserve Total Goals, Over/Under, BTTS, and Double Chance
+  const isGoalsMarket = market.toLowerCase().includes('goal') || market.toLowerCase().includes('over') || market.toLowerCase().includes('under') || market.toLowerCase().includes('btts');
+  if (!isGoalsMarket && profile.allowedMarkets.length > 0) {
     const isAllowed = profile.allowedMarkets.some(m =>
-      market.toLowerCase().includes(m.toLowerCase())
+      market.toLowerCase().includes(m.toLowerCase()) || m.toLowerCase().includes(market.toLowerCase())
     );
     if (!isAllowed) {
       market    = profile.allowedMarkets[0];
@@ -361,7 +362,7 @@ export function buildSmartPrediction(
     topPick: {
       selection,
       market,
-      odds: dcOutput.topPick?.odds ?? 1.40,
+      odds: dcOutput.topPick?.odds ?? 1.35,
       confidenceTier: tier,
       kellyStake: dcOutput.topPick?.kellyStake ?? 5,
       probability: Math.round(modelProb),
