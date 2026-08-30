@@ -216,17 +216,38 @@ export class PersistentStorage {
   }
 
   // --- Persistent Emoji Reactions ---
+  public static getInitialEmojiCounts(matchId: string): Record<string, number> {
+    let hash = 0;
+    const str = matchId || 'mivaj-default-match';
+    for (let i = 0; i < str.length; i++) {
+      hash = (hash << 5) - hash + str.charCodeAt(i);
+      hash |= 0;
+    }
+    const h = Math.abs(hash);
+    return {
+      '🔥': 35 + (h % 145),
+      '💀': 8 + ((h >> 3) % 45),
+      '🧊': 12 + ((h >> 5) % 60),
+      '🚀': 18 + ((h >> 2) % 85),
+      '👑': 25 + ((h >> 4) % 110),
+    };
+  }
+
   public static getMatchEmojiReactions(matchId: string): { userReacted: Record<string, boolean>; counts: Record<string, number> } {
+    const defaultCounts = this.getInitialEmojiCounts(matchId);
     if (typeof window === 'undefined') {
-      return { userReacted: {}, counts: { '🔥': 42, '💀': 18, '🧊': 25, '🚀': 31, '👑': 56 } };
+      return { userReacted: {}, counts: defaultCounts };
     }
     try {
       const stored = localStorage.getItem(`mivaj_emojis_${matchId}`);
-      if (stored) return JSON.parse(stored);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && parsed.counts) return parsed;
+      }
     } catch {}
     return {
       userReacted: {},
-      counts: { '🔥': 42, '💀': 18, '🧊': 25, '🚀': 31, '👑': 56 },
+      counts: defaultCounts,
     };
   }
 

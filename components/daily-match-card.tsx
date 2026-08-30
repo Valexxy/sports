@@ -176,6 +176,9 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   });
 
   useEffect(() => {
+    const data = PersistentStorage.getMatchEmojiReactions(match.id);
+    setReactions(data.counts);
+    setUserReacted(data.userReacted);
     if (PersistentStorage.isTicketPlaced(match.id)) {
       setHasVotedTicket(true);
     }
