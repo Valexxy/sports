@@ -47,7 +47,7 @@ export const COMPREHENSIVE_DICTIONARY: Record<string, Partial<Record<LanguageCod
   // Brand, Navigation & Tabs
   'LIVE WIRE': {
     en: 'LIVE WIRE',
-    pidgin: 'LIVE WIRE ⚡',
+    pidgin: 'LIVE WIRE (AS E DEY HOT 🔥)',
     yoruba: 'WÁYÀ LÁYÉ ⚡',
     hausa: 'LABARAI MASU ZAFI ⚡',
     igbo: 'WAYA NDỤ ⚡',
@@ -59,7 +59,7 @@ export const COMPREHENSIVE_DICTIONARY: Record<string, Partial<Record<LanguageCod
   },
   'Fixtures': {
     en: 'Fixtures',
-    pidgin: 'Matches',
+    pidgin: 'Ball Wey Dey Play ⚽',
     yoruba: 'Àwọn Ìfẹsẹ̀wọnsẹ̀',
     hausa: 'Wasanni',
     igbo: 'Egwuregwu',
@@ -71,7 +71,7 @@ export const COMPREHENSIVE_DICTIONARY: Record<string, Partial<Record<LanguageCod
   },
   'Revealer': {
     en: 'Revealer',
-    pidgin: 'Code Revealer 🔍',
+    pidgin: 'Unwrap Booking Code 🔍',
     yoruba: 'Àfihàn Kóòdù 🔍',
     hausa: 'Mai Fitar da Code 🔍',
     igbo: 'Ihe Ngosi Koodu 🔍',
@@ -83,7 +83,7 @@ export const COMPREHENSIVE_DICTIONARY: Record<string, Partial<Record<LanguageCod
   },
   'Ledger': {
     en: 'Ledger',
-    pidgin: 'History Ledger 📜',
+    pidgin: 'Referee Settlement Ledger 📜',
     yoruba: 'Ìwé Ìtàn 📜',
     hausa: 'Littafin Sakamako 📜',
     igbo: 'Akwụkwọ Ndekọ 📜',
@@ -95,7 +95,7 @@ export const COMPREHENSIVE_DICTIONARY: Record<string, Partial<Record<LanguageCod
   },
   'News': {
     en: 'News',
-    pidgin: 'Hot News 📰',
+    pidgin: 'Hot Hot Tori & Gist 📰',
     yoruba: 'Ìròyìn Tuntun 📰',
     hausa: 'Labarai 📰',
     igbo: 'Ozi Ọhụrụ 📰',
@@ -107,7 +107,7 @@ export const COMPREHENSIVE_DICTIONARY: Record<string, Partial<Record<LanguageCod
   },
   'Account': {
     en: 'Account',
-    pidgin: 'My Profile 👤',
+    pidgin: 'My Vault & Bankroll 👤',
     yoruba: 'Àkọọ́lẹ̀ Mi 👤',
     hausa: 'Asusu Na 👤',
     igbo: 'Akaụntụ M 👤',
@@ -119,7 +119,7 @@ export const COMPREHENSIVE_DICTIONARY: Record<string, Partial<Record<LanguageCod
   },
   'Live': {
     en: 'Live',
-    pidgin: 'Live Now',
+    pidgin: 'As E Dey Hot (Live) 🔥',
     yoruba: 'Láyé',
     hausa: 'Kai Tsaye',
     igbo: 'Ndụ',
@@ -131,7 +131,7 @@ export const COMPREHENSIVE_DICTIONARY: Record<string, Partial<Record<LanguageCod
   },
   'Upcoming': {
     en: 'Upcoming',
-    pidgin: 'Dey Come',
+    pidgin: 'Next Matches (Dey Come) ⏰',
     yoruba: 'Tó ń Bọ̀',
     hausa: 'Masu Zuwa',
     igbo: 'Na-abịa',
@@ -143,7 +143,7 @@ export const COMPREHENSIVE_DICTIONARY: Record<string, Partial<Record<LanguageCod
   },
   'Played': {
     en: 'Played',
-    pidgin: 'Don Finish',
+    pidgin: 'Don Finish (FT) 🏁',
     yoruba: 'Ti Pari',
     hausa: 'An Gama',
     igbo: 'Emechara',
@@ -155,7 +155,7 @@ export const COMPREHENSIVE_DICTIONARY: Record<string, Partial<Record<LanguageCod
   },
   'I Bet This (+1)': {
     en: 'I Bet This (+1)',
-    pidgin: 'I Bet This (+1) 🔥',
+    pidgin: 'I Dey Follow Dis One (+1) 🔥',
     yoruba: 'Mo Tẹ́lẹ́ Wọn (+1) 🔥',
     hausa: 'Na Zabi Wannan (+1) 🔥',
     igbo: 'M Tinyere Ego (+1) 🔥',
@@ -167,7 +167,7 @@ export const COMPREHENSIVE_DICTIONARY: Record<string, Partial<Record<LanguageCod
   },
   'Placed ✓': {
     en: 'Placed ✓',
-    pidgin: 'Placed ✓',
+    pidgin: 'Don Lock Am ✓',
     yoruba: 'Ti Tẹ́lẹ́ ✓',
     hausa: 'An Sanya ✓',
     igbo: 'Tinyere ✓',

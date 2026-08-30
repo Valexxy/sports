@@ -14,12 +14,17 @@ export const PwaInstallPromptModal: React.FC = () => {
   const [pushSubscribed, setPushSubscribed] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const [isInstalled, setIsInstalled] = useState(false);
+
   useEffect(() => {
-    // Check if already installed in Standalone mode
+    // Check if already installed in Standalone mode or stored in localStorage
     const standaloneMode = 
       window.matchMedia('(display-mode: standalone)').matches || 
-      (window.navigator as any).standalone === true;
+      (window.navigator as any).standalone === true ||
+      localStorage.getItem('mivaj_app_installed') === 'true' ||
+      localStorage.getItem('aurascore_installed') === 'true';
     setIsStandalone(standaloneMode);
+    setIsInstalled(standaloneMode);
 
     // Detect iOS
     const userAgent = window.navigator.userAgent.toLowerCase();
@@ -32,7 +37,7 @@ export const PwaInstallPromptModal: React.FC = () => {
       setDeferredPrompt(e);
       // Auto-show prompt after 4 seconds on first visit if not installed
       const dismissed = localStorage.getItem('mivaj_pwa_dismissed');
-      if (!dismissed) {
+      if (!dismissed && !standaloneMode) {
         setTimeout(() => setShowModal(true), 3500);
       }
     };
@@ -51,20 +56,25 @@ export const PwaInstallPromptModal: React.FC = () => {
 
     const handleGlobalInstalled = () => {
       setIsStandalone(true);
+      setIsInstalled(true);
       setShowModal(false);
     };
     const handleOpenModal = () => {
-      setShowModal(true);
+      if (!isInstalled && !standaloneMode) {
+        setShowModal(true);
+      }
     };
     window.addEventListener('mivaj_app_installed', handleGlobalInstalled);
+    window.addEventListener('appinstalled', handleGlobalInstalled);
     window.addEventListener('open_pwa_install_modal', handleOpenModal);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('mivaj_app_installed', handleGlobalInstalled);
+      window.removeEventListener('appinstalled', handleGlobalInstalled);
       window.removeEventListener('open_pwa_install_modal', handleOpenModal);
     };
-  }, []);
+  }, [isInstalled]);
 
   const handleInstallClick = async () => {
     phoneHardware.triggerHaptic('SUCCESS');
@@ -109,12 +119,12 @@ export const PwaInstallPromptModal: React.FC = () => {
     setShowModal(false);
   };
 
-  if (!showModal && isStandalone) return null;
+  if (isStandalone || isInstalled) return null;
 
   return (
     <>
       {/* Floating Mini Install Pill (If dismissed or minimized) */}
-      {!showModal && !isStandalone && (
+      {!showModal && !isStandalone && !isInstalled && (
         <button
           onClick={() => setShowModal(true)}
           className="fixed bottom-20 right-4 z-40 px-3.5 py-2 rounded-2xl bg-[#0a1224]/95 border border-stadiumGreen/60 text-stadiumGreen font-mono font-black text-xs shadow-2xl flex items-center space-x-2 backdrop-blur-md hover:scale-105 transition-all animate-bounce"

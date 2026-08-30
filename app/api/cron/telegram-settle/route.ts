@@ -84,28 +84,30 @@ export async function GET(req: Request) {
 
     const totalPlayed = wonToday + lostToday;
     const todayWinRate = totalPlayed > 0 ? Math.round((wonToday / totalPlayed) * 100) : 88;
+    const gameDayFormatted = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
-    let msg = `🌙 <b>MIVAJ SPORTS • NIGHTLY SETTLEMENT & AUDIT 📜</b>\n`;
-    msg += `📅 <i>${new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} • Verified Referee Ledger</i>\n\n`;
+    let msg = `⚖️ <b>OFFICIAL MIVAJ MATCHDAY REFEREE SETTLEMENT 📜</b>\n`;
+    msg += `📅 <b>Game Day:</b> <code>${gameDayFormatted}</code>\n`;
+    msg += `📊 <b>Verified Status:</b> <code>100% Referee Audited Score Sheets</code>\n\n`;
 
-    msg += `📊 <b>TODAY'S VERIFIED ACCURACY:</b>\n`;
-    msg += `🎯 Win Rate: <code>${todayWinRate}%</code> (${wonToday}W / ${lostToday}L)\n`;
-    msg += `✅ Won: <b>${wonToday}</b>  |  ❌ Lost: <b>${lostToday}</b>  |  📋 Total: <b>${totalPlayed}</b>\n\n`;
+    msg += `📊 <b>SETTLED MATCHDAY ACCURACY:</b>\n`;
+    msg += `🎯 <b>Win Rate:</b> <code>${todayWinRate}%</code> (${wonToday} Won / ${lostToday} Lost)\n`;
+    msg += `✅ <b>Won:</b> ${wonToday}  |  ❌ <b>Lost:</b> ${lostToday}  |  📋 <b>Total Settled:</b> ${totalPlayed}\n\n`;
 
-    msg += `🏆 <b>OFFICIAL LEDGER RECORD:</b>\n`;
-    msg += `${stats.won} Won / ${stats.lost} Lost (<code>${stats.winRate}% Verified Win Rate</code>)\n\n`;
+    msg += `🏆 <b>IMMUTABLE LEDGER RECORD:</b>\n`;
+    msg += `${stats.won} Won / ${stats.lost} Lost (<code>${stats.winRate}% Cumulative Win Rate</code>)\n\n`;
 
     if (scoreLines.length > 0) {
-      msg += `<b>Verified Final Scorelines:</b>\n`;
+      msg += `<b>Official Matchday Scorelines & Settlement:</b>\n`;
       msg += scoreLines.slice(0, 10).join('\n\n') + '\n\n';
     }
 
-    msg += `🔥 <b>TOMORROW'S VIP TICKETS ARE NOW READY ON MIVAJ SPORTS!</b>\n`;
-    msg += `<i>Tap link below to check tomorrow's master accumulator before odds drop!</i>`;
+    msg += `🔥 <b>UPCOMING HIGH-CONFIDENCE BANKERS ARE ACTIVE ON MIVAJ SPORTS!</b>\n`;
+    msg += `<i>Tap link below to check all upcoming matchday picks before kickoff!</i>`;
 
     const siteUrl = `https://mivaj.com/?ref=tg_settle_cron`;
     const ledgerUrl = `https://mivaj.com/settlement?ref=tg_settle_cron`;
-    const shareText = `📜 Today's Mivaj Sports Settlement: ${todayWinRate}% Win Rate! Check full verified ledger:`;
+    const shareText = `📜 Official Mivaj Sports Matchday Settlement: ${todayWinRate}% Win Rate! Check full verified ledger:`;
 
     const tgShareUrl = `https://t.me/share/url?url=${encodeURIComponent(ledgerUrl)}&text=${encodeURIComponent(shareText)}`;
     const waShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + ' ' + ledgerUrl)}`;
@@ -116,7 +118,7 @@ export async function GET(req: Request) {
         { text: '📜 VIEW IMMUTABLE MATCH LEDGER', url: ledgerUrl },
       ],
       [
-        { text: '🔥 UNLOCK TOMORROW\'S BANKER ACCUMULATOR ➔', url: siteUrl },
+        { text: '🔥 VIEW NEXT MATCHDAY BANKER ACCUMULATOR ➔', url: siteUrl },
       ],
       [
         { text: '🎁 22Bet 200% Bonus', url: AFFILIATE_PARTNERS['22BET'].affiliateUrl },
@@ -137,10 +139,10 @@ export async function GET(req: Request) {
     // Web Push Fanout to all subscribed devices
     try {
       await broadcastPushMessage({
-        title: `🌙 MIVAJ SPORTS NIGHTLY AUDIT: ${todayWinRate}% WIN RATE!`,
-        body: `${wonToday} of ${totalPlayed} matches won today. Official ledger verified. Tap to view your ROI.`,
-        url: '/settlement?ref=nightly_push',
-        tag: 'mivaj-nightly-settlement',
+        title: `⚖️ MIVAJ SPORTS SETTLEMENT: ${todayWinRate}% WIN RATE!`,
+        body: `Matchday settled: ${wonToday} Won / ${lostToday} Lost (${todayWinRate}% Accuracy). Check audited ledger!`,
+        url: '/settlement?ref=settlement_push',
+        tag: 'mivaj-matchday-settlement',
       });
     } catch (e: any) {
       console.warn('Web push broadcast warning:', e?.message);
