@@ -83,7 +83,6 @@ import { StadiumUserWeatherPanel } from '../components/stadium-user-weather-pane
 import { registerPushClient, pushClientId } from '../lib/push-client';
 import { cacheOffline } from '../lib/offline-manager';
 import { AffiliateConversionPopup } from '../components/affiliate-conversion-popup';
-import { OfficialMatchHighlightsHub } from '../components/official-match-highlights-hub';
 
 
 import { useTranslation } from '../lib/translation-engine';
@@ -810,9 +809,6 @@ export default function Home() {
 
           {/* 13. SPORTS NEWS SECTION */}
           <SportsNewsSection />
-
-          {/* 14. OFFICIAL MATCH HIGHLIGHTS HUB — Videos from yesterday & today */}
-          <OfficialMatchHighlightsHub />
 
           {/* REGULATORY COMPLIANCE DISCLAIMER */}
           
