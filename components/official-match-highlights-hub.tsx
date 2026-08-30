@@ -1,55 +1,46 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Play, Video, Sparkles, X, ShieldCheck, Search, Calendar, ChevronDown, RefreshCw, ExternalLink, Radio, Tv } from 'lucide-react';
+import { Play, Video, Sparkles, X, ShieldCheck, Search, RefreshCw, ExternalLink, Radio, Tv, Flame, Award, ChevronDown } from 'lucide-react';
 import { phoneHardware } from '../lib/phone-hardware-engine';
 import { stadiumAudio } from '../lib/sound-synthesizer';
 
-interface HighlightItem {
+export interface VerifiedHighlightMatch {
   id: string;
   title: string;
+  homeTeam: string;
+  awayTeam: string;
+  homeScore: number;
+  awayScore: number;
   competition: string;
-  thumbnail: string;
+  competitionBadge: string;
   date: string;
   rawDate: string;
-  embedUrl: string;
-  youtubeUrl: string;
-  directWatchUrl: string;
+  thumbnail: string;
+  broadcaster: string;
+  broadcasterLogo: string;
+  matchTime: string;
+  status: string;
+  goals: Array<{ minute: string; player: string; team: string }>;
+  watchUrl: string;
+  directStreamUrl: string;
+  isRecent: boolean;
 }
 
-type DateFilterType = 'ALL' | 'TODAY' | 'YESTERDAY' | 'WEEK';
-type StreamSource = 'YOUTUBE' | 'DAILYMOTION';
-
 export const OfficialMatchHighlightsHub: React.FC = () => {
-  const [highlights, setHighlights] = useState<HighlightItem[]>([]);
+  const [highlights, setHighlights] = useState<VerifiedHighlightMatch[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [dateFilter, setDateFilter] = useState<DateFilterType>('ALL');
   const [visibleCount, setVisibleCount] = useState<number>(6);
-  const [activeVideo, setActiveVideo] = useState<HighlightItem | null>(null);
-  const [currentStreamSource, setCurrentStreamSource] = useState<StreamSource>('YOUTUBE');
+  const [activeMatch, setActiveMatch] = useState<VerifiedHighlightMatch | null>(null);
 
   const fetchHighlights = async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/highlights');
       const data = await res.json();
-      if (data?.videos && Array.isArray(data.videos) && data.videos.length > 0) {
-        const formatted: HighlightItem[] = data.videos.map((item: any, idx: number) => {
-          const rawTitle = item.title?.replace(/^Highlights_/i, '').replace(/_Matchday.*$/i, '').replace(/_ACT$/i, '').replace(' - ', ' vs ') || 'Match Highlights';
-          return {
-            id: `hl-${idx}`,
-            title: rawTitle,
-            competition: item.competition || 'Top Flight Highlights',
-            thumbnail: item.thumbnail || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=600&auto=format&fit=crop&q=80',
-            date: item.date || 'Recent',
-            rawDate: new Date().toISOString(),
-            embedUrl: `https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(rawTitle + ' highlights official')}&autoplay=1`,
-            youtubeUrl: `https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(rawTitle + ' highlights')}&autoplay=1`,
-            directWatchUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(rawTitle + ' official match highlights recap')}`,
-          };
-        });
-        setHighlights(formatted);
+      if (data?.highlights && Array.isArray(data.highlights) && data.highlights.length > 0) {
+        setHighlights(data.highlights);
       }
     } catch (e) {
       console.warn('Highlights fetch notice:', e);
@@ -62,22 +53,24 @@ export const OfficialMatchHighlightsHub: React.FC = () => {
     fetchHighlights();
   }, []);
 
-  // Filtered & Searched Highlights
   const filteredHighlights = useMemo(() => {
     return highlights.filter((item) => {
       const q = searchQuery.toLowerCase().trim();
-      const matchesSearch = !q || item.title.toLowerCase().includes(q) || item.competition.toLowerCase().includes(q);
-      if (!matchesSearch) return false;
-      return true;
+      if (!q) return true;
+      return (
+        item.title.toLowerCase().includes(q) ||
+        item.competition.toLowerCase().includes(q) ||
+        item.homeTeam.toLowerCase().includes(q) ||
+        item.awayTeam.toLowerCase().includes(q)
+      );
     });
   }, [highlights, searchQuery]);
 
-  const handleOpenVideo = (item: HighlightItem) => {
-    setActiveVideo(item);
-    setCurrentStreamSource('YOUTUBE');
+  const handleOpenTheater = (match: VerifiedHighlightMatch) => {
+    setActiveMatch(match);
     try {
       phoneHardware.triggerHaptic('SELECTION');
-      stadiumAudio.playSelectGoalFx();
+      stadiumAudio.playCrowdRoar();
     } catch {}
   };
 
@@ -95,7 +88,7 @@ export const OfficialMatchHighlightsHub: React.FC = () => {
               <span className="text-xs">🎬</span>
             </h2>
             <p className="text-[10px] text-gray-400 font-sans">
-              Watch verified European, League, and Cup highlights directly on Mivaj Sports.
+              Verified European, League, and Cup highlights &amp; goal recaps (Zero Broken Embeds).
             </p>
           </div>
         </div>
@@ -126,7 +119,7 @@ export const OfficialMatchHighlightsHub: React.FC = () => {
         {filteredHighlights.slice(0, visibleCount).map((item) => (
           <div
             key={item.id}
-            onClick={() => handleOpenVideo(item)}
+            onClick={() => handleOpenTheater(item)}
             className="group relative rounded-3xl overflow-hidden bg-black/70 border border-white/10 hover:border-stadiumGreen/60 transition-all duration-300 cursor-pointer shadow-xl hover:scale-[1.02] flex flex-col justify-between"
           >
             <div className="relative aspect-video w-full overflow-hidden bg-black">
@@ -135,35 +128,47 @@ export const OfficialMatchHighlightsHub: React.FC = () => {
                 alt={item.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80 group-hover:opacity-100"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
               
-              {/* Play Button Overlay */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-12 h-12 rounded-full bg-stadiumGreen/90 text-black flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
-                  <Play className="w-5 h-5 fill-current translate-x-0.5" />
+              {/* Scoreboard Overlay in Center */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center space-y-2 p-3">
+                <div className="flex items-center space-x-3 px-4 py-2 rounded-2xl bg-black/80 backdrop-blur-md border border-white/20 shadow-2xl">
+                  <span className="font-extrabold text-xs text-white truncate max-w-[90px]">{item.homeTeam}</span>
+                  <span className="font-mono font-black text-sm px-2 py-0.5 rounded bg-stadiumGreen text-black">
+                    {item.homeScore} - {item.awayScore}
+                  </span>
+                  <span className="font-extrabold text-xs text-white truncate max-w-[90px]">{item.awayTeam}</span>
+                </div>
+
+                {/* Play Button Icon */}
+                <div className="w-10 h-10 rounded-full bg-stadiumGreen text-black flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
+                  <Play className="w-4 h-4 fill-current translate-x-0.5" />
                 </div>
               </div>
 
               {/* Competition Badge */}
-              <div className="absolute top-3 left-3 px-2.5 py-1 rounded-xl bg-black/80 border border-white/10 text-[9px] font-black text-gold backdrop-blur-md">
-                {item.competition}
+              <div className="absolute top-3 left-3 px-2.5 py-1 rounded-xl bg-black/80 border border-white/10 text-[9px] font-black text-gold backdrop-blur-md flex items-center space-x-1">
+                <span>{item.competitionBadge}</span>
+                <span>{item.competition}</span>
               </div>
 
-              {/* Verified Badge */}
+              {/* Status Badge */}
               <div className="absolute top-3 right-3 px-2 py-0.5 rounded-lg bg-stadiumGreen/20 border border-stadiumGreen/50 text-[9px] font-black text-stadiumGreen backdrop-blur-md flex items-center space-x-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-stadiumGreen animate-pulse" />
-                <span>HD STREAM</span>
+                <span>OFFICIAL RECAP</span>
               </div>
             </div>
 
             <div className="p-3.5 space-y-2">
-              <h3 className="font-extrabold text-xs text-white group-hover:text-stadiumGreen transition-colors line-clamp-2">
-                {item.title}
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="font-extrabold text-xs text-white group-hover:text-stadiumGreen transition-colors truncate">
+                  {item.title}
+                </h3>
+              </div>
               <div className="flex items-center justify-between text-[10px] text-gray-400 font-sans pt-1 border-t border-white/5">
-                <span>{item.date}</span>
+                <span className="text-gray-400 font-mono text-[9px]">{item.broadcaster}</span>
                 <span className="text-stadiumGreen font-mono font-bold flex items-center space-x-1">
-                  <span>Watch Recap</span>
+                  <span>Open Theater</span>
                   <span>➔</span>
                 </span>
               </div>
@@ -184,78 +189,90 @@ export const OfficialMatchHighlightsHub: React.FC = () => {
         </div>
       )}
 
-      {/* Video Theater Modal (Multi-Source Unblocked Player with Mivaj Watermark) */}
-      {activeVideo && (
+      {/* Full-Screen Verified Match Theater Modal (Zero Broken Embeds • 100% Working) */}
+      {activeMatch && (
         <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex items-center justify-center p-3 sm:p-6 animate-fadeIn font-mono">
-          <div className="relative w-full max-w-3xl glass-panel-premium rounded-3xl border-2 border-stadiumGreen p-4 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto text-white">
+          <div className="relative w-full max-w-2xl glass-panel-premium rounded-3xl border-2 border-stadiumGreen p-5 sm:p-7 shadow-2xl space-y-5 max-h-[92vh] overflow-y-auto text-white">
             
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div className="flex items-center space-x-2 min-w-0">
                 <span className="w-2.5 h-2.5 rounded-full bg-stadiumGreen animate-ping flex-shrink-0" />
-                <h3 className="font-black text-sm sm:text-base text-white truncate max-w-[240px] sm:max-w-md">
-                  {activeVideo.title}
+                <h3 className="font-black text-sm sm:text-base text-white truncate">
+                  {activeMatch.title}
                 </h3>
               </div>
               <button
-                onClick={() => setActiveVideo(null)}
+                onClick={() => setActiveMatch(null)}
                 className="p-2 rounded-full bg-panel hover:bg-white/10 text-gray-400 hover:text-white border border-white/10 flex-shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Stream Channel Source Selector */}
-            <div className="flex items-center space-x-2 text-xs">
-              <button
-                onClick={() => setCurrentStreamSource('YOUTUBE')}
-                className={`px-3 py-1.5 rounded-xl text-[10px] font-black transition-all flex items-center space-x-1.5 ${
-                  currentStreamSource === 'YOUTUBE'
-                    ? 'bg-stadiumGreen text-black shadow-md'
-                    : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'
-                }`}
-              >
-                <Tv className="w-3.5 h-3.5" />
-                <span>Broadcaster Stream 1</span>
-              </button>
+            {/* Official Match Visual Theater Card */}
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#0c1424] via-black to-[#0c1424] border border-stadiumGreen/40 p-5 sm:p-6 space-y-4 shadow-inner">
+              
+              {/* Top Watermark & Broadcaster Banner */}
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center space-x-2">
+                  <span className="px-2.5 py-1 rounded-xl bg-stadiumGreen/20 text-stadiumGreen text-[10px] font-black border border-stadiumGreen/40">
+                    ⚡ {activeMatch.competition}
+                  </span>
+                  <span className="text-[10px] text-gray-400 font-sans hidden sm:inline">
+                    {activeMatch.broadcaster}
+                  </span>
+                </div>
+                <div className="px-2.5 py-1 rounded-lg bg-black/80 border border-stadiumGreen/50 text-[10px] font-black text-stadiumGreen backdrop-blur-md">
+                  MIVAJ SPORTS &bull; mivaj.com
+                </div>
+              </div>
 
-              <a
-                href={activeVideo.directWatchUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3 py-1.5 rounded-xl bg-gold/20 hover:bg-gold text-gold hover:text-black border border-gold/40 text-[10px] font-black transition-all flex items-center space-x-1.5 ml-auto"
-              >
-                <Play className="w-3 h-3 fill-current" />
-                <span>1-Tap Full HD Theater ➔</span>
-              </a>
-            </div>
-
-            {/* In-App Native Player Container with Mivaj Sports Watermark HUD */}
-            <div className="rounded-2xl overflow-hidden border border-white/20 bg-black shadow-inner relative">
-              <div className="relative w-full aspect-video bg-black">
-                {/* Top Right Live Watermark */}
-                <div className="absolute top-3 right-3 z-10 pointer-events-none px-2.5 py-1 rounded-lg bg-black/80 border border-stadiumGreen/50 text-[10px] font-black text-stadiumGreen tracking-wider backdrop-blur-md flex items-center space-x-1.5 shadow-lg">
-                  <span className="w-1.5 h-1.5 rounded-full bg-stadiumGreen animate-pulse" />
-                  <span>MIVAJ SPORTS &bull; mivaj.com</span>
+              {/* Authoritative Scoreboard */}
+              <div className="flex items-center justify-around py-4 border-y border-white/10">
+                <div className="text-center space-y-1 flex-1">
+                  <span className="font-black text-sm sm:text-base text-white block">{activeMatch.homeTeam}</span>
+                  <span className="text-[10px] text-gray-400 font-sans">Home</span>
                 </div>
 
-                <iframe
-                  src={activeVideo.embedUrl}
-                  width="100%"
-                  height="100%"
-                  className="w-full h-full border-0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                  allowFullScreen
-                  loading="eager"
-                />
+                <div className="flex flex-col items-center px-4">
+                  <div className="px-4 py-1.5 rounded-2xl bg-gradient-to-r from-stadiumGreen to-emerald-400 text-black font-black text-xl sm:text-2xl shadow-lg">
+                    {activeMatch.homeScore} - {activeMatch.awayScore}
+                  </div>
+                  <span className="text-[10px] font-black text-gold uppercase mt-1 tracking-wider">{activeMatch.date}</span>
+                </div>
+
+                <div className="text-center space-y-1 flex-1">
+                  <span className="font-black text-sm sm:text-base text-white block">{activeMatch.awayTeam}</span>
+                  <span className="text-[10px] text-gray-400 font-sans">Away</span>
+                </div>
               </div>
+
+              {/* 1-Tap Unblocked HD Highlights Watch Button */}
+              <div className="space-y-2 pt-2">
+                <a
+                  href={activeMatch.watchUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-stadiumGreen via-emerald-400 to-stadiumGreen hover:opacity-95 text-black font-black text-xs sm:text-sm flex items-center justify-center space-x-2 shadow-xl shadow-stadiumGreen/20 active:scale-95 transition-all"
+                >
+                  <Play className="w-4 h-4 fill-current flex-shrink-0" />
+                  <span>▶️ WATCH FULL OFFICIAL HD MATCH RECAP (100% UNBLOCKED)</span>
+                  <ExternalLink className="w-4 h-4 flex-shrink-0 ml-1" />
+                </a>
+
+                <p className="text-[10px] text-gray-400 text-center font-sans">
+                  Tap to launch official broadcaster video recap with zero ads, zero geo-blocks, and 1080p replay.
+                </p>
+              </div>
+
             </div>
 
             {/* Exclusive On-Site Watermarked Footer */}
             <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-white/10 text-xs">
               <span className="text-[11px] text-gray-300 font-mono flex items-center space-x-1.5">
                 <ShieldCheck className="w-3.5 h-3.5 text-stadiumGreen" />
-                <span>Official HD Match Recap &bull; <strong>mivaj.com</strong></span>
+                <span>Verified Matchday Intelligence &bull; <strong>mivaj.com</strong></span>
               </span>
               <span className="text-[10px] text-stadiumGreen font-mono font-bold bg-stadiumGreen/10 border border-stadiumGreen/30 px-2.5 py-1 rounded-lg">
                 🔒 Protected Stream &bull; Mivaj Sports
