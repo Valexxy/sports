@@ -583,39 +583,6 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
                 {match.matchTime || '19:00'}
               </span>
             )}
-            {/* Quick Access Buttons — Inside Card Center, Below Score */}
-            <div className="flex items-center gap-1 mt-1.5" onClick={(e) => e.stopPropagation()}>
-              <button
-                type="button"
-                onClick={() => { phoneHardware.triggerHaptic('SELECTION'); stadiumAudio.playCrowdCheer(); trackMatchEngagement(match.id, 'stadium_mic_toggle'); setIsAudioListening(!isAudioListening); }}
-                className={`p-1 rounded-lg text-[9px] font-black flex items-center space-x-0.5 border transition-all active:scale-95 ${
-                  isAudioListening
-                    ? 'bg-stadiumGreen text-black border-stadiumGreen shadow-sm'
-                    : 'bg-white/5 text-gray-300 border-white/10 hover:border-stadiumGreen/50 hover:text-stadiumGreen'
-                }`}
-                title="Stadium Mic Ambience"
-              >
-                <Volume2 className="w-2.5 h-2.5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => { phoneHardware.triggerHaptic('SELECTION'); trackMatchEngagement(match.id, 'commentary_open'); setShowCommentaryModal(true); }}
-                className="px-1.5 py-0.5 rounded-lg bg-crimson/15 border border-crimson/40 text-crimson text-[9px] font-black flex items-center space-x-0.5 active:scale-95 hover:bg-crimson/30 transition-all"
-                title="Live Commentary Wire"
-              >
-                <Mic className="w-2.5 h-2.5" />
-                <span className="hidden xs:inline">Wire</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => { phoneHardware.triggerHaptic('SELECTION'); trackMatchEngagement(match.id, 'h2h_arena_open'); setShowH2HModal(true); }}
-                className="px-1.5 py-0.5 rounded-lg bg-gold/15 border border-gold/40 text-gold text-[9px] font-black flex items-center space-x-0.5 active:scale-95 hover:bg-gold/30 transition-all"
-                title="Head-to-Head Arena"
-              >
-                <Swords className="w-2.5 h-2.5" />
-                <span className="hidden xs:inline">H2H</span>
-              </button>
-            </div>
           </div>
 
           {/* Away Team */}

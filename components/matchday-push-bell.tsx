@@ -71,106 +71,115 @@ export const MatchdayPushBell: React.FC = () => {
         <span className={`w-2 h-2 rounded-full ${subscribed ? 'bg-stadiumGreen shadow-[0_0_8px_#00e676]' : 'bg-gold animate-ping'}`} />
       </button>
 
-      {/* iOS 17 Style Specular Glass Popover Sheet (Mobile Responsive) */}
+      {/* Specular Solid Dark Popover Sheet with Backdrop Overlay */}
       {isOpen && (
-        <div className="fixed sm:absolute inset-x-3 sm:inset-x-auto sm:right-0 top-20 sm:top-full mt-2 w-auto sm:w-96 rounded-[26px] bg-[#0c1017]/98 backdrop-blur-2xl border border-stadiumGreen/50 shadow-[0_20px_50px_rgba(0,0,0,0.9),inset_0_1px_0_0_rgba(255,255,255,0.15)] p-4 space-y-3 z-50 animate-fadeIn text-white">
-          
-          <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-            <div className="flex items-center space-x-2">
-              <div className="p-1.5 rounded-xl bg-stadiumGreen/20 text-stadiumGreen">
-                <Sparkles className="w-4 h-4" />
-              </div>
-              <div>
-                <h4 className="font-black text-xs text-white">MATCHDAY WEB PUSH</h4>
-                <p className="text-[10px] text-gray-400 font-sans">Real-time lock screen alerts (3x Daily)</p>
-              </div>
-            </div>
-            <button 
-              onClick={() => setIsOpen(false)}
-              className="p-1 rounded-full text-gray-400 hover:text-white"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/75 backdrop-blur-sm z-[99]"
+            onClick={() => setIsOpen(false)}
+          />
 
-          {/* Schedule Features List */}
-          <div className="space-y-1.5 text-[11px] font-sans text-gray-300">
-            <div className="flex items-center justify-between p-2 rounded-2xl bg-white/[0.03] border border-white/5">
-              <div className="flex items-center space-x-2 min-w-0">
-                <span className="text-sm">🌅</span>
-                <div className="truncate">
-                  <strong className="text-white block text-[11px]">8:00 AM Banker Drop</strong>
-                  <span className="text-gray-400 text-[10px]">Daily Poisson high-accuracy accumulator</span>
+          {/* Dialog Container */}
+          <div className="fixed sm:absolute inset-x-3 sm:inset-x-auto sm:right-0 top-20 sm:top-full mt-2 w-auto sm:w-96 rounded-[26px] bg-[#090f1d] border-2 border-stadiumGreen/60 shadow-[0_25px_60px_rgba(0,0,0,1)] p-5 space-y-3.5 z-[100] animate-fadeIn text-white">
+            
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center space-x-2.5">
+                <div className="p-2 rounded-xl bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/40 shadow-sm">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="font-black text-xs sm:text-sm text-white tracking-wide">MATCHDAY WEB PUSH</h4>
+                  <p className="text-[10px] text-gray-300 font-sans">Real-time lock screen alerts (3x Daily)</p>
                 </div>
               </div>
-              <Check className="w-3.5 h-3.5 text-stadiumGreen flex-shrink-0" />
+              <button 
+                onClick={() => setIsOpen(false)}
+                className="p-1.5 rounded-full bg-white/10 text-gray-300 hover:text-white hover:bg-white/20 transition-all"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
-            <div className="flex items-center justify-between p-2 rounded-2xl bg-white/[0.03] border border-white/5">
-              <div className="flex items-center space-x-2 min-w-0">
-                <span className="text-sm">⚽</span>
-                <div className="truncate">
-                  <strong className="text-white block text-[11px]">Kickoffs &amp; Live Goals</strong>
-                  <span className="text-gray-400 text-[10px]">Instant sub-second score &amp; red card alerts</span>
+            {/* Schedule Features List — High-Contrast Solid Rows */}
+            <div className="space-y-2 text-xs font-sans text-gray-200">
+              <div className="flex items-center justify-between p-3 rounded-2xl bg-[#111c30] border border-white/10 shadow-sm">
+                <div className="flex items-center space-x-2.5 min-w-0">
+                  <span className="text-base flex-shrink-0">🌅</span>
+                  <div className="truncate">
+                    <strong className="text-white block text-xs font-bold">8:00 AM Banker Drop</strong>
+                    <span className="text-gray-300 text-[10px] block">Daily Poisson high-accuracy accumulator</span>
+                  </div>
                 </div>
+                <Check className="w-4 h-4 text-stadiumGreen flex-shrink-0 stroke-[3]" />
               </div>
-              <Check className="w-3.5 h-3.5 text-stadiumGreen flex-shrink-0" />
-            </div>
 
-            <div className="flex items-center justify-between p-2 rounded-2xl bg-white/[0.03] border border-white/5">
-              <div className="flex items-center space-x-2 min-w-0">
-                <span className="text-sm">📜</span>
-                <div className="truncate">
-                  <strong className="text-white block text-[11px]">11:00 PM Nightly Audit</strong>
-                  <span className="text-gray-400 text-[10px]">Verified referee ledger settlement &amp; ROI</span>
+              <div className="flex items-center justify-between p-3 rounded-2xl bg-[#111c30] border border-white/10 shadow-sm">
+                <div className="flex items-center space-x-2.5 min-w-0">
+                  <span className="text-base flex-shrink-0">⚽</span>
+                  <div className="truncate">
+                    <strong className="text-white block text-xs font-bold">Kickoffs &amp; Live Goals</strong>
+                    <span className="text-gray-300 text-[10px] block">Instant sub-second score &amp; red card alerts</span>
+                  </div>
                 </div>
+                <Check className="w-4 h-4 text-stadiumGreen flex-shrink-0 stroke-[3]" />
               </div>
-              <Check className="w-3.5 h-3.5 text-stadiumGreen flex-shrink-0" />
+
+              <div className="flex items-center justify-between p-3 rounded-2xl bg-[#111c30] border border-white/10 shadow-sm">
+                <div className="flex items-center space-x-2.5 min-w-0">
+                  <span className="text-base flex-shrink-0">📜</span>
+                  <div className="truncate">
+                    <strong className="text-white block text-xs font-bold">11:00 PM Nightly Audit</strong>
+                    <span className="text-gray-300 text-[10px] block">Verified referee ledger settlement &amp; ROI</span>
+                  </div>
+                </div>
+                <Check className="w-4 h-4 text-stadiumGreen flex-shrink-0 stroke-[3]" />
+              </div>
             </div>
-          </div>
 
-          {/* 1-Tap Action Switch Button */}
-          <button
-            type="button"
-            onClick={handleToggleSubscribe}
-            disabled={loading || subscribed}
-            className={`w-full py-3 rounded-2xl font-black text-xs font-mono flex items-center justify-center space-x-2 transition-all active:scale-[0.97] shadow-lg ${
-              subscribed
-                ? 'bg-stadiumGreen/20 border border-stadiumGreen text-stadiumGreen'
-                : 'bg-gradient-to-r from-stadiumGreen via-emerald-400 to-gold text-black hover:scale-[1.01]'
-            }`}
-          >
-            {subscribed ? (
-              <>
-                <Check className="w-4 h-4 stroke-[3]" />
-                <span>MATCHDAY PUSH ACTIVE ✓</span>
-              </>
-            ) : (
-              <>
-                <BellRing className="w-4 h-4 animate-bounce" />
-                <span>1-TAP ACTIVATE PUSH ALERTS</span>
-              </>
-            )}
-          </button>
-
-          {/* Test Trigger Button (Instant Feedback) */}
-          {subscribed && (
+            {/* 1-Tap Action Switch Button */}
             <button
               type="button"
-              onClick={handleFireTest}
-              disabled={testing}
-              className="w-full py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/20 text-xs font-bold text-gray-200 flex items-center justify-center space-x-2 transition-all active:scale-95"
+              onClick={handleToggleSubscribe}
+              disabled={loading || subscribed}
+              className={`w-full py-3.5 rounded-2xl font-black text-xs font-mono flex items-center justify-center space-x-2 transition-all active:scale-[0.97] shadow-lg ${
+                subscribed
+                  ? 'bg-stadiumGreen/20 border-2 border-stadiumGreen text-stadiumGreen font-black'
+                  : 'bg-stadiumGreen hover:bg-emerald-400 text-black shadow-stadiumGreen/25'
+              }`}
             >
-              <Send className="w-3.5 h-3.5 text-gold" />
-              <span>{testing ? 'Sending Test...' : testSent ? 'Test Sent! Check Notifications 🔔' : 'Send Test Notification to this Device 🚀'}</span>
+              {subscribed ? (
+                <>
+                  <Check className="w-4 h-4 stroke-[3]" />
+                  <span>MATCHDAY PUSH ACTIVE ✓</span>
+                </>
+              ) : (
+                <>
+                  <BellRing className="w-4 h-4 animate-bounce" />
+                  <span>1-TAP ACTIVATE PUSH ALERTS</span>
+                </>
+              )}
             </button>
-          )}
 
-          <div className="text-[9px] text-gray-400 text-center flex items-center justify-center space-x-1 pt-1 border-t border-white/5 font-sans">
-            <ShieldCheck className="w-3 h-3 text-stadiumGreen flex-shrink-0" />
-            <span>Delivers on iOS 16.4+, Android &amp; Desktop. Zero battery drain.</span>
+            {/* Test Trigger Button (Instant Feedback) */}
+            {subscribed && (
+              <button
+                type="button"
+                onClick={handleFireTest}
+                disabled={testing}
+                className="w-full py-2.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/20 text-xs font-bold text-gray-200 flex items-center justify-center space-x-2 transition-all active:scale-95"
+              >
+                <Send className="w-3.5 h-3.5 text-gold" />
+                <span>{testing ? 'Sending Test...' : testSent ? 'Test Sent! Check Notifications 🔔' : 'Send Test Notification to this Device 🚀'}</span>
+              </button>
+            )}
+
+            <div className="text-[10px] text-gray-400 text-center flex items-center justify-center space-x-1.5 pt-2 border-t border-white/10 font-sans">
+              <ShieldCheck className="w-3.5 h-3.5 text-stadiumGreen flex-shrink-0" />
+              <span>Delivers on iOS 16.4+, Android &amp; Desktop. Zero battery drain.</span>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

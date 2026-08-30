@@ -129,11 +129,11 @@ export const BroadcastTicker: React.FC<TickerProps> = ({ matches = [], onSelectU
         <div className="flex items-center space-x-1.5 pl-2 pr-2 sm:pl-3 sm:pr-4 flex-shrink-0 z-10">
           <Link
             href="/download"
-            className="px-2 py-0.5 rounded-lg bg-stadiumGreen/20 hover:bg-stadiumGreen/30 text-stadiumGreen border border-stadiumGreen/40 font-mono font-black text-[10px] sm:text-[11px] flex items-center space-x-1 transition-all shadow-sm active:scale-95"
+            className="px-2.5 py-0.5 rounded-lg bg-stadiumGreen/20 hover:bg-stadiumGreen/30 text-stadiumGreen border border-stadiumGreen/40 font-mono font-black text-[10px] sm:text-[11px] flex items-center space-x-1 transition-all shadow-sm active:scale-95"
             title="Download Native Android APK & Install iOS App"
           >
             <Smartphone className="w-3 h-3" />
-            <span>App (APK)</span>
+            <span>GET APP</span>
           </Link>
           <button
             onClick={() => setIsPaused((p) => !p)}
