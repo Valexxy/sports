@@ -134,7 +134,15 @@ export async function GET(req: Request) {
       ],
     ];
 
-    const result = await TelegramBotService.sendBroadcastMessage(msg, keyboard);
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://mivaj.com';
+    const photoUrl = `${baseUrl}/api/og/winning-card?odds=14.85&winRate=${todayWinRate}&t=${Date.now()}`;
+
+    let result;
+    try {
+      result = await TelegramBotService.sendPhoto(photoUrl, msg, keyboard);
+    } catch {
+      result = await TelegramBotService.sendBroadcastMessage(msg, keyboard);
+    }
 
     // Web Push Fanout to all subscribed devices
     try {

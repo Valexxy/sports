@@ -62,6 +62,31 @@ export const DailyWinningCardModal: React.FC<DailyWinningCardModalProps> = ({
     document.body.removeChild(a);
   };
 
+  const [sendingTelegram, setSendingTelegram] = useState(false);
+  const [telegramStatus, setTelegramStatus] = useState<string | null>(null);
+
+  const handleSendTelegram = async () => {
+    setSendingTelegram(true);
+    setTelegramStatus(null);
+    try {
+      phoneHardware.triggerHaptic('SUCCESS');
+      const res = await fetch('/api/telegram/send-winning-card', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setTelegramStatus('Photo Dispatched to @mivajsport Telegram Channel! 🚀');
+        stadiumAudio.playCrowdRoar();
+        confetti({ particleCount: 60, spread: 70, origin: { y: 0.5 } });
+      } else {
+        setTelegramStatus(`Status: ${data.error || 'Check bot settings'}`);
+      }
+    } catch (e: any) {
+      setTelegramStatus(`Notice: ${e.message}`);
+    } finally {
+      setSendingTelegram(false);
+      setTimeout(() => setTelegramStatus(null), 6000);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex items-center justify-center p-3 sm:p-6 animate-fadeIn font-mono">
       <div className="relative w-full max-w-3xl glass-panel-premium rounded-3xl border-2 border-stadiumGreen p-4 sm:p-7 shadow-2xl space-y-4 max-h-[94vh] overflow-y-auto text-white">
@@ -91,22 +116,36 @@ export const DailyWinningCardModal: React.FC<DailyWinningCardModalProps> = ({
           />
         </div>
 
+        {telegramStatus && (
+          <div className="p-3 rounded-2xl bg-stadiumGreen/20 border border-stadiumGreen text-stadiumGreen font-black text-xs text-center animate-pulse">
+            {telegramStatus}
+          </div>
+        )}
+
         {/* Action Controls */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2">
           <button
             onClick={handleDownload}
-            className="py-3.5 px-4 rounded-2xl bg-gradient-to-r from-stadiumGreen via-emerald-400 to-stadiumGreen text-black font-black text-xs sm:text-sm flex items-center justify-center space-x-2 shadow-xl shadow-stadiumGreen/25 hover:opacity-95 active:scale-95 transition-all cursor-pointer"
+            className="py-3 px-3 rounded-2xl bg-gradient-to-r from-stadiumGreen via-emerald-400 to-stadiumGreen text-black font-black text-xs flex items-center justify-center space-x-1.5 shadow-xl shadow-stadiumGreen/25 hover:opacity-95 active:scale-95 transition-all cursor-pointer"
           >
-            <Download className="w-4 h-4 stroke-[2.5]" />
-            <span>DOWNLOAD IMAGE (PNG) 📥</span>
+            <Download className="w-3.5 h-3.5 stroke-[2.5]" />
+            <span>SAVE PNG 📥</span>
+          </button>
+
+          <button
+            onClick={handleSendTelegram}
+            disabled={sendingTelegram}
+            className="py-3 px-3 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-black text-xs flex items-center justify-center space-x-1.5 shadow-lg active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+          >
+            <span>{sendingTelegram ? 'SENDING...' : 'SEND TO TELEGRAM ✈️'}</span>
           </button>
 
           <button
             onClick={handleCopyCaption}
-            className="py-3.5 px-4 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-black text-xs sm:text-sm flex items-center justify-center space-x-2 active:scale-95 transition-all cursor-pointer"
+            className="py-3 px-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-black text-xs flex items-center justify-center space-x-1.5 active:scale-95 transition-all cursor-pointer"
           >
-            {copied ? <Check className="w-4 h-4 text-stadiumGreen" /> : <Share2 className="w-4 h-4 text-gold" />}
-            <span>{copied ? 'CAPTION COPIED! ✓' : 'COPY VIRAL SOCIAL CAPTION 📋'}</span>
+            {copied ? <Check className="w-3.5 h-3.5 text-stadiumGreen" /> : <Share2 className="w-3.5 h-3.5 text-gold" />}
+            <span>{copied ? 'COPIED! ✓' : 'COPY CAPTION 📋'}</span>
           </button>
         </div>
 
