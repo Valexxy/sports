@@ -191,15 +191,20 @@ export const BirthdayCenterModal: React.FC<BirthdayCenterModalProps> = ({
 
                 {/* Athlete Avatar & Info */}
                 <div className="flex items-center space-x-3.5 pt-1">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-white/10 to-black/80 border border-white/15 overflow-hidden flex-shrink-0 relative flex items-center justify-center p-1 shadow-inner">
-                    <img
-                      src={star.avatarUrl}
-                      alt={star.name}
-                      className="w-full h-full object-contain group-hover:scale-115 transition-transform duration-300 drop-shadow-md"
-                      onError={(e) => {
-                        (e.target as HTMLElement).style.display = 'none';
-                      }}
-                    />
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gold/25 via-neutral-900 to-black border border-gold/40 overflow-hidden flex-shrink-0 relative flex items-center justify-center p-1 shadow-inner">
+                    <span className="absolute inset-0 flex items-center justify-center font-black text-base text-gold select-none">
+                      {star.fallbackInitials || '★'}
+                    </span>
+                    {star.avatarUrl && (
+                      <img
+                        src={star.avatarUrl}
+                        alt={star.name}
+                        className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300 drop-shadow-md relative z-10"
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = 'none';
+                        }}
+                      />
+                    )}
                   </div>
 
                   <div className="min-w-0 flex-1">
