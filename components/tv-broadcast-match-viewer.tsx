@@ -55,15 +55,11 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
         </div>
 
         <div className="flex items-center space-x-2">
-          <span className={`px-2.5 py-1 rounded-xl font-black text-[10px] border ${
-            isLive 
-              ? 'bg-crimson/20 text-crimson border-crimson/40 animate-pulse' 
-              : isFinished 
-              ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40' 
-              : 'bg-stadiumGreen/15 text-stadiumGreen border-stadiumGreen/30'
-          }`}>
-            {isLive ? `LIVE 🔴` : isFinished ? (isBaseball ? 'FINAL' : 'SETTLED') : 'TACTICAL RADAR'}
-          </span>
+          {isFinished && (
+            <span className="px-2.5 py-1 rounded-xl font-black text-[10px] border bg-cyan-500/20 text-cyan-400 border-cyan-500/40">
+              {isBaseball ? 'FINAL' : 'SETTLED'}
+            </span>
+          )}
           <button
             onClick={() => setIsFullscreen(!isFullscreen)}
             className="p-1.5 rounded-xl bg-white/5 border border-white/10 text-gray-400 hover:text-white"

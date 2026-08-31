@@ -5,20 +5,20 @@
  */
 
 const EXTRACTOR_CACHE = new Map<string, { body: string; timestamp: number }>();
-const CACHE_TTL = 1000 * 60 * 60 * 6; // 6 hours
+const CACHE_TTL = 1000 * 60 * 60 * 12; // 12 hours
 
 export async function extractExactArticleContent(url: string, fallbackDesc: string = ''): Promise<string> {
   if (!url || !url.startsWith('http')) return fallbackDesc;
 
-  // Check in-memory cache
+  // Check in-memory cache (only valid if length > 80)
   const cached = EXTRACTOR_CACHE.get(url);
-  if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
+  if (cached && cached.body && cached.body.length > 80 && (Date.now() - cached.timestamp) < CACHE_TTL) {
     return cached.body;
   }
 
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 6000);
+    const timeout = setTimeout(() => controller.abort(), 10000);
 
     const res = await fetch(url, {
       headers: {
@@ -39,17 +39,22 @@ export async function extractExactArticleContent(url: string, fallbackDesc: stri
     const validParagraphs: string[] = [];
 
     const invalidKeywords = [
-      'cookie', 'privacy policy', 'terms of service', 'all rights reserved',
-      'subscribe to', 'sign up for', 'advertisement', 'sponsored',
-      'download our app', 'follow us on', 'click here', 'photo by',
-      'getty images', 'afp', 'reuters', 'listen to the latest',
-      'watch live', 'stream live', 'share this page', 'read more:'
+      'cookie policy', 'privacy policy', 'terms of service', 'all rights reserved',
+      'subscribe to', 'sign up for', 'advertisement', 'sponsored link',
+      'download our app', 'follow us on twitter', 'click here to watch',
+      'listen to the latest', 'watch live stream', 'share this page'
     ];
 
     for (const rawP of pMatches) {
-      const text = rawP.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"').trim();
+      const text = rawP
+        .replace(/<[^>]+>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&#39;/g, "'")
+        .replace(/&quot;/g, '"')
+        .trim();
       
-      if (text.length >= 45 && text.length <= 1500) {
+      if (text.length >= 35 && text.length <= 2500) {
         const lower = text.toLowerCase();
         const isInvalid = invalidKeywords.some(kw => lower.includes(kw));
         if (!isInvalid) {
@@ -60,11 +65,13 @@ export async function extractExactArticleContent(url: string, fallbackDesc: stri
 
     if (validParagraphs.length >= 2) {
       const fullText = validParagraphs.join('\n\n');
-      EXTRACTOR_CACHE.set(url, { body: fullText, timestamp: Date.now() });
-      return fullText;
+      if (fullText.length > 80) {
+        EXTRACTOR_CACHE.set(url, { body: fullText, timestamp: Date.now() });
+        return fullText;
+      }
     }
   } catch (err) {
-    // Return fallback on network timeout
+    // Fail gracefully
   }
 
   return fallbackDesc;
