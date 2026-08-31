@@ -9,6 +9,7 @@ import {
 import confetti from 'canvas-confetti';
 import { phoneHardware } from '../../lib/phone-hardware-engine';
 import { stadiumAudio } from '../../lib/sound-synthesizer';
+import { PlayerRadarModal } from '../../components/player-radar-modal';
 
 export interface UniversalAthleteCard {
   id: string;
@@ -140,6 +141,8 @@ export default function PlayersHubPage() {
   const [followedIds, setFollowedIds] = useState<string[]>([]);
   const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
+  const [showRadarModal, setShowRadarModal] = useState(false);
+  const [initialPlayerId, setInitialPlayerId] = useState<string>('p-okocha');
 
   useEffect(() => {
     try {
@@ -362,7 +365,7 @@ export default function PlayersHubPage() {
 
                 </div>
 
-                {/* Follow Button & Profile Link */}
+                {/* Follow Button & Radar Dossier Modal Trigger */}
                 <div className="flex items-center space-x-2 pt-2 border-t border-white/5">
                   <button
                     type="button"
@@ -377,13 +380,18 @@ export default function PlayersHubPage() {
                     <span>{isFollowed ? 'Following Profile ✓' : 'Follow Athlete'}</span>
                   </button>
 
-                  <Link
-                    href={`/players/${player.id}`}
-                    className="p-3 rounded-2xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border border-white/10 transition-all flex items-center justify-center"
-                    title="View Full Profile Dossier"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setInitialPlayerId(player.id);
+                      setShowRadarModal(true);
+                    }}
+                    className="px-3.5 py-3 rounded-2xl bg-gold/15 hover:bg-gold/25 text-gold border border-gold/40 transition-all flex items-center space-x-1 font-bold text-xs"
+                    title="Open Scouting Radar & Bio Dossier"
                   >
-                    <ExternalLink className="w-4 h-4 text-gold" />
-                  </Link>
+                    <Zap className="w-3.5 h-3.5 text-gold fill-gold" />
+                    <span className="hidden sm:inline">Radar</span>
+                  </button>
                 </div>
 
               </div>
@@ -392,6 +400,13 @@ export default function PlayersHubPage() {
         </div>
 
       </div>
+
+      {/* In-App Native Player Radar & Encyclopedia Modal */}
+      <PlayerRadarModal
+        isOpen={showRadarModal}
+        onClose={() => setShowRadarModal(false)}
+        initialPlayerId={initialPlayerId}
+      />
     </div>
   );
 }

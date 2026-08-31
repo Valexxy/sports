@@ -14,7 +14,8 @@ import {
   Newspaper,
   UserCheck,
   Activity,
-  DollarSign
+  DollarSign,
+  Star
 } from 'lucide-react';
 import { useTranslation } from '../lib/translation-engine';
 import { GlobalLanguageSwitcher } from './global-language-switcher';
@@ -93,6 +94,13 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({ onOpenPlayers, cur
 
         {/* Center: Segmented Navigation Pills (Desktop & Tablet) */}
         <nav className="hidden xl:flex items-center space-x-1 bg-white/[0.04] p-1 rounded-full border border-white/10 backdrop-blur-2xl shadow-inner">
+          <Link 
+            href="/players" 
+            className="px-3 py-1.5 rounded-full text-xs font-bold text-gold hover:bg-gold/15 transition-all flex items-center space-x-1"
+          >
+            <Star className="w-3.5 h-3.5 text-gold" />
+            <span>Players</span>
+          </Link>
           <Link 
             href="/standings" 
             className="px-3 py-1.5 rounded-full text-xs font-bold text-amber-400 hover:bg-amber-500/15 transition-all flex items-center space-x-1"

@@ -129,6 +129,23 @@ export const StadiumSuitesMenu: React.FC<StadiumSuitesMenuProps> = ({
               <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-stadiumGreen group-hover:translate-x-1 transition-all" />
             </button>
 
+            <Link
+              href="/players"
+              onClick={onClose}
+              className="p-3 rounded-2xl bg-panel hover:bg-white/5 border border-white/10 hover:border-gold/50 text-left transition-all flex items-center justify-between group"
+            >
+              <div className="flex items-center space-x-3">
+                <span className="text-xl">⭐</span>
+                <div>
+                  <span className="font-black text-white text-xs block group-hover:text-gold">
+                    Players & Legends Hub
+                  </span>
+                  <span className="text-[9px] text-gray-400 font-sans">Full bio, career radar & honors</span>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-500 group-hover:text-gold group-hover:translate-x-1 transition-all" />
+            </Link>
+
             <button
               onClick={() => handleAction(onOpenNews)}
               className="p-3 rounded-2xl bg-panel hover:bg-white/5 border border-white/10 hover:border-gold/50 text-left transition-all flex items-center justify-between group"
