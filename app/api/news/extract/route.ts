@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { extractExactArticleContent } from '../../../../lib/article-extractor';
+import { extractExactArticleContent } from '@/lib/article-extractor';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 15;
