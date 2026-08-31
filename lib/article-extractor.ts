@@ -10,7 +10,7 @@ const CACHE_TTL = 1000 * 60 * 60 * 12; // 12 hours
 export async function extractExactArticleContent(url: string, fallbackDesc: string = ''): Promise<string> {
   if (!url || !url.startsWith('http')) return fallbackDesc;
 
-  // Check in-memory cache (only valid if length > 80)
+  // Check in-memory cache
   const cached = EXTRACTOR_CACHE.get(url);
   if (cached && cached.body && cached.body.length > 80 && (Date.now() - cached.timestamp) < CACHE_TTL) {
     return cached.body;
@@ -18,13 +18,12 @@ export async function extractExactArticleContent(url: string, fallbackDesc: stri
 
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
+    const timeout = setTimeout(() => controller.abort(), 8000);
 
     const res = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
       },
       signal: controller.signal,
     });
@@ -38,13 +37,6 @@ export async function extractExactArticleContent(url: string, fallbackDesc: stri
     const pMatches = html.match(/<p[^>]*>([\s\S]*?)<\/p>/gi) || [];
     const validParagraphs: string[] = [];
 
-    const invalidKeywords = [
-      'cookie policy', 'privacy policy', 'terms of service', 'all rights reserved',
-      'subscribe to', 'sign up for', 'advertisement', 'sponsored link',
-      'download our app', 'follow us on twitter', 'click here to watch',
-      'listen to the latest', 'watch live stream', 'share this page'
-    ];
-
     for (const rawP of pMatches) {
       const text = rawP
         .replace(/<[^>]+>/g, '')
@@ -53,25 +45,31 @@ export async function extractExactArticleContent(url: string, fallbackDesc: stri
         .replace(/&#39;/g, "'")
         .replace(/&quot;/g, '"')
         .trim();
-      
-      if (text.length >= 35 && text.length <= 2500) {
+
+      if (text.length >= 40) {
         const lower = text.toLowerCase();
-        const isInvalid = invalidKeywords.some(kw => lower.includes(kw));
-        if (!isInvalid) {
+        const isBoilerplate = 
+          lower.startsWith('cookie') || 
+          lower.startsWith('terms of') || 
+          lower.startsWith('privacy policy') || 
+          lower.startsWith('all rights reserved') ||
+          lower.startsWith('copyright') ||
+          lower.includes('subscribe to our newsletter') ||
+          lower.includes('download the app');
+
+        if (!isBoilerplate) {
           validParagraphs.push(text);
         }
       }
     }
 
-    if (validParagraphs.length >= 2) {
+    if (validParagraphs.length >= 1) {
       const fullText = validParagraphs.join('\n\n');
-      if (fullText.length > 80) {
-        EXTRACTOR_CACHE.set(url, { body: fullText, timestamp: Date.now() });
-        return fullText;
-      }
+      EXTRACTOR_CACHE.set(url, { body: fullText, timestamp: Date.now() });
+      return fullText;
     }
   } catch (err) {
-    // Fail gracefully
+    // Return fallback
   }
 
   return fallbackDesc;
