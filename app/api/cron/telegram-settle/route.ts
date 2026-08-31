@@ -43,12 +43,18 @@ export async function GET(req: Request) {
 
     const [archive, stats] = await Promise.all([buildDynamicArchive(), getLedgerStats()]);
 
-    const finishedToday = pool.filter((m) => m.status === 'FINISHED');
+    let finishedMatches = pool.filter((m) => m.status === 'FINISHED' || m.matchTime === 'FT' || m.matchTime === 'Final');
+    
+    // If post-midnight and today has no finished games yet, look at the full list of finished matches from the previous 24h
+    if (finishedMatches.length === 0) {
+      finishedMatches = validMatches.filter((m) => m.status === 'FINISHED' || m.matchTime === 'FT' || m.matchTime === 'Final');
+    }
+
     const scoreLines: string[] = [];
     let wonToday = 0;
     let lostToday = 0;
 
-    finishedToday.forEach((m) => {
+    finishedMatches.forEach((m) => {
       const pick = m.prediction?.topPick?.selection || 'Home Win';
       const odds = m.prediction?.topPick?.odds || 1.15;
       const sportIcon = m.sport === 'BASKETBALL' ? '🏀' : m.sport === 'AMERICAN_FOOTBALL' ? '🏈' : '⚽';
@@ -93,16 +99,18 @@ export async function GET(req: Request) {
     });
 
     const totalPlayed = wonToday + lostToday;
-    const todayWinRate = totalPlayed > 0 ? Math.round((wonToday / totalPlayed) * 100) : 88;
+    const todayWinRate = totalPlayed > 0 ? Math.round((wonToday / totalPlayed) * 100) : stats.winRate;
     const gameDayFormatted = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
     let msg = `⚖️ <b>OFFICIAL MIVAJ MATCHDAY REFEREE SETTLEMENT 📜</b>\n`;
     msg += `📅 <b>Game Day:</b> <code>${gameDayFormatted}</code>\n`;
     msg += `📊 <b>Verified Status:</b> <code>100% Referee Audited Score Sheets</code>\n\n`;
 
-    msg += `📊 <b>SETTLED MATCHDAY ACCURACY:</b>\n`;
-    msg += `🎯 <b>Win Rate:</b> <code>${todayWinRate}%</code> (${wonToday} Won / ${lostToday} Lost)\n`;
-    msg += `✅ <b>Won:</b> ${wonToday}  |  ❌ <b>Lost:</b> ${lostToday}  |  📋 <b>Total Settled:</b> ${totalPlayed}\n\n`;
+    if (totalPlayed > 0) {
+      msg += `📊 <b>SETTLED MATCHDAY ACCURACY:</b>\n`;
+      msg += `🎯 <b>Win Rate:</b> <code>${todayWinRate}%</code> (${wonToday} Won / ${lostToday} Lost)\n`;
+      msg += `✅ <b>Won:</b> ${wonToday}  |  ❌ <b>Lost:</b> ${lostToday}  |  📋 <b>Total Settled:</b> ${totalPlayed}\n\n`;
+    }
 
     msg += `🏆 <b>IMMUTABLE LEDGER RECORD:</b>\n`;
     msg += `${stats.won} Won / ${stats.lost} Lost (<code>${stats.winRate}% Cumulative Win Rate</code>)\n\n`;
