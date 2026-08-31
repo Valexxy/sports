@@ -442,8 +442,26 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
             </button>
           </div>
 
-          {/* Quick Header Actions: Follow & Bookmark */}
+          {/* Quick Header Actions: H2H Arena, Audio Commentary, Follow & Bookmark */}
           <div className="flex items-center space-x-1.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setShowH2HModal(true)}
+              className="px-2 py-1 rounded-xl bg-amber-900/30 hover:bg-amber-700/40 border border-amber-600/40 text-amber-400 text-[10px] font-black flex items-center space-x-1 transition-all"
+              title="Open Head-to-Head Arena & Pitch Battle"
+            >
+              <span>🥊</span>
+              <span className="hidden sm:inline">H2H</span>
+            </button>
+
+            <button
+              onClick={() => setShowCommentaryModal(true)}
+              className="px-2 py-1 rounded-xl bg-cyan-900/30 hover:bg-cyan-700/40 border border-cyan-500/40 text-cyan-300 text-[10px] font-black flex items-center space-x-1 transition-all"
+              title="Live Stadium Audio & Commentary"
+            >
+              <span>🔊</span>
+              <span className="hidden sm:inline">Audio</span>
+            </button>
+
             <button
               onClick={handleAlert}
               className={`p-1.5 rounded-xl border transition-all ${
