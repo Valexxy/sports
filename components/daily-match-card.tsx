@@ -38,6 +38,7 @@ import { LiveStadiumCommentaryModal } from './live-stadium-commentary-modal';
 import { HeadToHeadArenaModal } from './head-to-head-arena-modal';
 import { LocationIntelligenceEngine } from '../lib/location-intelligence-engine';
 import { useModalBackHandler } from '../lib/history-back-navigation';
+import { GenZFanArena } from './gen-z-fan-arena';
 
 export interface DailyMatchCardProps {
   match: MatchData;
@@ -161,6 +162,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   const [isAddedToSlip, setIsAddedToSlip] = useState<boolean>(false);
   const [showCommentaryModal, setShowCommentaryModal] = useState<boolean>(false);
   const [showH2HModal, setShowH2HModal] = useState<boolean>(false);
+  const [showFanArenaModal, setShowFanArenaModal] = useState<boolean>(false);
   const [showVenueIntel, setShowVenueIntel] = useState<boolean>(false);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
@@ -171,6 +173,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   // Hook to handle phone back button when modals are open
   useModalBackHandler(showCommentaryModal, () => setShowCommentaryModal(false));
   useModalBackHandler(showH2HModal, () => setShowH2HModal(false));
+  useModalBackHandler(showFanArenaModal, () => setShowFanArenaModal(false));
 
   // Gen Z Emoji Reactions State (Persisted across sessions)
   const [reactions, setReactions] = useState<{ [key: string]: number }>(() => {
@@ -442,8 +445,24 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
             </button>
           </div>
 
-          {/* Quick Header Actions: H2H Arena, Audio Commentary, Follow & Bookmark */}
+          {/* Quick Header Actions: Fan Arena, H2H Arena, Audio Commentary, Follow & Bookmark */}
           <div className="flex items-center space-x-1.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => {
+                phoneHardware.triggerHaptic('SELECTION');
+                setShowFanArenaModal(true);
+              }}
+              className={`px-2 py-1 rounded-xl text-[10px] font-black flex items-center space-x-1 transition-all border ${
+                isFinished
+                  ? 'bg-neutral-900/60 border-neutral-700 text-gray-400'
+                  : 'bg-purple-950/40 hover:bg-purple-900/50 border-purple-500/40 text-purple-300'
+              }`}
+              title={isFinished ? 'Fan Arena Closed (FT)' : 'Open Gen Z Fan Arena'}
+            >
+              <span>{isFinished ? '🔒' : '💬'}</span>
+              <span className="hidden sm:inline">{isFinished ? 'Arena Closed' : 'Fan Arena'}</span>
+            </button>
+
             <button
               onClick={() => setShowH2HModal(true)}
               className="px-2 py-1 rounded-xl bg-amber-900/30 hover:bg-amber-700/40 border border-amber-600/40 text-amber-400 text-[10px] font-black flex items-center space-x-1 transition-all"
@@ -811,6 +830,39 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
           match={match}
           onClose={() => setShowH2HModal(false)}
         />
+      )}
+
+      {/* Gen Z Fan Arena Modal (Closes when match ends) */}
+      {showFanArenaModal && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fadeIn"
+          onClick={() => setShowFanArenaModal(false)}
+        >
+          <div 
+            className="w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl p-1"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-end p-2 sm:hidden">
+              <button
+                onClick={() => setShowFanArenaModal(false)}
+                className="px-3 py-1 rounded-xl bg-white/10 text-white text-xs font-bold"
+              >
+                Close ✕
+              </button>
+            </div>
+            <GenZFanArena
+              targetId={match.id}
+              targetTitle={`${match.homeTeam} vs ${match.awayTeam}`}
+              type="MATCH"
+              matchStatus={match.status}
+              matchMinute={match.matchTime || 'Live'}
+              homeTeam={match.homeTeam}
+              awayTeam={match.awayTeam}
+              homeScore={match.homeScore ?? 0}
+              awayScore={match.awayScore ?? 0}
+            />
+          </div>
+        </div>
       )}
     </>
   );

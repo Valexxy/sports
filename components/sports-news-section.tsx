@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { GhostBloggerModal } from './news/GhostBloggerModal';
+import { GenZFanArena } from './gen-z-fan-arena';
 
 export interface SportsArticle {
   id: string;
@@ -448,14 +449,34 @@ export const SportsNewsSection: React.FC = () => {
                   : activeArticle.description}
               </p>
               
-              <div className="text-gray-300 leading-relaxed whitespace-pre-line space-y-3 pt-2 text-sm sm:text-base">
-                {((lang !== 'en' && translatedMap[activeArticle.id]?.fullContent) 
-                  ? translatedMap[activeArticle.id].fullContent 
-                  : (activeArticle.fullContent || activeArticle.description || 'Full tactical updates and in-play coverage continue on Mivaj Sports Match Center.'))
-                  .replace(activeArticle.description, '')
-                  .trim() || activeArticle.fullContent || activeArticle.description}
+              <div className="text-gray-300 leading-relaxed space-y-4 pt-2 text-sm sm:text-base">
+                {(() => {
+                  const content = ((lang !== 'en' && translatedMap[activeArticle.id]?.fullContent) 
+                    ? translatedMap[activeArticle.id].fullContent 
+                    : (activeArticle.fullContent || activeArticle.description || ''))
+                    .replace(activeArticle.description, '')
+                    .trim() || activeArticle.fullContent || activeArticle.description;
+
+                  const paras = content
+                    .split(/\n\s*\n/)
+                    .map((p: string) => p.trim())
+                    .filter((p: string) => p.length > 0);
+
+                  return paras.map((para: string, idx: number) => (
+                    <p key={idx} className="font-sans text-gray-200 text-sm sm:text-base leading-relaxed">
+                      {para}
+                    </p>
+                  ));
+                })()}
               </div>
             </div>
+
+            {/* GEN Z FAN ARENA & VIRAL HOT TAKES */}
+            <GenZFanArena
+              targetId={activeArticle.id}
+              targetTitle={activeArticle.title}
+              type="NEWS"
+            />
 
             {/* ACTION FOOTER */}
             <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-white/10 pb-16">

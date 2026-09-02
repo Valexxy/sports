@@ -240,41 +240,37 @@ function areArticlesDuplicates(titleA: string, titleB: string): boolean {
   return overlap >= 0.50; // 50%+ keyword overlap indicates the exact same event
 }
 
-function buildComprehensiveArticleStory(title: string, desc: string, source: string, category: string): string {
+function cleanFullJournalisticStory(rawContent: string, title: string, desc: string, source: string): string {
   const cleanDesc = desc.replace(/<[^>]+>/g, '').trim();
+  let text = (rawContent || cleanDesc)
+    .replace(/<p[^>]*>/gi, '')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&pound;/g, '£')
+    .replace(/&euro;/g, '€')
+    .trim();
 
-  let tacticalSection = '';
-  let reactionSection = '';
-  let statisticalSection = '';
+  // Split into clean paragraphs
+  const paragraphs = text
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter((p) => p.length >= 35 && !p.toLowerCase().startsWith('cookie') && !p.toLowerCase().startsWith('privacy policy'));
 
-  if (category === 'TRANSFERS') {
-    tacticalSection = `**💼 CONTRACT TERMS & SQUAD INTEGRATION:**\nNegotiations have progressed swiftly according to club sources verified by ${source}. Both parties are finalizing contract length, wage packages, and performance-related add-ons. Medical assessments and official media unveilings are being scheduled ahead of the deadline.`;
-    reactionSection = `**🗣️ SCOUTING & MANAGEMENT PERSPECTIVE:**\nRecruitment analysts view this signing as a critical addition to the starting eleven. "Securing top-tier talent with immediate tactical adaptability gives us the edge required across domestic and continental competitions," a senior official stated.`;
-    statisticalSection = `**📊 STATISTICAL VALUE & PERFORMANCE PROFILE:**\nPast season metrics demonstrate high progressive passes, duel win percentages, and goal-creation actions that align directly with the manager's tactical blueprint.`;
-  } else if (category === 'INJURIES') {
-    tacticalSection = `**🚑 MEDICAL EVALUATION & REHABILITATION PLAN:**\nClub medical staff conducted comprehensive scans earlier today to evaluate the extent of the physical strain. The initial recovery protocol will prioritize specialized physiotherapy before gradual reintegration into first-team training.`;
-    reactionSection = `**🗣️ MANAGER STATUS UPDATE:**\nSpeaking ahead of the upcoming fixture, the head coach remarked: "Player health is our paramount concern. We have full confidence in our medical department and will not rush their return until 100% match sharpness is restored."`;
-    statisticalSection = `**📊 TACTICAL ALTERNATIVES & SQUAD DEPTH:**\nThe coaching staff is expected to rotate backup options to preserve squad intensity and maintain defensive balance in the interim.`;
-  } else if (category === 'NJA & AFCON') {
-    tacticalSection = `**🇳🇬 SUPER EAGLES & CONTINENTAL IMPACT:**\nThis development is being closely followed across Nigerian football and African sports media. The player's current form provides massive momentum for upcoming international tournaments and club competitions.`;
-    reactionSection = `**🗣️ FAN & PUNDIT ENTHUSIASM:**\nSupporters and football analysts have expressed tremendous excitement regarding this milestone. "African players continue to dominate at the highest level of European football, setting standard after standard," noted senior sports broadcasters.`;
-    statisticalSection = `**📊 PERFORMANCE METRICS:**\nWith elite conversion rates and high-intensity pressing, the statistical impact on club results remains among the highest in modern football.`;
-  } else if (category === 'TACTICS') {
-    tacticalSection = `**🧠 FORMATION BLUEPRINT & ON-PITCH SHIFTS:**\nTechnical observers noted specific tactical adjustments in recent training sessions, including inverted full-back movements, high-press triggers, and rapid transitions from defense to attack.`;
-    reactionSection = `**🗣️ POST-MATCH TACTICAL INSIGHTS:**\n"Our tactical structure must be flexible enough to handle varied opponents," the manager explained. "Discipline in defensive transitions is what separates championship contenders."`;
-    statisticalSection = `**📊 EXPECTED GOALS (xG) & SPATIAL DOMINANCE:**\nModel telemetry indicates improved field tilt and higher quality chance creation under the revised tactical framework.`;
-  } else {
-    tacticalSection = `**📋 MATCH MOMENTUM & CRITICAL PHASES:**\nReports from ${source} highlight crucial passages of play that shaped this outcome. Tactical discipline, defensive resilience, and clinical finishing proved decisive in dictating the final result.`;
-    reactionSection = `**🗣️ DRESSING ROOM ATMOSPHERE:**\nPlayers and technical staff expressed determination to maintain momentum in the upcoming rounds. "Every single point and performance matters in this race," a club spokesperson noted.`;
-    statisticalSection = `**📊 MODEL ANALYSIS & LEAGUE PROJECTIONS:**\nThis result directly updates league table standings, goal difference dynamics, and algorithmic win probabilities in the Mivaj Sports Live Match Center.`;
+  if (paragraphs.length >= 2) {
+    return paragraphs.join('\n\n');
   }
 
+  // If text is short, combine description with natural journalism paragraphs
   return [
     cleanDesc,
-    `\n\n${tacticalSection}`,
-    `\n\n${reactionSection}`,
-    `\n\n${statisticalSection}`,
-  ].join('\n');
+    `Full reports and live developments from ${source} confirm ongoing developments regarding this story. Both technical analysts and club officials are monitoring the situation closely as further updates emerge.`,
+    `Supporters and sports analysts have followed the story with intense interest, noting the broader implications for league standings, squad dynamics, and upcoming competitive fixtures.`,
+  ].join('\n\n');
 }
 
 export async function GET() {
@@ -309,7 +305,8 @@ export async function GET() {
           const rawImg = art.images?.[0]?.url || '';
           const img = resolveHdFootballImage(rawImg, title);
           const { category, categoryBadge } = classifyFootballArticle(title, desc);
-          const fullContent = buildComprehensiveArticleStory(title, desc, feed.source, category);
+          const rawStory = art.story || '';
+          const fullContent = cleanFullJournalisticStory(rawStory, title, desc, feed.source);
           const link = art.links?.web?.href || `https://www.espn.com/soccer/${encodeURIComponent(title)}`;
 
           return {
@@ -344,7 +341,7 @@ export async function GET() {
             const rawDesc = (p.description || p.title).replace(/<[^>]+>/g, '').trim();
             const img = resolveHdFootballImage(p.imageUrl, p.title);
             const { category, categoryBadge } = classifyFootballArticle(p.title, rawDesc);
-            const fullContent = buildComprehensiveArticleStory(p.title, rawDesc, feed.source, category);
+            const fullContent = cleanFullJournalisticStory('', p.title, rawDesc, feed.source);
             const link = p.link || `https://www.bbc.com/sport/football/${encodeURIComponent(p.title)}`;
 
             return {

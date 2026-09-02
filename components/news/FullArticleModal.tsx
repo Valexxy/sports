@@ -5,6 +5,7 @@ import { X, Globe, Share2, Sparkles, Check, ChevronDown, Send, MessageCircle } f
 import { phoneHardware } from '../../lib/phone-hardware-engine';
 import { stadiumAudio } from '../../lib/sound-synthesizer';
 import { LanguageCode } from '../../lib/translation-engine';
+import { GenZFanArena } from '../gen-z-fan-arena';
 
 export interface NewsArticle {
   id: string;
@@ -217,6 +218,15 @@ export const FullArticleModal: React.FC<FullArticleModalProps> = ({ isOpen, arti
           {/* Full Body Text */}
           <div className="space-y-3 text-xs sm:text-sm text-gray-200 font-sans leading-relaxed whitespace-pre-line">
             {getContent()}
+          </div>
+
+          {/* Gen Z Fan Arena & Live Banter */}
+          <div className="pt-3">
+            <GenZFanArena
+              targetId={article.id}
+              targetTitle={article.title}
+              type="NEWS"
+            />
           </div>
         </div>
 

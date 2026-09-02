@@ -5,6 +5,7 @@ import { MatchData } from '../lib/sports-api';
 import { Camera, Maximize2, Minimize2, Sparkles, Activity, Shield } from 'lucide-react';
 import { phoneHardware } from '../lib/phone-hardware-engine';
 import { useTranslation } from '../lib/translation-engine';
+import { GenZFanArena } from './gen-z-fan-arena';
 
 interface TvBroadcastMatchViewerProps {
   match: MatchData;
@@ -132,6 +133,21 @@ export const TvBroadcastMatchViewer: React.FC<TvBroadcastMatchViewerProps> = ({ 
           <span className="text-gray-400 uppercase font-black">{match.league} STATCAST RADAR</span>
         </div>
 
+      </div>
+
+      {/* GEN Z LIVE MATCH BANTER & COMMENT ARENA (CLOSES AT FT) */}
+      <div className="pt-2">
+        <GenZFanArena
+          targetId={match.id}
+          targetTitle={`${match.homeTeam} vs ${match.awayTeam}`}
+          type="MATCH"
+          matchStatus={match.status}
+          matchMinute={match.matchTime || 'Live'}
+          homeTeam={match.homeTeam}
+          awayTeam={match.awayTeam}
+          homeScore={match.homeScore ?? 0}
+          awayScore={match.awayScore ?? 0}
+        />
       </div>
 
     </div>
