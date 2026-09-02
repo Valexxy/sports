@@ -95,39 +95,48 @@ function getDynamicFanCount(targetId: string, type: 'MATCH' | 'NEWS'): number {
   return 1100 + (h % 3200);
 }
 
-function generateDynamicInitialComments(targetId: string, targetTitle: string, type: 'MATCH' | 'NEWS', homeTeam = 'Home', awayTeam = 'Away'): GenZComment[] {
-  const h = hashSeed(targetId);
+function generateDynamicInitialComments(
+  targetId: string = '', 
+  targetTitle: string = '', 
+  type: 'MATCH' | 'NEWS' = 'NEWS', 
+  homeTeam: string = 'Home', 
+  awayTeam: string = 'Away'
+): GenZComment[] {
+  const h = hashSeed(targetId || 'mivaj');
+  const safeTitle = String(targetTitle || 'Football News').trim();
+  const safeHome = String(homeTeam || 'Home').trim();
+  const safeAway = String(awayTeam || 'Away').trim();
 
   if (type === 'MATCH') {
     return [
       {
-        id: `c-dyn-1-${targetId}`,
+        id: `c-dyn-1-${targetId || Date.now()}`,
         sender: 'TacticsChief',
-        flair: `${homeTeam} 🔴`,
+        flair: `${safeHome} 🔴`,
         badge: 'TACTICIAN 🧠',
         vibe: '🔥 COOKING',
-        text: `${homeTeam} high press is suffocating right now, but ${awayTeam} look deadly on the counter. Pure cinema! 🔥 #Cooked`,
+        text: `${safeHome} high press is suffocating right now, but ${safeAway} look deadly on the counter. Pure cinema! 🔥 #Cooked`,
         timestamp: Date.now() - 1000 * 60 * 3,
         factsCount: 38 + (h % 65),
         capCount: 2 + (h % 8),
         hypesCount: 75 + (h % 90),
       },
       {
-        id: `c-dyn-2-${targetId}`,
+        id: `c-dyn-2-${targetId || Date.now()}`,
         sender: 'IceColdKeeper',
         flair: 'Neutral ⚖️',
         badge: 'BALL KNOWER ⚡',
         vibe: '🧊 ICE COLD',
-        text: `The defensive compactness between ${homeTeam} and ${awayTeam} is unreal today. Every tackle has stadium energy! 🧊 #Masterclass`,
+        text: `The defensive compactness between ${safeHome} and ${safeAway} is unreal today. Every tackle has stadium energy! 🧊 #Masterclass`,
         timestamp: Date.now() - 1000 * 60 * 9,
         factsCount: 52 + (h % 40),
         capCount: 1 + (h % 5),
         hypesCount: 94 + (h % 70),
       },
       {
-        id: `c-dyn-3-${targetId}`,
+        id: `c-dyn-3-${targetId || Date.now()}`,
         sender: 'VAR_Spectator',
-        flair: `${awayTeam} 🔵`,
+        flair: `${safeAway} 🔵`,
         badge: 'VIP 👑',
         vibe: '🍿 PURE DRAMA',
         text: `If this tempo holds into the final 15 minutes, someone is definitely cashing in a stoppage-time winner! 🍿 #TotalFootball`,
@@ -140,7 +149,7 @@ function generateDynamicInitialComments(targetId: string, targetTitle: string, t
   }
 
   // NEWS TYPE
-  const shortTitle = targetTitle.length > 55 ? targetTitle.slice(0, 52) + '...' : targetTitle;
+  const shortTitle = safeTitle.length > 55 ? safeTitle.slice(0, 52) + '...' : safeTitle;
   return [
     {
       id: `c-dyn-1-${targetId}`,

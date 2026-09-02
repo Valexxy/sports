@@ -185,7 +185,7 @@ export default function Home() {
           const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
           const urlTab = urlParams?.get('tab');
           if (!urlTab) {
-            const hasLive = data.some(m => m.status === 'LIVE' || (m.matchTime && !m.matchTime.includes('FT') && !m.matchTime.includes('Final')));
+            const hasLive = data.some(m => ProfessionalSettlementEngine.isMatchLive(m));
             setActiveFilter(hasLive ? 'LIVE' : 'UPCOMING');
             setHasAutoSwitchedTab(true);
           }
@@ -210,9 +210,9 @@ export default function Home() {
           setMatches(parsed);
           setLoadingMatches(false);
 
-          // Prioritize LIVE if any in cache
+          // Prioritize LIVE if genuinely live in cache
           if (!hasAutoSwitchedTab) {
-            const hasLive = parsed.some((m: MatchData) => m.status === 'LIVE');
+            const hasLive = parsed.some((m: MatchData) => ProfessionalSettlementEngine.isMatchLive(m));
             setActiveFilter(hasLive ? 'LIVE' : 'UPCOMING');
             setHasAutoSwitchedTab(true);
           }
