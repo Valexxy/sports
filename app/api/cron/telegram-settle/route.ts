@@ -75,10 +75,14 @@ export async function GET(req: Request) {
         isWon = draw;
       } else if (pickLower.includes('over')) {
         const totalGoals = (m.homeScore ?? 0) + (m.awayScore ?? 0);
-        isWon = totalGoals > 2.5;
+        const matchThreshold = pickLower.match(/over\s*(\d+(?:\.\d+)?)/);
+        const threshold = matchThreshold ? parseFloat(matchThreshold[1]) : 1.5;
+        isWon = totalGoals > threshold;
       } else if (pickLower.includes('under')) {
         const totalGoals = (m.homeScore ?? 0) + (m.awayScore ?? 0);
-        isWon = totalGoals < 2.5;
+        const matchThreshold = pickLower.match(/under\s*(\d+(?:\.\d+)?)/);
+        const threshold = matchThreshold ? parseFloat(matchThreshold[1]) : 2.5;
+        isWon = totalGoals < threshold;
       } else if (pickLower.includes('1x') || pickLower.includes('home or draw')) {
         isWon = homeWin || draw;
       } else if (pickLower.includes('x2') || pickLower.includes('away or draw')) {

@@ -96,8 +96,8 @@ export async function GET(req: Request) {
       msg += `🚨 <i>Unlock all ${remainingCount} remaining matchday fixtures on our platform for 100% free!</i>\n\n`;
     }
 
-    msg += `⚡ <b>SPORTYBET BOOKING CODE CONVERTER:</b>\n`;
-    msg += `<i>Convert between SportyBet, Bet9ja, 1xBet, 22Bet & Stake instantly on Mivaj Sports!</i>`;
+    msg += `⚡ <b>SPORTYBET BOOKING CODE REVEALER:</b>\n`;
+    msg += `<i>Paste any SportyBet booking code on Mivaj Sports to instantly reveal every match, market, and odds!</i>`;
 
     const slipUrl = `https://mivaj.com/?slip=today_banker&ref=tg_cron&date=${todayIso}`;
     const decoderUrl = `https://mivaj.com/converter?ref=tg_cron`;
@@ -116,7 +116,7 @@ export async function GET(req: Request) {
         },
       ],
       [
-        { text: "🔍 CONVERT / REVEAL BOOKING CODE", url: decoderUrl },
+        { text: "🔍 REVEAL SPORTYBET CODE ➔", url: decoderUrl },
       ],
       [
         { text: "🎁 22Bet 200% Bonus", url: AFFILIATE_PARTNERS['22BET'].affiliateUrl },

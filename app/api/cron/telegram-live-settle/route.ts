@@ -31,7 +31,6 @@ export async function GET(req: Request) {
     const now = Date.now();
 
     // 1. Only consider matches finished recently (within the last 3.5 hours from kickoff)
-    // Matches finished earlier belong in the Evening Audit, not the live in-day ticker.
     const recentFinishedMatches = matches
       .filter((m) => {
         if (m.status !== 'FINISHED') return false;
@@ -42,8 +41,7 @@ export async function GET(req: Request) {
         const kickoff = new Date(m.utcDate).getTime();
         if (isNaN(kickoff)) return true;
         const elapsedHours = (now - kickoff) / (1000 * 60 * 60);
-        // Match must have kicked off between 1.5 and 4 hours ago (just finished in last 45 mins)
-        return elapsedHours >= 1.5 && elapsedHours <= 4.0;
+        return elapsedHours >= 1.5 && elapsedHours <= 4.5;
       })
       .sort((a, b) => {
         const timeA = a.utcDate ? new Date(a.utcDate).getTime() : 0;
@@ -66,32 +64,38 @@ export async function GET(req: Request) {
 
       const homeScore = match.homeScore ?? 0;
       const awayScore = match.awayScore ?? 0;
+      const totalGoals = homeScore + awayScore;
       const homeWin = homeScore > awayScore;
       const awayWin = awayScore > homeScore;
       const draw = homeScore === awayScore;
 
       const pick = match.prediction?.topPick?.selection || 'Home Win';
+      const cleanPick = pick;
       const odds = match.prediction?.topPick?.odds || 1.25;
       const prob = match.prediction?.topPick?.probability || 88;
       const pickLower = pick.toLowerCase();
 
       let isWon = false;
-      if (pickLower.includes('home') || pickLower.includes(match.homeTeam?.toLowerCase() || '')) {
+      if (pickLower.includes('over')) {
+        const matchThreshold = pickLower.match(/over\s*(\d+(?:\.\d+)?)/);
+        const threshold = matchThreshold ? parseFloat(matchThreshold[1]) : 1.5;
+        isWon = totalGoals > threshold;
+      } else if (pickLower.includes('under')) {
+        const matchThreshold = pickLower.match(/under\s*(\d+(?:\.\d+)?)/);
+        const threshold = matchThreshold ? parseFloat(matchThreshold[1]) : 2.5;
+        isWon = totalGoals < threshold;
+      } else if (pickLower.includes('btts') || pickLower.includes('both teams')) {
+        isWon = homeScore > 0 && awayScore > 0;
+      } else if (pickLower.includes('1x') || pickLower.includes('home or draw')) {
+        isWon = homeWin || draw;
+      } else if (pickLower.includes('x2') || pickLower.includes('away or draw')) {
+        isWon = awayWin || draw;
+      } else if (pickLower.includes('home') || pickLower.includes(match.homeTeam?.toLowerCase() || '')) {
         isWon = homeWin;
       } else if (pickLower.includes('away') || pickLower.includes(match.awayTeam?.toLowerCase() || '')) {
         isWon = awayWin;
       } else if (pickLower.includes('draw') || pickLower.includes('tie')) {
         isWon = draw;
-      } else if (pickLower.includes('over')) {
-        isWon = (homeScore + awayScore) > 2.5;
-      } else if (pickLower.includes('under')) {
-        isWon = (homeScore + awayScore) < 2.5;
-      } else if (pickLower.includes('1x') || pickLower.includes('home or draw')) {
-        isWon = homeWin || draw;
-      } else if (pickLower.includes('x2') || pickLower.includes('away or draw')) {
-        isWon = awayWin || draw;
-      } else if (pickLower.includes('btts') || pickLower.includes('both teams')) {
-        isWon = homeScore > 0 && awayScore > 0;
       } else {
         isWon = homeWin || draw;
       }
@@ -121,7 +125,7 @@ export async function GET(req: Request) {
 
       msg += `⚡ <b>MIVAJ SPORTS INSTANT ACCESS:</b>\n`;
       msg += `👉 Upcoming Bankers: https://mivaj.com\n`;
-      msg += `👉 SportyBet Revealer: https://mivaj.com/converter\n`;
+      msg += `👉 SportyBet Code Revealer: https://mivaj.com/converter\n`;
       msg += `👉 Football News Wire: https://mivaj.com/news\n`;
       msg += `👉 World Star Birthdays: https://mivaj.com/birthdays`;
 
@@ -135,7 +139,7 @@ export async function GET(req: Request) {
           { text: "🔥 VIEW NEXT LIVE BANKER FIXTURES ➔", url: slipUrl },
         ],
         [
-          { text: "🔍 REVEAL SPORTYBET BOOKING CODE", url: decoderUrl },
+          { text: "🔍 REVEAL SPORTYBET CODE ➔", url: decoderUrl },
           { text: "📰 FOOTBALL NEWS WIRE", url: newsUrl },
         ],
         [
@@ -181,7 +185,7 @@ export async function GET(req: Request) {
       success: true,
       cron: 'TELEGRAM_IN_DAY_LIVE_SETTLE',
       channel: TelegramBotService.getChannelId(),
-      checkedMatches: finishedMatches.length,
+      checkedMatches: recentFinishedMatches.length,
       newlySettledAndAlerted: settledResults.length,
       settledResults,
     });
