@@ -98,8 +98,17 @@ export const GenZFanArena: React.FC<GenZFanArenaProps> = ({
     );
   }, [type, matchStatus]);
 
-  // Vibe counter stats
+  const vibesStorageKey = `mivaj_genz_vibes_${targetId}`;
+  const userVibeKey = `mivaj_user_vibe_${targetId}`;
+
+  // Vibe counter stats with permanent local persistence
   const [vibeStats, setVibeStats] = useState<Record<string, number>>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem(`mivaj_genz_vibes_${targetId}`);
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
     return {
       cooking: 842,
       dead: 194,
@@ -116,7 +125,15 @@ export const GenZFanArena: React.FC<GenZFanArenaProps> = ({
   // User input states
   const [userName, setUserName] = useState('');
   const [selectedFlair, setSelectedFlair] = useState(CLUB_FLAIRS[0]);
-  const [selectedVibe, setSelectedVibe] = useState('cooking');
+  const [selectedVibe, setSelectedVibe] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem(`mivaj_user_vibe_${targetId}`);
+        if (saved) return saved;
+      } catch {}
+    }
+    return 'cooking';
+  });
   const [commentText, setCommentText] = useState('');
   const [audioEffectActive, setAudioEffectActive] = useState(false);
   const [justSubmitted, setJustSubmitted] = useState(false);
@@ -197,6 +214,20 @@ export const GenZFanArena: React.FC<GenZFanArenaProps> = ({
     } catch {}
   }, []);
 
+  // Sync vibes from localStorage on targetId change
+  useEffect(() => {
+    try {
+      const savedVibes = localStorage.getItem(`mivaj_genz_vibes_${targetId}`);
+      if (savedVibes) {
+        setVibeStats(JSON.parse(savedVibes));
+      }
+      const savedUserVibe = localStorage.getItem(`mivaj_user_vibe_${targetId}`);
+      if (savedUserVibe) {
+        setSelectedVibe(savedUserVibe);
+      }
+    } catch {}
+  }, [targetId]);
+
   const handleRandomizeNick = () => {
     phoneHardware.triggerHaptic('SELECTION');
     const rand = RANDOM_NICKNAMES[Math.floor(Math.random() * RANDOM_NICKNAMES.length)];
@@ -207,7 +238,25 @@ export const GenZFanArena: React.FC<GenZFanArenaProps> = ({
   const handleVibeReaction = (vibeId: string) => {
     phoneHardware.triggerHaptic('SUCCESS');
     try { stadiumAudio.playAddPickSound(); } catch {}
-    setVibeStats(prev => ({ ...prev, [vibeId]: (prev[vibeId] || 0) + 1 }));
+
+    setVibeStats(prev => {
+      const prevVibe = selectedVibe;
+      const updated = { ...prev };
+      // If switching from another vibe, adjust previous vote
+      if (prevVibe && prevVibe !== vibeId && updated[prevVibe] && updated[prevVibe] > 0) {
+        updated[prevVibe] = updated[prevVibe] - 1;
+      }
+      // Increment selected vibe
+      if (prevVibe !== vibeId) {
+        updated[vibeId] = (updated[vibeId] || 0) + 1;
+      }
+      try {
+        localStorage.setItem(`mivaj_genz_vibes_${targetId}`, JSON.stringify(updated));
+        localStorage.setItem(`mivaj_user_vibe_${targetId}`, vibeId);
+      } catch {}
+      return updated;
+    });
+
     setSelectedVibe(vibeId);
   };
 

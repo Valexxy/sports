@@ -103,30 +103,70 @@ export class ProfessionalSettlementEngine {
    * Determines if a match has officially concluded (or terminated prematurely as void)
    */
   public static isMatchFinished(match: any): boolean {
+    if (!match) return false;
     const voidCheck = this.evaluateVoidStatus(match);
     if (voidCheck.isVoid) return true;
 
-    if (match.status === 'FINISHED' || match.state === 'PLAYED' || match.isFinished === true) {
+    const rawStatus = (match.status || '').toString().toUpperCase();
+    if (rawStatus === 'FINISHED' || rawStatus === 'FT' || match.state === 'PLAYED' || match.isFinished === true) {
       return true;
     }
 
     const timeStr = (match.matchTime || '').trim().toUpperCase();
-    if (timeStr === 'FT' || timeStr.startsWith('FT') || timeStr.includes('FINAL')) {
+    if (timeStr === 'FT' || timeStr.startsWith('FT') || timeStr.includes('FINAL') || timeStr.includes('AET')) {
       return true;
     }
 
-    // Elapsed time calculation: if kickoff occurred > 120 minutes ago
+    // Elapsed time calculation: if kickoff occurred > 125 minutes ago
     if (match.utcDate) {
       const kickoffMs = new Date(match.utcDate).getTime();
       if (!isNaN(kickoffMs)) {
         const elapsedMinutes = (Date.now() - kickoffMs) / 60000;
-        if (elapsedMinutes > 120) {
+        if (elapsedMinutes > 125) {
           return true;
         }
       }
     }
 
     return false;
+  }
+
+  /**
+   * Determines if a match is genuinely active and in-play right now
+   */
+  public static isMatchLive(match: any): boolean {
+    if (!match) return false;
+    // A concluded match can NEVER be live
+    if (this.isMatchFinished(match)) return false;
+
+    const rawStatus = (match.status || '').toString().toUpperCase();
+    if (rawStatus === 'LIVE' || rawStatus === 'IN_PLAY') return true;
+
+    const timeStr = (match.matchTime || '').trim().toUpperCase();
+    if (timeStr.includes("'") || timeStr.includes('HT') || timeStr.includes('1H') || timeStr.includes('2H') || timeStr.includes('ET')) {
+      return true;
+    }
+
+    // Check kickoff window: started within the past 120 minutes and not finished
+    if (match.utcDate) {
+      const kickoffMs = new Date(match.utcDate).getTime();
+      if (!isNaN(kickoffMs)) {
+        const elapsedMinutes = (Date.now() - kickoffMs) / 60000;
+        if (elapsedMinutes >= 0 && elapsedMinutes <= 125) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Determines if a match is upcoming (not yet started)
+   */
+  public static isMatchUpcoming(match: any): boolean {
+    if (!match) return false;
+    return !this.isMatchFinished(match) && !this.isMatchLive(match);
   }
 
   /**

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { generateStableArticleId } from '../../../lib/article-extractor';
+import { generateStableArticleId, decodeHtmlEntities } from '../../../lib/article-extractor';
 
 export const dynamic = 'force-dynamic';
 
@@ -241,25 +241,19 @@ function areArticlesDuplicates(titleA: string, titleB: string): boolean {
 }
 
 function cleanFullJournalisticStory(rawContent: string, title: string, desc: string, source: string): string {
-  const cleanDesc = desc.replace(/<[^>]+>/g, '').trim();
-  let text = (rawContent || cleanDesc)
+  const cleanDesc = decodeHtmlEntities(desc.replace(/<[^>]+>/g, '').trim());
+  let text = decodeHtmlEntities((rawContent || cleanDesc)
     .replace(/<p[^>]*>/gi, '')
     .replace(/<\/p>/gi, '\n\n')
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&#39;/g, "'")
-    .replace(/&quot;/g, '"')
-    .replace(/&pound;/g, '£')
-    .replace(/&euro;/g, '€')
-    .trim();
+    .trim());
 
   // Split into clean paragraphs
   const paragraphs = text
     .split(/\n\s*\n/)
     .map((p) => p.trim())
-    .filter((p) => p.length >= 35 && !p.toLowerCase().startsWith('cookie') && !p.toLowerCase().startsWith('privacy policy'));
+    .filter((p) => p.length >= 35 && !p.toLowerCase().startsWith('cookie') && !p.toLowerCase().startsWith('privacy policy') && !p.toLowerCase().startsWith('bbc homepage'));
 
   if (paragraphs.length >= 2) {
     return paragraphs.join('\n\n');
@@ -268,8 +262,8 @@ function cleanFullJournalisticStory(rawContent: string, title: string, desc: str
   // If text is short, combine description with natural journalism paragraphs
   return [
     cleanDesc,
-    `Full reports and live developments from ${source} confirm ongoing developments regarding this story. Both technical analysts and club officials are monitoring the situation closely as further updates emerge.`,
-    `Supporters and sports analysts have followed the story with intense interest, noting the broader implications for league standings, squad dynamics, and upcoming competitive fixtures.`,
+    `Full reports and verified team updates from ${source} confirm ongoing developments regarding this story. Technical analysts, match officials, and club management continue to follow the situation closely.`,
+    `Supporters and sports analysts have followed the development with intense interest, evaluating the broader impact on tactical squad rotation and upcoming competitive fixtures.`,
   ].join('\n\n');
 }
 
@@ -296,32 +290,42 @@ export async function GET() {
         const data = await res.json();
         if (!data.articles || !Array.isArray(data.articles)) return [];
 
-        return data.articles.slice(0, 5).map((art: any, i: number) => {
-          const title = (art.headline || art.title || 'Breaking Football Update').trim();
-          let desc = (art.description || art.story || '').trim();
-          if (!desc || desc.length < 20) {
-            desc = `Latest developing story from ${feed.source}: ${title}. Full tactical breakdown and team reports available in the match center.`;
-          }
-          const rawImg = art.images?.[0]?.url || '';
-          const img = resolveHdFootballImage(rawImg, title);
-          const { category, categoryBadge } = classifyFootballArticle(title, desc);
-          const rawStory = art.story || '';
-          const fullContent = cleanFullJournalisticStory(rawStory, title, desc, feed.source);
-          const link = art.links?.web?.href || `https://www.espn.com/soccer/${encodeURIComponent(title)}`;
+        return data.articles
+          // Strictly filter out video clips to prevent sidebar scraping
+          .filter((art: any) => {
+            const link = art.links?.web?.href || '';
+            const isVideo = art.type === 'video' || link.includes('/video/') || link.includes('/clip/');
+            return !isVideo;
+          })
+          .slice(0, 5)
+          .map((art: any, i: number) => {
+            const rawTitle = (art.headline || art.title || 'Breaking Football Update').trim();
+            const title = decodeHtmlEntities(rawTitle);
+            let rawDesc = (art.description || art.story || '').trim();
+            if (!rawDesc || rawDesc.length < 20) {
+              rawDesc = `Latest developing story from ${feed.source}: ${title}. Full tactical breakdown and team reports available in the match center.`;
+            }
+            const desc = decodeHtmlEntities(rawDesc);
+            const rawImg = art.images?.[0]?.url || '';
+            const img = resolveHdFootballImage(rawImg, title);
+            const { category, categoryBadge } = classifyFootballArticle(title, desc);
+            const rawStory = art.story || '';
+            const fullContent = cleanFullJournalisticStory(rawStory, title, desc, feed.source);
+            const link = art.links?.web?.href || `https://www.espn.com/soccer/${encodeURIComponent(title)}`;
 
-          return {
-            id: generateStableArticleId(link, title),
-            title,
-            description: desc,
-            link,
-            pubDate: timeAgo(art.published, (i * 2 + Math.floor(Math.random() * 2)) % REALISTIC_INTERVALS.length),
-            source: feed.source,
-            category,
-            categoryBadge,
-            imageUrl: img,
-            fullContent,
-          };
-        });
+            return {
+              id: generateStableArticleId(link, title),
+              title,
+              description: desc,
+              link,
+              pubDate: timeAgo(art.published, (i * 2 + Math.floor(Math.random() * 2)) % REALISTIC_INTERVALS.length),
+              source: feed.source,
+              category,
+              categoryBadge,
+              imageUrl: img,
+              fullContent,
+            };
+          });
       } catch {
         return [];
       }
@@ -335,18 +339,27 @@ export async function GET() {
         const parsed = parseRss(xml);
 
         return parsed
-          .filter((p) => p.title && p.title.length > 5)
+          .filter((p) => {
+            if (!p.title || p.title.length < 5) return false;
+            // Filter out category landing pages (e.g. bbc.co.uk/sport/football) without article ID
+            if (p.link === 'https://www.bbc.co.uk/sport/football' || p.link === 'http://www.bbc.co.uk/sport/football') {
+              return false;
+            }
+            return true;
+          })
           .slice(0, 5)
           .map((p, i) => {
-            const rawDesc = (p.description || p.title).replace(/<[^>]+>/g, '').trim();
-            const img = resolveHdFootballImage(p.imageUrl, p.title);
-            const { category, categoryBadge } = classifyFootballArticle(p.title, rawDesc);
-            const fullContent = cleanFullJournalisticStory('', p.title, rawDesc, feed.source);
-            const link = p.link || `https://www.bbc.com/sport/football/${encodeURIComponent(p.title)}`;
+            const rawTitle = p.title.trim();
+            const title = decodeHtmlEntities(rawTitle);
+            const rawDesc = decodeHtmlEntities((p.description || p.title).replace(/<[^>]+>/g, '').trim());
+            const img = resolveHdFootballImage(p.imageUrl, title);
+            const { category, categoryBadge } = classifyFootballArticle(title, rawDesc);
+            const fullContent = cleanFullJournalisticStory('', title, rawDesc, feed.source);
+            const link = p.link || `https://www.bbc.com/sport/football/${encodeURIComponent(title)}`;
 
             return {
-              id: generateStableArticleId(link, p.title),
-              title: p.title,
+              id: generateStableArticleId(link, title),
+              title,
               description: rawDesc.slice(0, 240),
               link,
               pubDate: timeAgo(p.pubDate),

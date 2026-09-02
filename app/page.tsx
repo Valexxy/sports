@@ -41,6 +41,7 @@ import { BroadcastTicker, TriggerUpdate } from '../components/broadcast-ticker';
 
 import { FooterComplianceDisclaimer } from '../components/footer-disclaimer';
 import { SportsNewsSection } from '../components/sports-news-section';
+import { ProfessionalSettlementEngine } from '../lib/settlement-engine';
 export interface BetItem { id: string; selection: string; odds: number; probability: number; homeTeam: string; awayTeam: string; matchId: string; }
 import { MobileAppDock } from '../components/mobile-app-dock';
 import { StadiumSuitesMenu } from '../components/stadium-suites-menu';
@@ -444,18 +445,18 @@ export default function Home() {
         if (!isBanker) return false;
       }
 
-      if (activeFilter === 'LIVE') return m.status === 'LIVE';
-      if (activeFilter === 'UPCOMING') return m.status === 'SCHEDULED';
-      if (activeFilter === 'PLAYED') return m.status === 'FINISHED';
+      if (activeFilter === 'LIVE') return ProfessionalSettlementEngine.isMatchLive(m);
+      if (activeFilter === 'UPCOMING') return ProfessionalSettlementEngine.isMatchUpcoming(m);
+      if (activeFilter === 'PLAYED') return ProfessionalSettlementEngine.isMatchFinished(m);
       if (activeFilter === 'FOLLOWING') return followedMatchIds.includes(m.id) || followedLeagues.some(l => m.league.toLowerCase().includes(l.toLowerCase()));
       return true;
     });
     return sortMatchesByClosestKickoff(base, activeFilter);
   }, [dayMatches, matches, searchQuery, activeFilter, activeSport, highGuaranteesOnly, followedMatchIds, followedLeagues]);
 
-  const liveCount = useMemo(() => dayMatches.filter(m => m.status === 'LIVE' || (m.matchTime && !m.matchTime.includes('FT') && !m.matchTime.includes('Final'))).length, [dayMatches]);
-  const upcomingCount = useMemo(() => dayMatches.filter(m => m.status === 'SCHEDULED').length, [dayMatches]);
-  const playedCount = useMemo(() => dayMatches.filter(m => m.status === 'FINISHED' || m.status === 'FT').length, [dayMatches]);
+  const liveCount = useMemo(() => dayMatches.filter(m => ProfessionalSettlementEngine.isMatchLive(m)).length, [dayMatches]);
+  const upcomingCount = useMemo(() => dayMatches.filter(m => ProfessionalSettlementEngine.isMatchUpcoming(m)).length, [dayMatches]);
+  const playedCount = useMemo(() => dayMatches.filter(m => ProfessionalSettlementEngine.isMatchFinished(m)).length, [dayMatches]);
   const highGuaranteesCount = useMemo(() => dayMatches.filter(m => (m.prediction?.topPick?.probability || 0) >= 70 || m.prediction?.topPick?.confidenceTier === 'ULTRA-BANKER').length, [dayMatches]);
 
   const topBankersList = useMemo(() => {

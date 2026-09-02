@@ -232,11 +232,9 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
     return ProfessionalSettlementEngine.settleMatch(match, cleanPickSelection);
   }, [match, cleanPickSelection]);
 
-  // Accurate real-time status calculation (respects elapsed kickoff time for past matches)
-  const matchTimestamp = match.utcDate ? new Date(match.utcDate).getTime() : Date.now();
-  const timeDiff = Date.now() - matchTimestamp;
-  const isFinished = settlement.isFinished || timeDiff > 120 * 60000;
-  const isLive = !isFinished && (match.status === 'LIVE' || (timeDiff >= 0 && timeDiff <= 120 * 60000));
+  // Accurate real-time status calculation strictly aligned with ProfessionalSettlementEngine
+  const isFinished = ProfessionalSettlementEngine.isMatchFinished(match);
+  const isLive = !isFinished && ProfessionalSettlementEngine.isMatchLive(match);
   const isUpcoming = !isFinished && !isLive;
   const isWon = isFinished && settlement.isWon;
   const isVoid = settlement.isVoid;
@@ -249,24 +247,9 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   });
   const isFollowed = localFollowed;
 
-  // Live Auto Odds Micro-Changer (simulates real-world market movements)
-  const [liveOdds, setLiveOdds] = useState<number>(() => topPick.odds || 1.35);
-  const [oddsDirection, setOddsDirection] = useState<'UP' | 'DOWN' | null>(null);
-
-  useEffect(() => {
-    if (isFinished) return;
-    const interval = setInterval(() => {
-      const delta = (Math.random() > 0.5 ? 1 : -1) * 0.02;
-      setLiveOdds((prev) => {
-        const next = Math.max(1.05, Math.min(3.5, Math.round((prev + delta) * 100) / 100));
-        setOddsDirection(delta > 0 ? 'UP' : 'DOWN');
-        setTimeout(() => setOddsDirection(null), 2500);
-        return next;
-      });
-    }, 18000 + (Math.abs(match.id.charCodeAt(0) || 0) % 9) * 1000);
-
-    return () => clearInterval(interval);
-  }, [match.id, isFinished]);
+  // Truthful Pre-Match Verified Fair Odds (strictly preserved, zero simulated drift)
+  const truthfulOdds = topPick.odds || 1.35;
+  const liveOdds = truthfulOdds;
 
   // Live Ticking Match Clock with Seconds (e.g. 78:24 -> 78:25)
   const initialElapsedSeconds = useMemo(() => {
@@ -531,14 +514,14 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
                   {isVoid
                     ? `MATCH ${settlement.voidReason || 'POSTPONED'} • SELECTION VOID`
                     : isWon
-                    ? 'PREDICTION WON ✓ VERIFIED'
-                    : 'PREDICTION SETTLED'}
+                    ? 'PRE-MATCH CALL VERIFIED ✓ WON'
+                    : 'PRE-MATCH CALL SETTLED • LOST'}
                 </span>
                 <span className="text-white font-black text-xs block">
                   {isVoid ? (
-                    <>Pick: <strong className="text-cyan-300">{cleanPickSelection}</strong> • Stake Refunded (1.00x)</>
+                    <>Pre-Match Pick: <strong className="text-cyan-300">{cleanPickSelection}</strong> • Stake Refunded (1.00x)</>
                   ) : (
-                    <>Pick: <strong className="text-gold">{cleanPickSelection}</strong> @ {topPick.odds} (FT: {resolvedHomeScore}-{resolvedAwayScore})</>
+                    <>Pre-Match Pick: <strong className="text-gold">{cleanPickSelection}</strong> @ {truthfulOdds} &bull; FT: {resolvedHomeScore}-{resolvedAwayScore}</>
                   )}
                 </span>
               </div>

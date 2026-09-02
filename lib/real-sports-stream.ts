@@ -291,18 +291,21 @@ async function fetchSingleEspnLeague(ep: typeof ESPN_LEAGUES[0]): Promise<MatchD
       const homeLogo = home.team?.logo || 'https://a.espncdn.com/i/teamlogos/soccer/500/default-team-logo.png';
       const awayLogo = away.team?.logo || 'https://a.espncdn.com/i/teamlogos/soccer/500/default-team-logo.png';
       const state = ev.status?.type?.state;
-      const isLive = state === 'in';
-      const isFinished = state === 'post';
       const statusDesc = (ev.status?.type?.description || ev.status?.type?.shortDetail || '').toLowerCase();
+      const matchKickoffMs = (ev.date || comp.date) ? new Date(ev.date || comp.date).getTime() : NaN;
+      const hasKickoffElapsed125m = !isNaN(matchKickoffMs) && (Date.now() - matchKickoffMs) > 125 * 60000;
+
       const isPostponed = statusDesc.includes('postponed') || statusDesc.includes('ppd') || ev.status?.type?.name === 'STATUS_POSTPONED';
       const isCanceled = statusDesc.includes('cancel') || ev.status?.type?.name === 'STATUS_CANCELED';
       const isSuspended = statusDesc.includes('suspend') || ev.status?.type?.name === 'STATUS_SUSPENDED';
+      const isFinished = !isPostponed && !isCanceled && (state === 'post' || statusDesc.includes('final') || statusDesc.includes('ft') || statusDesc.includes('full time') || statusDesc.includes('ended') || hasKickoffElapsed125m);
+      const isLive = !isFinished && !isPostponed && !isCanceled && state === 'in';
 
       const status: 'LIVE' | 'SCHEDULED' | 'FINISHED' | 'POSTPONED' | 'CANCELLED' =
         isCanceled ? 'CANCELLED' :
         isPostponed ? 'POSTPONED' :
-        isLive ? 'LIVE' :
         isFinished ? 'FINISHED' :
+        isLive ? 'LIVE' :
         'SCHEDULED';
 
       // Scheduled matches ALWAYS have 0-0 score before kickoff
