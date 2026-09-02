@@ -62,6 +62,125 @@ const CLUB_FLAIRS = [
   'Super Eagles 🦅', 'Galatasaray 🟡🔴', 'Bayern 🔴⚪', 'PSG 🔵🔴'
 ];
 
+function hashSeed(str: string): number {
+  let hash = 0;
+  const s = (str || 'mivaj-arena').toLowerCase();
+  for (let i = 0; i < s.length; i++) {
+    hash = (hash << 5) - hash + s.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+function getDynamicInitialVibes(targetId: string, title: string) {
+  const h = hashSeed(targetId + title);
+  return {
+    cooking: 140 + (h % 560),
+    dead: 30 + ((h >> 2) % 180),
+    cold: 60 + ((h >> 3) % 290),
+    goat: 95 + ((h >> 1) % 430),
+    fraud: 35 + ((h >> 4) % 190),
+    moon: 50 + ((h >> 5) % 240),
+    drama: 80 + ((h >> 6) % 360),
+    cap: 25 + ((h >> 7) % 140),
+    baller: 120 + ((h >> 2) % 480),
+  };
+}
+
+function getDynamicFanCount(targetId: string, type: 'MATCH' | 'NEWS'): number {
+  const h = hashSeed(targetId);
+  if (type === 'MATCH') {
+    return 2800 + (h % 7600);
+  }
+  return 1100 + (h % 3200);
+}
+
+function generateDynamicInitialComments(targetId: string, targetTitle: string, type: 'MATCH' | 'NEWS', homeTeam = 'Home', awayTeam = 'Away'): GenZComment[] {
+  const h = hashSeed(targetId);
+
+  if (type === 'MATCH') {
+    return [
+      {
+        id: `c-dyn-1-${targetId}`,
+        sender: 'TacticsChief',
+        flair: `${homeTeam} 🔴`,
+        badge: 'TACTICIAN 🧠',
+        vibe: '🔥 COOKING',
+        text: `${homeTeam} high press is suffocating right now, but ${awayTeam} look deadly on the counter. Pure cinema! 🔥 #Cooked`,
+        timestamp: Date.now() - 1000 * 60 * 3,
+        factsCount: 38 + (h % 65),
+        capCount: 2 + (h % 8),
+        hypesCount: 75 + (h % 90),
+      },
+      {
+        id: `c-dyn-2-${targetId}`,
+        sender: 'IceColdKeeper',
+        flair: 'Neutral ⚖️',
+        badge: 'BALL KNOWER ⚡',
+        vibe: '🧊 ICE COLD',
+        text: `The defensive compactness between ${homeTeam} and ${awayTeam} is unreal today. Every tackle has stadium energy! 🧊 #Masterclass`,
+        timestamp: Date.now() - 1000 * 60 * 9,
+        factsCount: 52 + (h % 40),
+        capCount: 1 + (h % 5),
+        hypesCount: 94 + (h % 70),
+      },
+      {
+        id: `c-dyn-3-${targetId}`,
+        sender: 'VAR_Spectator',
+        flair: `${awayTeam} 🔵`,
+        badge: 'VIP 👑',
+        vibe: '🍿 PURE DRAMA',
+        text: `If this tempo holds into the final 15 minutes, someone is definitely cashing in a stoppage-time winner! 🍿 #TotalFootball`,
+        timestamp: Date.now() - 1000 * 60 * 16,
+        factsCount: 64 + (h % 50),
+        capCount: 4 + (h % 9),
+        hypesCount: 112 + (h % 80),
+      },
+    ];
+  }
+
+  // NEWS TYPE
+  const shortTitle = targetTitle.length > 55 ? targetTitle.slice(0, 52) + '...' : targetTitle;
+  return [
+    {
+      id: `c-dyn-1-${targetId}`,
+      sender: 'AuraStriker_99',
+      flair: 'Neutral ⚖️',
+      badge: 'VIP 👑',
+      vibe: '🔥 COOKING',
+      text: `This story is massive. The ripple effect across the entire league is going to be crazy. Proper ball knowledge! ⚡ #Masterclass`,
+      timestamp: Date.now() - 1000 * 60 * 5,
+      factsCount: 45 + (h % 55),
+      capCount: 3 + (h % 6),
+      hypesCount: 88 + (h % 75),
+    },
+    {
+      id: `c-dyn-2-${targetId}`,
+      sender: 'ColdTakeMerchant',
+      flair: 'Arsenal 🔴',
+      badge: 'BALL KNOWER 🧠',
+      vibe: '🧊 ICE COLD',
+      text: `People are reacting without reading the fine print. Look at the long-term squad rotation implications here! 📊 #TotalFootball`,
+      timestamp: Date.now() - 1000 * 60 * 12,
+      factsCount: 60 + (h % 45),
+      capCount: 2 + (h % 7),
+      hypesCount: 104 + (h % 60),
+    },
+    {
+      id: `c-dyn-3-${targetId}`,
+      sender: 'NaijaBaller',
+      flair: 'Super Eagles 🦅',
+      badge: 'PRO ANALYST 🎙️',
+      vibe: '🍿 PURE DRAMA',
+      text: `Every single transfer window and board decision has drama. We will see how this reflects on matchday performance! 🍿 #FraudWatch`,
+      timestamp: Date.now() - 1000 * 60 * 22,
+      factsCount: 78 + (h % 40),
+      capCount: 5 + (h % 8),
+      hypesCount: 125 + (h % 90),
+    },
+  ];
+}
+
 export const GenZFanArena: React.FC<GenZFanArenaProps> = ({
   targetId,
   targetTitle,
@@ -98,10 +217,18 @@ export const GenZFanArena: React.FC<GenZFanArenaProps> = ({
     );
   }, [type, matchStatus]);
 
-  const vibesStorageKey = `mivaj_genz_vibes_${targetId}`;
-  const userVibeKey = `mivaj_user_vibe_${targetId}`;
+  // Dynamic & Persistent Fan Count
+  const [fanCount, setFanCount] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem(`mivaj_fans_count_${targetId}`);
+        if (saved) return parseInt(saved, 10);
+      } catch {}
+    }
+    return getDynamicFanCount(targetId, type);
+  });
 
-  // Vibe counter stats with permanent local persistence
+  // Dynamic & Persistent Vibe counter stats
   const [vibeStats, setVibeStats] = useState<Record<string, number>>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -109,23 +236,13 @@ export const GenZFanArena: React.FC<GenZFanArenaProps> = ({
         if (saved) return JSON.parse(saved);
       } catch {}
     }
-    return {
-      cooking: 842,
-      dead: 194,
-      cold: 412,
-      goat: 680,
-      fraud: 231,
-      moon: 310,
-      drama: 520,
-      cap: 175,
-      baller: 790,
-    };
+    return getDynamicInitialVibes(targetId, targetTitle);
   });
 
   // User input states
   const [userName, setUserName] = useState('');
   const [selectedFlair, setSelectedFlair] = useState(CLUB_FLAIRS[0]);
-  const [selectedVibe, setSelectedVibe] = useState(() => {
+  const [selectedVibe, setSelectedVibe] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem(`mivaj_user_vibe_${targetId}`);
@@ -138,69 +255,64 @@ export const GenZFanArena: React.FC<GenZFanArenaProps> = ({
   const [audioEffectActive, setAudioEffectActive] = useState(false);
   const [justSubmitted, setJustSubmitted] = useState(false);
 
-  // Comments list
-  const [comments, setComments] = useState<GenZComment[]>([]);
-  const [votedFacts, setVotedFacts] = useState<Record<string, boolean>>({});
-  const [votedCap, setVotedCap] = useState<Record<string, boolean>>({});
+  // Comments list with Dynamic initial seeding per article/match
+  const [comments, setComments] = useState<GenZComment[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(`mivaj_genz_comments_${targetId}`);
+        if (stored) return JSON.parse(stored);
+      } catch {}
+    }
+    return generateDynamicInitialComments(targetId, targetTitle, type, homeTeam, awayTeam);
+  });
 
-  // Seed / Load comments from storage or initial seed
+  // Persistent user vote tracks
+  const [votedFacts, setVotedFacts] = useState<Record<string, boolean>>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(`mivaj_facts_voted_${targetId}`);
+        if (stored) return JSON.parse(stored);
+      } catch {}
+    }
+    return {};
+  });
+
+  const [votedCap, setVotedCap] = useState<Record<string, boolean>>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(`mivaj_cap_voted_${targetId}`);
+        if (stored) return JSON.parse(stored);
+      } catch {}
+    }
+    return {};
+  });
+
+  // Sync state when targetId changes
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     try {
-      const stored = localStorage.getItem(`mivaj_genz_comments_${targetId}`);
-      if (stored) {
-        setComments(JSON.parse(stored));
-        return;
-      }
+      const savedVibes = localStorage.getItem(`mivaj_genz_vibes_${targetId}`);
+      if (savedVibes) setVibeStats(JSON.parse(savedVibes));
+      else setVibeStats(getDynamicInitialVibes(targetId, targetTitle));
+
+      const savedUserVibe = localStorage.getItem(`mivaj_user_vibe_${targetId}`);
+      if (savedUserVibe) setSelectedVibe(savedUserVibe);
+
+      const savedFans = localStorage.getItem(`mivaj_fans_count_${targetId}`);
+      if (savedFans) setFanCount(parseInt(savedFans, 10));
+      else setFanCount(getDynamicFanCount(targetId, type));
+
+      const storedComments = localStorage.getItem(`mivaj_genz_comments_${targetId}`);
+      if (storedComments) setComments(JSON.parse(storedComments));
+      else setComments(generateDynamicInitialComments(targetId, targetTitle, type, homeTeam, awayTeam));
+
+      const savedFacts = localStorage.getItem(`mivaj_facts_voted_${targetId}`);
+      if (savedFacts) setVotedFacts(JSON.parse(savedFacts));
+
+      const savedCap = localStorage.getItem(`mivaj_cap_voted_${targetId}`);
+      if (savedCap) setVotedCap(JSON.parse(savedCap));
     } catch {}
-
-    // Seed realistic viral comments for this room
-    const initialSeed: GenZComment[] = [
-      {
-        id: `c-seed-1`,
-        sender: 'AuraStriker_99',
-        flair: 'Arsenal 🔴',
-        badge: 'VIP 👑',
-        vibe: '🔥 COOKING',
-        text: type === 'MATCH' 
-          ? `High press is suffocating them right now! The midfield transitions are elite. Goal threat is boiling! 🔥 #Cooked`
-          : `This is massive. The ripple effect across the entire league is going to be crazy. Proper ball knowledge! ⚡`,
-        timestamp: Date.now() - 1000 * 60 * 4,
-        factsCount: 48,
-        capCount: 3,
-        hypesCount: 92,
-      },
-      {
-        id: `c-seed-2`,
-        sender: 'ColdTake_Bro',
-        flair: 'Chelsea 🔵',
-        badge: 'BALL KNOWER 🧠',
-        vibe: '🧊 ICE COLD',
-        text: type === 'MATCH'
-          ? `Their goalkeeper has ice in his veins today. Saved three 1v1 clear cut chances already! 🧊 #Masterclass`
-          : `People are sleeping on the actual tactical implications here. Check the underlying xG and progressive metrics! 📊`,
-        timestamp: Date.now() - 1000 * 60 * 9,
-        factsCount: 35,
-        capCount: 7,
-        hypesCount: 64,
-      },
-      {
-        id: `c-seed-3`,
-        sender: 'VAR_Spectator',
-        flair: 'Neutral ⚖️',
-        badge: 'VERIFIED 🎙️',
-        vibe: '🍿 PURE DRAMA',
-        text: type === 'MATCH'
-          ? `If this goes to the 85th minute at this tempo, someone is definitely getting cooked on the counter. Pure cinema! 🍿 #Drama`
-          : `Transfer market spending records getting shattered every single window. Football economy is not real! 🚀`,
-        timestamp: Date.now() - 1000 * 60 * 18,
-        factsCount: 72,
-        capCount: 2,
-        hypesCount: 110,
-      }
-    ];
-
-    setComments(initialSeed);
-  }, [targetId, type]);
+  }, [targetId, targetTitle, type, homeTeam, awayTeam]);
 
   // Remember handle
   useEffect(() => {
@@ -213,20 +325,6 @@ export const GenZFanArena: React.FC<GenZFanArenaProps> = ({
       }
     } catch {}
   }, []);
-
-  // Sync vibes from localStorage on targetId change
-  useEffect(() => {
-    try {
-      const savedVibes = localStorage.getItem(`mivaj_genz_vibes_${targetId}`);
-      if (savedVibes) {
-        setVibeStats(JSON.parse(savedVibes));
-      }
-      const savedUserVibe = localStorage.getItem(`mivaj_user_vibe_${targetId}`);
-      if (savedUserVibe) {
-        setSelectedVibe(savedUserVibe);
-      }
-    } catch {}
-  }, [targetId]);
 
   const handleRandomizeNick = () => {
     phoneHardware.triggerHaptic('SELECTION');
@@ -242,11 +340,9 @@ export const GenZFanArena: React.FC<GenZFanArenaProps> = ({
     setVibeStats(prev => {
       const prevVibe = selectedVibe;
       const updated = { ...prev };
-      // If switching from another vibe, adjust previous vote
       if (prevVibe && prevVibe !== vibeId && updated[prevVibe] && updated[prevVibe] > 0) {
         updated[prevVibe] = updated[prevVibe] - 1;
       }
-      // Increment selected vibe
       if (prevVibe !== vibeId) {
         updated[vibeId] = (updated[vibeId] || 0) + 1;
       }
@@ -258,6 +354,13 @@ export const GenZFanArena: React.FC<GenZFanArenaProps> = ({
     });
 
     setSelectedVibe(vibeId);
+
+    // Increment Fan Arena counter slightly
+    setFanCount(prev => {
+      const next = prev + 1;
+      try { localStorage.setItem(`mivaj_fans_count_${targetId}`, next.toString()); } catch {}
+      return next;
+    });
   };
 
   const handlePlayStadiumAudio = () => {
@@ -274,7 +377,7 @@ export const GenZFanArena: React.FC<GenZFanArenaProps> = ({
 
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isMatchFinished) return; // Prevent comments if match is closed
+    if (isMatchFinished) return; // Closed arena
     if (!commentText.trim()) return;
 
     phoneHardware.triggerHaptic('SUCCESS');
@@ -301,9 +404,16 @@ export const GenZFanArena: React.FC<GenZFanArenaProps> = ({
     setTimeout(() => setJustSubmitted(false), 3000);
 
     try {
-      localStorage.setItem(`mivaj_genz_comments_${targetId}`, JSON.stringify(updated.slice(0, 30)));
+      localStorage.setItem(`mivaj_genz_comments_${targetId}`, JSON.stringify(updated.slice(0, 40)));
       localStorage.setItem('mivaj_fan_nickname', userName);
     } catch {}
+
+    // Increment fan count
+    setFanCount(prev => {
+      const next = prev + 1;
+      try { localStorage.setItem(`mivaj_fans_count_${targetId}`, next.toString()); } catch {}
+      return next;
+    });
 
     confetti({
       particleCount: 40,
@@ -315,27 +425,43 @@ export const GenZFanArena: React.FC<GenZFanArenaProps> = ({
   const handleVoteFacts = (id: string) => {
     if (votedFacts[id]) return;
     phoneHardware.triggerHaptic('SELECTION');
-    setVotedFacts(prev => ({ ...prev, [id]: true }));
-    setComments(prev => prev.map(c => c.id === id ? { ...c, factsCount: c.factsCount + 1 } : c));
+    const newVoted = { ...votedFacts, [id]: true };
+    setVotedFacts(newVoted);
+    const updated = comments.map(c => c.id === id ? { ...c, factsCount: c.factsCount + 1 } : c);
+    setComments(updated);
+    try {
+      localStorage.setItem(`mivaj_facts_voted_${targetId}`, JSON.stringify(newVoted));
+      localStorage.setItem(`mivaj_genz_comments_${targetId}`, JSON.stringify(updated.slice(0, 40)));
+    } catch {}
   };
 
   const handleVoteCap = (id: string) => {
     if (votedCap[id]) return;
     phoneHardware.triggerHaptic('SELECTION');
-    setVotedCap(prev => ({ ...prev, [id]: true }));
-    setComments(prev => prev.map(c => c.id === id ? { ...c, capCount: c.capCount + 1 } : c));
+    const newVoted = { ...votedCap, [id]: true };
+    setVotedCap(newVoted);
+    const updated = comments.map(c => c.id === id ? { ...c, capCount: c.capCount + 1 } : c);
+    setComments(updated);
+    try {
+      localStorage.setItem(`mivaj_cap_voted_${targetId}`, JSON.stringify(newVoted));
+      localStorage.setItem(`mivaj_genz_comments_${targetId}`, JSON.stringify(updated.slice(0, 40)));
+    } catch {}
   };
 
   const handleHypeComment = (id: string) => {
     phoneHardware.triggerHaptic('SUCCESS');
     try { stadiumAudio.playAddPickSound(); } catch {}
-    setComments(prev => prev.map(c => c.id === id ? { ...c, hypesCount: c.hypesCount + 1 } : c));
+    const updated = comments.map(c => c.id === id ? { ...c, hypesCount: c.hypesCount + 1 } : c);
+    setComments(updated);
+    try {
+      localStorage.setItem(`mivaj_genz_comments_${targetId}`, JSON.stringify(updated.slice(0, 40)));
+    } catch {}
     confetti({ particleCount: 25, spread: 45, origin: { y: 0.8 } });
   };
 
   const handleShareHotTake = (comment: GenZComment) => {
     phoneHardware.triggerHaptic('SUCCESS');
-    const shareText = `🔥 Hot take by ${comment.sender} (${comment.flair}):\n"${comment.text}"\n\nJoin the live Gen Z match room on Mivaj Sports: https://mivaj.com/?match=${targetId}`;
+    const shareText = `🔥 Hot take by ${comment.sender} (${comment.flair}):\n"${comment.text}"\n\nJoin the live Gen Z arena on Mivaj Sports: https://mivaj.com/?news=${targetId}`;
     if (navigator.share) {
       navigator.share({ title: `Hot take on ${targetTitle}`, text: shareText, url: 'https://mivaj.com' }).catch(() => {});
     } else {
@@ -348,349 +474,290 @@ export const GenZFanArena: React.FC<GenZFanArenaProps> = ({
     <div className="w-full rounded-3xl bg-[#090d16] border border-white/10 p-4 sm:p-6 space-y-6 shadow-2xl font-mono relative overflow-hidden">
       
       {/* BACKGROUND AMBIENT GLOW */}
-      <div className="absolute top-0 right-0 w-80 h-80 bg-stadiumGreen/10 rounded-full blur-3xl pointer-events-none -z-0" />
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-gold/10 rounded-full blur-3xl pointer-events-none -z-0" />
+      <div className="absolute top-0 right-0 w-80 h-80 bg-stadiumGreen/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-gold/5 rounded-full blur-3xl pointer-events-none" />
 
-      {/* HEADER: ROOM STATUS & LIVE FOMO */}
-      <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
-        <div className="space-y-1">
+      {/* HEADER BAR */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+        <div>
           <div className="flex items-center space-x-2">
-            {isMatchFinished ? (
-              <span className="px-3 py-1 rounded-full bg-red-500/20 border border-red-500/40 text-red-400 text-xs font-black flex items-center space-x-1.5 shadow-sm">
-                <Lock className="w-3.5 h-3.5" />
-                <span>ARENA CLOSED (FULL-TIME 🏁)</span>
-              </span>
-            ) : isLiveMatch ? (
-              <span className="px-3 py-1 rounded-full bg-red-600 text-white text-xs font-black flex items-center space-x-1.5 animate-pulse shadow-lg shadow-red-600/30">
-                <Radio className="w-3.5 h-3.5" />
-                <span>LIVE ROOM • {matchMinute}</span>
-              </span>
-            ) : (
-              <span className="px-3 py-1 rounded-full bg-stadiumGreen/20 border border-stadiumGreen/40 text-stadiumGreen text-xs font-black flex items-center space-x-1.5">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>VIRAL FAN ZONE 💬</span>
-              </span>
-            )}
-
-            <span className="text-[11px] text-gray-400 font-sans">
-              {type === 'MATCH' ? `${homeTeam} vs ${awayTeam}` : 'Global Football Newsroom'}
+            <span className="px-2.5 py-0.5 rounded-full bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/40 text-[10px] font-black uppercase flex items-center space-x-1">
+              <Sparkles className="w-3 h-3 animate-spin" />
+              <span>Viral Fan Zone</span>
+            </span>
+            <span className="text-gray-400 text-xs">
+              {type === 'MATCH' ? 'Matchday Pitch War Room' : 'Global Football Newsroom'}
             </span>
           </div>
-
-          <h3 className="text-base sm:text-xl font-black text-white tracking-tight">
-            {isMatchFinished ? 'Match Ended • Sentiment Ledger Sealed' : 'Gen Z Hot Take Arena & Live Vibe Meter'}
+          <h3 className="text-base sm:text-lg font-black text-white mt-1">
+            Gen Z Hot Take Arena &amp; Live Vibe Meter
           </h3>
         </div>
 
-        {/* FOMO COUNTER */}
-        <div className="flex items-center space-x-3 text-xs">
-          {!isMatchFinished ? (
-            <div className="px-3 py-1.5 rounded-2xl bg-white/5 border border-white/10 flex items-center space-x-2 text-gold">
-              <Flame className="w-4 h-4 fill-gold text-gold animate-bounce" />
-              <span className="font-black">2,840+ Fans In Arena</span>
-            </div>
-          ) : (
-            <div className="px-3 py-1.5 rounded-2xl bg-white/5 border border-white/10 flex items-center space-x-2 text-gray-400">
-              <Lock className="w-3.5 h-3.5" />
-              <span>Archived at FT</span>
-            </div>
-          )}
+        {/* Dynamic Live Counter */}
+        <div className="flex items-center space-x-3">
+          <div className="px-3 py-1.5 rounded-2xl bg-black/60 border border-white/10 flex items-center space-x-1.5 text-xs shadow-inner">
+            <span className="w-2 h-2 rounded-full bg-stadiumGreen animate-ping" />
+            <span className="text-amber-400 font-mono font-bold flex items-center space-x-1">
+              <Flame className="w-3.5 h-3.5" />
+              <span>{fanCount.toLocaleString()}+ Fans In Arena</span>
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* FOMO URGENCY BANNER (If Live Match) */}
-      {type === 'MATCH' && isLiveMatch && (
-        <div className="relative z-10 p-3 rounded-2xl bg-gradient-to-r from-red-950/40 via-black to-red-950/40 border border-red-500/30 flex items-center justify-between text-xs animate-pulse">
-          <div className="flex items-center space-x-2 text-red-400 font-bold">
-            <Clock className="w-4 h-4 flex-shrink-0" />
-            <span>⚠️ URGENT: Room closes permanently when referee blows the final whistle!</span>
-          </div>
-          <span className="text-[10px] text-gray-400 uppercase hidden sm:inline font-mono">
-            {homeScore} - {awayScore} In-Play
-          </span>
-        </div>
-      )}
-
-      {/* MATCH CLOSED BANNER (User's Exact Requirement: Closes when match ends) */}
+      {/* MATCH CLOSE NOTICE BANNER (CLOSES WHEN MATCH ENDS) */}
       {isMatchFinished && (
-        <div className="relative z-10 p-4 rounded-3xl bg-neutral-950/90 border border-red-500/30 text-center space-y-2 shadow-xl">
-          <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-black uppercase">
-            <Lock className="w-3.5 h-3.5" />
-            <span>THE ARENA HAS CLOSED • MATCH CONCLUDED (FT 🏁)</span>
+        <div className="p-4 rounded-2xl bg-crimson/15 border border-crimson/40 flex items-center justify-between gap-3 text-xs">
+          <div className="flex items-center space-x-2.5">
+            <Lock className="w-4 h-4 text-crimson flex-shrink-0" />
+            <div>
+              <span className="font-black text-white block">ARENA LOCKED • MATCH CONCLUDED (FT)</span>
+              <span className="text-gray-300 text-[11px] font-sans block">
+                Official final whistle blown. Takes and vibes have been permanently sealed into the matchday ledger.
+              </span>
+            </div>
           </div>
-          <p className="text-xs text-gray-400 font-sans max-w-xl mx-auto leading-relaxed">
-            The referee has blown the official full-time whistle ({homeTeam} {homeScore} - {awayScore} {awayTeam}). All hot takes, votes, and sentiment from this live room have been archived into the referee ledger. No further comments can be posted.
-          </p>
+          <span className="px-2.5 py-1 rounded-full bg-crimson text-white font-black text-[10px] flex-shrink-0">
+            SEALED
+          </span>
         </div>
       )}
 
-      {/* 1. SOUNDBITE & VIBE CHIPS ROW */}
-      <div className="relative z-10 space-y-2">
-        <div className="flex items-center justify-between text-xs text-gray-400">
-          <span className="font-bold flex items-center space-x-1">
-            <span>⚡ WHAT'S THE VIBE?</span>
-            <span className="text-[10px] text-gold">(Tap to stamp your reaction)</span>
+      {/* 1. INTERACTIVE LIVE VIBE CHIPS */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-gray-300 font-bold flex items-center space-x-1">
+            <Zap className="w-3.5 h-3.5 text-gold" />
+            <span>WHAT&apos;S THE VIBE? (Tap to stamp your reaction)</span>
           </span>
-          <span className="text-[10px] font-mono">Live Pulse Ratio</span>
+          <span className="text-[10px] text-gray-500 font-mono hidden sm:inline">Live Pulse Ratio</span>
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-          {GEN_Z_VIBES.map((v) => {
-            const isSelected = selectedVibe === v.id;
-            const count = vibeStats[v.id] || 0;
-
+        <div className="flex flex-wrap gap-2">
+          {GEN_Z_VIBES.map((vibe) => {
+            const isSelected = selectedVibe === vibe.id;
+            const count = vibeStats[vibe.id] || 0;
             return (
               <button
-                key={v.id}
+                key={vibe.id}
                 type="button"
-                onClick={() => handleVibeReaction(v.id)}
-                className={`px-3 py-2 rounded-2xl text-xs font-black flex items-center space-x-1.5 transition-all whitespace-nowrap active:scale-95 border ${
-                  isSelected 
-                    ? `bg-gradient-to-r ${v.color} shadow-lg scale-105` 
-                    : 'bg-white/5 hover:bg-white/10 text-gray-300 border-white/10'
+                onClick={() => handleVibeReaction(vibe.id)}
+                className={`px-3 py-2 rounded-2xl border text-xs font-black transition-all flex items-center space-x-1.5 active:scale-95 shadow-md ${
+                  isSelected
+                    ? `bg-gradient-to-r ${vibe.color} shadow-lg ring-2 ring-white/20 scale-105`
+                    : 'bg-black/50 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
                 }`}
               >
-                <span>{v.icon}</span>
-                <span>{v.label}</span>
-                <span className="text-[10px] opacity-75 font-mono">({count.toLocaleString()})</span>
+                <span className="text-base">{vibe.icon}</span>
+                <span>{vibe.label}</span>
+                <span className="px-1.5 py-0.5 rounded-full bg-black/40 text-[10px] font-mono text-gray-200">
+                  {count}
+                </span>
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* 2. ADVANCED GEN Z COMMENTING FORM (ONLY OPEN WHILE LIVE OR ON NEWS) */}
-      {!isMatchFinished ? (
-        <form onSubmit={handleSubmitComment} className="relative z-10 space-y-4 p-4 rounded-3xl bg-neutral-950/80 border border-white/10 shadow-xl">
+      {/* 2. ADVANCED HOT TAKE COMPOSER */}
+      {!isMatchFinished && (
+        <form onSubmit={handleSubmitComment} className="space-y-3 p-4 rounded-3xl bg-black/60 border border-white/10 shadow-inner">
           
-          {/* Top Line: User Nickname + Club Flair + Mic Audio */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-            
-            {/* Nickname with Randomizer */}
-            <div className="flex items-center space-x-2 bg-black/60 border border-white/10 rounded-2xl p-2">
-              <User className="w-3.5 h-3.5 text-gold flex-shrink-0" />
-              <input
-                type="text"
-                value={userName}
-                onChange={(e) => setUserName(e.target.value)}
-                placeholder="Your Fan Tag..."
-                className="w-full bg-transparent text-white placeholder-gray-500 text-xs focus:outline-none font-bold"
-                maxLength={24}
-              />
+          {/* USER INFO BAR (Handle + Club Flair + Audio SFX) */}
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1 px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 text-xs">
+                <User className="w-3.5 h-3.5 text-stadiumGreen" />
+                <span className="text-white font-bold">{userName}</span>
+              </div>
               <button
                 type="button"
                 onClick={handleRandomizeNick}
-                title="Generate random Gen Z tag"
-                className="p-1 rounded-lg bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white flex-shrink-0"
+                className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all"
+                title="Randomize fan nickname"
               >
                 <RefreshCw className="w-3 h-3" />
               </button>
             </div>
 
-            {/* Club Flair Select */}
-            <div className="bg-black/60 border border-white/10 rounded-2xl p-2 flex items-center space-x-2">
-              <span className="text-[10px] text-gray-400 font-bold uppercase flex-shrink-0">Flair:</span>
+            {/* Club Flair Picker */}
+            <div className="flex items-center space-x-2">
+              <span className="text-[10px] text-gray-400 font-bold uppercase hidden sm:inline">Flair:</span>
               <select
                 value={selectedFlair}
                 onChange={(e) => setSelectedFlair(e.target.value)}
-                className="w-full bg-transparent text-white text-xs focus:outline-none font-bold cursor-pointer"
+                className="bg-black border border-white/20 rounded-xl px-2.5 py-1 text-xs text-white focus:outline-none focus:border-stadiumGreen font-mono"
               >
-                {CLUB_FLAIRS.map(f => (
-                  <option key={f} value={f} className="bg-neutral-900 text-white">{f}</option>
+                {CLUB_FLAIRS.map(flair => (
+                  <option key={flair} value={flair}>{flair}</option>
                 ))}
               </select>
-            </div>
 
-            {/* Voice Note Audio Drop Preview */}
-            <div className="flex items-center space-x-2">
+              {/* Sound Effect Drop Button */}
               <button
                 type="button"
                 onClick={handlePlayStadiumAudio}
-                className={`w-full py-2 px-3 rounded-2xl text-xs font-black flex items-center justify-center space-x-1.5 transition-all border ${
-                  audioEffectActive
-                    ? 'bg-gold text-black border-gold shadow-lg shadow-gold/20 scale-95'
-                    : 'bg-white/5 hover:bg-white/10 text-gold border-gold/30'
+                className={`px-3 py-1 rounded-xl text-xs font-black flex items-center space-x-1 transition-all ${
+                  audioEffectActive 
+                    ? 'bg-gold text-black animate-pulse' 
+                    : 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
                 }`}
+                title="Trigger Naija Stadium Gbam 🎙️ sound"
               >
-                <Mic className="w-3.5 h-3.5 animate-pulse" />
-                <span>{audioEffectActive ? 'GBAM! 🔊' : 'Voice Reaction Drop 🎙️'}</span>
+                <Mic className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Voice Reaction Drop</span>
               </button>
             </div>
-
           </div>
 
-          {/* Quick Meme Tag Chips */}
-          <div className="flex items-center gap-1.5 overflow-x-auto text-[10px] scrollbar-none">
+          {/* Quick Viral Tags */}
+          <div className="flex items-center space-x-1.5 overflow-x-auto scrollbar-none py-1 text-[10px]">
             <span className="text-gray-500 uppercase font-bold flex-shrink-0">Quick Tags:</span>
             {QUICK_TAGS.map(tag => (
               <button
                 key={tag}
                 type="button"
                 onClick={() => handleAddTag(tag)}
-                className="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white border border-white/5 transition-all whitespace-nowrap"
+                className="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-white/15 text-gray-300 font-mono transition-all flex-shrink-0"
               >
                 {tag}
               </button>
             ))}
           </div>
 
-          {/* Comment Text Box */}
+          {/* Text Input Area */}
           <div className="relative">
             <textarea
-              rows={3}
+              rows={2}
+              maxLength={280}
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
-              placeholder={
-                type === 'MATCH'
-                  ? `Drop your live hot take on ${homeTeam} vs ${awayTeam}... (e.g. He is cooking them on the wing! Fraud alert on the referee!)`
-                  : `Drop your hot take on this football story... (Spit facts, no cap!)`
-              }
-              maxLength={280}
-              className="w-full p-3.5 rounded-2xl bg-black border border-white/10 text-white placeholder-gray-500 text-xs sm:text-sm focus:border-stadiumGreen focus:outline-none resize-none font-sans leading-relaxed"
+              placeholder={`Drop your hot take on this ${type === 'MATCH' ? 'match' : 'football story'}... (Spit facts, no cap!)`}
+              className="w-full p-3 rounded-2xl bg-[#060a12] border border-white/10 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-stadiumGreen font-sans resize-none"
             />
             <span className="absolute bottom-2.5 right-3 text-[10px] text-gray-500 font-mono">
               {commentText.length}/280
             </span>
           </div>
 
-          {/* Submit Row with Virality Triggers */}
+          {/* Submit Action Bar */}
           <div className="flex items-center justify-between pt-1">
-            <div className="text-[11px] text-gray-400 font-sans hidden sm:flex items-center space-x-2">
-              <Sparkles className="w-3.5 h-3.5 text-gold" />
+            <span className="text-[10px] text-gray-500 flex items-center space-x-1">
+              <Sparkles className="w-3 h-3 text-gold" />
               <span>Posts are recorded live in the matchday pulse ledger.</span>
-            </div>
+            </span>
 
             <button
               type="submit"
               disabled={!commentText.trim()}
-              className={`px-6 py-3 rounded-2xl text-xs font-black flex items-center space-x-2 transition-all shadow-lg active:scale-95 ${
-                commentText.trim()
-                  ? 'bg-stadiumGreen text-black hover:bg-stadiumGreen/90 shadow-stadiumGreen/20 cursor-pointer'
-                  : 'bg-white/10 text-gray-500 cursor-not-allowed'
-              }`}
+              className="px-5 py-2 rounded-2xl bg-gradient-to-r from-stadiumGreen to-emerald-400 hover:from-emerald-400 hover:to-stadiumGreen text-black font-black text-xs shadow-lg shadow-stadiumGreen/20 flex items-center space-x-1.5 disabled:opacity-40 active:scale-95 transition-all"
             >
               <Send className="w-3.5 h-3.5" />
-              <span>{justSubmitted ? 'Hot Take Dropped! 🔥' : 'Drop Hot Take 🔥'}</span>
+              <span>{justSubmitted ? 'Take Dropped! 🔥' : 'Drop Hot Take'}</span>
             </button>
           </div>
-
         </form>
-      ) : (
-        <div className="p-4 rounded-2xl bg-black/40 border border-white/5 flex items-center justify-center text-xs text-gray-500 space-x-2">
-          <Lock className="w-4 h-4 text-red-400/80" />
-          <span>Commenting is disabled because this match has officially concluded (FT).</span>
-        </div>
       )}
 
-      {/* 3. FAN FEED: REAL-TIME HOT TAKES & VOTING */}
-      <div className="relative z-10 space-y-3">
-        <div className="flex items-center justify-between text-xs text-gray-400 pb-1 border-b border-white/5">
-          <span className="font-bold text-white flex items-center space-x-1.5">
+      {/* 3. FAN REACTIONS & VERIFIED TAKES FEED */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between text-xs border-b border-white/10 pb-2">
+          <div className="flex items-center space-x-2 text-white font-bold">
             <MessageSquare className="w-3.5 h-3.5 text-stadiumGreen" />
             <span>Fan Reactions &amp; Verified Takes ({comments.length})</span>
-          </span>
-          <span className="text-[10px] font-mono text-gray-500">Sorted by Live Hype</span>
+          </div>
+          <span className="text-[10px] text-gray-500">Sorted by Live Hype</span>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-3 max-h-[420px] overflow-y-auto scrollbar-thin pr-1">
           {comments.map((comment) => {
-            const hasFactsVoted = !!votedFacts[comment.id];
-            const hasCapVoted = !!votedCap[comment.id];
-            const totalVotes = comment.factsCount + comment.capCount;
-            const factsRatio = totalVotes > 0 ? Math.round((comment.factsCount / totalVotes) * 100) : 80;
+            const hasVotedFact = !!votedFacts[comment.id];
+            const hasVotedCap = !!votedCap[comment.id];
 
             return (
               <div
                 key={comment.id}
-                className="p-4 rounded-2xl bg-neutral-950/70 border border-white/10 hover:border-white/20 transition-all space-y-2.5 shadow-md group"
+                className="p-3.5 rounded-2xl bg-black/40 border border-white/10 space-y-2.5 hover:border-white/20 transition-all text-xs"
               >
                 {/* Comment Header */}
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-black text-white group-hover:text-gold transition-colors">
-                      @{comment.sender}
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full bg-white/10 text-[9px] font-black text-gray-300">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center space-x-2 min-w-0">
+                    <span className="font-black text-white truncate">@{comment.sender}</span>
+                    <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[9px] text-gray-300 flex-shrink-0">
                       {comment.flair}
                     </span>
-                    <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[8px] font-black uppercase">
+                    <span className="px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[8px] font-bold hidden sm:inline flex-shrink-0">
                       {comment.badge}
                     </span>
                   </div>
 
-                  <span className="text-[10px] text-gray-500 font-mono">
-                    {comment.vibe}
-                  </span>
+                  <div className="flex items-center space-x-2 flex-shrink-0 text-[10px]">
+                    <span className="text-gold font-bold">{comment.vibe}</span>
+                  </div>
                 </div>
 
                 {/* Comment Body */}
-                <p className="text-xs sm:text-sm text-gray-200 font-sans leading-relaxed">
+                <p className="text-gray-200 font-sans text-xs sm:text-sm leading-relaxed">
                   {comment.text}
                 </p>
 
-                {/* Facts vs Cap Voting Bar */}
-                <div className="space-y-1 pt-1">
-                  <div className="flex items-center justify-between text-[10px] text-gray-400 font-mono">
-                    <span className="text-stadiumGreen font-bold">Spit Facts: {factsRatio}%</span>
-                    <span className="text-rose-400 font-bold">Cap: {100 - factsRatio}%</span>
-                  </div>
-                  <div className="w-full h-1.5 rounded-full bg-neutral-800 overflow-hidden flex">
-                    <div className="h-full bg-stadiumGreen transition-all duration-300" style={{ width: `${factsRatio}%` }} />
-                    <div className="h-full bg-rose-500 transition-all duration-300" style={{ width: `${100 - factsRatio}%` }} />
-                  </div>
-                </div>
-
-                {/* Action Buttons Row */}
-                <div className="flex items-center justify-between pt-2 border-t border-white/5 text-xs">
-                  <div className="flex items-center space-x-2">
+                {/* Community Interaction Row (Facts vs Cap + Hypes + Share) */}
+                <div className="flex items-center justify-between gap-2 pt-1 border-t border-white/5 text-[10px]">
+                  
+                  {/* Facts vs Cap Voting */}
+                  <div className="flex items-center space-x-1.5">
                     <button
                       type="button"
                       onClick={() => handleVoteFacts(comment.id)}
-                      className={`px-2.5 py-1 rounded-xl text-[10px] font-bold flex items-center space-x-1 transition-all ${
-                        hasFactsVoted
+                      className={`px-2.5 py-1 rounded-xl flex items-center space-x-1 transition-all ${
+                        hasVotedFact
                           ? 'bg-stadiumGreen text-black font-black'
-                          : 'bg-white/5 hover:bg-white/10 text-gray-300'
+                          : 'bg-white/5 text-gray-300 hover:bg-white/15'
                       }`}
+                      title="Vote: Spit Facts!"
                     >
-                      <ThumbsUp className="w-3 h-3" />
-                      <span>Facts ({comment.factsCount})</span>
+                      <span>🔥 Facts</span>
+                      <span className="font-mono font-bold">({comment.factsCount})</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => handleVoteCap(comment.id)}
-                      className={`px-2.5 py-1 rounded-xl text-[10px] font-bold flex items-center space-x-1 transition-all ${
-                        hasCapVoted
-                          ? 'bg-rose-500 text-white font-black'
-                          : 'bg-white/5 hover:bg-white/10 text-gray-300'
+                      className={`px-2.5 py-1 rounded-xl flex items-center space-x-1 transition-all ${
+                        hasVotedCap
+                          ? 'bg-rose-600 text-white font-black'
+                          : 'bg-white/5 text-gray-300 hover:bg-white/15'
                       }`}
+                      title="Vote: Pure Cap!"
                     >
-                      <ThumbsDown className="w-3 h-3" />
-                      <span>Cap ({comment.capCount})</span>
+                      <span>🧢 Cap</span>
+                      <span className="font-mono font-bold">({comment.capCount})</span>
+                    </button>
+                  </div>
+
+                  {/* Hypes & 1-Click Viral Share */}
+                  <div className="flex items-center space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => handleHypeComment(comment.id)}
+                      className="px-2.5 py-1 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center space-x-1 transition-all active:scale-90"
+                    >
+                      <span>⚡ Hype</span>
+                      <span className="font-mono font-bold">({comment.hypesCount})</span>
                     </button>
 
                     <button
                       type="button"
-                      onClick={() => handleHypeComment(comment.id)}
-                      className="px-2.5 py-1 rounded-xl bg-gold/10 hover:bg-gold/20 text-gold text-[10px] font-black flex items-center space-x-1 border border-gold/20"
+                      onClick={() => handleShareHotTake(comment)}
+                      className="p-1.5 rounded-xl bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white transition-all"
+                      title="Share take to WhatsApp / X"
                     >
-                      <Flame className="w-3 h-3 fill-gold" />
-                      <span>Hype ({comment.hypesCount})</span>
+                      <Share2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
 
-                  {/* 1-Click Viral Share Take */}
-                  <button
-                    type="button"
-                    onClick={() => handleShareHotTake(comment)}
-                    className="p-1.5 rounded-xl bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white transition-all flex items-center space-x-1 text-[10px]"
-                    title="Share this take"
-                  >
-                    <Share2 className="w-3 h-3" />
-                    <span className="hidden sm:inline">Share</span>
-                  </button>
                 </div>
-
               </div>
             );
           })}

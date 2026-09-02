@@ -7,10 +7,18 @@ export const dynamic = 'force-dynamic';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { title, category, authorName, lead, body: articleBody, quote, verdict, fullContent } = body;
+    const title = (body.title || '').trim();
+    const category = body.category || 'General Football';
+    const authorName = (body.authorName || 'Ghost Writer').trim();
+    const lead = (body.lead || body.summary || (body.content ? body.content.slice(0, 160) : '')).trim();
+    const articleBody = (body.body || body.content || body.fullContent || '').trim();
+    const quote = body.quote || '';
+    const verdict = body.verdict || '';
+    const fullContent = (body.fullContent || `${lead}\n\n${articleBody}`).trim();
+    const imageUrl = body.imageUrl || '';
 
-    if (!title || !lead || !articleBody) {
-      return NextResponse.json({ error: 'Missing required article fields' }, { status: 400 });
+    if (!title || (!articleBody && !lead)) {
+      return NextResponse.json({ error: 'Article must have a headline and body story content.' }, { status: 400 });
     }
 
     // 1. Spam & Profanity Filter

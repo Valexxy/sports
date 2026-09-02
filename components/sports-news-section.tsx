@@ -65,7 +65,12 @@ export const SportsNewsSection: React.FC = () => {
       if (res.ok) {
         const data = await res.json();
         if (data.articles && Array.isArray(data.articles) && data.articles.length > 0) {
-          setArticles(data.articles);
+          let customGhosts: SportsArticle[] = [];
+          try {
+            const raw = localStorage.getItem('mivaj_custom_ghost_articles');
+            if (raw) customGhosts = JSON.parse(raw);
+          } catch {}
+          setArticles([...customGhosts, ...data.articles]);
         }
       }
     } catch (err) {
@@ -501,6 +506,10 @@ export const SportsNewsSection: React.FC = () => {
       <GhostBloggerModal
         isOpen={showGhostModal}
         onClose={() => setShowGhostModal(false)}
+        onArticlePublished={(newArticle) => {
+          setArticles((prev) => [newArticle, ...prev]);
+          setActiveArticle(newArticle);
+        }}
       />
     </section>
   );
