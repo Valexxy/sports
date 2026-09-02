@@ -110,8 +110,7 @@ export async function GET(req: Request) {
         msg += `🎯 <b>PREDICTION:</b> <code>${pick}</code> @ <b>${odds}</b>\n`;
         msg += `🏁 <b>FINAL OUTCOME:</b> <code>${homeScore} - ${awayScore} (FT)</code>\n`;
         msg += `⚡ <b>VERIFIED RESULT: WON ✅ 💰</b>\n\n`;
-        msg += `💰 <b>PAYOUT CONFIRMED!</b> High-accuracy banker cashed in! 🤑💵💸\n`;
-        msg += `🚨 <i>Missed this game? Next verified banker kicks off shortly — don't miss out on today's profits! 🚀🔥</i>\n\n`;
+        msg += `💰 <b>PAYOUT CONFIRMED!</b> High-accuracy banker cashed in! 🤑💵💸\n\n`;
       } else {
         msg += `🛑 <b>MATCH RESULT: LOST ❌ • 100% UNEDITED REFEREE AUDIT 📜</b>\n\n`;
         msg += `${sportIcon} <b>${match.homeTeam} vs ${match.awayTeam}</b>\n`;
@@ -119,8 +118,32 @@ export async function GET(req: Request) {
         msg += `🎯 <b>PREDICTION:</b> <code>${pick}</code> @ <b>${odds}</b>\n`;
         msg += `🏁 <b>FINAL OUTCOME:</b> <code>${homeScore} - ${awayScore} (FT)</code>\n`;
         msg += `⚡ <b>VERIFIED RESULT: LOST ❌</b>\n\n`;
-        msg += `📋 <i>100% transparent and unedited. Official score recorded in our immutable referee ledger.</i>\n`;
-        msg += `🔥 <i>Next verified high-confidence banker loaded now on Mivaj Sports — bounce back strong! 🚀</i>\n\n`;
+        msg += `📋 <i>100% transparent and unedited. Official score recorded in our immutable referee ledger.</i>\n\n`;
+      }
+
+      // FOMO & VIRALITY: Inject Remaining Live Prediction Options
+      const remainingBankers = matches
+        .filter((m) => {
+          if (m.status !== 'SCHEDULED') return false;
+          if (!m.prediction || m.prediction.hasPrediction === false) return false;
+          const sel = (m.prediction.topPick?.selection || '').toLowerCase();
+          if (sel.includes('watch only') || sel === 'n/a') return false;
+          return true;
+        })
+        .slice(0, 3);
+
+      if (remainingBankers.length > 0) {
+        msg += `🔥 <b>REMAINING UNBEATEN BANKERS ACTIVE TODAY:</b>\n`;
+        remainingBankers.forEach((bm, idx) => {
+          const bPick = bm.prediction.topPick.selection;
+          const bOdds = bm.prediction.topPick.odds;
+          const bProb = bm.prediction.topPick.probability;
+          const bTime = bm.matchTime || (bm.utcDate ? new Date(bm.utcDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Soon');
+          msg += `${idx + 1}️⃣ ⚽ <b>${bm.homeTeam} vs ${bm.awayTeam}</b> (${bTime})\n`;
+          msg += `   👉 Pick: <code>${bPick}</code> @ <b>${bOdds}</b> (Model: ${bProb}% Win Rate)\n`;
+        });
+        msg += `\n⚡ <b>LOCK IN REMAINING OPTIONS NOW BEFORE KICKOFF:</b>\n`;
+        msg += `👉 https://mivaj.com\n\n`;
       }
 
       msg += `⚡ <b>MIVAJ SPORTS INSTANT ACCESS:</b>\n`;

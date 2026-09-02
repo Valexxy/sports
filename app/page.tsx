@@ -97,12 +97,12 @@ export default function Home() {
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSport, setActiveSport] = useState<SportFilterType>('ALL');
-  const [activeFilter, setActiveFilter] = useState<FilterType>('ALL');
+  const [activeFilter, setActiveFilter] = useState<FilterType>('UPCOMING');
   const [selectedDateStr, setSelectedDateStr] = useState<string>(() => new Date().toISOString().split('T')[0]);
   const [selectedDateLabel, setSelectedDateLabel] = useState<string>('Today');
   const [isViewingToday, setIsViewingToday] = useState<boolean>(true);
   const [selectedSport, setSelectedSport] = useState<'SOCCER' | 'BASKETBALL' | 'TENNIS'>('SOCCER');
-  const [visibleCount, setVisibleCount] = useState(200);
+  const [visibleCount, setVisibleCount] = useState(60);
   const [activeDockTab, setActiveDockTab] = useState('MATCHES');
   const [showAffiliatePopup, setShowAffiliatePopup] = useState(false);
   const handleSelectDockTab = (tab: string) => {
@@ -110,7 +110,7 @@ export default function Home() {
     if (tab === 'FOLLOWING') {
       setActiveFilter('FOLLOWING');
     } else if (tab === 'MATCHES') {
-      setActiveFilter('ALL');
+      setActiveFilter('UPCOMING');
     }
   };
   
@@ -160,8 +160,6 @@ export default function Home() {
   const [showConverterModal, setShowConverterModal] = useState(false);
   const [collapseBankers, setCollapseBankers] = useState(false);
   const [collapseAllMatches, setCollapseAllMatches] = useState(true);
-  const [collapsedStatusSections, setCollapsedStatusSections] = useState<Record<string, boolean>>({});
-  const [expandedStatusRows, setExpandedStatusRows] = useState<Record<string, boolean>>({});
   const [showBanterModal, setShowBanterModal] = useState(false);
   const [showGrassrootsModal, setShowGrassrootsModal] = useState(false);
   const [showStandingsModal, setShowStandingsModal] = useState(false);
@@ -180,6 +178,17 @@ export default function Home() {
       if (Array.isArray(data) && data.length > 0) {
         setMatches(data);
         try { localStorage.setItem('aurascore_matches_cache', JSON.stringify(data)); } catch (e) {}
+
+        // Prioritize opening to LIVE match first if any, otherwise UPCOMING (never All Leagues)
+        if (!hasAutoSwitchedTab) {
+          const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+          const urlTab = urlParams?.get('tab');
+          if (!urlTab) {
+            const hasLive = data.some(m => m.status === 'LIVE' || (m.matchTime && !m.matchTime.includes('FT') && !m.matchTime.includes('Final')));
+            setActiveFilter(hasLive ? 'LIVE' : 'UPCOMING');
+            setHasAutoSwitchedTab(true);
+          }
+        }
       }
       setLastSynced(new Date());
       MatchAlertScheduler.checkAndTriggerLiveAlerts(data);
@@ -199,6 +208,13 @@ export default function Home() {
         if (Array.isArray(parsed) && parsed.length > 0) {
           setMatches(parsed);
           setLoadingMatches(false);
+
+          // Prioritize LIVE if any in cache
+          if (!hasAutoSwitchedTab) {
+            const hasLive = parsed.some((m: MatchData) => m.status === 'LIVE');
+            setActiveFilter(hasLive ? 'LIVE' : 'UPCOMING');
+            setHasAutoSwitchedTab(true);
+          }
         }
       }
     } catch (e) {}
@@ -437,10 +453,10 @@ export default function Home() {
     return sortMatchesByClosestKickoff(base, activeFilter);
   }, [dayMatches, matches, searchQuery, activeFilter, activeSport, highGuaranteesOnly, followedMatchIds, followedLeagues]);
 
-  const liveCount = filteredMatches.filter(m => m.status === 'LIVE').length;
-  const upcomingCount = filteredMatches.filter(m => m.status === 'SCHEDULED').length;
-  const playedCount = filteredMatches.filter(m => m.status === 'FINISHED').length;
-  const highGuaranteesCount = filteredMatches.filter(m => (m.prediction?.topPick?.probability || 0) >= 70 || m.prediction?.topPick?.confidenceTier === 'ULTRA-BANKER').length;
+  const liveCount = useMemo(() => dayMatches.filter(m => m.status === 'LIVE' || (m.matchTime && !m.matchTime.includes('FT') && !m.matchTime.includes('Final'))).length, [dayMatches]);
+  const upcomingCount = useMemo(() => dayMatches.filter(m => m.status === 'SCHEDULED').length, [dayMatches]);
+  const playedCount = useMemo(() => dayMatches.filter(m => m.status === 'FINISHED' || m.status === 'FT').length, [dayMatches]);
+  const highGuaranteesCount = useMemo(() => dayMatches.filter(m => (m.prediction?.topPick?.probability || 0) >= 70 || m.prediction?.topPick?.confidenceTier === 'ULTRA-BANKER').length, [dayMatches]);
 
   const topBankersList = useMemo(() => {
     return matches
@@ -480,70 +496,6 @@ export default function Home() {
   }, [matches]);
 
   const displayedMatches = filteredMatches.slice(0, visibleCount);
-
-  const statusGroupedMatches = useMemo(() => {
-    const live: MatchData[] = [];
-    const upcoming: MatchData[] = [];
-    const played: MatchData[] = [];
-
-    displayedMatches.forEach((m) => {
-      if (m.status === 'LIVE') {
-        live.push(m);
-      } else if (m.status === 'FINISHED' || m.status === 'FT') {
-        played.push(m);
-      } else {
-        upcoming.push(m);
-      }
-    });
-
-    const groups: Array<{
-      id: string;
-      title: string;
-      subtitle: string;
-      flag: string;
-      count: number;
-      badgeColor: string;
-      matches: MatchData[];
-    }> = [];
-
-    if (live.length > 0) {
-      groups.push({
-        id: 'LIVE',
-        title: '🔴 LIVE MATCHES (AS E DEY HOT 🔥)',
-        subtitle: 'Real-time pitch action, sub-second scores & live vibration tremors',
-        flag: '🔥',
-        count: live.length,
-        badgeColor: 'bg-crimson text-white border border-crimson/50 animate-pulse',
-        matches: live,
-      });
-    }
-
-    if (upcoming.length > 0) {
-      groups.push({
-        id: 'UPCOMING',
-        title: '⏰ UPCOMING MATCHES (DEY COME ⚽)',
-        subtitle: 'Today\'s kickoff schedule, Poisson AI model consensus & banker tips',
-        flag: '⏰',
-        count: upcoming.length,
-        badgeColor: 'bg-amber-500/20 text-amber-400 border border-amber-500/40',
-        matches: upcoming,
-      });
-    }
-
-    if (played.length > 0) {
-      groups.push({
-        id: 'PLAYED',
-        title: '🏁 PLAYED & FINISHED (DON FINISH 🏁)',
-        subtitle: 'Final full-time scores & official referee settlement ledger',
-        flag: '🏁',
-        count: played.length,
-        badgeColor: 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40',
-        matches: played,
-      });
-    }
-
-    return groups;
-  }, [displayedMatches]);
 
   const todayLabel = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' });
 
@@ -751,8 +703,8 @@ export default function Home() {
                   <button
                     key={pill.key}
                     onClick={() => {
-                      setActiveFilter(prev => prev === pill.key ? 'ALL' : pill.key);
-                      setVisibleCount(6);
+                      setActiveFilter(pill.key as FilterType);
+                      setVisibleCount(60);
                       try { stadiumAudio.playTabClickSound(); } catch (e) {}
                     }}
                     className={`py-3 px-2 rounded-2xl border text-xs font-black transition-all flex items-center justify-center space-x-1.5 ${
@@ -771,7 +723,7 @@ export default function Home() {
                 <button
                   onClick={() => {
                     setActiveFilter('FOLLOWING');
-                    setVisibleCount(6);
+                    setVisibleCount(60);
                     try { stadiumAudio.playTabClickSound(); } catch (e) {}
                   }}
                   className={`py-2.5 px-2 rounded-2xl border text-xs font-black transition-all flex items-center justify-center space-x-1.5 ${
@@ -793,131 +745,48 @@ export default function Home() {
                   <span>🌍</span>
                   <span className="truncate">{t('All Leagues')}</span>
                 </button>
-
-                
               </div>
             </div>
 
-            {/* Matches Grouped By Status (LIVE, UPCOMING, FINISHED) with Collapsible Rows */}
+            {/* Direct Match Grid — Sectional & Free of Feature Micro-Collapsing */}
             {loadingMatches ? (
               <AnimatedPredictionSkeleton />
             ) : filteredMatches.length > 0 ? (
               <div className="space-y-6">
-                {statusGroupedMatches.map((group) => {
-                  const isStatusCollapsed = !!collapsedStatusSections[group.id];
-                  const isExpandedRows = !!expandedStatusRows[group.id];
-                  const totalMatches = group.matches.length;
-                  const visibleMatches = (!isExpandedRows && totalMatches > 3)
-                    ? group.matches.slice(0, 3)
-                    : group.matches;
-
-                  return (
-                    <div
-                      key={`status-section-${group.id}`}
-                      className="p-3.5 sm:p-5 rounded-3xl bg-black/60 border border-white/10 shadow-xl space-y-3 font-mono"
-                    >
-                      {/* Status Section Header with Collapse Toggle */}
-                      <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-3">
-                        <div className="flex items-center space-x-2.5 min-w-0">
-                          <span className="text-lg flex-shrink-0">{group.flag}</span>
-                          <div className="min-w-0">
-                            <h3 className="font-black text-xs sm:text-sm text-white truncate flex items-center space-x-2">
-                              <span>{group.title}</span>
-                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-black ${group.badgeColor}`}>
-                                {totalMatches}
-                              </span>
-                            </h3>
-                            <span className="text-[10px] text-gray-400 font-sans block truncate">
-                              {group.subtitle}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center space-x-2 flex-shrink-0">
-                          <span className="text-[9px] px-2.5 py-0.5 rounded-full bg-white/10 text-gray-300 font-bold hidden sm:inline">
-                            {totalMatches} {totalMatches === 1 ? 'Fixture' : 'Fixtures'}
-                          </span>
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setCollapsedStatusSections((prev) => ({
-                                ...prev,
-                                [group.id]: !prev[group.id],
-                              }))
-                            }
-                            className="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white text-[10px] font-black flex items-center space-x-1 border border-white/10 transition-all"
-                            title={isStatusCollapsed ? `Expand ${group.id} matches` : `Collapse ${group.id} matches`}
-                          >
-                            <span>{isStatusCollapsed ? 'Expand ▾' : 'Collapse ▴'}</span>
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Status Match Cards (Collapsible to 1 Row if > 3 matches) */}
-                      {!isStatusCollapsed && (
-                        <div className="space-y-3">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                            {visibleMatches.map((match) => (
-                              <DailyMatchCard
-                                key={match.id}
-                                match={match}
-                                onOpenInsights={setSelectedMatchForInsights}
-                                onSelectOdds={handleAddBetItem}
-                                onBookmarkMatch={handleBookmarkToggle}
-                                onSelectClub={(club) => {
-                                  setSelectedClubForProfile(club);
-                                  setShowTeamsModal(true);
-                                }}
-                                followedMatchIds={followedMatchIds}
-                                onToggleFollow={handleToggleFollow}
-                                onOpenStandings={(league) => {
-                                  setSelectedLeagueForTable(league);
-                                  setShowStandingsModal(true);
-                                }}
-                                onOpenTeam={(teamName) => {
-                                  setSelectedClubForProfile(teamName);
-                                  setShowTeamsModal(true);
-                                }}
-                              />
-                            ))}
-                          </div>
-
-                          {/* 1-Row Expansion Control */}
-                          {totalMatches > 3 && (
-                            <div className="text-center pt-1">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setExpandedStatusRows((prev) => ({
-                                    ...prev,
-                                    [group.id]: !prev[group.id],
-                                  }))
-                                }
-                                className="px-4 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-bold text-stadiumGreen hover:text-emerald-400 inline-flex items-center space-x-1.5 transition-all"
-                              >
-                                <span>
-                                  {isExpandedRows
-                                    ? `Collapse to 1 Row (3 Matches) ▴`
-                                    : `View All ${totalMatches} ${group.id === 'LIVE' ? 'Live' : group.id === 'UPCOMING' ? 'Upcoming' : 'Played'} Matches ▾`}
-                                </span>
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {displayedMatches.map((match) => (
+                    <DailyMatchCard
+                      key={match.id}
+                      match={match}
+                      onOpenInsights={setSelectedMatchForInsights}
+                      onSelectOdds={handleAddBetItem}
+                      onBookmarkMatch={handleBookmarkToggle}
+                      onSelectClub={(club) => {
+                        setSelectedClubForProfile(club);
+                        setShowTeamsModal(true);
+                      }}
+                      followedMatchIds={followedMatchIds}
+                      onToggleFollow={handleToggleFollow}
+                      onOpenStandings={(league) => {
+                        setSelectedLeagueForTable(league);
+                        setShowStandingsModal(true);
+                      }}
+                      onOpenTeam={(teamName) => {
+                        setSelectedClubForProfile(teamName);
+                        setShowTeamsModal(true);
+                      }}
+                    />
+                  ))}
+                </div>
 
                 {filteredMatches.length > visibleCount && (
                   <div className="text-center pt-2">
                     <button
-                      onClick={() => setVisibleCount((prev) => prev + 12)}
+                      onClick={() => setVisibleCount((prev) => prev + 24)}
                       className="px-6 py-3 rounded-2xl bg-stadiumGreen/20 hover:bg-stadiumGreen/30 border border-stadiumGreen/40 text-stadiumGreen font-black text-sm inline-flex items-center space-x-2 transition-all hover:scale-105"
                     >
                       <Zap className="w-4 h-4" />
-                      <span>Show More Matches</span>
+                      <span>Show More Matches ({filteredMatches.length - visibleCount} more)</span>
                       <ChevronDown className="w-4 h-4" />
                     </button>
                   </div>
@@ -926,12 +795,25 @@ export default function Home() {
             ) : (
               <div className="p-10 text-center rounded-3xl glass-panel border border-white/10 space-y-3">
                 <Radio className="w-8 h-8 text-gold mx-auto" />
-                <h3 className="text-white font-black text-sm">No matches found</h3>
-                <p className="text-xs text-gray-400">Try selecting another date or switching filters.</p>
-                <button onClick={() => { setActiveFilter('ALL'); setSearchQuery(''); loadMatches(); }}
-                  className="px-4 py-2 rounded-xl bg-stadiumGreen text-black font-black text-xs">
-                  Reset and Reload
-                </button>
+                <h3 className="text-white font-black text-sm">
+                  {activeFilter === 'LIVE' ? 'No Live Matches In-Play Right Now' : 'No Matches Found'}
+                </h3>
+                <p className="text-xs text-gray-400">
+                  {activeFilter === 'LIVE' 
+                    ? 'Check the Upcoming tab to view today\'s kickoff schedule and banker predictions.'
+                    : 'Try selecting another date or switching filters.'}
+                </p>
+                {activeFilter === 'LIVE' && (
+                  <button
+                    onClick={() => {
+                      setActiveFilter('UPCOMING');
+                      setVisibleCount(60);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-stadiumGreen text-black font-black text-xs inline-flex items-center space-x-1 shadow-md hover:scale-105 transition-all"
+                  >
+                    <span>View Upcoming Matches ➔</span>
+                  </button>
+                )}
               </div>
             )}
           </div>
