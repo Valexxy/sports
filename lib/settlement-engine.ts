@@ -266,6 +266,10 @@ export class ProfessionalSettlementEngine {
    * Complete settlement pass for a MatchData object
    * Fully handles Canceled, Postponed, Abandoned & Suspended fixtures.
    */
+  public static settle(match: any, explicitSelection?: string, explicitMarket?: string, explicitOdds?: number): SettlementResult {
+    return this.settleMatch(match, explicitSelection);
+  }
+
   public static settleMatch(match: any, explicitSelection?: string): SettlementResult {
     const voidCheck = this.evaluateVoidStatus(match);
     const selection = explicitSelection || match.prediction?.topPick?.selection || '1X';
