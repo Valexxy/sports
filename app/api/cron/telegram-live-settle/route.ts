@@ -4,6 +4,7 @@ import { TelegramBotService } from '../../../../services/telegram/botService';
 import { getRedisCache, setRedisCache } from '../../../../lib/upstash-redis-engine';
 import { AFFILIATE_PARTNERS } from '../../../../config/affiliates';
 import { broadcastPushMessage } from '../../../../lib/push-broadcast-engine';
+import { ProfessionalSettlementEngine } from '../../../../lib/settlement-engine';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -11,10 +12,28 @@ export const maxDuration = 60;
 const processedMatchIds = new Set<string>();
 
 /**
+ * Cleanly format ISO/UTC dates to standard GMT string (e.g. "18:45 GMT")
+ */
+function formatGmtTime(utcDate?: string, matchTime?: string): string {
+  if (utcDate) {
+    const d = new Date(utcDate);
+    if (!isNaN(d.getTime())) {
+      const hours = String(d.getUTCHours()).padStart(2, '0');
+      const minutes = String(d.getUTCMinutes()).padStart(2, '0');
+      return `${hours}:${minutes} GMT`;
+    }
+  }
+  if (matchTime && matchTime.includes(':')) {
+    return `${matchTime} GMT`;
+  }
+  return matchTime || 'Scheduled';
+}
+
+/**
  * MIVAJ SPORTS IN-DAY LIVE MATCH SETTLEMENT CRON
  * Channel: @mivajsport (https://t.me/mivajsport)
- * Fires continuously throughout the day as each match finishes.
- * Delivers extreme virality, real-time FOMO, affiliate links & vital platform links.
+ * Fires continuously 24/7 to settle EVERY concluded match individually on Telegram
+ * at the exact moment of full-time, regardless of whether it was in the morning preview.
  */
 export async function GET(req: Request) {
   const authHeader = req.headers.get('authorization');
@@ -28,20 +47,15 @@ export async function GET(req: Request) {
 
   try {
     const matches = await getRealLiveAndPlayedMatches();
-    const now = Date.now();
 
-    // 1. Only consider matches finished recently (within the last 3.5 hours from kickoff)
-    const recentFinishedMatches = matches
+    // 1. Filter ALL concluded matches with an active prediction
+    const finishedMatchesWithPredictions = matches
       .filter((m) => {
-        if (m.status !== 'FINISHED') return false;
+        if (!ProfessionalSettlementEngine.isMatchFinished(m)) return false;
         if (m.prediction?.hasPrediction === false) return false;
         const sel = (m.prediction?.topPick?.selection || '').toLowerCase();
-        if (sel.includes('watch only') || sel === 'n/a') return false;
-        if (!m.utcDate) return true;
-        const kickoff = new Date(m.utcDate).getTime();
-        if (isNaN(kickoff)) return true;
-        const elapsedHours = (now - kickoff) / (1000 * 60 * 60);
-        return elapsedHours >= 1.5 && elapsedHours <= 4.5;
+        if (!sel || sel.includes('watch only') || sel === 'n/a') return false;
+        return true;
       })
       .sort((a, b) => {
         const timeA = a.utcDate ? new Date(a.utcDate).getTime() : 0;
@@ -49,74 +63,56 @@ export async function GET(req: Request) {
         return timeB - timeA; // Newest first
       });
 
-    const settledResults = [];
+    const settledResults: any[] = [];
+    const MAX_SETTLES_PER_RUN = 8; // Process up to 8 newly finished games per cycle
 
-    // 2. Drop at most 1 newly finished match per trigger to prevent spamming and rate limits
-    for (const match of recentFinishedMatches) {
-      if (settledResults.length >= 1) break;
+    for (const match of finishedMatchesWithPredictions) {
+      if (settledResults.length >= MAX_SETTLES_PER_RUN) break;
 
       const cacheKey = `mivaj:tg_settled:${match.id}`;
-      
       const alreadyNotified = (await getRedisCache<boolean>(cacheKey)) || processedMatchIds.has(match.id);
       if (alreadyNotified) {
         continue;
       }
 
-      const homeScore = match.homeScore ?? 0;
-      const awayScore = match.awayScore ?? 0;
-      const totalGoals = homeScore + awayScore;
-      const homeWin = homeScore > awayScore;
-      const awayWin = awayScore > homeScore;
-      const draw = homeScore === awayScore;
-
-      const pick = match.prediction?.topPick?.selection || 'Home Win';
-      const cleanPick = pick;
+      const { homeScore, awayScore } = ProfessionalSettlementEngine.extractScores(match);
+      const pick = match.prediction?.topPick?.selection || '1X';
+      const market = match.prediction?.topPick?.market || 'Double Chance';
       const odds = match.prediction?.topPick?.odds || 1.25;
-      const prob = match.prediction?.topPick?.probability || 88;
-      const pickLower = pick.toLowerCase();
+      const prob = match.prediction?.topPick?.probability || 85;
 
-      let isWon = false;
-      if (pickLower.includes('over')) {
-        const matchThreshold = pickLower.match(/over\s*(\d+(?:\.\d+)?)/);
-        const threshold = matchThreshold ? parseFloat(matchThreshold[1]) : 1.5;
-        isWon = totalGoals > threshold;
-      } else if (pickLower.includes('under')) {
-        const matchThreshold = pickLower.match(/under\s*(\d+(?:\.\d+)?)/);
-        const threshold = matchThreshold ? parseFloat(matchThreshold[1]) : 2.5;
-        isWon = totalGoals < threshold;
-      } else if (pickLower.includes('btts') || pickLower.includes('both teams')) {
-        isWon = homeScore > 0 && awayScore > 0;
-      } else if (pickLower.includes('1x') || pickLower.includes('home or draw')) {
-        isWon = homeWin || draw;
-      } else if (pickLower.includes('x2') || pickLower.includes('away or draw')) {
-        isWon = awayWin || draw;
-      } else if (pickLower.includes('home') || pickLower.includes(match.homeTeam?.toLowerCase() || '')) {
-        isWon = homeWin;
-      } else if (pickLower.includes('away') || pickLower.includes(match.awayTeam?.toLowerCase() || '')) {
-        isWon = awayWin;
-      } else if (pickLower.includes('draw') || pickLower.includes('tie')) {
-        isWon = draw;
-      } else {
-        isWon = homeWin || draw;
-      }
+      const settlement = ProfessionalSettlementEngine.settle(match, pick, market, odds);
+      const isWon = settlement.isWon;
+      const isVoid = settlement.isVoid;
 
       const sportIcon = match.sport === 'BASKETBALL' ? '🏀' : match.sport === 'AMERICAN_FOOTBALL' ? '🏈' : '⚽';
+      const gmtKickoff = formatGmtTime(match.utcDate, match.matchTime);
 
       let msg = '';
-      if (isWon) {
+      if (isVoid) {
+        msg += `⚠️ <b>MATCH POSTPONED / VOID (1.00x) • REFEREE AUDIT 📜</b>\n\n`;
+        msg += `${sportIcon} <b>${match.homeTeam} vs ${match.awayTeam}</b>\n`;
+        msg += `🏆 League: <b>${match.leagueFlag || '🌍'} ${match.league}</b>\n`;
+        msg += `⏰ Kickoff: <code>${gmtKickoff}</code>\n\n`;
+        msg += `🎯 <b>PREDICTION:</b> <code>${pick}</code> @ <b>${odds}</b>\n`;
+        msg += `⚡ <b>VERIFIED RESULT: VOID (Stake Refunded at 1.00x)</b>\n`;
+        msg += `📋 <i>${settlement.auditExplanation}</i>\n\n`;
+      } else if (isWon) {
         msg += `💥 <b>BOOM! GREEN TICK WON! ✅💰 • BANKER CASHED IN LIVE! 🔥🤑</b>\n\n`;
         msg += `${sportIcon} <b>${match.homeTeam} vs ${match.awayTeam}</b>\n`;
-        msg += `🏆 League: <b>${match.leagueFlag || '🌍'} ${match.league}</b>\n\n`;
-        msg += `🎯 <b>PREDICTION:</b> <code>${pick}</code> @ <b>${odds}</b>\n`;
-        msg += `🏁 <b>FINAL OUTCOME:</b> <code>${homeScore} - ${awayScore} (FT)</code>\n`;
+        msg += `🏆 League: <b>${match.leagueFlag || '🌍'} ${match.league}</b>\n`;
+        msg += `⏰ Kickoff: <code>${gmtKickoff}</code>\n\n`;
+        msg += `🎯 <b>PRE-MATCH PICK:</b> <code>${pick}</code> @ <b>${odds}</b> (${prob}% Win Rate)\n`;
+        msg += `🏁 <b>OFFICIAL FT SCORE:</b> <code>${homeScore} - ${awayScore} (FT)</code>\n`;
         msg += `⚡ <b>VERIFIED RESULT: WON ✅ 💰</b>\n\n`;
-        msg += `💰 <b>PAYOUT CONFIRMED!</b> High-accuracy banker cashed in! 🤑💵💸\n\n`;
+        msg += `💰 <b>PAYOUT CONFIRMED!</b> High-accuracy mathematical model delivered! 🤑💵💸\n\n`;
       } else {
         msg += `🛑 <b>MATCH RESULT: LOST ❌ • 100% UNEDITED REFEREE AUDIT 📜</b>\n\n`;
         msg += `${sportIcon} <b>${match.homeTeam} vs ${match.awayTeam}</b>\n`;
-        msg += `🏆 League: <b>${match.leagueFlag || '🌍'} ${match.league}</b>\n\n`;
-        msg += `🎯 <b>PREDICTION:</b> <code>${pick}</code> @ <b>${odds}</b>\n`;
-        msg += `🏁 <b>FINAL OUTCOME:</b> <code>${homeScore} - ${awayScore} (FT)</code>\n`;
+        msg += `🏆 League: <b>${match.leagueFlag || '🌍'} ${match.league}</b>\n`;
+        msg += `⏰ Kickoff: <code>${gmtKickoff}</code>\n\n`;
+        msg += `🎯 <b>PRE-MATCH PICK:</b> <code>${pick}</code> @ <b>${odds}</b>\n`;
+        msg += `🏁 <b>OFFICIAL FT SCORE:</b> <code>${homeScore} - ${awayScore} (FT)</code>\n`;
         msg += `⚡ <b>VERIFIED RESULT: LOST ❌</b>\n\n`;
         msg += `📋 <i>100% transparent and unedited. Official score recorded in our immutable referee ledger.</i>\n\n`;
       }
@@ -138,8 +134,8 @@ export async function GET(req: Request) {
           const bPick = bm.prediction.topPick.selection;
           const bOdds = bm.prediction.topPick.odds;
           const bProb = bm.prediction.topPick.probability;
-          const bTime = bm.matchTime || (bm.utcDate ? new Date(bm.utcDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Soon');
-          msg += `${idx + 1}️⃣ ⚽ <b>${bm.homeTeam} vs ${bm.awayTeam}</b> (${bTime})\n`;
+          const bTimeGmt = formatGmtTime(bm.utcDate, bm.matchTime);
+          msg += `${idx + 1}️⃣ ⚽ <b>${bm.homeTeam} vs ${bm.awayTeam}</b> (⏰ ${bTimeGmt})\n`;
           msg += `   👉 Pick: <code>${bPick}</code> @ <b>${bOdds}</b> (Model: ${bProb}% Win Rate)\n`;
         });
         msg += `\n⚡ <b>LOCK IN REMAINING OPTIONS NOW BEFORE KICKOFF:</b>\n`;
@@ -184,7 +180,7 @@ export async function GET(req: Request) {
       try {
         await broadcastPushMessage({
           title: isWon ? `✅ GREEN TICK WON! ${match.homeTeam} ${homeScore}-${awayScore} ${match.awayTeam}` : `⚡ FULLTIME: ${match.homeTeam} ${homeScore}-${awayScore} ${match.awayTeam}`,
-          body: isWon ? `Our banker selection "${cleanPick}" @ ${odds} WON! Check ledger ROI.` : `Match finished. Official referee audit recorded.`,
+          body: isWon ? `Our banker selection "${pick}" @ ${odds} WON! Check ledger ROI.` : `Match finished (${gmtKickoff}). Official referee audit recorded.`,
           url: `/?match=${match.id}&ref=live_settle_push`,
           tag: `mivaj-match-${match.id}`,
         });
@@ -192,23 +188,28 @@ export async function GET(req: Request) {
         console.warn('Live settle push warning:', e?.message);
       }
 
-      await setRedisCache(cacheKey, true, 60 * 60 * 48);
+      await setRedisCache(cacheKey, true, 60 * 60 * 72);
       processedMatchIds.add(match.id);
 
       settledResults.push({
         matchId: match.id,
         fixture: `${match.homeTeam} vs ${match.awayTeam}`,
+        gmtKickoff,
         score: `${homeScore}-${awayScore}`,
+        status: settlement.statusText,
         isWon,
         telegramOk: res?.ok ?? false,
       });
+
+      // Throttle 600ms between telegram posts to respect rate limits
+      await new Promise((r) => setTimeout(r, 600));
     }
 
     return NextResponse.json({
       success: true,
       cron: 'TELEGRAM_IN_DAY_LIVE_SETTLE',
       channel: TelegramBotService.getChannelId(),
-      checkedMatches: recentFinishedMatches.length,
+      checkedMatches: finishedMatchesWithPredictions.length,
       newlySettledAndAlerted: settledResults.length,
       settledResults,
     });
@@ -216,4 +217,8 @@ export async function GET(req: Request) {
     console.error('In-day live settlement error:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
+}
+
+export async function POST(req: Request) {
+  return GET(req);
 }

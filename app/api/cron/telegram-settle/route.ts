@@ -56,44 +56,16 @@ export async function GET(req: Request) {
 
     finishedMatches.forEach((m) => {
       const pick = m.prediction?.topPick?.selection || 'Home Win';
+      const market = m.prediction?.topPick?.market || 'Double Chance';
       const odds = m.prediction?.topPick?.odds || 1.15;
       const sportIcon = m.sport === 'BASKETBALL' ? '🏀' : m.sport === 'AMERICAN_FOOTBALL' ? '🏈' : '⚽';
       const score = `${m.homeScore ?? 0} - ${m.awayScore ?? 0}`;
 
-      const homeWin = (m.homeScore ?? 0) > (m.awayScore ?? 0);
-      const awayWin = (m.awayScore ?? 0) > (m.homeScore ?? 0);
-      const draw = (m.homeScore ?? 0) === (m.awayScore ?? 0);
+      const settlement = ProfessionalSettlementEngine.settle(m, pick, market, odds);
 
-      const pickLower = pick.toLowerCase();
-      let isWon = false;
-
-      if (pickLower.includes('home') || pickLower.includes(m.homeTeam?.toLowerCase() || '')) {
-        isWon = homeWin;
-      } else if (pickLower.includes('away') || pickLower.includes(m.awayTeam?.toLowerCase() || '')) {
-        isWon = awayWin;
-      } else if (pickLower.includes('draw') || pickLower.includes('tie')) {
-        isWon = draw;
-      } else if (pickLower.includes('over')) {
-        const totalGoals = (m.homeScore ?? 0) + (m.awayScore ?? 0);
-        const matchThreshold = pickLower.match(/over\s*(\d+(?:\.\d+)?)/);
-        const threshold = matchThreshold ? parseFloat(matchThreshold[1]) : 1.5;
-        isWon = totalGoals > threshold;
-      } else if (pickLower.includes('under')) {
-        const totalGoals = (m.homeScore ?? 0) + (m.awayScore ?? 0);
-        const matchThreshold = pickLower.match(/under\s*(\d+(?:\.\d+)?)/);
-        const threshold = matchThreshold ? parseFloat(matchThreshold[1]) : 2.5;
-        isWon = totalGoals < threshold;
-      } else if (pickLower.includes('1x') || pickLower.includes('home or draw')) {
-        isWon = homeWin || draw;
-      } else if (pickLower.includes('x2') || pickLower.includes('away or draw')) {
-        isWon = awayWin || draw;
-      } else if (pickLower.includes('btts') || pickLower.includes('both teams')) {
-        isWon = (m.homeScore ?? 0) > 0 && (m.awayScore ?? 0) > 0;
-      } else {
-        isWon = homeWin || draw;
-      }
-
-      if (isWon) {
+      if (settlement.isVoid) {
+        scoreLines.push(`⚪ ${sportIcon} <b>${m.homeTeam} vs ${m.awayTeam}</b> (${m.league})\n   🎯 <b>Prediction:</b> <code>${pick}</code> @ <b>${odds}</b>\n   🏁 <b>Outcome:</b> <code>${score} (POSTPONED)</code>\n   ⚡ <b>VERIFIED RESULT: VOID (1.00x) ⚠️</b>`);
+      } else if (settlement.isWon) {
         wonToday++;
         scoreLines.push(`🟢 ${sportIcon} <b>${m.homeTeam} vs ${m.awayTeam}</b> (${m.league})\n   🎯 <b>Prediction:</b> <code>${pick}</code> @ <b>${odds}</b>\n   🏁 <b>Outcome:</b> <code>${score} (FT)</code>\n   ⚡ <b>VERIFIED RESULT: WON ✅ 💰</b>`);
       } else {

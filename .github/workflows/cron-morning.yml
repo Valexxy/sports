@@ -14,20 +14,30 @@ jobs:
       - name: 📡 Trigger Morning Predictions Cron
         run: |
           echo "🌅 Triggering Mivaj morning predictions at $(date)"
-          response=$(curl -s -o /dev/null -w "%{http_code}" \
+          AUTH_HEADER="Authorization: Bearer ${{ secrets.CRON_SECRET || 'mivaj_secure_cron_2026' }}"
+
+          response=$(curl -s -o response.json -w "%{http_code}" \
             -X GET "https://mivaj.com/api/cron/telegram-morning" \
             -H "Accept: application/json" \
-            -H "User-Agent: MivajCronBot/1.0" \
-            --max-time 30)
-          echo "Response code: $response"
-          if [ "$response" -ge 200 ] && [ "$response" -lt 300 ]; then
-            echo "✅ Morning predictions sent successfully!"
-          else
-            echo "⚠️ Warning: received status $response"
+            -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36" \
+            -H "$AUTH_HEADER" \
+            --max-time 90 || echo "000")
+          
+          echo "Primary response code: $response"
+          cat response.json || true
+          echo ""
+
+          if [ "$response" -lt 200 ] || [ "$response" -ge 300 ]; then
+            echo "⚠️ Primary failed ($response). Retrying via direct Vercel origin..."
+            curl -s -X GET "https://aurascore-ai.vercel.app/api/cron/telegram-morning" \
+              -H "Accept: application/json" \
+              -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36" \
+              -H "$AUTH_HEADER" \
+              --max-time 90 || true
           fi
 
       - name: 🔔 Also trigger daily data update
         run: |
           curl -s -X GET "https://mivaj.com/api/cron/daily" \
-            -H "User-Agent: MivajCronBot/1.0" \
-            --max-time 30 || echo "Daily sync triggered"
+            -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)" \
+            --max-time 60 || echo "Daily sync triggered"

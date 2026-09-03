@@ -51,12 +51,12 @@ jobs:
             echo "--- Attempt $i of $MAX_RETRIES to trigger Telegram Morning Broadcast ---"
             
             HTTP_CODE=$(curl -s -o response.txt -w "%{http_code}" -X GET \
-              -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" \
-              --max-time 45 \
+              -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36" \
+              --max-time 90 \
               ${AUTH_HEADER:+-H "$AUTH_HEADER"} \
-              "https://mivaj.com/api/cron/telegram-morning")
+              "https://mivaj.com/api/cron/telegram-morning" || echo "000")
 
-            echo "HTTP Status: $HTTP_CODE"
+            echo "Primary Status: $HTTP_CODE"
             cat response.txt || true
             echo ""
 
@@ -65,7 +65,19 @@ jobs:
               SUCCESS=1
               break
             else
-              echo "⚠️ Attempt $i failed with status $HTTP_CODE. Waiting ${DELAY}s before retry..."
+              echo "⚠️ Primary failed ($HTTP_CODE). Retrying via direct Vercel origin..."
+              FALLBACK_CODE=$(curl -s -o response.txt -w "%{http_code}" -X GET \
+                -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36" \
+                --max-time 90 \
+                ${AUTH_HEADER:+-H "$AUTH_HEADER"} \
+                "https://aurascore-ai.vercel.app/api/cron/telegram-morning" || echo "000")
+              echo "Fallback Status: $FALLBACK_CODE"
+              cat response.txt || true
+              if [ "$FALLBACK_CODE" = "200" ]; then
+                echo "✅ Succeeded via direct Vercel deployment!"
+                SUCCESS=1
+                break
+              fi
               if [ $i -lt $MAX_RETRIES ]; then
                 sleep $DELAY
               fi
@@ -98,12 +110,12 @@ jobs:
             echo "--- Attempt $i of $MAX_RETRIES for Live Settlement ---"
 
             HTTP_CODE=$(curl -s -o response.txt -w "%{http_code}" -X GET \
-              -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" \
-              --max-time 30 \
+              -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36" \
+              --max-time 90 \
               ${AUTH_HEADER:+-H "$AUTH_HEADER"} \
-              "https://mivaj.com/api/cron/telegram-live-settle")
+              "https://mivaj.com/api/cron/telegram-live-settle" || echo "000")
 
-            echo "HTTP Status: $HTTP_CODE"
+            echo "Primary Status: $HTTP_CODE"
             cat response.txt || true
             echo ""
 
@@ -112,7 +124,19 @@ jobs:
               SUCCESS=1
               break
             else
-              echo "⚠️ Attempt $i returned $HTTP_CODE. Retrying in ${DELAY}s..."
+              echo "⚠️ Primary failed ($HTTP_CODE). Retrying via direct Vercel origin..."
+              FALLBACK_CODE=$(curl -s -o response.txt -w "%{http_code}" -X GET \
+                -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36" \
+                --max-time 90 \
+                ${AUTH_HEADER:+-H "$AUTH_HEADER"} \
+                "https://aurascore-ai.vercel.app/api/cron/telegram-live-settle" || echo "000")
+              echo "Fallback Status: $FALLBACK_CODE"
+              cat response.txt || true
+              if [ "$FALLBACK_CODE" = "200" ]; then
+                echo "✅ Live settle succeeded via direct Vercel deployment!"
+                SUCCESS=1
+                break
+              fi
               if [ $i -lt $MAX_RETRIES ]; then
                 sleep $DELAY
               fi
@@ -132,17 +156,25 @@ jobs:
         run: |
           SECRET="${{ secrets.CRON_SECRET }}"
           if [ -z "$SECRET" ]; then
-            AUTH_HEADER=""
+            AUTH_HEADER="Authorization: Bearer mivaj_secure_cron_2026"
           else
             AUTH_HEADER="Authorization: Bearer $SECRET"
           fi
 
           echo "--- Broadcasting Top Breaking Sports News to Telegram ---"
           HTTP_CODE=$(curl -s -o response.txt -w "%{http_code}" -X GET \
-            -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" \
-            --max-time 30 \
+            -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36" \
+            --max-time 60 \
             ${AUTH_HEADER:+-H "$AUTH_HEADER"} \
-            "https://mivaj.com/api/cron/telegram-news")
+            "https://mivaj.com/api/cron/telegram-news" || echo "000")
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            HTTP_CODE=$(curl -s -o response.txt -w "%{http_code}" -X GET \
+              -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36" \
+              --max-time 60 \
+              ${AUTH_HEADER:+-H "$AUTH_HEADER"} \
+              "https://aurascore-ai.vercel.app/api/cron/telegram-news" || echo "000")
+          fi
 
           echo "HTTP Status: $HTTP_CODE"
           cat response.txt || true
@@ -163,17 +195,25 @@ jobs:
         run: |
           SECRET="${{ secrets.CRON_SECRET }}"
           if [ -z "$SECRET" ]; then
-            AUTH_HEADER=""
+            AUTH_HEADER="Authorization: Bearer mivaj_secure_cron_2026"
           else
             AUTH_HEADER="Authorization: Bearer $SECRET"
           fi
 
           echo "--- Publishing Automated High-DA Guest Article & Pinging IndexNow ---"
           HTTP_CODE=$(curl -s -o response.txt -w "%{http_code}" -X GET \
-            -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" \
-            --max-time 45 \
+            -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36" \
+            --max-time 60 \
             ${AUTH_HEADER:+-H "$AUTH_HEADER"} \
-            "https://mivaj.com/api/cron/syndicate")
+            "https://mivaj.com/api/cron/syndicate" || echo "000")
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            HTTP_CODE=$(curl -s -o response.txt -w "%{http_code}" -X GET \
+              -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36" \
+              --max-time 60 \
+              ${AUTH_HEADER:+-H "$AUTH_HEADER"} \
+              "https://aurascore-ai.vercel.app/api/cron/syndicate" || echo "000")
+          fi
 
           echo "HTTP Status: $HTTP_CODE"
           cat response.txt || true
@@ -194,17 +234,25 @@ jobs:
         run: |
           SECRET="${{ secrets.CRON_SECRET }}"
           if [ -z "$SECRET" ]; then
-            AUTH_HEADER=""
+            AUTH_HEADER="Authorization: Bearer mivaj_secure_cron_2026"
           else
             AUTH_HEADER="Authorization: Bearer $SECRET"
           fi
 
           echo "--- Auto-Posting Matchday Intelligence to facebook.com/tipsbrosNG ---"
           HTTP_CODE=$(curl -s -o response.txt -w "%{http_code}" -X GET \
-            -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" \
-            --max-time 45 \
+            -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36" \
+            --max-time 60 \
             ${AUTH_HEADER:+-H "$AUTH_HEADER"} \
-            "https://mivaj.com/api/cron/facebook-autopost")
+            "https://mivaj.com/api/cron/facebook-autopost" || echo "000")
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            HTTP_CODE=$(curl -s -o response.txt -w "%{http_code}" -X GET \
+              -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36" \
+              --max-time 60 \
+              ${AUTH_HEADER:+-H "$AUTH_HEADER"} \
+              "https://aurascore-ai.vercel.app/api/cron/facebook-autopost" || echo "000")
+          fi
 
           echo "HTTP Status: $HTTP_CODE"
           cat response.txt || true
@@ -213,7 +261,7 @@ jobs:
           if [ "$HTTP_CODE" = "200" ]; then
             echo "✅ Successfully auto-posted to facebook.com/tipsbrosNG"
           else
-            echo "::warning::Facebook post returned $HTTP_CODE"
+            echo "::warning::Facebook post returned $HTTP_CODE (check if Page token needs renewal)"
           fi
 
 

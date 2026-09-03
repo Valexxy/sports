@@ -76,11 +76,21 @@ export async function GET(req: Request) {
     teaserFixtures.forEach((m, idx) => {
       const p = m.prediction?.topPick;
       const sportIcon = m.sport === 'BASKETBALL' ? '🏀' : m.sport === 'AMERICAN_FOOTBALL' ? '🏈' : '⚽';
-      const kickoffTime = m.matchTime || (m.utcDate ? new Date(m.utcDate).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + ' WAT' : 'Scheduled');
+      let kickoffTimeGmt = 'Scheduled';
+      if (m.utcDate) {
+        const d = new Date(m.utcDate);
+        if (!isNaN(d.getTime())) {
+          kickoffTimeGmt = `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')} GMT`;
+        }
+      } else if (m.matchTime && m.matchTime.includes(':')) {
+        kickoffTimeGmt = `${m.matchTime} GMT`;
+      } else if (m.matchTime) {
+        kickoffTimeGmt = m.matchTime;
+      }
 
       msg += `${idx + 1}. ${sportIcon} <b>${m.homeTeam} vs ${m.awayTeam}</b>\n`;
       msg += `   🏆 <b>League:</b> ${m.leagueFlag || '🌍'} ${m.league}\n`;
-      msg += `   ⏰ <b>Time of Play:</b> <code>${kickoffTime}</code>\n`;
+      msg += `   ⏰ <b>Kickoff:</b> <code>${kickoffTimeGmt}</code>\n`;
       msg += `   🎯 <b>Outcome Pick:</b> <code>${p?.selection || 'Home Win or Draw (1X)'}</code> @ <b>${p?.odds || 1.15}</b> (${p?.probability || 85}% Poisson Prob)\n`;
       if (m.prediction?.expectedHomeGoals !== undefined) {
         msg += `   📈 <b>xG Analytics:</b> Expected Goals ${m.prediction.expectedHomeGoals} vs ${m.prediction.expectedAwayGoals}\n`;
