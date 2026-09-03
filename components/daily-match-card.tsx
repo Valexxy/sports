@@ -753,7 +753,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
               </span>
               {match.prediction?.leagueAccuracy !== undefined && (
                 <span className="text-[9px] text-gray-600 font-mono">
-                  Hist. accuracy: {match.prediction.leagueAccuracy}% — model coverage insufficient
+                  Hist. accuracy: {match.prediction?.leagueAccuracy}% — model coverage insufficient
                 </span>
               )}
             </div>
@@ -763,22 +763,15 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
           <div className="p-3 rounded-2xl flex items-center justify-between gap-2 shadow-md bg-gradient-to-r from-stadiumGreen/20 via-panel to-gold/15 border border-stadiumGreen/40">
             <div className="min-w-0 flex-1">
               <span className="text-[10px] font-black uppercase tracking-wider block text-stadiumGreen">
-                👑 {topPick.confidenceTier} ({topPick.probability}% WIN RATE)
+                👑 {topPick.confidenceTier || 'BANKER'} ({topPick.probability || 75}% WIN RATE)
               </span>
               <div className="flex items-center space-x-1.5 mt-0.5">
                 <span className="text-sm font-black text-gold">
                   {cleanPickSelection}
                 </span>
                 <span className="text-xs font-mono font-black text-white">
-                  @{liveOdds.toFixed(2)}
+                  @{(liveOdds || topPick.odds || 1.35).toFixed(2)}
                 </span>
-                {oddsDirection && (
-                  <span className={`text-[11px] font-black animate-pulse ${
-                    oddsDirection === 'UP' ? 'text-stadiumGreen' : 'text-crimson'
-                  }`}>
-                    {oddsDirection === 'UP' ? '▲' : '▼'}
-                  </span>
-                )}
               </div>
             </div>
 
@@ -793,7 +786,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
               }`}
             >
               {isAddedToSlip ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <Plus className="w-3.5 h-3.5" />}
-              <span>{isAddedToSlip ? 'Added ✓' : `+ Add @ ${liveOdds.toFixed(2)}`}</span>
+              <span>{isAddedToSlip ? 'Added ✓' : `+ Add @ ${(liveOdds || topPick.odds || 1.35).toFixed(2)}`}</span>
             </button>
           </div>
         ) : null}
