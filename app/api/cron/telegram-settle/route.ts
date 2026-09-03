@@ -62,15 +62,16 @@ export async function GET(req: Request) {
       const score = `${m.homeScore ?? 0} - ${m.awayScore ?? 0}`;
 
       const settlement = ProfessionalSettlementEngine.settle(m, pick, market, odds);
+      const sched = ProfessionalSettlementEngine.formatGmtSchedule(m.utcDate, m.matchTime);
 
       if (settlement.isVoid) {
-        scoreLines.push(`⚪ ${sportIcon} <b>${m.homeTeam} vs ${m.awayTeam}</b> (${m.league})\n   🎯 <b>Prediction:</b> <code>${pick}</code> @ <b>${odds}</b>\n   🏁 <b>Outcome:</b> <code>${score} (POSTPONED)</code>\n   ⚡ <b>VERIFIED RESULT: VOID (1.00x) ⚠️</b>`);
+        scoreLines.push(`⚪ ${sportIcon} <b>${m.homeTeam} vs ${m.awayTeam}</b> (${m.league})\n   📅 <b>Date:</b> <code>${sched.fullDisplay}</code>\n   🎯 <b>Prediction:</b> <code>${pick}</code> @ <b>${odds}</b>\n   🏁 <b>Outcome:</b> <code>${score} (POSTPONED)</code>\n   ⚡ <b>VERIFIED RESULT: VOID (1.00x) ⚠️</b>`);
       } else if (settlement.isWon) {
         wonToday++;
-        scoreLines.push(`🟢 ${sportIcon} <b>${m.homeTeam} vs ${m.awayTeam}</b> (${m.league})\n   🎯 <b>Prediction:</b> <code>${pick}</code> @ <b>${odds}</b>\n   🏁 <b>Outcome:</b> <code>${score} (FT)</code>\n   ⚡ <b>VERIFIED RESULT: WON ✅ 💰</b>`);
+        scoreLines.push(`🟢 ${sportIcon} <b>${m.homeTeam} vs ${m.awayTeam}</b> (${m.league})\n   📅 <b>Date:</b> <code>${sched.fullDisplay}</code>\n   🎯 <b>Prediction:</b> <code>${pick}</code> @ <b>${odds}</b>\n   🏁 <b>Outcome:</b> <code>${score} (FT)</code>\n   ⚡ <b>VERIFIED RESULT: WON ✅ 💰</b>`);
       } else {
         lostToday++;
-        scoreLines.push(`🔴 ${sportIcon} <b>${m.homeTeam} vs ${m.awayTeam}</b> (${m.league})\n   🎯 <b>Prediction:</b> <code>${pick}</code> @ <b>${odds}</b>\n   🏁 <b>Outcome:</b> <code>${score} (FT)</code>\n   ⚡ <b>VERIFIED RESULT: LOST ❌</b>`);
+        scoreLines.push(`🔴 ${sportIcon} <b>${m.homeTeam} vs ${m.awayTeam}</b> (${m.league})\n   📅 <b>Date:</b> <code>${sched.fullDisplay}</code>\n   🎯 <b>Prediction:</b> <code>${pick}</code> @ <b>${odds}</b>\n   🏁 <b>Outcome:</b> <code>${score} (FT)</code>\n   ⚡ <b>VERIFIED RESULT: LOST ❌</b>`);
       }
     });
 

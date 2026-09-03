@@ -71,26 +71,25 @@ export async function GET(req: Request) {
     let msg = `🔥 <b>OFFICIAL MIVAJ MATCHDAY BANKER SLIP</b> 🚨\n`;
     msg += `📅 <b>Game Day:</b> <code>${gameDayFormatted}</code>\n`;
     msg += `📊 <b>Model Safety Index:</b> <code>94%+ Calibrated Win Rate</code>\n\n`;
-    msg += `👑 <b>FEATURED HIGH-CONFIDENCE FIXTURES (${teaserCount} of ${fixturesPool.length} Matches):</b>\n\n`;
+    const allTeaserToday = teaserFixtures.every((m) => {
+      const sched = ProfessionalSettlementEngine.formatGmtSchedule(m.utcDate, m.matchTime);
+      return sched.isToday;
+    });
+
+    const headerLabel = allTeaserToday
+      ? `👑 <b>FEATURED HIGH-CONFIDENCE FIXTURES TODAY (${teaserCount} of ${fixturesPool.length} Matches):</b>\n\n`
+      : `👑 <b>FEATURED HIGH-CONFIDENCE FIXTURES (${teaserCount} of ${fixturesPool.length} Matches • Today & Upcoming):</b>\n\n`;
+
+    msg += headerLabel;
 
     teaserFixtures.forEach((m, idx) => {
       const p = m.prediction?.topPick;
       const sportIcon = m.sport === 'BASKETBALL' ? '🏀' : m.sport === 'AMERICAN_FOOTBALL' ? '🏈' : '⚽';
-      let kickoffTimeGmt = 'Scheduled';
-      if (m.utcDate) {
-        const d = new Date(m.utcDate);
-        if (!isNaN(d.getTime())) {
-          kickoffTimeGmt = `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')} GMT`;
-        }
-      } else if (m.matchTime && m.matchTime.includes(':')) {
-        kickoffTimeGmt = `${m.matchTime} GMT`;
-      } else if (m.matchTime) {
-        kickoffTimeGmt = m.matchTime;
-      }
+      const sched = ProfessionalSettlementEngine.formatGmtSchedule(m.utcDate, m.matchTime);
 
       msg += `${idx + 1}. ${sportIcon} <b>${m.homeTeam} vs ${m.awayTeam}</b>\n`;
       msg += `   🏆 <b>League:</b> ${m.leagueFlag || '🌍'} ${m.league}\n`;
-      msg += `   ⏰ <b>Kickoff:</b> <code>${kickoffTimeGmt}</code>\n`;
+      msg += `   📅 <b>Schedule:</b> <code>${sched.fullDisplay}</code>\n`;
       msg += `   🎯 <b>Outcome Pick:</b> <code>${p?.selection || 'Home Win or Draw (1X)'}</code> @ <b>${p?.odds || 1.15}</b> (${p?.probability || 85}% Poisson Prob)\n`;
       if (m.prediction?.expectedHomeGoals !== undefined) {
         msg += `   📈 <b>xG Analytics:</b> Expected Goals ${m.prediction.expectedHomeGoals} vs ${m.prediction.expectedAwayGoals}\n`;

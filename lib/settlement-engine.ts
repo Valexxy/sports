@@ -24,7 +24,95 @@ export interface SettlementResult {
   auditExplanation: string;
 }
 
+export interface FormattedGmtSchedule {
+  dateLabel: string;      // e.g. "Today (Thu, 3 Sep)", "Tomorrow (Fri, 4 Sep)", "Yesterday (Wed, 2 Sep)", "Sat, 5 Sep"
+  shortDate: string;      // e.g. "Thu, 3 Sep"
+  timeGmt: string;        // e.g. "16:00 GMT"
+  fullDisplay: string;    // e.g. "Today (Thu, 3 Sep) • 16:00 GMT"
+  isToday: boolean;
+  isTomorrow: boolean;
+  isYesterday: boolean;
+  isFuture: boolean;
+  isPast: boolean;
+}
+
 export class ProfessionalSettlementEngine {
+  /**
+   * Universal Date & GMT Time Formatter for Telegram & All Posting Platforms
+   * Truthfully categorizes matches as Today, Tomorrow, Yesterday, or precise date with GMT kickoff
+   */
+  public static formatGmtSchedule(utcDate?: string, matchTime?: string): FormattedGmtSchedule {
+    const now = new Date();
+    const nowUtcMidnight = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+
+    let matchDate: Date | null = null;
+    if (utcDate) {
+      const d = new Date(utcDate);
+      if (!isNaN(d.getTime())) {
+        matchDate = d;
+      }
+    }
+
+    if (!matchDate) {
+      const timeGmt = matchTime && matchTime.includes(':') ? `${matchTime} GMT` : (matchTime || 'Scheduled');
+      return {
+        dateLabel: 'Upcoming Matchday',
+        shortDate: 'Scheduled',
+        timeGmt,
+        fullDisplay: timeGmt,
+        isToday: false,
+        isTomorrow: false,
+        isYesterday: false,
+        isFuture: true,
+        isPast: false,
+      };
+    }
+
+    const matchUtcMidnight = Date.UTC(matchDate.getUTCFullYear(), matchDate.getUTCMonth(), matchDate.getUTCDate());
+    const dayDiff = Math.round((matchUtcMidnight - nowUtcMidnight) / (1000 * 60 * 60 * 24));
+
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    const dayName = dayNames[matchDate.getUTCDay()];
+    const monthName = monthNames[matchDate.getUTCMonth()];
+    const dateNum = matchDate.getUTCDate();
+    const shortDate = `${dayName}, ${dateNum} ${monthName}`;
+
+    const hours = String(matchDate.getUTCHours()).padStart(2, '0');
+    const minutes = String(matchDate.getUTCMinutes()).padStart(2, '0');
+    const timeGmt = `${hours}:${minutes} GMT`;
+
+    let dateLabel = shortDate;
+    let isToday = false;
+    let isTomorrow = false;
+    let isYesterday = false;
+
+    if (dayDiff === 0) {
+      isToday = true;
+      dateLabel = `Today (${shortDate})`;
+    } else if (dayDiff === 1) {
+      isTomorrow = true;
+      dateLabel = `Tomorrow (${shortDate})`;
+    } else if (dayDiff === -1) {
+      isYesterday = true;
+      dateLabel = `Yesterday (${shortDate})`;
+    }
+
+    const fullDisplay = `${dateLabel} • ⏰ ${timeGmt}`;
+
+    return {
+      dateLabel,
+      shortDate,
+      timeGmt,
+      fullDisplay,
+      isToday,
+      isTomorrow,
+      isYesterday,
+      isFuture: dayDiff > 0,
+      isPast: dayDiff < 0,
+    };
+  }
   /**
    * Robust score extraction supporting numeric scores and clock strings (e.g. "FT - 4-1", "FT 2-0", "1-0")
    */

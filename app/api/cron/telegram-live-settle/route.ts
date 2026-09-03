@@ -85,15 +85,15 @@ export async function GET(req: Request) {
       const isWon = settlement.isWon;
       const isVoid = settlement.isVoid;
 
+      const sched = ProfessionalSettlementEngine.formatGmtSchedule(match.utcDate, match.matchTime);
       const sportIcon = match.sport === 'BASKETBALL' ? '🏀' : match.sport === 'AMERICAN_FOOTBALL' ? '🏈' : '⚽';
-      const gmtKickoff = formatGmtTime(match.utcDate, match.matchTime);
 
       let msg = '';
       if (isVoid) {
         msg += `⚠️ <b>MATCH POSTPONED / VOID (1.00x) • REFEREE AUDIT 📜</b>\n\n`;
         msg += `${sportIcon} <b>${match.homeTeam} vs ${match.awayTeam}</b>\n`;
         msg += `🏆 League: <b>${match.leagueFlag || '🌍'} ${match.league}</b>\n`;
-        msg += `⏰ Kickoff: <code>${gmtKickoff}</code>\n\n`;
+        msg += `📅 Match Date: <code>${sched.fullDisplay}</code>\n\n`;
         msg += `🎯 <b>PREDICTION:</b> <code>${pick}</code> @ <b>${odds}</b>\n`;
         msg += `⚡ <b>VERIFIED RESULT: VOID (Stake Refunded at 1.00x)</b>\n`;
         msg += `📋 <i>${settlement.auditExplanation}</i>\n\n`;
@@ -101,7 +101,7 @@ export async function GET(req: Request) {
         msg += `💥 <b>BOOM! GREEN TICK WON! ✅💰 • BANKER CASHED IN LIVE! 🔥🤑</b>\n\n`;
         msg += `${sportIcon} <b>${match.homeTeam} vs ${match.awayTeam}</b>\n`;
         msg += `🏆 League: <b>${match.leagueFlag || '🌍'} ${match.league}</b>\n`;
-        msg += `⏰ Kickoff: <code>${gmtKickoff}</code>\n\n`;
+        msg += `📅 Match Date: <code>${sched.fullDisplay}</code>\n\n`;
         msg += `🎯 <b>PRE-MATCH PICK:</b> <code>${pick}</code> @ <b>${odds}</b> (${prob}% Win Rate)\n`;
         msg += `🏁 <b>OFFICIAL FT SCORE:</b> <code>${homeScore} - ${awayScore} (FT)</code>\n`;
         msg += `⚡ <b>VERIFIED RESULT: WON ✅ 💰</b>\n\n`;
@@ -110,7 +110,7 @@ export async function GET(req: Request) {
         msg += `🛑 <b>MATCH RESULT: LOST ❌ • 100% UNEDITED REFEREE AUDIT 📜</b>\n\n`;
         msg += `${sportIcon} <b>${match.homeTeam} vs ${match.awayTeam}</b>\n`;
         msg += `🏆 League: <b>${match.leagueFlag || '🌍'} ${match.league}</b>\n`;
-        msg += `⏰ Kickoff: <code>${gmtKickoff}</code>\n\n`;
+        msg += `📅 Match Date: <code>${sched.fullDisplay}</code>\n\n`;
         msg += `🎯 <b>PRE-MATCH PICK:</b> <code>${pick}</code> @ <b>${odds}</b>\n`;
         msg += `🏁 <b>OFFICIAL FT SCORE:</b> <code>${homeScore} - ${awayScore} (FT)</code>\n`;
         msg += `⚡ <b>VERIFIED RESULT: LOST ❌</b>\n\n`;
@@ -129,14 +129,24 @@ export async function GET(req: Request) {
         .slice(0, 3);
 
       if (remainingBankers.length > 0) {
-        msg += `🔥 <b>REMAINING UNBEATEN BANKERS ACTIVE TODAY:</b>\n`;
+        const allToday = remainingBankers.every((bm) => {
+          const bSched = ProfessionalSettlementEngine.formatGmtSchedule(bm.utcDate, bm.matchTime);
+          return bSched.isToday;
+        });
+
+        const headerTitle = allToday 
+          ? `🔥 <b>REMAINING UNBEATEN BANKERS ACTIVE TODAY:</b>\n`
+          : `🔥 <b>UPCOMING UNBEATEN BANKERS (Today & Upcoming Matchdays):</b>\n`;
+
+        msg += headerTitle;
         remainingBankers.forEach((bm, idx) => {
           const bPick = bm.prediction.topPick.selection;
           const bOdds = bm.prediction.topPick.odds;
           const bProb = bm.prediction.topPick.probability;
-          const bTimeGmt = formatGmtTime(bm.utcDate, bm.matchTime);
-          msg += `${idx + 1}️⃣ ⚽ <b>${bm.homeTeam} vs ${bm.awayTeam}</b> (⏰ ${bTimeGmt})\n`;
-          msg += `   👉 Pick: <code>${bPick}</code> @ <b>${bOdds}</b> (Model: ${bProb}% Win Rate)\n`;
+          const bSched = ProfessionalSettlementEngine.formatGmtSchedule(bm.utcDate, bm.matchTime);
+          msg += `${idx + 1}️⃣ ⚽ <b>${bm.homeTeam} vs ${bm.awayTeam}</b>\n`;
+          msg += `   📅 <b>Schedule:</b> <code>${bSched.fullDisplay}</code>\n`;
+          msg += `   👉 <b>Pick:</b> <code>${bPick}</code> @ <b>${bOdds}</b> (Model: ${bProb}% Win Rate)\n`;
         });
         msg += `\n⚡ <b>LOCK IN REMAINING OPTIONS NOW BEFORE KICKOFF:</b>\n`;
         msg += `👉 https://mivaj.com\n\n`;
