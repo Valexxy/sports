@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import Link from 'next/link';
-import { AlertTriangle, RefreshCw, ArrowLeft, ShieldAlert } from 'lucide-react';
+import { RefreshCw, ArrowLeft, ShieldAlert } from 'lucide-react';
 
 export default function Error({
   error,
@@ -14,6 +14,17 @@ export default function Error({
   useEffect(() => {
     console.error('Unhandled Mivaj Sports runtime exception:', error);
   }, [error]);
+
+  const handleReconnect = () => {
+    try {
+      localStorage.removeItem('aurascore_matches_cache');
+    } catch {}
+    if (typeof window !== 'undefined') {
+      window.location.href = '/?ref=retry_' + Date.now();
+    } else {
+      reset();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#07080b] text-white flex items-center justify-center p-4 font-mono text-xs">
@@ -27,24 +38,32 @@ export default function Error({
           <p className="text-[11px] text-gray-400 font-sans">
             Our neural Poisson engine encountered an unexpected network blip. Your Aura stash and tickets remain 100% safe.
           </p>
+          {error?.message && (
+            <p className="text-[10px] text-crimson font-mono bg-black/60 p-2 rounded-xl border border-white/5 truncate">
+              {error.message}
+            </p>
+          )}
         </div>
 
         <div className="flex flex-col sm:flex-row gap-2 pt-2">
           <button
-            onClick={() => reset()}
+            onClick={handleReconnect}
             className="flex-1 py-3 rounded-xl bg-stadiumGreen text-black font-black text-xs hover:scale-105 transition-all flex items-center justify-center space-x-1.5 shadow-lg"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Reconnect Live Feed</span>
           </button>
 
-          <Link
-            href="/"
+          <button
+            onClick={() => {
+              if (typeof window !== 'undefined') window.location.href = '/';
+              else reset();
+            }}
             className="flex-1 py-3 rounded-xl bg-panel border border-white/20 hover:border-stadiumGreen text-white font-black text-xs flex items-center justify-center space-x-1.5 transition-all"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Return to Arena</span>
-          </Link>
+          </button>
         </div>
       </div>
     </div>
