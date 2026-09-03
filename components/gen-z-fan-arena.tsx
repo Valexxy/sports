@@ -148,44 +148,113 @@ function generateDynamicInitialComments(
     ];
   }
 
-  // NEWS TYPE
-  const shortTitle = safeTitle.length > 55 ? safeTitle.slice(0, 52) + '...' : safeTitle;
+  // NEWS TYPE — Smart Entity & Context Aware Comment Generator
+  const titleLower = safeTitle.toLowerCase();
+  
+  // Detect relevant club flair from title
+  let detectedFlair = 'Neutral ⚖️';
+  if (titleLower.includes('arsenal')) detectedFlair = 'Arsenal 🔴';
+  else if (titleLower.includes('chelsea')) detectedFlair = 'Chelsea 🔵';
+  else if (titleLower.includes('madrid')) detectedFlair = 'Real Madrid ⚪';
+  else if (titleLower.includes('barcelona') || titleLower.includes('barca')) detectedFlair = 'Barcelona 🔵🔴';
+  else if (titleLower.includes('liverpool')) detectedFlair = 'Liverpool 🔴';
+  else if (titleLower.includes('man city') || titleLower.includes('city')) detectedFlair = 'Man City 🩵';
+  else if (titleLower.includes('man united') || titleLower.includes('united')) detectedFlair = 'Man United 🔴';
+  else if (titleLower.includes('bayern')) detectedFlair = 'Bayern 🔴⚪';
+  else if (titleLower.includes('psg') || titleLower.includes('paris')) detectedFlair = 'PSG 🔵🔴';
+  else if (titleLower.includes('nigeria') || titleLower.includes('super eagles') || titleLower.includes('osimhen')) detectedFlair = 'Super Eagles 🦅';
+  else if (titleLower.includes('galatasaray')) detectedFlair = 'Galatasaray 🟡🔴';
+
+  // Topic-specific take generation
+  let take1 = {
+    sender: 'AuraTactician',
+    badge: 'BALL KNOWER 🧠',
+    vibe: '🔥 COOKING',
+    text: `Huge development! The squad depth and tactical flexibility this creates will be vital heading into the next matchday fixture. 🔥 #BallKnowledge`,
+    factsCount: 45 + (h % 55),
+    capCount: 2 + (h % 6),
+    hypesCount: 88 + (h % 75),
+  };
+
+  let take2 = {
+    sender: 'CornerFlagAnalyst',
+    badge: 'VIP 👑',
+    vibe: '🧊 ICE COLD',
+    text: `Look at the underlying numbers and fixture schedule. The manager's tactical rotation strategy here makes complete sense! 📊 #TotalFootball`,
+    factsCount: 60 + (h % 45),
+    capCount: 3 + (h % 7),
+    hypesCount: 104 + (h % 60),
+  };
+
+  let take3 = {
+    sender: 'StadiumInsider_99',
+    badge: 'PRO ANALYST 🎙️',
+    vibe: '🍿 PURE DRAMA',
+    text: `The debate around this will dominate the headlines all week. Let's see how the dressing room responds on the pitch! 🍿 #AuraSurge`,
+    factsCount: 78 + (h % 40),
+    capCount: 4 + (h % 8),
+    hypesCount: 125 + (h % 90),
+  };
+
+  // Specific content variations based on keywords in headline
+  if (titleLower.includes('transfer') || titleLower.includes('deal') || titleLower.includes('sign') || titleLower.includes('bid') || titleLower.includes('agree') || titleLower.includes('fee')) {
+    take1.text = `If this transfer gets over the line, the financial valuation and wage structure will reset the entire market! 💰 #Masterclass`;
+    take2.text = `Smart business if the performance clauses are right. In this tactical system, he will create massive space on the transition! ⚡ #Cooked`;
+    take3.text = `Every big transfer brings immense fan expectations. Can he deliver consistent match-winning aura from day one? 🍿 #FraudWatch`;
+  } else if (titleLower.includes('injur') || titleLower.includes('out') || titleLower.includes('hamstring') || titleLower.includes('knee') || titleLower.includes('surgery')) {
+    take1.text = `Massive setback for the squad rotation at this crucial stage of the campaign. The medical team needs to manage recovery minutes carefully! 🚑 #IceInHisVeins`;
+    take2.text = `Time for the academy and bench depth to step up and prove their readiness under intense matchday pressure. 🧠 #TotalFootball`;
+    take3.text = `Without him commanding the defensive structure, the opposition will definitely target that flank next match! 🍿 #PureDrama`;
+  } else if (titleLower.includes('sack') || titleLower.includes('appoint') || titleLower.includes('manager') || titleLower.includes('coach') || titleLower.includes('boss')) {
+    take1.text = `A tactical overhaul takes time. If the board doesn't back the manager with time and suitable profiles, the cycle will repeat. 🧠 #BallKnowledge`;
+    take2.text = `The dressing room dynamic has clearly shifted. The new setup needs immediate results or pressure will mount instantly! 🍿 #PureDrama`;
+    take3.text = `Look at his previous tactical blueprint — high press and vertical transitions. Fans should be excited for this shift! 🔥 #Cooked`;
+  } else if (titleLower.includes('champions league') || titleLower.includes('ucl') || titleLower.includes('europa') || titleLower.includes('europe')) {
+    take1.text = `European nights are all about game management under pressure. Tactical discipline in away legs will decide who advances! ⭐ #Masterclass`;
+    take2.text = `The intensity levels in Europe are completely different from domestic leagues. Expect fireworks in the knockout rounds! ⚡ #BallKnowledge`;
+    take3.text = `This is where world-class pedigree shines. Individual brilliance will break down low defensive blocks! 👑 #IceInHisVeins`;
+  } else if (titleLower.includes('win') || titleLower.includes('beat') || titleLower.includes('defeat') || titleLower.includes('victory') || titleLower.includes('goal') || titleLower.includes('hat-trick') || titleLower.includes('brace')) {
+    take1.text = `Dominant tactical performance from start to finish! The attacking movement and counter-pressing were unplayable today. 🔥 #Cooked`;
+    take2.text = `The xG differential and tempo control tell the whole story. Complete masterclass on every area of the pitch! 📊 #Masterclass`;
+    take3.text = `That individual performance was pure class. The confidence boost going into the next fixture is huge! ⚡ #AuraSurge`;
+  }
+
   return [
     {
       id: `c-dyn-1-${targetId}`,
-      sender: 'AuraStriker_99',
-      flair: 'Neutral ⚖️',
-      badge: 'VIP 👑',
-      vibe: '🔥 COOKING',
-      text: `This story is massive. The ripple effect across the entire league is going to be crazy. Proper ball knowledge! ⚡ #Masterclass`,
+      sender: take1.sender,
+      flair: detectedFlair,
+      badge: take1.badge,
+      vibe: take1.vibe,
+      text: take1.text,
       timestamp: Date.now() - 1000 * 60 * 5,
-      factsCount: 45 + (h % 55),
-      capCount: 3 + (h % 6),
-      hypesCount: 88 + (h % 75),
+      factsCount: take1.factsCount,
+      capCount: take1.capCount,
+      hypesCount: take1.hypesCount,
     },
     {
       id: `c-dyn-2-${targetId}`,
-      sender: 'ColdTakeMerchant',
-      flair: 'Arsenal 🔴',
-      badge: 'BALL KNOWER 🧠',
-      vibe: '🧊 ICE COLD',
-      text: `People are reacting without reading the fine print. Look at the long-term squad rotation implications here! 📊 #TotalFootball`,
-      timestamp: Date.now() - 1000 * 60 * 12,
-      factsCount: 60 + (h % 45),
-      capCount: 2 + (h % 7),
-      hypesCount: 104 + (h % 60),
+      sender: take2.sender,
+      flair: 'Neutral ⚖️',
+      badge: take2.badge,
+      vibe: take2.vibe,
+      text: take2.text,
+      timestamp: Date.now() - 1000 * 60 * 14,
+      factsCount: take2.factsCount,
+      capCount: take2.capCount,
+      hypesCount: take2.hypesCount,
     },
     {
       id: `c-dyn-3-${targetId}`,
-      sender: 'NaijaBaller',
+      sender: take3.sender,
       flair: 'Super Eagles 🦅',
-      badge: 'PRO ANALYST 🎙️',
-      vibe: '🍿 PURE DRAMA',
-      text: `Every single transfer window and board decision has drama. We will see how this reflects on matchday performance! 🍿 #FraudWatch`,
-      timestamp: Date.now() - 1000 * 60 * 22,
-      factsCount: 78 + (h % 40),
-      capCount: 5 + (h % 8),
-      hypesCount: 125 + (h % 90),
+      badge: take3.badge,
+      vibe: take3.vibe,
+      text: take3.text,
+      timestamp: Date.now() - 1000 * 60 * 25,
+      factsCount: take3.factsCount,
+      capCount: take3.capCount,
+      hypesCount: take3.hypesCount,
     },
   ];
 }
@@ -312,8 +381,18 @@ export const GenZFanArena: React.FC<GenZFanArenaProps> = ({
       else setFanCount(getDynamicFanCount(targetId, type));
 
       const storedComments = localStorage.getItem(`mivaj_genz_comments_${targetId}`);
-      if (storedComments) setComments(JSON.parse(storedComments));
-      else setComments(generateDynamicInitialComments(targetId, targetTitle, type, homeTeam, awayTeam));
+      if (storedComments) {
+        const parsed = JSON.parse(storedComments);
+        if (type === 'NEWS' && parsed.length > 0 && parsed[0].sender === 'AuraStriker_99') {
+          const updated = generateDynamicInitialComments(targetId, targetTitle, type, homeTeam, awayTeam);
+          setComments(updated);
+          localStorage.setItem(`mivaj_genz_comments_${targetId}`, JSON.stringify(updated));
+        } else {
+          setComments(parsed);
+        }
+      } else {
+        setComments(generateDynamicInitialComments(targetId, targetTitle, type, homeTeam, awayTeam));
+      }
 
       const savedFacts = localStorage.getItem(`mivaj_facts_voted_${targetId}`);
       if (savedFacts) setVotedFacts(JSON.parse(savedFacts));
