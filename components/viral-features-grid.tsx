@@ -16,7 +16,7 @@ interface Props {
  *   • Matchday Fortune    (a fun, seeded "lucky fixture") 
  *   • Delusion Check      (honest confidence-vs-odds reality meter)
  */
-export const ViralFeaturesGrid: React.FC<Props> = ({ matches, onSelectMatch }) => {
+export const ViralFeaturesGrid: React.FC<Props> = ({ matches = [], onSelectMatch }) => {
   const [vibe, setVibe] = useState(72);
   const [fortune, setFortune] = useState<{ match: MatchData; tip: string } | null>(null);
 
@@ -24,7 +24,6 @@ export const ViralFeaturesGrid: React.FC<Props> = ({ matches, onSelectMatch }) =
   const upcoming = matches.filter((m) => m.status === 'SCHEDULED');
 
   useEffect(() => {
-    // Animate crowd vibe
     const interval = setInterval(() => {
       setVibe((v) => Math.max(40, Math.min(98, v + Math.round((Math.random() - 0.5) * 12))));
     }, 3000);
@@ -46,9 +45,9 @@ export const ViralFeaturesGrid: React.FC<Props> = ({ matches, onSelectMatch }) =
   };
 
   // Honest delusion check: odds vs confidence
-  const delusionScore = React.useMemo(() => {
+  const delusionScore = useMemo(() => {
     if (upcoming.length === 0) return { pct: 0, note: 'No fixtures to rate.' };
-    const avg = upcoming.reduce((a, m) => a + m.prediction.topPick.probability, 0) / upcoming.length;
+    const avg = upcoming.reduce((a, m) => a + (m.prediction?.topPick?.probability || 75), 0) / (upcoming.length || 1);
     const pct = Math.round(Math.min(100, Math.max(0, 100 - avg * 0.9)));
     const note = pct > 70 ? '⚠️ Highly delusional market — huge value gaps' : pct > 40 ? '⚖️ Balanced market, some traps' : '🧊 Rational market — low risk appetite';
     return { pct, note };

@@ -509,13 +509,11 @@ export default function Home() {
   const followingCount = (dayMatches || []).filter(m => (followedMatchIds || []).includes(m.id) || (followedLeagues || []).some(l => (m.league || '').toLowerCase().includes((l || '').toLowerCase()))).length;
 
   return (
-    <ErrorBoundary>
-      <div className={`min-h-screen bg-void flex flex-col pb-24 selection:bg-stadiumGreen selection:text-black font-sans `}>
-
-        <BroadcastTicker matches={matches} onSelectUpdate={handleSelectTickerUpdate} />
-        <OfflineBanner />
-        <PhoneHardwareBanner />
-        <GenZLiveAlerts matches={matches} onOpenMatch={(match) => setSelectedMatchForInsights(match)} />
+    <div className={`min-h-screen bg-void flex flex-col pb-24 selection:bg-stadiumGreen selection:text-black font-sans `}>
+      <BroadcastTicker matches={matches} onSelectUpdate={handleSelectTickerUpdate} />
+      <OfflineBanner />
+      <PhoneHardwareBanner />
+      <GenZLiveAlerts matches={matches} onOpenMatch={(match) => setSelectedMatchForInsights(match)} />
 
 
 
@@ -591,20 +589,22 @@ export default function Home() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
                 {(collapseBankers ? topBankersList.slice(0, 3) : topBankersList).map((m) => {
                     const p = m.prediction?.topPick;
-                    const raw = p?.selection || '1X';
+                    const raw = String(p?.selection || `${m.homeTeam || 'Home'} or Draw (1X)`);
                     const cleanPick = raw.replace(/(.+) or Draw \(1X\)/i, '1X ($1)').replace(/(.+) or Draw \(X2\)/i, '2X ($1)');
+                    const odds = p?.odds || 1.15;
+                    const prob = p?.probability || 85;
                     return (
                       <div
                         key={`top-banker-${m.id}`}
                         className="p-3 rounded-2xl bg-black/70 border border-white/10 flex items-center justify-between gap-2 hover:border-stadiumGreen/60 transition-all shadow-md"
                       >
                         <div className="min-w-0 flex-1 space-y-0.5">
-                          <span className="text-[9px] text-gray-400 font-bold block truncate">{m.league}</span>
+                          <span className="text-[9px] text-gray-400 font-bold block truncate">{m.league || 'League'}</span>
                           <h4 className="text-xs font-black text-white truncate">{m.homeTeam} vs {m.awayTeam}</h4>
                           <div className="flex items-center space-x-1.5 text-[11px]">
-                            <span className="text-gold font-black">{cleanPick}</span>
-                            <span className="text-gray-300 font-mono font-bold">@{p?.odds || 1.15}</span>
-                            <span className="text-[9px] text-stadiumGreen font-bold">({p?.probability || 85}%)</span>
+                            <span className="text-gold font-black truncate">{cleanPick}</span>
+                            <span className="text-gray-300 font-mono font-bold">@{odds}</span>
+                            <span className="text-[9px] text-stadiumGreen font-bold">({prob}%)</span>
                           </div>
                         </div>
 
@@ -613,7 +613,7 @@ export default function Home() {
                             e.stopPropagation();
                             try { phoneHardware.triggerHaptic('SUCCESS'); } catch {}
                             try { stadiumAudio.playAddPickSound(); } catch {}
-                            handleSelectOdds(m, cleanPick, p?.odds || 1.15);
+                            handleSelectOdds(m, cleanPick, odds);
                             confetti({ particleCount: 30, spread: 50, origin: { y: 0.3 } });
                           }}
                           className="px-3 py-2 rounded-xl bg-stadiumGreen text-black font-black text-[11px] hover:bg-emerald-400 transition-all active:scale-95 flex-shrink-0 shadow"
@@ -1005,9 +1005,9 @@ export default function Home() {
             <div className="w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl overflow-hidden">
               <CloutCardGenerator
                 matchTitle={matches[0].homeTeam + ' vs ' + matches[0].awayTeam}
-                pickSelection={matches[0].prediction.topPick.selection}
-                odds={matches[0].prediction.topPick.odds}
-                winRate={matches[0].prediction.topPick.probability}
+                pickSelection={matches[0].prediction?.topPick?.selection || `${matches[0].homeTeam} or Draw (1X)`}
+                odds={matches[0].prediction?.topPick?.odds || 1.25}
+                winRate={matches[0].prediction?.topPick?.probability || 80}
                 onClose={() => setShowCloutCardModal(false)}
               />
             </div>
@@ -1025,6 +1025,5 @@ export default function Home() {
         <FloatingTelegramBar />
 
       </div>
-    </ErrorBoundary>
   );
 }

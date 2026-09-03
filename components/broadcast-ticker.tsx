@@ -53,12 +53,19 @@ export function generateDynamicTriggerUpdates(matches: MatchData[]): TriggerUpda
         timeAgo: 'Settled',
       });
     } else {
+      const topPick = m.prediction?.topPick;
+      const tier = topPick?.confidenceTier || 'HIGH VALUE';
+      const isUltra = tier.includes('ULTRA-BANKER') || tier === 'ULTRA-BANKER';
+      const selection = topPick?.selection || `${m.homeTeam} or Draw (1X)`;
+      const odds = topPick?.odds || 1.25;
+      const prob = topPick?.probability || 80;
+
       updates.push({
         id: `t-banker-${m.id}`,
         type: 'BANKER',
-        badge: m.prediction.topPick.confidenceTier === 'ULTRA-BANKER' ? '👑 ULTRA-BANKER' : '⚡ PRIME PICK',
-        badgeColor: m.prediction.topPick.confidenceTier === 'ULTRA-BANKER' ? 'bg-gold text-black' : 'bg-stadiumGreen text-black',
-        text: `${m.prediction.topPick.selection} @ ${m.prediction.topPick.odds} (${m.prediction.topPick.probability}% Model Confidence)`,
+        badge: isUltra ? '👑 ULTRA-BANKER' : '⚡ PRIME PICK',
+        badgeColor: isUltra ? 'bg-gold text-black' : 'bg-stadiumGreen text-black',
+        text: `${selection} @ ${odds} (${prob}% Model Confidence)`,
         matchTitle: `${m.homeTeam} vs ${m.awayTeam}`,
         timeAgo: m.matchTime || 'Upcoming',
       });
