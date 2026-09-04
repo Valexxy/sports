@@ -85,6 +85,13 @@ export async function GET(req: Request) {
       const isWon = settlement.isWon;
       const isVoid = settlement.isVoid;
 
+      // User directive: NEVER post losses to Telegram under any circumstances
+      if (!isWon && !isVoid) {
+        await setRedisCache(cacheKey, true, 86400 * 3);
+        processedMatchIds.add(match.id);
+        continue;
+      }
+
       const sched = ProfessionalSettlementEngine.formatGmtSchedule(match.utcDate, match.matchTime);
       const sportIcon = match.sport === 'BASKETBALL' ? '🏀' : match.sport === 'AMERICAN_FOOTBALL' ? '🏈' : '⚽';
 
@@ -106,15 +113,6 @@ export async function GET(req: Request) {
         msg += `🏁 <b>OFFICIAL FT SCORE:</b> <code>${homeScore} - ${awayScore} (FT)</code>\n`;
         msg += `⚡ <b>VERIFIED RESULT: WON ✅ 💰</b>\n\n`;
         msg += `💰 <b>PAYOUT CONFIRMED!</b> High-accuracy mathematical model delivered! 🤑💵💸\n\n`;
-      } else {
-        msg += `🛑 <b>MATCH RESULT: LOST ❌ • 100% UNEDITED REFEREE AUDIT 📜</b>\n\n`;
-        msg += `${sportIcon} <b>${match.homeTeam} vs ${match.awayTeam}</b>\n`;
-        msg += `🏆 League: <b>${match.leagueFlag || '🌍'} ${match.league}</b>\n`;
-        msg += `📅 Match Date: <code>${sched.fullDisplay}</code>\n\n`;
-        msg += `🎯 <b>PRE-MATCH PICK:</b> <code>${pick}</code> @ <b>${odds}</b>\n`;
-        msg += `🏁 <b>OFFICIAL FT SCORE:</b> <code>${homeScore} - ${awayScore} (FT)</code>\n`;
-        msg += `⚡ <b>VERIFIED RESULT: LOST ❌</b>\n\n`;
-        msg += `📋 <i>100% transparent and unedited. Official score recorded in our immutable referee ledger.</i>\n\n`;
       }
 
       // FOMO & VIRALITY: Inject Remaining Live Prediction Options

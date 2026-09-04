@@ -604,8 +604,8 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
                 <span className="text-white">{resolvedAwayScore}</span>
               </div>
             ) : (
-              <span className="font-mono font-black text-sm text-gold bg-black/70 px-3.5 py-1 rounded-2xl border border-white/10 shadow-inner">
-                {match.matchTime || '19:00'}
+              <span className="font-mono font-black text-xs sm:text-sm text-gold bg-black/70 px-3 py-1 rounded-2xl border border-white/10 shadow-inner whitespace-nowrap">
+                {ProfessionalSettlementEngine.formatGmtSchedule(match.utcDate, match.matchTime).timeGmt}
               </span>
             )}
           </div>

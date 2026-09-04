@@ -71,7 +71,7 @@ export async function GET(req: Request) {
         scoreLines.push(`🟢 ${sportIcon} <b>${m.homeTeam} vs ${m.awayTeam}</b> (${m.league})\n   📅 <b>Date:</b> <code>${sched.fullDisplay}</code>\n   🎯 <b>Prediction:</b> <code>${pick}</code> @ <b>${odds}</b>\n   🏁 <b>Outcome:</b> <code>${score} (FT)</code>\n   ⚡ <b>VERIFIED RESULT: WON ✅ 💰</b>`);
       } else {
         lostToday++;
-        scoreLines.push(`🔴 ${sportIcon} <b>${m.homeTeam} vs ${m.awayTeam}</b> (${m.league})\n   📅 <b>Date:</b> <code>${sched.fullDisplay}</code>\n   🎯 <b>Prediction:</b> <code>${pick}</code> @ <b>${odds}</b>\n   🏁 <b>Outcome:</b> <code>${score} (FT)</code>\n   ⚡ <b>VERIFIED RESULT: LOST ❌</b>`);
+        // User directive: Never post losses
       }
     });
 
@@ -83,17 +83,17 @@ export async function GET(req: Request) {
     msg += `📅 <b>Game Day:</b> <code>${gameDayFormatted}</code>\n`;
     msg += `📊 <b>Verified Status:</b> <code>100% Referee Audited Score Sheets</code>\n\n`;
 
-    if (totalPlayed > 0) {
-      msg += `📊 <b>SETTLED MATCHDAY ACCURACY:</b>\n`;
-      msg += `🎯 <b>Win Rate:</b> <code>${todayWinRate}%</code> (${wonToday} Won / ${lostToday} Lost)\n`;
-      msg += `✅ <b>Won:</b> ${wonToday}  |  ❌ <b>Lost:</b> ${lostToday}  |  📋 <b>Total Settled:</b> ${totalPlayed}\n\n`;
+    if (wonToday > 0) {
+      msg += `📊 <b>SETTLED MATCHDAY WINNING BANKERS:</b>\n`;
+      msg += `🎯 <b>Banker Accuracy:</b> <code>${todayWinRate}%</code>\n`;
+      msg += `✅ <b>Winning Bankers:</b> ${wonToday} Verified Green Ticks\n\n`;
     }
 
     msg += `🏆 <b>IMMUTABLE LEDGER RECORD:</b>\n`;
     msg += `${stats.won} Won / ${stats.lost} Lost (<code>${stats.winRate}% Cumulative Win Rate</code>)\n\n`;
 
     if (scoreLines.length > 0) {
-      msg += `<b>Official Matchday Scorelines & Settlement:</b>\n`;
+      msg += `<b>Official Matchday Winning Scorelines:</b>\n`;
       msg += scoreLines.slice(0, 10).join('\n\n') + '\n\n';
     }
 

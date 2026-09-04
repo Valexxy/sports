@@ -4,38 +4,31 @@
  */
 
 export class TimezoneEngine {
-  /** Returns user local timezone or defaults to Africa/Lagos (WAT) */
+  /** Returns user local timezone */
   static getUserTimezone(): string {
     try {
-      return Intl.DateTimeFormat().resolvedOptions().timeZone || "Africa/Lagos";
+      return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
     } catch (e) {
-      return "Africa/Lagos";
+      return "UTC";
     }
   }
 
-  /** Converts UTC ISO date into localized WAT (e.g. 20:00 WAT) */
-  static formatKickoff(utcDateString?: string, defaultFallback = "19:00"): string {
-    if (!utcDateString) return defaultFallback + " WAT";
+  /** Converts UTC ISO date into localized 12-hour AM/PM GMT */
+  static formatKickoff(utcDateString?: string, defaultFallback = "7:00 PM"): string {
+    if (!utcDateString) return defaultFallback + " GMT";
 
     try {
       const d = new Date(utcDateString);
-      if (isNaN(d.getTime())) return defaultFallback + " WAT";
+      if (isNaN(d.getTime())) return defaultFallback + " GMT";
 
-      const tz = this.getUserTimezone();
-      const isWAT = tz.includes("Lagos") || tz.includes("Accra") || tz.includes("Luanda") || tz.includes("Africa");
-      const suffix = isWAT ? "WAT" : "WAT";
+      const rawHours = d.getUTCHours();
+      const minutes = String(d.getUTCMinutes()).padStart(2, '0');
+      const ampm = rawHours >= 12 ? 'PM' : 'AM';
+      const hours12 = rawHours % 12 === 0 ? 12 : rawHours % 12;
 
-      // Format in WAT (UTC+1 / Africa/Lagos)
-      const timeFormatted = new Intl.DateTimeFormat("en-GB", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-        timeZone: "Africa/Lagos",
-      }).format(d);
-
-      return timeFormatted + " " + suffix;
+      return `${hours12}:${minutes} ${ampm} GMT`;
     } catch (err) {
-      return defaultFallback + " WAT";
+      return defaultFallback + " GMT";
     }
   }
 }

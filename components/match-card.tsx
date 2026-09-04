@@ -200,7 +200,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onOpenReceipt, onOp
                 </span>
               )}
               <span className="px-2.5 py-0.5 rounded-full bg-gold/20 border border-gold/30 text-gold text-[10px] font-mono font-bold">
-                ⏰ {match.matchTime}
+                ⏰ {ProfessionalSettlementEngine.formatGmtSchedule(match.utcDate, match.matchTime).timeGmt}
               </span>
               {isStartingSoon && countdown && (
                 <span className="flex items-center space-x-1 px-2 py-0.5 rounded-full bg-crimson/20 border border-crimson/40 text-crimson text-[10px] font-mono font-black animate-pulse">
@@ -290,8 +290,8 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, onOpenReceipt, onOp
             </div>
           ) : (
             <div className="flex flex-col items-center space-y-1">
-              <div className="text-xs font-mono px-3 py-1.5 rounded-xl bg-black/60 border border-white/10 text-gray-300 font-bold group-hover:border-stadiumGreen/40 transition-all">
-                {match.matchTime}
+              <div className="text-xs font-mono px-3 py-1.5 rounded-xl bg-black/60 border border-white/10 text-gray-300 font-bold group-hover:border-stadiumGreen/40 transition-all whitespace-nowrap">
+                {ProfessionalSettlementEngine.formatGmtSchedule(match.utcDate, match.matchTime).timeGmt}
               </div>
               {isStartingSoon && countdown && (
                 <div className="flex items-center space-x-1 px-2 py-1 rounded-lg bg-crimson/20 border border-crimson/40 text-crimson text-[10px] font-mono font-black animate-pulse">

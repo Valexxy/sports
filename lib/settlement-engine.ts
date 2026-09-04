@@ -54,7 +54,7 @@ export class ProfessionalSettlementEngine {
     }
 
     if (!matchDate) {
-      const timeGmt = matchTime && matchTime.includes(':') ? `${matchTime} GMT` : (matchTime || 'Scheduled');
+      const timeGmt = ProfessionalSettlementEngine.formatTimeTo12HourAmPm(matchTime);
       return {
         dateLabel: 'Upcoming Matchday',
         shortDate: 'Scheduled',
@@ -79,9 +79,11 @@ export class ProfessionalSettlementEngine {
     const dateNum = matchDate.getUTCDate();
     const shortDate = `${dayName}, ${dateNum} ${monthName}`;
 
-    const hours = String(matchDate.getUTCHours()).padStart(2, '0');
+    const rawHours = matchDate.getUTCHours();
     const minutes = String(matchDate.getUTCMinutes()).padStart(2, '0');
-    const timeGmt = `${hours}:${minutes} GMT`;
+    const ampm = rawHours >= 12 ? 'PM' : 'AM';
+    const hours12 = rawHours % 12 === 0 ? 12 : rawHours % 12;
+    const timeGmt = `${hours12}:${minutes} ${ampm} GMT`;
 
     let dateLabel = shortDate;
     let isToday = false;
@@ -112,6 +114,26 @@ export class ProfessionalSettlementEngine {
       isFuture: dayDiff > 0,
       isPast: dayDiff < 0,
     };
+  }
+
+  /**
+   * Universal 12-hour AM/PM converter with GMT suffix
+   */
+  public static formatTimeTo12HourAmPm(timeStr?: string): string {
+    if (!timeStr) return 'Scheduled';
+    const clean = timeStr.replace(/\s*GMT\s*/i, '').replace(/\s*WAT\s*/i, '').trim();
+    const match = clean.match(/^(\d{1,2}):(\d{2})$/);
+    if (match) {
+      const h = parseInt(match[1], 10);
+      const m = match[2];
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const h12 = h % 12 === 0 ? 12 : h % 12;
+      return `${h12}:${m} ${ampm} GMT`;
+    }
+    if (timeStr.toUpperCase().includes('AM') || timeStr.toUpperCase().includes('PM')) {
+      return timeStr.toUpperCase().includes('GMT') ? timeStr : `${timeStr} GMT`;
+    }
+    return `${timeStr} GMT`;
   }
   /**
    * Robust score extraction supporting numeric scores and clock strings (e.g. "FT - 4-1", "FT 2-0", "1-0")
