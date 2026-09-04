@@ -41,24 +41,24 @@ export const AFFILIATE_PARTNERS: Record<AffiliateKey, AffiliatePartner> = {
     displayName: 'Bet9ja',
     badgeColor: '#008000',
     badgeBg: 'rgba(0, 128, 0, 0.2)',
-    affiliateUrl: 'https://sports.bet9ja.com?ref=aurascore',
+    affiliateUrl: 'https://sports.bet9ja.com?ref=mivaj',
     promoText: '170% Multiple Win Boost',
     bonusHighlight: '170% Boost',
     apiBookieCode: 'bet9ja:ng',
     directCodeSupport: true,
-    deepLinkTemplate: (code: string) => `https://sports.bet9ja.com/?ref=aurascore`
+    deepLinkTemplate: (code: string) => `https://sports.bet9ja.com/?ref=mivaj`
   },
   'SPORTYBET': {
     id: 'SPORTYBET',
     displayName: 'SportyBet',
     badgeColor: '#e41b17',
     badgeBg: 'rgba(228, 27, 23, 0.2)',
-    affiliateUrl: 'https://sportybet.com/ng?ref=aurascore',
+    affiliateUrl: 'https://sportybet.com/ng?ref=mivaj',
     promoText: '1,000% Dynamic Acca Boost',
     bonusHighlight: '1000% Boost',
     apiBookieCode: 'sportybet:ng',
     directCodeSupport: true,
-    deepLinkTemplate: (code: string) => `https://www.sportybet.com/ng/m/sport/football?shareCode=${encodeURIComponent(code)}&ref=aurascore`
+    deepLinkTemplate: (code: string) => `https://www.sportybet.com/ng/m/sport/football?shareCode=${encodeURIComponent(code)}&ref=mivaj`
   },
   '22BET': {
     id: '22BET',
@@ -77,12 +77,12 @@ export const AFFILIATE_PARTNERS: Record<AffiliateKey, AffiliatePartner> = {
     displayName: '1xBet',
     badgeColor: '#1a5276',
     badgeBg: 'rgba(26, 82, 118, 0.2)',
-    affiliateUrl: 'https://1xbet.ng?ref=aurascore',
+    affiliateUrl: 'https://1xbet.ng?ref=mivaj',
     promoText: '300% First Deposit Match',
     bonusHighlight: '300% Bonus',
     apiBookieCode: '1xbet:ng',
     directCodeSupport: true,
-    deepLinkTemplate: (code: string) => `https://1xbet.ng/?ref=aurascore`
+    deepLinkTemplate: (code: string) => `https://1xbet.ng/?ref=mivaj`
   },
   'STAKE': {
     id: 'STAKE',
