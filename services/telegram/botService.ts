@@ -108,6 +108,10 @@ export class TelegramBotService {
     return this.requestWithRetry("sendPhoto", payload);
   }
 
+  public static getAdminChatId(): string {
+    return process.env.TELEGRAM_ADMIN_CHAT_ID || '@ndbazz';
+  }
+
   static async notifyFailure(taskName: string, errorMessage: string): Promise<void> {
     console.error(`CRON FAILURE ALERT: [${taskName}] ${errorMessage}`);
     try {
@@ -117,13 +121,18 @@ export class TelegramBotService {
         errorMessage,
       });
 
-      await this.sendMessage(
-        `🚨 <b>CRON EXECUTION FAILURE NOTICE</b>\n` +
-        `<b>Task:</b> ${taskName}\n` +
-        `<b>Error:</b> <code>${errorMessage}</code>\n` +
-        `<b>Time:</b> ${new Date().toISOString()}\n` +
-        `<i>Independent failure alert dispatched to mivajtips@gmail.com</i>`
-      );
+      // Send privately ONLY to the admin (@ndbazz), NEVER to the public channel (@mivajsport)
+      const adminChat = this.getAdminChatId();
+      if (adminChat && adminChat !== this.getChannelId()) {
+        await this.sendMessageToChat(
+          adminChat,
+          `🚨 <b>CRON EXECUTION FAILURE NOTICE [CONFIDENTIAL]</b>\n` +
+          `<b>Task:</b> ${taskName}\n` +
+          `<b>Error:</b> <code>${errorMessage}</code>\n` +
+          `<b>Time:</b> ${new Date().toISOString()}\n` +
+          `<i>Independent failure alert dispatched to mivajtips@gmail.com</i>`
+        );
+      }
     } catch {}
   }
 }

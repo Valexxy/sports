@@ -4,6 +4,7 @@ import { TelegramBotService } from '../../../../services/telegram/botService';
 import { TelegramVipDispatcher } from '../../../../lib/telegram-vip-dispatcher';
 import { AFFILIATE_PARTNERS } from '../../../../config/affiliates';
 import { broadcastPushMessage } from '../../../../lib/push-broadcast-engine';
+import { ProfessionalSettlementEngine } from '../../../../lib/settlement-engine';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
