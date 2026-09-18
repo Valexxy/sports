@@ -100,6 +100,7 @@ export const metadata: Metadata = {
   },
 };
 
+import PushPrompt from '@/components/PushPrompt';
 export default function RootLayout({
   children,
 }: {
@@ -163,7 +164,8 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
         />
-      </head>
+        <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
       <body className="bg-void text-white min-h-screen antialiased selection:bg-stadiumGreen selection:text-black">
         
         {/* OFFICIAL GOOGLE TRANSLATE ENGINE (100% UNIVERSAL COVERAGE) */}
@@ -211,7 +213,10 @@ export default function RootLayout({
           async
           defer
         />
+        <PushPrompt />
       </body>
     </html>
   );
 }
+
+

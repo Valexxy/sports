@@ -82,6 +82,24 @@ export class TelegramBotService {
     return this.requestWithRetry("sendMessage", payload);
   }
 
+  static async editMessageText(messageId: number, text: string, inlineKeyboard?: InlineKeyboardButton[][]): Promise<any> {
+    const payload: any = {
+      chat_id: this.getChannelId(),
+      message_id: messageId,
+      text,
+      parse_mode: "HTML",
+      disable_web_page_preview: true,
+    };
+
+    if (inlineKeyboard && inlineKeyboard.length > 0) {
+      payload.reply_markup = {
+        inline_keyboard: inlineKeyboard,
+      };
+    }
+
+    return this.requestWithRetry("editMessageText", payload);
+  }
+
   static async getChatAdministrators(chatId = this.getChannelId()): Promise<any[]> {
     try {
       const res = await this.requestWithRetry("getChatAdministrators", { chat_id: chatId });
