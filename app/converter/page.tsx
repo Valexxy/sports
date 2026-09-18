@@ -2,8 +2,10 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Zap, Shield, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Zap, Shield, Trophy, Sparkles } from 'lucide-react';
 import { BetSlipConverter } from '../../components/converter/BetSlipConverter';
+import { LiveProofOfWinTicker } from '../../components/live-proof-of-win-ticker';
+import { HolographicFlexCard } from '../../components/holographic-flex-card';
 import { AFFILIATE_PARTNERS } from '../../config/affiliates';
 
 export default function ConverterPage() {
@@ -24,30 +26,47 @@ export default function ConverterPage() {
           <div className="flex items-center space-x-2">
             <span className="px-3 py-1 rounded-full bg-stadiumGreen/20 text-stadiumGreen text-xs font-black border border-stadiumGreen/40 flex items-center space-x-1.5">
               <Zap className="w-3.5 h-3.5" />
-              <span>100% Free Tool</span>
+              <span>100% Free Live Tool</span>
             </span>
           </div>
         </div>
 
-        {/* Simplified Header */}
-        <div className="rounded-3xl bg-neutral-950/80 border border-stadiumGreen/30 p-6 sm:p-8 text-center space-y-3">
+        {/* Live Proof-of-Win Stream */}
+        <LiveProofOfWinTicker />
+
+        {/* Header */}
+        <div className="rounded-3xl bg-neutral-950/80 border border-stadiumGreen/30 p-6 sm:p-8 text-center space-y-3 shadow-2xl">
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-stadiumGreen/20 border border-stadiumGreen/40 text-stadiumGreen text-[11px] font-black uppercase tracking-widest">
             <Zap className="w-3.5 h-3.5" />
-            <span>SPORTYBET CODE DECODER</span>
+            <span>UNIVERSAL MULTI-BOOKMAKER SLIP ENGINE</span>
           </div>
 
           <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
-            SPORTYBET BOOKING CODE <span className="text-stadiumGreen">REVEALER</span>
+            SLIP CONVERTER &amp; <span className="text-stadiumGreen">PAYOUT MAXIMIZER</span>
           </h1>
 
           <p className="text-xs sm:text-sm text-gray-400 font-sans max-w-xl mx-auto leading-relaxed">
-            Paste any SportyBet booking code below to instantly reveal every match, market, selection, and odds on the ticket slip.
+            Convert any booking code or slip screenshot across <strong>SportyBet, Bet9ja, 1xBet, 22Bet &amp; Stake</strong>. Compare real payouts to bet where you win the most cash.
           </p>
         </div>
 
-        {/* Decoder Tool */}
+        {/* Converter Tool */}
         <div id="converter-tool">
           <BetSlipConverter />
+        </div>
+
+        {/* 3D Holographic Flex Card Showcase */}
+        <div className="pt-4 space-y-3">
+          <div className="text-center space-y-1">
+            <h3 className="text-sm font-black text-gold flex items-center justify-center space-x-1.5">
+              <Sparkles className="w-4 h-4" />
+              <span>3D HOLOGRAPHIC PROOF-OF-WIN CARD GENERATOR</span>
+            </h3>
+            <p className="text-xs text-gray-400 font-sans">
+              Interactive 3D verified win ticket with 1-click sharing for WhatsApp Status, Facebook &amp; TikTok.
+            </p>
+          </div>
+          <HolographicFlexCard />
         </div>
 
         {/* Partner Bonuses Matrix Footer */}
@@ -60,7 +79,7 @@ export default function ConverterPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
             {Object.values(AFFILIATE_PARTNERS).map((p) => (
               <a
-                key={p.key}
+                key={p.id}
                 href={p.affiliateUrl}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -70,7 +89,7 @@ export default function ConverterPage() {
                   <span className="font-black text-white group-hover:text-stadiumGreen transition-colors">{p.displayName}</span>
                   <span className="text-stadiumGreen text-[10px]">➔</span>
                 </div>
-                <span className="text-[10px] text-gray-400 block">{p.bonusHighlight}</span>
+                <span className="text-[10px] text-gray-400 block font-sans">{p.bonusHighlight}</span>
               </a>
             ))}
           </div>

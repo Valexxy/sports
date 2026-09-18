@@ -39,6 +39,8 @@ import { HeadToHeadArenaModal } from './head-to-head-arena-modal';
 import { LocationIntelligenceEngine } from '../lib/location-intelligence-engine';
 import { useModalBackHandler } from '../lib/history-back-navigation';
 import { GenZFanArena } from './gen-z-fan-arena';
+import { MomentumDangerRadar } from './momentum-danger-radar';
+import { DigitalTwinPitch } from './digital-twin-pitch';
 
 export interface DailyMatchCardProps {
   match: MatchData;
@@ -163,6 +165,7 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
   const [showCommentaryModal, setShowCommentaryModal] = useState<boolean>(false);
   const [showH2HModal, setShowH2HModal] = useState<boolean>(false);
   const [showFanArenaModal, setShowFanArenaModal] = useState<boolean>(false);
+  const [showLiveRadar, setShowLiveRadar] = useState<boolean>(false);
   const [showVenueIntel, setShowVenueIntel] = useState<boolean>(false);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
@@ -640,6 +643,28 @@ export const DailyMatchCard: React.FC<DailyMatchCardProps> = ({
 
 
 
+
+        {/* 5. In-Card Live Danger Radar & 2.5D Pitch Toggle */}
+        <div 
+          onClick={(e) => { e.stopPropagation(); setShowLiveRadar(!showLiveRadar); }}
+          className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-crimson/10 hover:bg-crimson/20 border border-crimson/30 cursor-pointer transition-all text-[10px] font-mono text-crimson shadow-sm"
+        >
+          <div className="flex items-center space-x-1.5 truncate">
+            <span className="w-2 h-2 rounded-full bg-crimson animate-ping"></span>
+            <span className="font-black text-white">⚡ LIVE DANGER RADAR &amp; 2.5D PITCH</span>
+          </div>
+          <span className="text-crimson font-bold text-[9px] flex-shrink-0">
+            {showLiveRadar ? '▲ Hide Radar' : '▼ Live Radar & 2.5D Pitch'}
+          </span>
+        </div>
+
+        {/* In-Card Collapsible Radar & Pitch */}
+        {showLiveRadar && (
+          <div className="space-y-2.5 animate-fadeIn" onClick={(e) => e.stopPropagation()}>
+            <MomentumDangerRadar match={match} onLockPick={(p, o) => onSelectOdds(match, p, o)} />
+            <DigitalTwinPitch match={match} />
+          </div>
+        )}
 
         {/* 6. Venue & Geo-Physics Intelligence Bar */}
         <div 

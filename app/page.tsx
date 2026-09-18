@@ -58,6 +58,10 @@ import { ClubProfileHubModal } from '../components/club-profile-hub-modal';
 import { stadiumAudio } from '../lib/sound-synthesizer';
 import { speakNaija, allowSpeechOnUserGesture } from '../lib/naija-voice-engine';
 import { playerFollowEngine } from '../lib/player-follow-engine';
+import { MomentumDangerRadar } from '../components/momentum-danger-radar';
+import { DigitalTwinPitch } from '../components/digital-twin-pitch';
+import { TelegramSquadLauncher } from '../components/viral/TelegramSquadLauncher';
+import { LiveProofOfWinTicker } from '../components/live-proof-of-win-ticker';
 import { SettlementLedgerSection } from '../components/settlement-ledger-section';
 import { FloatingTelegramBar } from '../components/viral/FloatingTelegramBar';
 import { RealtimeCaptureStatus } from '../components/realtime-capture-status';
@@ -549,6 +553,12 @@ export default function Home() {
               try { stadiumAudio.playTabClickSound(); } catch (e) {}
             }}
           />
+
+          {/* 🌟 VIRAL LIVE PROOF-OF-WIN COMMUNITY STREAM */}
+          <LiveProofOfWinTicker />
+
+          {/* 🚀 TELEGRAM SQUAD VIRAL BATTLES */}
+          <TelegramSquadLauncher />
 
           {/* TOP FEATURED BANKER PREDICTIONS (DIXON-COLES POISSON ENGINE) */}
           {topBankersList.length > 0 && (

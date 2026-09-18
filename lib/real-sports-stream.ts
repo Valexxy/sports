@@ -102,7 +102,7 @@ function estimateTeamStrength(teamName: string) { return getTeamStrength(teamNam
 async function fetchFootballDataMatches(): Promise<MatchData[]> {
   try {
     const now = new Date();
-    const from = new Date(now.getTime() - 14 * 24 * 3600 * 1000).toISOString().split('T')[0];
+    const from = new Date(now.getTime() - 5 * 24 * 3600 * 1000).toISOString().split('T')[0];
     const to = new Date(now.getTime() + 4 * 24 * 3600 * 1000).toISOString().split('T')[0];
 
     const controller = new AbortController();
@@ -261,24 +261,31 @@ async function fetchSingleEspnLeague(ep: typeof ESPN_LEAGUES[0]): Promise<MatchD
     const timeout = setTimeout(() => controller.abort(), 3000);
 
     const now = new Date();
-    const past = new Date(now.getTime() - 7 * 24 * 3600 * 1000);
-    const future = new Date(now.getTime() + 7 * 24 * 3600 * 1000);
     const fmt = (d: Date) => d.toISOString().slice(0, 10).replace(/-/g, '');
-    const dateRange = `${fmt(past)}-${fmt(future)}`;
+    
+    // ESPN no longer supports ranges. Fetch yesterday, today, and tomorrow separately.
+    const datesToFetch = [
+      new Date(now.getTime() - 24 * 3600 * 1000), // Yesterday
+      now, // Today
+      new Date(now.getTime() + 24 * 3600 * 1000)  // Tomorrow
+    ].map(fmt);
 
-    const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/${ep.path}/scoreboard?dates=${dateRange}&limit=100`, {
-      signal: controller.signal,
-      next: { revalidate: 20 },
-    });
+    const fetches = datesToFetch.map(date => 
+      fetch(`https://site.api.espn.com/apis/site/v2/sports/${ep.path}/scoreboard?dates=${date}&limit=50`, {
+        signal: controller.signal,
+        next: { revalidate: 20 },
+      }).then(r => r.ok ? r.json() : null)
+    );
+
+    const results = await Promise.all(fetches);
     clearTimeout(timeout);
 
-    if (!res.ok) return [];
-    const data = await res.json();
-    if (!data.events || !Array.isArray(data.events)) return [];
-
     const matches: MatchData[] = [];
+    const allEvents = results.flatMap(data => data?.events || []);
 
-    for (const ev of data.events) {
+    if (allEvents.length === 0) return [];
+
+    for (const ev of allEvents) {
       const comp = ev.competitions?.[0];
       if (!comp) continue;
 
