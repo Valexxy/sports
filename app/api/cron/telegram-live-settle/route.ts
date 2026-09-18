@@ -188,7 +188,7 @@ export async function GET(req: Request) {
       try {
         await broadcastPushMessage({
           title: isWon ? `✅ GREEN TICK WON! ${match.homeTeam} ${homeScore}-${awayScore} ${match.awayTeam}` : `⚡ FULLTIME: ${match.homeTeam} ${homeScore}-${awayScore} ${match.awayTeam}`,
-          body: isWon ? `Our banker selection "${pick}" @ ${odds} WON! Check ledger ROI.` : `Match finished (${gmtKickoff}). Official referee audit recorded.`,
+          body: isWon ? `Our banker selection "${pick}" @ ${odds} WON! Check ledger ROI.` : `Match finished (${sched.timeGmt}). Official referee audit recorded.`,
           url: `/?match=${match.id}&ref=live_settle_push`,
           tag: `mivaj-match-${match.id}`,
         });
@@ -202,7 +202,7 @@ export async function GET(req: Request) {
       settledResults.push({
         matchId: match.id,
         fixture: `${match.homeTeam} vs ${match.awayTeam}`,
-        gmtKickoff,
+        gmtKickoff: sched.timeGmt,
         score: `${homeScore}-${awayScore}`,
         status: settlement.statusText,
         isWon,
