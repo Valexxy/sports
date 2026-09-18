@@ -133,10 +133,9 @@ export async function GET(req: Request) {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://mivaj.com';
     const photoUrl = `${baseUrl}/api/og/winning-card?odds=14.85&winRate=${todayWinRate}&t=${Date.now()}`;
 
-    let result;
-    try {
-      result = await TelegramBotService.sendPhoto(photoUrl, msg, keyboard);
-    } catch {
+    let result = await TelegramBotService.sendPhoto(photoUrl, msg, keyboard);
+    if (result && result.ok === false) {
+      // Telegram caps photo captions at 1024 chars. Fallback to standard broadcast.
       result = await TelegramBotService.sendBroadcastMessage(msg, keyboard);
     }
 
