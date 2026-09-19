@@ -535,6 +535,8 @@ export default function Home() {
         />
 
         <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 py-4 space-y-5">
+          <LocalAiPredictorWidget />
+          <HyperStreamFeed />
           <h1 className="sr-only">
             Mivaj Sports â€” 100% Free Football Predictions, Live Scores &amp; Referee Settlement Ledger
           </h1>
@@ -1037,6 +1039,7 @@ export default function Home() {
       </div>
   );
 }
+
 
 
 
