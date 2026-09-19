@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import React, { useState, useEffect } from 'react';
 import { MatchData } from '../lib/sports-api';
 import { X, Trash2, Zap, ExternalLink, Check, ChevronUp, ChevronDown, Share2, Download } from 'lucide-react';
@@ -206,3 +206,4 @@ export const AccumulatorSlipDrawer: React.FC<AccumulatorSlipDrawerProps> = ({
     </>
   );
 };
+

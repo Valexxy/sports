@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { Share2, Sparkles, Trophy, Download } from 'lucide-react';
@@ -15,7 +15,7 @@ export const WhatsAppStatusSlipFlexer: React.FC<WhatsAppFlexerProps> = ({
   oddsTarget = '10.85',
   bookingCode = 'STAKE-10X883',
   matchesCount = 5,
-  payoutEst = '₦500 ➔ ₦5,425 Payout',
+  payoutEst = 'â‚¦500 âž” â‚¦5,425 Payout',
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -25,12 +25,12 @@ export const WhatsAppStatusSlipFlexer: React.FC<WhatsAppFlexerProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
           <div className="flex items-center space-x-3">
             <div className="p-2.5 rounded-2xl bg-gradient-to-tr from-[#25D366] to-stadiumGreen text-black font-black text-xl shadow-lg">
-              📱
+              ðŸ“±
             </div>
             <div>
               <div className="flex items-center space-x-2">
                 <h2 className="font-black text-sm sm:text-base text-white">
-                  WHATSAPP STATUS 9:16 TICKET FLEXER 📲
+                  WHATSAPP STATUS 9:16 TICKET FLEXER ðŸ“²
                 </h2>
                 <span className="px-2 py-0.5 rounded-full bg-stadiumGreen text-black font-black text-[9px]">
                   PHOTO / TEXT READY
@@ -47,7 +47,7 @@ export const WhatsAppStatusSlipFlexer: React.FC<WhatsAppFlexerProps> = ({
             className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-[#25D366] to-stadiumGreen text-black font-black text-xs flex items-center space-x-2 shadow-lg active:scale-95 transition-all self-start sm:self-auto"
           >
             <Share2 className="w-3.5 h-3.5" />
-            <span>Flex on WhatsApp Status ➔</span>
+            <span>Flex on WhatsApp Status âž”</span>
           </button>
         </div>
 
@@ -59,7 +59,7 @@ export const WhatsAppStatusSlipFlexer: React.FC<WhatsAppFlexerProps> = ({
           >
             <div className="flex items-center justify-center space-x-1">
               <span className="px-2 py-0.5 rounded-full bg-stadiumGreen text-black font-black text-[9px]">
-                OFFICIAL MIVAJ SLIP ⚡
+                OFFICIAL MIVAJ SLIP âš¡
               </span>
             </div>
 
@@ -77,12 +77,12 @@ export const WhatsAppStatusSlipFlexer: React.FC<WhatsAppFlexerProps> = ({
               </div>
               <div className="flex justify-between text-gray-400">
                 <span>Cut-1 Return:</span>
-                <span className="text-white font-mono font-bold">₦6,800</span>
+                <span className="text-white font-mono font-bold">â‚¦6,800</span>
               </div>
             </div>
 
             <div className="text-[9px] text-stadiumGreen font-bold tracking-wider">
-              TAP TO DOWNLOAD 9:16 IMAGE / TEXT ➔
+              TAP TO DOWNLOAD 9:16 IMAGE / TEXT âž”
             </div>
           </div>
         </div>
@@ -101,3 +101,4 @@ export const WhatsAppStatusSlipFlexer: React.FC<WhatsAppFlexerProps> = ({
     </>
   );
 };
+
