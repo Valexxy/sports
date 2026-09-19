@@ -137,18 +137,71 @@ async function generateViralShort() {
 
       if (response.data.ok) {
         console.log("✅ Video successfully broadcasted to Telegram!");
-      } else {
+        // NEW: Broadcast to Discord via Webhook
+  const DISCORD_WEBHOOK = process.env.DISCORD_WEBHOOK_URL;
+  if (DISCORD_WEBHOOK) {
+    console.log("📡 Uploading Viral Video to Discord...");
+    try {
+      const FormData = require('form-data');
+      const axios = require('axios');
+      const fs = require('fs');
+
+      const formData = new FormData();
+      formData.append('payload_json', JSON.stringify({
+        content: '🔥 **Mivaj Omni-Brain 99% Verified Banker Picks for Today!**\n\n' + topMatches.map((m: any) => 🟢 {m.home} vs {m.away} -> **{m.pick}**).join('\n') + '\n\n⚡ Generated entirely by Artificial Intelligence.\n👉 Play now on [Mivaj Sports](https://mivaj.com)',
+        username: "Mivaj AI Video Bot"
+      }));
+      formData.append('file', fs.createReadStream(savePath), 'viral-tiktok.mp4');
+
+      const response = await axios.post(DISCORD_WEBHOOK, formData, {
+        headers: formData.getHeaders(),
+      });
+      console.log("✅ Video successfully broadcasted to Discord!");
+    } catch (e: any) {
+      console.error("❌ Failed to upload to Discord:", e.message);
+    }
+  } else {
+    console.log("⚠️ DISCORD_WEBHOOK_URL missing.");
+  }
+} else {
         console.error("❌ Telegram API Error:", response.data);
       }
     } catch (e: any) {
       console.error("❌ Failed to upload to Telegram:", e.message);
     }
+    // NEW: Broadcast to Discord via Webhook
+  const DISCORD_WEBHOOK = process.env.DISCORD_WEBHOOK_URL;
+  if (DISCORD_WEBHOOK) {
+    console.log("📡 Uploading Viral Video to Discord...");
+    try {
+      const FormData = require('form-data');
+      const axios = require('axios');
+      const fs = require('fs');
+
+      const formData = new FormData();
+      formData.append('payload_json', JSON.stringify({
+        content: '🔥 **Mivaj Omni-Brain 99% Verified Banker Picks for Today!**\n\n' + topMatches.map((m: any) => 🟢 {m.home} vs {m.away} -> **{m.pick}**).join('\n') + '\n\n⚡ Generated entirely by Artificial Intelligence.\n👉 Play now on [Mivaj Sports](https://mivaj.com)',
+        username: "Mivaj AI Video Bot"
+      }));
+      formData.append('file', fs.createReadStream(savePath), 'viral-tiktok.mp4');
+
+      const response = await axios.post(DISCORD_WEBHOOK, formData, {
+        headers: formData.getHeaders(),
+      });
+      console.log("✅ Video successfully broadcasted to Discord!");
+    } catch (e: any) {
+      console.error("❌ Failed to upload to Discord:", e.message);
+    }
   } else {
+    console.log("⚠️ DISCORD_WEBHOOK_URL missing.");
+  }
+} else {
     console.log("⚠️ TELEGRAM_BOT_TOKEN missing. Video saved locally but not uploaded.");
   }
 }
 
 generateViralShort().catch(console.error);
+
 
 
 
