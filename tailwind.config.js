@@ -1,4 +1,4 @@
-/** @type {import('tailwindcss').Config} */
+﻿/** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
@@ -70,11 +70,35 @@ module.exports = {
         'safe-left': 'env(safe-area-inset-left)',
         'safe-right': 'env(safe-area-inset-right)',
       },
-      animation: {
+            animation: {
         'fade-in': 'fadeIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards',
         'slide-up': 'slideUp 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards',
+        'plasma-fire': 'plasmaFire 3s ease-in-out infinite alternate',
+        'orb-float': 'orbFloat 6s ease-in-out infinite',
+        'shockwave': 'shockwave 1.5s cubic-bezier(0.1, 0.8, 0.3, 1) infinite',
+        'tape-scroll': 'tapeScroll 15s linear infinite',
+      },
+      keyframes: {
+        plasmaFire: {
+          '0%': { boxShadow: '0 0 10px #BF5AF2, 0 0 20px #30D158' },
+          '100%': { boxShadow: '0 0 20px #64D2FF, 0 0 40px #BF5AF2' },
+        },
+        orbFloat: {
+          '0%, 100%': { transform: 'translateY(0px) scale(1)' },
+          '50%': { transform: 'translateY(-15px) scale(1.05)' },
+        },
+        shockwave: {
+          '0%': { transform: 'scale(0.9)', opacity: '1', boxShadow: '0 0 0 0 rgba(48, 209, 88, 0.7)' },
+          '70%': { transform: 'scale(1)', opacity: '0', boxShadow: '0 0 0 30px rgba(48, 209, 88, 0)' },
+          '100%': { transform: 'scale(0.9)', opacity: '0', boxShadow: '0 0 0 0 rgba(48, 209, 88, 0)' },
+        },
+        tapeScroll: {
+          '0%': { transform: 'translateY(0)' },
+          '100%': { transform: 'translateY(-50%)' },
+        }
       },
     },
   },
   plugins: [],
 }
+
