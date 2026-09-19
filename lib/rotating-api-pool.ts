@@ -77,7 +77,7 @@ export class RotatingApiPoolEngine {
 
     // 3. Attempt Tertiary Provider: Google Gemini AI API
     try {
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${this.GEMINI_KEY}`, {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.GEMINI_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -128,4 +128,5 @@ export class RotatingApiPoolEngine {
     };
   }
 }
+
 
