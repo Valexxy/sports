@@ -1,7 +1,8 @@
-import { OpenAI } from 'openai';
+﻿import { OpenAI } from 'openai';
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.GROQ_API_KEY,
+  baseURL: 'https://api.groq.com/openai/v1'
 });
 
 export async function rewriteNewsWithAI(title: string, content: string, league: string): Promise<{ title: string; content: string }> {
@@ -18,7 +19,7 @@ League: ${league}
     `;
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'qwen/qwen3.8-27b',
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' },
       temperature: 0.7,

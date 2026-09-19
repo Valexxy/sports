@@ -1,4 +1,4 @@
-/**
+﻿/**
  * INTERNATIONAL STANDARD ROTATING API POOL ENGINE
  * Multi-Provider Failover Cascade: OpenAI -> Groq AI -> Google Gemini -> HuggingFace -> Local Engine
  * Ensures 100% Infinite Availability, 0% Downtime, and Zero Rate-Limit Exhaustion.
@@ -45,7 +45,7 @@ export class RotatingApiPoolEngine {
         };
       }
     } catch (err) {
-      console.warn('⚠️ Provider 1 OpenAI hit limit/error. Rotating to Provider 2 (Groq AI)...');
+      console.warn('âš ï¸ Provider 1 OpenAI hit limit/error. Rotating to Provider 2 (Groq AI)...');
     }
 
     // 2. Attempt Secondary Provider: Groq Cloud AI API (Fastest <200ms LLM)
@@ -57,7 +57,7 @@ export class RotatingApiPoolEngine {
           'Authorization': `Bearer ${this.GROQ_KEY}`,
         },
         body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
+          model: 'qwen/qwen3.8-27b',
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 150,
         }),
@@ -72,7 +72,7 @@ export class RotatingApiPoolEngine {
         };
       }
     } catch (err) {
-      console.warn('⚠️ Provider 2 Groq AI hit limit/error. Rotating to Provider 3 (Google Gemini)...');
+      console.warn('âš ï¸ Provider 2 Groq AI hit limit/error. Rotating to Provider 3 (Google Gemini)...');
     }
 
     // 3. Attempt Tertiary Provider: Google Gemini AI API
@@ -94,7 +94,7 @@ export class RotatingApiPoolEngine {
         };
       }
     } catch (err) {
-      console.warn('⚠️ Provider 3 Gemini AI hit limit/error. Rotating to Provider 4 (HuggingFace)...');
+      console.warn('âš ï¸ Provider 3 Gemini AI hit limit/error. Rotating to Provider 4 (HuggingFace)...');
     }
 
     // 4. Attempt Quaternary Provider: Hugging Face Inference API
@@ -117,7 +117,7 @@ export class RotatingApiPoolEngine {
         };
       }
     } catch (err) {
-      console.warn('⚠️ Provider 4 HuggingFace hit limit/error. Rotating to Provider 5 (Local Dixon-Coles)...');
+      console.warn('âš ï¸ Provider 4 HuggingFace hit limit/error. Rotating to Provider 5 (Local Dixon-Coles)...');
     }
 
     // 5. Provider 5: Guaranteed Local Dixon-Coles Engine Fallback
@@ -128,3 +128,4 @@ export class RotatingApiPoolEngine {
     };
   }
 }
+
