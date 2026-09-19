@@ -52,6 +52,12 @@ export async function GET(req: Request) {
       .then(r => r.json()).then(data => results.webpush = data).catch(e => results.webpush = { error: e.message })
   );
 
+    // 7. Trigger Facebook Mass Syndication
+  tasks.push(
+    fetch(${baseUrl}/api/cron/facebook-autopost, { headers: { 'Authorization': \Bearer \ }})
+      .then(r => r.json()).then(data => results.facebook = data).catch(e => results.facebook = { error: e.message })
+  );
+
   // Await all background jobs to finish
   await Promise.allSettled(tasks);
 
@@ -59,7 +65,8 @@ export async function GET(req: Request) {
 
   return NextResponse.json({
     success: true,
-    message: "Omni-Brain has successfully coordinated 6 global syndication networks.",
+    message: "Omni-Brain has successfully coordinated 7 global syndication networks.",
     diagnostics: results
   });
 }
+
