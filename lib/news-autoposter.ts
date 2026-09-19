@@ -1,4 +1,4 @@
-import { TelegramBotService } from '../services/telegram/botService';
+﻿import { TelegramBotService } from '../services/telegram/botService';
 import { getRedisCache, setRedisCache } from './upstash-redis-engine';
 import { publishToTipsBrosFacebook, DEFAULT_PAGE_TOKEN, TIPS_BROS_PAGE_ID, TIPS_BROS_PAGE_URL } from './facebook-page-autoposter';
 import { rewriteNewsWithAI } from './ai-rewriter';
@@ -120,3 +120,4 @@ export async function broadcastBreakingNewsToSocials(): Promise<NewsAutopostResu
     };
   }
 }
+
