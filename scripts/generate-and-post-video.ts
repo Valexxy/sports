@@ -17,8 +17,8 @@ async function generateViralShort() {
 
   // Algorithm: Filter for absolute safest 99% probability picks (Bankers)
   const safeMatches = matchesData
-    .filter(m => m.status === 'SCHEDULED' || m.status === 'TIMED')
-    .filter(m => m.prediction && m.prediction.topPick)
+    .filter((m: any) => m.status === 'SCHEDULED' || m.status === 'TIMED')
+    .filter((m: any) => m.prediction && m.prediction.topPick)
     .sort((a, b) => (b.prediction?.confidence || 0) - (a.prediction?.confidence || 0));
 
   // Select the top 3 absolute highest confidence matches
@@ -116,3 +116,4 @@ async function generateViralShort() {
 }
 
 generateViralShort().catch(console.error);
+
