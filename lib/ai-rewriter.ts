@@ -1,9 +1,6 @@
 ﻿import { OpenAI } from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.GROQ_API_KEY,
-  baseURL: 'https://api.groq.com/openai/v1'
-});
+const getOpenAI = () => new OpenAI({ apiKey: process.env.GROQ_API_KEY || 'dummy_key_for_build', baseURL: 'https://api.groq.com/openai/v1' });
 
 export async function rewriteNewsWithAI(title: string, content: string, league: string): Promise<{ title: string; content: string }> {
   try {
@@ -18,7 +15,7 @@ Original Content: ${content}
 League: ${league}
     `;
 
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: 'qwen/qwen3.8-27b',
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' },
@@ -35,3 +32,4 @@ League: ${league}
     return { title, content }; // fallback
   }
 }
+
