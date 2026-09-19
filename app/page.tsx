@@ -516,8 +516,6 @@ export default function Home() {
     <div className={`min-h-screen bg-void flex flex-col pb-24 selection:bg-stadiumGreen selection:text-black font-sans `}>
       <BroadcastTicker matches={matches} onSelectUpdate={handleSelectTickerUpdate} />
       <OfflineBanner />
-        <LocalAiPredictorWidget />
-        <div className="max-w-7xl mx-auto px-4"><HyperStreamFeed /></div>
       <PhoneHardwareBanner />
       <GenZLiveAlerts matches={matches} onOpenMatch={(match) => setSelectedMatchForInsights(match)} />
 
@@ -525,7 +523,12 @@ export default function Home() {
 
         <StadiumHeader
           
-          onOpenPlayers={() => setShowPlayersModal(true)}
+          onOpenPlayers={() =>
+
+        <div className="max-w-4xl mx-auto px-2 sm:px-4 mt-4 space-y-4">
+          <LocalAiPredictorWidget />
+          <HyperStreamFeed />
+        </div> setShowPlayersModal(true)}
           onOpenReceipt={() => matches.length > 0 && setSelectedMatchForReceipt(matches[0])}
           onOpenLedger={() => setShowTrackRecord(true)}
           onOpenBankroll={() => setShowBankroll(true)}
@@ -1039,6 +1042,7 @@ export default function Home() {
       </div>
   );
 }
+
 
 
 

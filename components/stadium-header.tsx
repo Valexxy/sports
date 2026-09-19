@@ -164,7 +164,7 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({ onOpenPlayers, cur
         <div className="flex items-center space-x-2 flex-shrink-0">
           {/* Matchday Web Push Notification Bell & Trigger Switch */}
           <MatchdayPushBell />
-          <div className="hidden sm:block"><PlasmaStreakAvatar userProfile={{username: 'Valexxy'}} /></div>
+          <div className="hidden sm:block ml-3"><PlasmaStreakAvatar userProfile={{username: 'Valexxy'}} /></div>
 
           {/* Global Language Switcher */}
           <GlobalLanguageSwitcher />
@@ -250,5 +250,6 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({ onOpenPlayers, cur
     </header>
   );
 };
+
 
 
