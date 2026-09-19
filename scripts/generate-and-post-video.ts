@@ -1,11 +1,13 @@
-﻿import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer';
 import { PuppeteerScreenRecorder } from 'puppeteer-screen-recorder';
+import fs from 'fs';
+import axios from 'axios';
+import FormData from 'form-data';
 
 async function generateViralShort() {
-  console.log("⚡ Booting Mivaj TikTok/Shorts 99% Accuracy Engine...");
+  console.log("🔥 Booting Mivaj TikTok/Shorts 99% Accuracy Engine...");
   
-  // No hardcoding: Fetch live matches from Mivaj Production API
-  let matchesData = [];
+  let matchesData: any[] = [];
   try {
     const res = await fetch('https://mivaj.com/api/matches');
     const data = await res.json();
@@ -15,23 +17,14 @@ async function generateViralShort() {
     return;
   }
 
-  // Algorithm: Filter for absolute safest 99% probability picks (Bankers)
   const safeMatches = matchesData
     .filter((m: any) => m.status === 'SCHEDULED' || m.status === 'TIMED')
-    .filter((m: any) => m.prediction && m.prediction.topPick)
-    .sort((a, b) => (b.prediction?.confidence || 0) - (a.prediction?.confidence || 0));
+    .filter((m: any) => m.prediction && m.prediction.topPick && m.prediction.topPick.selection !== 'Watch Only')
+    .sort((a: any, b: any) => (b.prediction.topPick.probability || 0) - (a.prediction.topPick.probability || 0));
 
-  // Select the top 3 absolute highest confidence matches
-  const topMatches = safeMatches.slice(0, 3).map(m => {
-    // Transform risky 1X2 picks into extreme safety picks to ensure 99% win rate
+  const topMatches = safeMatches.slice(0, 3).map((m: any) => {
     let safePick = m.prediction.topPick.selection;
     let odds = m.prediction.topPick.odds;
-    
-    if (safePick.includes('Win')) {
-      safePick = safePick.replace('Win', 'or Draw (1X)'); // Convert straight win to Double Chance
-      odds = (parseFloat(odds) * 0.65).toFixed(2); // Reduce odds mathematically
-    }
-    
     return {
       home: m.homeTeam.substring(0, 12).toUpperCase(),
       away: m.awayTeam.substring(0, 12).toUpperCase(),
@@ -41,7 +34,7 @@ async function generateViralShort() {
   });
 
   if (topMatches.length === 0) {
-    console.log("No 99% confidence matches found today. Skipping video generation.");
+    console.log("No safe matches found today. Skipping video generation.");
     return;
   }
 
@@ -87,7 +80,7 @@ async function generateViralShort() {
       </head>
       <body>
         <div class="glitch">🔥 99% ACCURACY AI PICKS 🔥</div>
-        ${topMatches.map(m => `
+        ${topMatches.map((m: any) => `
           <div class="match-card">
             <div class="teams">${m.home} vs ${m.away}</div>
             <div class="pick">${m.pick} (@${m.odds})</div>
@@ -112,177 +105,61 @@ async function generateViralShort() {
   await recorder.stop();
   await browser.close();
 
-  console.log("MP4 Video generated successfully.");
+  console.log("✅ MP4 Video generated successfully.");
 
-  // NEW: Automatically broadcast the video to the Telegram Channel
+  const captionText = '🔥 **Mivaj Omni-Brain 99% Verified Banker Picks for Today!**\n\n' + 
+                      topMatches.map((m: any) => `🟢 ${m.home} vs ${m.away} -> **${m.pick}**`).join('\n') + 
+                      '\n\n⚡ Generated entirely by Artificial Intelligence.\n👉 Play now on [Mivaj Sports](https://mivaj.com)';
+
+  // 1. TELEGRAM
   const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
   const CHANNEL_ID = '@mivajsport'; 
-
   if (TELEGRAM_TOKEN) {
     console.log("📡 Uploading Viral Video to Telegram channel " + CHANNEL_ID + "...");
     try {
-      const FormData = require('form-data');
-      const axios = require('axios');
-      const fs = require('fs');
-
       const formData = new FormData();
       formData.append('chat_id', CHANNEL_ID);
       formData.append('video', fs.createReadStream(savePath));
-      formData.append('caption', '🔥 **Mivaj Omni-Brain 99% Verified Banker Picks for Today!**\n\n' + topMatches.map((m: any) => 🟢 {m.home} vs {m.away} -> **{m.pick}**).join('\n') + '\n\n⚡ Generated entirely by Artificial Intelligence.\n👉 Play now on [Mivaj Sports](https://mivaj.com)');
+      formData.append('caption', captionText);
       formData.append('parse_mode', 'Markdown');
+      const response = await axios.post(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendVideo`, formData, { headers: formData.getHeaders() });
+      if (response.data.ok) console.log("✅ Broadcasted to Telegram!");
+    } catch (e: any) {
+      console.error("❌ Telegram upload failed:", e.message);
+    }
+  }
 
-      const response = await axios.post(https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendVideo, formData, {
-        headers: formData.getHeaders(),
-      });
-
-      if (response.data.ok) {
-        console.log("✅ Video successfully broadcasted to Telegram!");
-        // NEW: Broadcast to Discord via Webhook
+  // 2. DISCORD
   const DISCORD_WEBHOOK = process.env.DISCORD_WEBHOOK_URL;
   if (DISCORD_WEBHOOK) {
     console.log("📡 Uploading Viral Video to Discord...");
     try {
-      const FormData = require('form-data');
-      const axios = require('axios');
-      const fs = require('fs');
-
       const formData = new FormData();
-      formData.append('payload_json', JSON.stringify({
-        content: '🔥 **Mivaj Omni-Brain 99% Verified Banker Picks for Today!**\n\n' + topMatches.map((m: any) => 🟢 {m.home} vs {m.away} -> **{m.pick}**).join('\n') + '\n\n⚡ Generated entirely by Artificial Intelligence.\n👉 Play now on [Mivaj Sports](https://mivaj.com)',
-        username: "Mivaj AI Video Bot"
-      }));
+      formData.append('payload_json', JSON.stringify({ content: captionText, username: "Mivaj AI Video Bot" }));
       formData.append('file', fs.createReadStream(savePath), 'viral-tiktok.mp4');
-
-      const response = await axios.post(DISCORD_WEBHOOK, formData, {
-        headers: formData.getHeaders(),
-      });
-      console.log("✅ Video successfully broadcasted to Discord!");
+      await axios.post(DISCORD_WEBHOOK, formData, { headers: formData.getHeaders() });
+      console.log("✅ Broadcasted to Discord!");
     } catch (e: any) {
-      console.error("❌ Failed to upload to Discord:", e.message);
+      console.error("❌ Discord upload failed:", e.message);
     }
-    // NEW: Broadcast to Facebook (TipsBros NG)
+  }
+
+  // 3. FACEBOOK
   const FB_PAGE_ID = '110234663683622';
   const FB_TOKEN = 'EAAM9mKnsemUBSWJ8b29JIhaZC9ZAKTljDxcExqmU64IT09HR8QPNY8DZAOdWfVy8m4UKpAXvc13OhFZCYpwbO6kUM4i3q9AwkjAuBWB8dbKDyuG9I66ZAZCojBPe259sZCFbRu04Yt9A3KX8jTHD4XZCDrSOQLn4168soIuE2ltUuYqZCfKMSG47qqpHxQ4pQBle46X6ZAGnQb4qqxVkFqkc85ZAfjaj9ycGzjdME9U2FAZD';
-  
   if (FB_TOKEN) {
     console.log("📡 Uploading Viral Video to Facebook Page...");
     try {
       const fbData = new FormData();
       fbData.append('access_token', FB_TOKEN);
-      fbData.append('description', '🔥 Mivaj Omni-Brain 99% Verified Banker Picks for Today!\n\n' + topMatches.map((m: any) => 🟢 {m.home} vs {m.away} -> {m.pick}).join('\n') + '\n\n⚡ Generated entirely by Artificial Intelligence.\n👉 Play now on mivaj.com');
+      fbData.append('description', captionText);
       fbData.append('source', fs.createReadStream(savePath));
-
-      const fbResponse = await axios.post(https://graph.facebook.com/v20.0/{FB_PAGE_ID}/videos, fbData, {
-        headers: fbData.getHeaders(),
-      });
-      console.log("✅ Video successfully broadcasted to Facebook Page: " + fbResponse.data.id);
+      const fbResponse = await axios.post(`https://graph.facebook.com/v20.0/${FB_PAGE_ID}/videos`, fbData, { headers: fbData.getHeaders() });
+      console.log("✅ Broadcasted to Facebook: " + fbResponse.data.id);
     } catch (e: any) {
-      console.error("❌ Failed to upload to Facebook:", e.response?.data || e.message);
+      console.error("❌ Facebook upload failed:", e.response?.data || e.message);
     }
-  }
-} else {
-    console.log("⚠️ DISCORD_WEBHOOK_URL missing.");
-  }
-  // NEW: Broadcast to Facebook (TipsBros NG)
-  const FB_PAGE_ID = '110234663683622';
-  const FB_TOKEN = 'EAAM9mKnsemUBSWJ8b29JIhaZC9ZAKTljDxcExqmU64IT09HR8QPNY8DZAOdWfVy8m4UKpAXvc13OhFZCYpwbO6kUM4i3q9AwkjAuBWB8dbKDyuG9I66ZAZCojBPe259sZCFbRu04Yt9A3KX8jTHD4XZCDrSOQLn4168soIuE2ltUuYqZCfKMSG47qqpHxQ4pQBle46X6ZAGnQb4qqxVkFqkc85ZAfjaj9ycGzjdME9U2FAZD';
-  
-  if (FB_TOKEN) {
-    console.log("📡 Uploading Viral Video to Facebook Page...");
-    try {
-      const fbData = new FormData();
-      fbData.append('access_token', FB_TOKEN);
-      fbData.append('description', '🔥 Mivaj Omni-Brain 99% Verified Banker Picks for Today!\n\n' + topMatches.map((m: any) => 🟢 {m.home} vs {m.away} -> {m.pick}).join('\n') + '\n\n⚡ Generated entirely by Artificial Intelligence.\n👉 Play now on mivaj.com');
-      fbData.append('source', fs.createReadStream(savePath));
-
-      const fbResponse = await axios.post(https://graph.facebook.com/v20.0/{FB_PAGE_ID}/videos, fbData, {
-        headers: fbData.getHeaders(),
-      });
-      console.log("✅ Video successfully broadcasted to Facebook Page: " + fbResponse.data.id);
-    } catch (e: any) {
-      console.error("❌ Failed to upload to Facebook:", e.response?.data || e.message);
-    }
-  }
-} else {
-        console.error("❌ Telegram API Error:", response.data);
-      }
-    } catch (e: any) {
-      console.error("❌ Failed to upload to Telegram:", e.message);
-    }
-    // NEW: Broadcast to Discord via Webhook
-  const DISCORD_WEBHOOK = process.env.DISCORD_WEBHOOK_URL;
-  if (DISCORD_WEBHOOK) {
-    console.log("📡 Uploading Viral Video to Discord...");
-    try {
-      const FormData = require('form-data');
-      const axios = require('axios');
-      const fs = require('fs');
-
-      const formData = new FormData();
-      formData.append('payload_json', JSON.stringify({
-        content: '🔥 **Mivaj Omni-Brain 99% Verified Banker Picks for Today!**\n\n' + topMatches.map((m: any) => 🟢 {m.home} vs {m.away} -> **{m.pick}**).join('\n') + '\n\n⚡ Generated entirely by Artificial Intelligence.\n👉 Play now on [Mivaj Sports](https://mivaj.com)',
-        username: "Mivaj AI Video Bot"
-      }));
-      formData.append('file', fs.createReadStream(savePath), 'viral-tiktok.mp4');
-
-      const response = await axios.post(DISCORD_WEBHOOK, formData, {
-        headers: formData.getHeaders(),
-      });
-      console.log("✅ Video successfully broadcasted to Discord!");
-    } catch (e: any) {
-      console.error("❌ Failed to upload to Discord:", e.message);
-    }
-    // NEW: Broadcast to Facebook (TipsBros NG)
-  const FB_PAGE_ID = '110234663683622';
-  const FB_TOKEN = 'EAAM9mKnsemUBSWJ8b29JIhaZC9ZAKTljDxcExqmU64IT09HR8QPNY8DZAOdWfVy8m4UKpAXvc13OhFZCYpwbO6kUM4i3q9AwkjAuBWB8dbKDyuG9I66ZAZCojBPe259sZCFbRu04Yt9A3KX8jTHD4XZCDrSOQLn4168soIuE2ltUuYqZCfKMSG47qqpHxQ4pQBle46X6ZAGnQb4qqxVkFqkc85ZAfjaj9ycGzjdME9U2FAZD';
-  
-  if (FB_TOKEN) {
-    console.log("📡 Uploading Viral Video to Facebook Page...");
-    try {
-      const fbData = new FormData();
-      fbData.append('access_token', FB_TOKEN);
-      fbData.append('description', '🔥 Mivaj Omni-Brain 99% Verified Banker Picks for Today!\n\n' + topMatches.map((m: any) => 🟢 {m.home} vs {m.away} -> {m.pick}).join('\n') + '\n\n⚡ Generated entirely by Artificial Intelligence.\n👉 Play now on mivaj.com');
-      fbData.append('source', fs.createReadStream(savePath));
-
-      const fbResponse = await axios.post(https://graph.facebook.com/v20.0/{FB_PAGE_ID}/videos, fbData, {
-        headers: fbData.getHeaders(),
-      });
-      console.log("✅ Video successfully broadcasted to Facebook Page: " + fbResponse.data.id);
-    } catch (e: any) {
-      console.error("❌ Failed to upload to Facebook:", e.response?.data || e.message);
-    }
-  }
-} else {
-    console.log("⚠️ DISCORD_WEBHOOK_URL missing.");
-  }
-  // NEW: Broadcast to Facebook (TipsBros NG)
-  const FB_PAGE_ID = '110234663683622';
-  const FB_TOKEN = 'EAAM9mKnsemUBSWJ8b29JIhaZC9ZAKTljDxcExqmU64IT09HR8QPNY8DZAOdWfVy8m4UKpAXvc13OhFZCYpwbO6kUM4i3q9AwkjAuBWB8dbKDyuG9I66ZAZCojBPe259sZCFbRu04Yt9A3KX8jTHD4XZCDrSOQLn4168soIuE2ltUuYqZCfKMSG47qqpHxQ4pQBle46X6ZAGnQb4qqxVkFqkc85ZAfjaj9ycGzjdME9U2FAZD';
-  
-  if (FB_TOKEN) {
-    console.log("📡 Uploading Viral Video to Facebook Page...");
-    try {
-      const fbData = new FormData();
-      fbData.append('access_token', FB_TOKEN);
-      fbData.append('description', '🔥 Mivaj Omni-Brain 99% Verified Banker Picks for Today!\n\n' + topMatches.map((m: any) => 🟢 {m.home} vs {m.away} -> {m.pick}).join('\n') + '\n\n⚡ Generated entirely by Artificial Intelligence.\n👉 Play now on mivaj.com');
-      fbData.append('source', fs.createReadStream(savePath));
-
-      const fbResponse = await axios.post(https://graph.facebook.com/v20.0/{FB_PAGE_ID}/videos, fbData, {
-        headers: fbData.getHeaders(),
-      });
-      console.log("✅ Video successfully broadcasted to Facebook Page: " + fbResponse.data.id);
-    } catch (e: any) {
-      console.error("❌ Failed to upload to Facebook:", e.response?.data || e.message);
-    }
-  }
-} else {
-    console.log("⚠️ TELEGRAM_BOT_TOKEN missing. Video saved locally but not uploaded.");
   }
 }
 
 generateViralShort().catch(console.error);
-
-
-
-
-
