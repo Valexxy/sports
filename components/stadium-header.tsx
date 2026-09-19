@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from '../lib/translation-engine';
 import { GlobalLanguageSwitcher } from './global-language-switcher';
+import { PlasmaStreakAvatar } from './plasma-streak-avatar';
 import confetti from 'canvas-confetti';
 import { phoneHardware } from '../lib/phone-hardware-engine';
 import { stadiumAudio } from '../lib/sound-synthesizer';
@@ -163,6 +164,7 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({ onOpenPlayers, cur
         <div className="flex items-center space-x-2 flex-shrink-0">
           {/* Matchday Web Push Notification Bell & Trigger Switch */}
           <MatchdayPushBell />
+          <div className="hidden sm:block"><PlasmaStreakAvatar userProfile={{username: 'Valexxy'}} /></div>
 
           {/* Global Language Switcher */}
           <GlobalLanguageSwitcher />
@@ -248,4 +250,5 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({ onOpenPlayers, cur
     </header>
   );
 };
+
 
