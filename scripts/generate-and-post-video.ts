@@ -160,8 +160,48 @@ async function generateViralShort() {
     } catch (e: any) {
       console.error("❌ Failed to upload to Discord:", e.message);
     }
-  } else {
+    // NEW: Broadcast to Facebook (TipsBros NG)
+  const FB_PAGE_ID = '110234663683622';
+  const FB_TOKEN = 'EAAM9mKnsemUBSWJ8b29JIhaZC9ZAKTljDxcExqmU64IT09HR8QPNY8DZAOdWfVy8m4UKpAXvc13OhFZCYpwbO6kUM4i3q9AwkjAuBWB8dbKDyuG9I66ZAZCojBPe259sZCFbRu04Yt9A3KX8jTHD4XZCDrSOQLn4168soIuE2ltUuYqZCfKMSG47qqpHxQ4pQBle46X6ZAGnQb4qqxVkFqkc85ZAfjaj9ycGzjdME9U2FAZD';
+  
+  if (FB_TOKEN) {
+    console.log("📡 Uploading Viral Video to Facebook Page...");
+    try {
+      const fbData = new FormData();
+      fbData.append('access_token', FB_TOKEN);
+      fbData.append('description', '🔥 Mivaj Omni-Brain 99% Verified Banker Picks for Today!\n\n' + topMatches.map((m: any) => 🟢 {m.home} vs {m.away} -> {m.pick}).join('\n') + '\n\n⚡ Generated entirely by Artificial Intelligence.\n👉 Play now on mivaj.com');
+      fbData.append('source', fs.createReadStream(savePath));
+
+      const fbResponse = await axios.post(https://graph.facebook.com/v20.0/{FB_PAGE_ID}/videos, fbData, {
+        headers: fbData.getHeaders(),
+      });
+      console.log("✅ Video successfully broadcasted to Facebook Page: " + fbResponse.data.id);
+    } catch (e: any) {
+      console.error("❌ Failed to upload to Facebook:", e.response?.data || e.message);
+    }
+  }
+} else {
     console.log("⚠️ DISCORD_WEBHOOK_URL missing.");
+  }
+  // NEW: Broadcast to Facebook (TipsBros NG)
+  const FB_PAGE_ID = '110234663683622';
+  const FB_TOKEN = 'EAAM9mKnsemUBSWJ8b29JIhaZC9ZAKTljDxcExqmU64IT09HR8QPNY8DZAOdWfVy8m4UKpAXvc13OhFZCYpwbO6kUM4i3q9AwkjAuBWB8dbKDyuG9I66ZAZCojBPe259sZCFbRu04Yt9A3KX8jTHD4XZCDrSOQLn4168soIuE2ltUuYqZCfKMSG47qqpHxQ4pQBle46X6ZAGnQb4qqxVkFqkc85ZAfjaj9ycGzjdME9U2FAZD';
+  
+  if (FB_TOKEN) {
+    console.log("📡 Uploading Viral Video to Facebook Page...");
+    try {
+      const fbData = new FormData();
+      fbData.append('access_token', FB_TOKEN);
+      fbData.append('description', '🔥 Mivaj Omni-Brain 99% Verified Banker Picks for Today!\n\n' + topMatches.map((m: any) => 🟢 {m.home} vs {m.away} -> {m.pick}).join('\n') + '\n\n⚡ Generated entirely by Artificial Intelligence.\n👉 Play now on mivaj.com');
+      fbData.append('source', fs.createReadStream(savePath));
+
+      const fbResponse = await axios.post(https://graph.facebook.com/v20.0/{FB_PAGE_ID}/videos, fbData, {
+        headers: fbData.getHeaders(),
+      });
+      console.log("✅ Video successfully broadcasted to Facebook Page: " + fbResponse.data.id);
+    } catch (e: any) {
+      console.error("❌ Failed to upload to Facebook:", e.response?.data || e.message);
+    }
   }
 } else {
         console.error("❌ Telegram API Error:", response.data);
@@ -192,8 +232,48 @@ async function generateViralShort() {
     } catch (e: any) {
       console.error("❌ Failed to upload to Discord:", e.message);
     }
-  } else {
+    // NEW: Broadcast to Facebook (TipsBros NG)
+  const FB_PAGE_ID = '110234663683622';
+  const FB_TOKEN = 'EAAM9mKnsemUBSWJ8b29JIhaZC9ZAKTljDxcExqmU64IT09HR8QPNY8DZAOdWfVy8m4UKpAXvc13OhFZCYpwbO6kUM4i3q9AwkjAuBWB8dbKDyuG9I66ZAZCojBPe259sZCFbRu04Yt9A3KX8jTHD4XZCDrSOQLn4168soIuE2ltUuYqZCfKMSG47qqpHxQ4pQBle46X6ZAGnQb4qqxVkFqkc85ZAfjaj9ycGzjdME9U2FAZD';
+  
+  if (FB_TOKEN) {
+    console.log("📡 Uploading Viral Video to Facebook Page...");
+    try {
+      const fbData = new FormData();
+      fbData.append('access_token', FB_TOKEN);
+      fbData.append('description', '🔥 Mivaj Omni-Brain 99% Verified Banker Picks for Today!\n\n' + topMatches.map((m: any) => 🟢 {m.home} vs {m.away} -> {m.pick}).join('\n') + '\n\n⚡ Generated entirely by Artificial Intelligence.\n👉 Play now on mivaj.com');
+      fbData.append('source', fs.createReadStream(savePath));
+
+      const fbResponse = await axios.post(https://graph.facebook.com/v20.0/{FB_PAGE_ID}/videos, fbData, {
+        headers: fbData.getHeaders(),
+      });
+      console.log("✅ Video successfully broadcasted to Facebook Page: " + fbResponse.data.id);
+    } catch (e: any) {
+      console.error("❌ Failed to upload to Facebook:", e.response?.data || e.message);
+    }
+  }
+} else {
     console.log("⚠️ DISCORD_WEBHOOK_URL missing.");
+  }
+  // NEW: Broadcast to Facebook (TipsBros NG)
+  const FB_PAGE_ID = '110234663683622';
+  const FB_TOKEN = 'EAAM9mKnsemUBSWJ8b29JIhaZC9ZAKTljDxcExqmU64IT09HR8QPNY8DZAOdWfVy8m4UKpAXvc13OhFZCYpwbO6kUM4i3q9AwkjAuBWB8dbKDyuG9I66ZAZCojBPe259sZCFbRu04Yt9A3KX8jTHD4XZCDrSOQLn4168soIuE2ltUuYqZCfKMSG47qqpHxQ4pQBle46X6ZAGnQb4qqxVkFqkc85ZAfjaj9ycGzjdME9U2FAZD';
+  
+  if (FB_TOKEN) {
+    console.log("📡 Uploading Viral Video to Facebook Page...");
+    try {
+      const fbData = new FormData();
+      fbData.append('access_token', FB_TOKEN);
+      fbData.append('description', '🔥 Mivaj Omni-Brain 99% Verified Banker Picks for Today!\n\n' + topMatches.map((m: any) => 🟢 {m.home} vs {m.away} -> {m.pick}).join('\n') + '\n\n⚡ Generated entirely by Artificial Intelligence.\n👉 Play now on mivaj.com');
+      fbData.append('source', fs.createReadStream(savePath));
+
+      const fbResponse = await axios.post(https://graph.facebook.com/v20.0/{FB_PAGE_ID}/videos, fbData, {
+        headers: fbData.getHeaders(),
+      });
+      console.log("✅ Video successfully broadcasted to Facebook Page: " + fbResponse.data.id);
+    } catch (e: any) {
+      console.error("❌ Failed to upload to Facebook:", e.response?.data || e.message);
+    }
   }
 } else {
     console.log("⚠️ TELEGRAM_BOT_TOKEN missing. Video saved locally but not uploaded.");
@@ -201,6 +281,7 @@ async function generateViralShort() {
 }
 
 generateViralShort().catch(console.error);
+
 
 
 
