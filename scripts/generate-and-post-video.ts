@@ -1,11 +1,11 @@
-import puppeteer from 'puppeteer';
+﻿import puppeteer from 'puppeteer';
 import { PuppeteerScreenRecorder } from 'puppeteer-screen-recorder';
-import fs from 'fs';
-import axios from 'axios';
-import FormData from 'form-data';
+const fs = require('fs');
+const axios = require('axios');
+const FormData = require('form-data');
 
 async function generateViralShort() {
-  console.log("🔥 Booting Mivaj TikTok/Shorts 99% Accuracy Engine...");
+  console.log("ðŸ”¥ Booting Mivaj TikTok/Shorts 99% Accuracy Engine...");
   
   let matchesData: any[] = [];
   try {
@@ -79,7 +79,7 @@ async function generateViralShort() {
         </style>
       </head>
       <body>
-        <div class="glitch">🔥 99% ACCURACY AI PICKS 🔥</div>
+        <div class="glitch">ðŸ”¥ 99% ACCURACY AI PICKS ðŸ”¥</div>
         ${topMatches.map((m: any) => `
           <div class="match-card">
             <div class="teams">${m.home} vs ${m.away}</div>
@@ -99,23 +99,23 @@ async function generateViralShort() {
   });
 
   const savePath = './viral-tiktok.mp4';
-  console.log("🎥 Recording 10-second TikTok...");
+  console.log("ðŸŽ¥ Recording 10-second TikTok...");
   await recorder.start(savePath);
   await new Promise(r => setTimeout(r, 10000));
   await recorder.stop();
   await browser.close();
 
-  console.log("✅ MP4 Video generated successfully.");
+  console.log("âœ… MP4 Video generated successfully.");
 
-  const captionText = '🔥 **Mivaj Omni-Brain 99% Verified Banker Picks for Today!**\n\n' + 
-                      topMatches.map((m: any) => `🟢 ${m.home} vs ${m.away} -> **${m.pick}**`).join('\n') + 
-                      '\n\n⚡ Generated entirely by Artificial Intelligence.\n👉 Play now on [Mivaj Sports](https://mivaj.com)';
+  const captionText = 'ðŸ”¥ **Mivaj Omni-Brain 99% Verified Banker Picks for Today!**\n\n' + 
+                      topMatches.map((m: any) => `ðŸŸ¢ ${m.home} vs ${m.away} -> **${m.pick}**`).join('\n') + 
+                      '\n\nâš¡ Generated entirely by Artificial Intelligence.\nðŸ‘‰ Play now on [Mivaj Sports](https://mivaj.com)';
 
   // 1. TELEGRAM
   const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
   const CHANNEL_ID = '@mivajsport'; 
   if (TELEGRAM_TOKEN) {
-    console.log("📡 Uploading Viral Video to Telegram channel " + CHANNEL_ID + "...");
+    console.log("ðŸ“¡ Uploading Viral Video to Telegram channel " + CHANNEL_ID + "...");
     try {
       const formData = new FormData();
       formData.append('chat_id', CHANNEL_ID);
@@ -123,24 +123,24 @@ async function generateViralShort() {
       formData.append('caption', captionText);
       formData.append('parse_mode', 'Markdown');
       const response = await axios.post(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendVideo`, formData, { headers: formData.getHeaders() });
-      if (response.data.ok) console.log("✅ Broadcasted to Telegram!");
+      if (response.data.ok) console.log("âœ… Broadcasted to Telegram!");
     } catch (e: any) {
-      console.error("❌ Telegram upload failed:", e.message);
+      console.error("âŒ Telegram upload failed:", e.message);
     }
   }
 
   // 2. DISCORD
   const DISCORD_WEBHOOK = process.env.DISCORD_WEBHOOK_URL;
   if (DISCORD_WEBHOOK) {
-    console.log("📡 Uploading Viral Video to Discord...");
+    console.log("ðŸ“¡ Uploading Viral Video to Discord...");
     try {
       const formData = new FormData();
       formData.append('payload_json', JSON.stringify({ content: captionText, username: "Mivaj AI Video Bot" }));
       formData.append('file', fs.createReadStream(savePath), 'viral-tiktok.mp4');
       await axios.post(DISCORD_WEBHOOK, formData, { headers: formData.getHeaders() });
-      console.log("✅ Broadcasted to Discord!");
+      console.log("âœ… Broadcasted to Discord!");
     } catch (e: any) {
-      console.error("❌ Discord upload failed:", e.message);
+      console.error("âŒ Discord upload failed:", e.message);
     }
   }
 
@@ -148,18 +148,19 @@ async function generateViralShort() {
   const FB_PAGE_ID = '110234663683622';
   const FB_TOKEN = 'EAAM9mKnsemUBSWJ8b29JIhaZC9ZAKTljDxcExqmU64IT09HR8QPNY8DZAOdWfVy8m4UKpAXvc13OhFZCYpwbO6kUM4i3q9AwkjAuBWB8dbKDyuG9I66ZAZCojBPe259sZCFbRu04Yt9A3KX8jTHD4XZCDrSOQLn4168soIuE2ltUuYqZCfKMSG47qqpHxQ4pQBle46X6ZAGnQb4qqxVkFqkc85ZAfjaj9ycGzjdME9U2FAZD';
   if (FB_TOKEN) {
-    console.log("📡 Uploading Viral Video to Facebook Page...");
+    console.log("ðŸ“¡ Uploading Viral Video to Facebook Page...");
     try {
       const fbData = new FormData();
       fbData.append('access_token', FB_TOKEN);
       fbData.append('description', captionText);
       fbData.append('source', fs.createReadStream(savePath));
       const fbResponse = await axios.post(`https://graph.facebook.com/v20.0/${FB_PAGE_ID}/videos`, fbData, { headers: fbData.getHeaders() });
-      console.log("✅ Broadcasted to Facebook: " + fbResponse.data.id);
+      console.log("âœ… Broadcasted to Facebook: " + fbResponse.data.id);
     } catch (e: any) {
-      console.error("❌ Facebook upload failed:", e.response?.data || e.message);
+      console.error("âŒ Facebook upload failed:", e.response?.data || e.message);
     }
   }
 }
 
 generateViralShort().catch(console.error);
+
