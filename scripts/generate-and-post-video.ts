@@ -112,8 +112,43 @@ async function generateViralShort() {
   await recorder.stop();
   await browser.close();
 
-  console.log("✅ MP4 Video generated successfully.");
+  console.log("MP4 Video generated successfully.");
+
+  // NEW: Automatically broadcast the video to the Telegram Channel
+  const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+  const CHANNEL_ID = '@mivajsport'; 
+
+  if (TELEGRAM_TOKEN) {
+    console.log("📡 Uploading Viral Video to Telegram channel " + CHANNEL_ID + "...");
+    try {
+      const FormData = require('form-data');
+      const axios = require('axios');
+      const fs = require('fs');
+
+      const formData = new FormData();
+      formData.append('chat_id', CHANNEL_ID);
+      formData.append('video', fs.createReadStream(savePath));
+      formData.append('caption', '🔥 **Mivaj Omni-Brain 99% Verified Banker Picks for Today!**\n\n' + topMatches.map((m: any) => 🟢 {m.home} vs {m.away} -> **{m.pick}**).join('\n') + '\n\n⚡ Generated entirely by Artificial Intelligence.\n👉 Play now on [Mivaj Sports](https://mivaj.com)');
+      formData.append('parse_mode', 'Markdown');
+
+      const response = await axios.post(https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendVideo, formData, {
+        headers: formData.getHeaders(),
+      });
+
+      if (response.data.ok) {
+        console.log("✅ Video successfully broadcasted to Telegram!");
+      } else {
+        console.error("❌ Telegram API Error:", response.data);
+      }
+    } catch (e: any) {
+      console.error("❌ Failed to upload to Telegram:", e.message);
+    }
+  } else {
+    console.log("⚠️ TELEGRAM_BOT_TOKEN missing. Video saved locally but not uploaded.");
+  }
 }
 
 generateViralShort().catch(console.error);
+
+
 
