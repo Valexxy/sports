@@ -1,5 +1,6 @@
 ﻿'use client';
 import React, { useState, useEffect } from 'react';
+import { ProfessionalSettlementEngine } from '../lib/settlement-engine';
 import { X, Trophy, Calendar, CheckCircle2 } from 'lucide-react';
 
 interface PredictionHistoryModalProps {
@@ -198,4 +199,5 @@ export const PredictionHistoryModal: React.FC<PredictionHistoryModalProps> = ({ 
     </div>
   );
 };
+
 

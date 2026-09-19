@@ -1,6 +1,7 @@
 ﻿'use client';
 import React, { useState, useEffect } from 'react';
 import { MatchData } from '../lib/sports-api';
+import { ProfessionalSettlementEngine } from '../lib/settlement-engine';
 import { X, ShieldCheck, CheckCircle2, XCircle, Calendar, ArrowRight, ExternalLink, Filter, TrendingUp } from 'lucide-react';
 import { useTranslation } from '../lib/translation-engine';
 
@@ -168,4 +169,5 @@ export const PublicLedgerModal: React.FC<LedgerModalProps> = ({ onClose, matches
     </div>
   );
 };
+
 
