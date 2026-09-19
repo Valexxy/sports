@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Mivaj AI VIP Agent",
+  "version": "1.0.0",
+  "description": "Automated AI betslip generator and odds tracker for Mivaj Sports.",
+  "permissions": ["tabs", "scripting", "storage"],
+  "host_permissions": [
+    "*://*.mivaj.com/*",
+    "*://localhost/*",
+    "*://*.1xbet.com/*",
+    "*://*.bet9ja.com/*",
+    "*://*.sportybet.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.mivaj.com/*", "*://localhost/*"],
+      "js": ["mivaj-injector.js"]
+    }
+  ],
+  "action": {
+    "default_title": "Mivaj AI Agent"
+  }
+}
