@@ -1,4 +1,4 @@
-import { PwaRegister } from '../components/pwa-register';
+﻿import { PwaRegister } from '../components/pwa-register';
 import { PwaInstallPromptModal } from '../components/pwa/PwaInstallPromptModal';
 import { PersistentDynamicIslandPlayer } from '../components/audio/PersistentDynamicIslandPlayer';
 import { PageviewMonetizer } from '../components/monetization/PageviewMonetizer';
@@ -175,7 +175,7 @@ export default function RootLayout({
 
         <LanguageProvider>
           {/* Universal Environment, Location, Dialect & Weather Header */}
-          <EnvironmentIntelHeader />
+          {/* <EnvironmentIntelHeader /> Removed for Billion-Dollar UI */}
 
           {children}
 
@@ -220,6 +220,7 @@ export default function RootLayout({
     </html>
   );
 }
+
 
 
 
