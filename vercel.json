@@ -1,31 +1,16 @@
-{
+﻿{
   "crons": [
     {
-      "path": "/api/cron/telegram-morning",
-      "schedule": "0 5 * * *"
+      "path": "/api/cron/omni-brain",
+      "schedule": "0 * * * *"
     },
     {
-      "path": "/api/cron/telegram-settle",
-      "schedule": "30 21 * * *"
-    }
-  ],
-  "headers": [
+      "path": "/api/cron/update-data",
+      "schedule": "*/15 * * * *"
+    },
     {
-      "source": "/((?!_next/static|_next/image|favicon.ico).*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
-        },
-        {
-          "key": "CDN-Cache-Control",
-          "value": "no-store"
-        },
-        {
-          "key": "Cloudflare-CDN-Cache-Control",
-          "value": "no-store"
-        }
-      ]
+      "path": "/api/cron/telegram-live-settle",
+      "schedule": "*/10 * * * *"
     }
   ]
 }
