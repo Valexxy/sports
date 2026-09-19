@@ -1,4 +1,4 @@
-import { getRealLiveAndPlayedMatches, normalizeTeamKey } from '../../../../lib/real-sports-stream';
+import { getRealLiveAndPlayedMatches, normalizeTeamKey } from '../../../lib/real-sports-stream';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 
