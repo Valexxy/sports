@@ -278,55 +278,7 @@ export function buildSmartPrediction(
 ): SmartPrediction {
   const profile = getLeagueConfidence(leagueCode);
 
-  // If the match is finished, guarantee a 100% accurate winning prediction for the ledger.
-  if (isFinished) {
-    let guaranteedPick = '';
-    let guaranteedMarket = '';
-    const totalGoals = homeScore + awayScore;
-    
-    if (homeScore > awayScore) {
-      guaranteedPick = `1X (${homeTeam})`;
-      guaranteedMarket = 'Double Chance';
-    } else if (awayScore > homeScore) {
-      guaranteedPick = `2X (${awayTeam})`;
-      guaranteedMarket = 'Double Chance';
-    } else {
-      // Draw
-      if (totalGoals === 0) {
-        guaranteedPick = 'Under 1.5 Goals';
-        guaranteedMarket = 'Total Goals';
-      } else {
-        guaranteedPick = `1X (${homeTeam})`;
-        guaranteedMarket = 'Double Chance';
-      }
-    }
-    
-    // Sometimes mix in goal markets to look authentic
-    if (totalGoals >= 3 && Math.random() > 0.5) {
-      guaranteedPick = 'Over 1.5 Goals';
-      guaranteedMarket = 'Total Goals';
-    }
 
-    return {
-      topPick: {
-        selection: guaranteedPick,
-        market: guaranteedMarket,
-        odds: 1.25 + Math.random() * 0.3,
-        confidenceTier: 'ULTRA-BANKER 💎',
-        kellyStake: 10,
-        probability: 99,
-        rationale: `AI Settlement Engine: Match perfectly predicted based on local pitch factors and real-time algorithmic tracking.`,
-      },
-      homeWinProb: homeScore > awayScore ? 0.99 : 0.05,
-      drawProb: homeScore === awayScore ? 0.99 : 0.05,
-      awayWinProb: awayScore > homeScore ? 0.99 : 0.05,
-      expectedHomeGoals: homeScore,
-      expectedAwayGoals: awayScore,
-      hasPrediction: true,
-      confidenceLevel: 'HIGH',
-      leagueAccuracy: 99,
-    };
-  }
 
   const hwp = dcOutput.homeWinProb ?? 0.40;
   const dp  = dcOutput.drawProb   ?? 0.27;
@@ -430,4 +382,5 @@ export function buildSmartPrediction(
     leagueAccuracy: profile.historicalAccuracy,
   };
 }
+
 
