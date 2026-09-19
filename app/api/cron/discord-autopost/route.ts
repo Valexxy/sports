@@ -26,14 +26,14 @@ export async function GET(req: Request) {
         description: `**Mivaj AI Engine has detected a high-value market.**`,
         color: 5763719,
         url: `https://mivaj.com/match/${homeSlug}-vs-${awaySlug}`,
-        thumbnail: { url: "https://mivaj.com/icons/icon-192x192.png" },
+        thumbnail: { url: "https://mivaj.com/icons/icon-192.png" },
         fields: [
           { name: "ALGORITHMIC PICK", value: `\`\`\`fix\n${pick}\n\`\`\``, inline: false },
           { name: "VALUE ODDS", value: `**@ ${odds}**`, inline: true },
           { name: "LEAGUE", value: `${m.league || 'Global'}`, inline: true },
           { name: "KICKOFF", value: `<t:${Math.floor(new Date(m.utcDate).getTime() / 1000)}:R>`, inline: true }
         ],
-        footer: { text: "Mivaj Quantum Sports Engine", icon_url: "https://mivaj.com/icons/icon-192x192.png" },
+        footer: { text: "Mivaj Quantum Sports Engine", icon_url: "https://mivaj.com/icons/icon-192.png" },
         timestamp: new Date().toISOString()
       };
     });
@@ -42,7 +42,7 @@ export async function GET(req: Request) {
       content: "<@&1550527915010039890> PREMIUM BANKER ALERTS DEPLOYED\nTap the title of any match below to read the deep AI analysis, or grab the raw SportyBet codes in our Telegram: https://t.me/mivajsport",
       embeds: embeds,
       username: "Mivaj AI",
-      avatar_url: "https://mivaj.com/icons/icon-192x192.png"
+      avatar_url: "https://mivaj.com/icons/icon-192.png"
     };
 
     await fetch(webhookUrl, {
