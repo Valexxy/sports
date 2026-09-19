@@ -1,5 +1,10 @@
 ﻿'use client';
 
+import { LocalAiPredictorWidget } from '../components/local-ai-predictor-widget';
+import { WhaleRadarTape } from '../components/whale-radar-tape';
+import { OmniBrainOrb } from '../components/omni-brain-orb';
+import { CommandPalette } from '../components/command-palette';
+import { HyperStreamFeed } from '../components/hyper-stream-feed';
 import { BetSlipDrawer } from '../components/bet-slip-drawer';
 import { FEATURE_BUNDLES } from '../lib/feature-bundle-config';
 
@@ -1039,6 +1044,7 @@ export default function Home() {
       </div>
   );
 }
+
 
 
 
