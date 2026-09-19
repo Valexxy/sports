@@ -8,7 +8,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   if (!match) return { title: 'Match Not Found' };
   return {
     title: `${match.homeTeam} vs ${match.awayTeam} Predictions & Odds`,
-    description: `Get the best predictions for ${match.homeTeam} vs ${match.awayTeam}. Mivaj AI predicts ${match.prediction?.topPick?.selection}.`
+    description: `Get the best predictions for ${match.homeTeam} vs ${match.awayTeam}. Mivaj AI predicts ${match.prediction?.topPick?.selection}.`,
+    alternates: { canonical: `/match/${params.slug}` }
   };
 }
 

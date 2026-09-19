@@ -1,6 +1,8 @@
 import { TelegramBotService } from '../services/telegram/botService';
 import { getRedisCache, setRedisCache } from './upstash-redis-engine';
 import { publishToTipsBrosFacebook, DEFAULT_PAGE_TOKEN, TIPS_BROS_PAGE_ID, TIPS_BROS_PAGE_URL } from './facebook-page-autoposter';
+import { rewriteNewsWithAI } from './ai-rewriter';
+import { pingIndexNow } from './index-now';
 
 export interface NewsAutopostResult {
   success: boolean;
@@ -13,7 +15,6 @@ export interface NewsAutopostResult {
 
 export async function broadcastBreakingNewsToSocials(): Promise<NewsAutopostResult> {
   try {
-    // 1. Fetch fresh live news from internal API or ESPN
     const res = await fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/news', {
       headers: { 'User-Agent': 'Mozilla/5.0' },
       signal: AbortSignal.timeout(8000),
@@ -25,11 +26,8 @@ export async function broadcastBreakingNewsToSocials(): Promise<NewsAutopostResu
 
     const data = await res.json();
     const articles = data.articles || [];
-    if (articles.length === 0) {
-      return { success: true, telegramPosted: false, facebookPosted: false };
-    }
+    if (articles.length === 0) return { success: true, telegramPosted: false, facebookPosted: false };
 
-    // 2. Find fresh article not yet posted
     let selected: any = null;
     let articleId = '';
     for (const art of articles.slice(0, 10)) {
@@ -43,33 +41,36 @@ export async function broadcastBreakingNewsToSocials(): Promise<NewsAutopostResu
       }
     }
 
-    if (!selected) {
-      return { success: true, telegramPosted: false, facebookPosted: false };
-    }
+    if (!selected) return { success: true, telegramPosted: false, facebookPosted: false };
 
-    const title = (selected.headline || selected.title || 'Breaking Football News').trim();
-    const desc = (selected.description || selected.story || '').trim() || 'Breaking football updates and tactical developments.';
+    const originalTitle = (selected.headline || selected.title || 'Breaking Football News').trim();
+    const originalDesc = (selected.description || selected.story || '').trim();
     const rawImg = selected.images?.[0]?.url || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&q=90';
     const hdImg = rawImg.replace(/&w=\d+/, '&w=1200').replace(/&h=\d+/, '&h=675');
 
-    // 3. Post to Telegram (@mivajsport)
+    // === AI REWRITER INJECTION ===
+    const { title, content: desc } = await rewriteNewsWithAI(originalTitle, originalDesc, 'Global Football');
+
+    // === PER-SECOND INDEXING (IndexNow Ping) ===
+    // Assuming you have a dynamic news page for this article: /news/articleId
+    const newsUrl = `https://mivaj.com/news/${articleId}`;
+    await pingIndexNow(newsUrl);
+
     let tgOk = false;
     try {
-      let msg = `🚨 <b>BREAKING FOOTBALL NEWS WIRE 📰⚡</b>\n\n`;
-      msg += `⚽ <b>${title.toUpperCase()}</b>\n\n`;
-      msg += `📋 ${desc}\n\n`;
-      msg += `🔥 <i>Full tactical breakdown, starting lineups, and referee data verified live on Mivaj Sports!</i>\n\n`;
-      msg += `👉 Read Full Story: https://mivaj.com/news\n`;
-      msg += `👉 Live Match Center: https://mivaj.com\n`;
-      msg += `👉 Free Banker Signals: https://t.me/mivajsport\n`;
+      // 100% Premium Content Structure
+      let msg = `? <b>MIVAJ INSIDER TACTICAL REPORT</b> ?\n\n`;
+      msg += `<b>${title.toUpperCase()}</b>\n\n`;
+      msg += `${desc}\n\n`;
+      msg += `?? <i>AI Analysis: This directly impacts market odds. Read full breakdown below.</i>\n`;
 
       const keyboard = [
         [
-          { text: '📰 READ FULL STORY ON MIVAJ ➔', url: 'https://mivaj.com/news' },
+          { text: '?? READ DEEP ANALYSIS ON MIVAJ', url: newsUrl },
         ],
         [
-          { text: '🔥 TODAY\'S 84% WIN BANKERS', url: 'https://mivaj.com' },
-          { text: '📲 GET NATIVE APP (APK)', url: 'https://mivaj.com/download' },
+          { text: '?? 84% WIN BANKERS', url: 'https://mivaj.com' },
+          { text: '?? SHARE TO UNLOCK VIP ODDS', url: `https://t.me/share/url?url=https://t.me/mivajsport&text=Get%20insane%20AI%20football%20predictions!` },
         ],
       ];
 
@@ -79,13 +80,12 @@ export async function broadcastBreakingNewsToSocials(): Promise<NewsAutopostResu
       console.warn('Telegram news broadcast error:', e);
     }
 
-    // 4. Post to Facebook (TipsBros NG)
     let fbOk = false;
     try {
       const pageId = process.env.FACEBOOK_PAGE_ID || TIPS_BROS_PAGE_ID;
       const token = process.env.FACEBOOK_PAGE_ACCESS_TOKEN || DEFAULT_PAGE_TOKEN;
       if (token) {
-        const fbCaption = `🚨 BREAKING FOOTBALL NEWS WIRE 🚨\n\n⚽ ${title.toUpperCase()}\n\n📋 ${desc}\n\n🔥 Read the full tactical breakdown & live score impact on Mivaj Sports:\n👉 https://mivaj.com/news\n\n📢 Join 50,000+ Football Fans on Telegram:\n👉 https://t.me/mivajsport\n\n#FootballNews #PremierLeague #ChampionsLeague #Transfers #TipsBrosNG #MivajSports`;
+        const fbCaption = `? MIVAJ INSIDER TACTICAL REPORT ?\n\n${title.toUpperCase()}\n\n${desc}\n\n?? Read the full tactical breakdown & live score impact on Mivaj Sports:\n?? ${newsUrl}\n\n?? Join 50,000+ Football Fans on Telegram for Free Codes:\n?? https://t.me/mivajsport\n\n#FootballNews #PremierLeague #ChampionsLeague #Transfers #TipsBrosNG #MivajSports`;
         const fbRes = await fetch(`https://graph.facebook.com/v19.0/${pageId}/photos`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -102,7 +102,6 @@ export async function broadcastBreakingNewsToSocials(): Promise<NewsAutopostResu
       console.warn('Facebook news broadcast error:', e);
     }
 
-    // 5. Mark as posted in Redis (TTL 4 days)
     await setRedisCache(`mivaj:news_posted:${articleId}`, true, 60 * 60 * 24 * 4);
 
     return {

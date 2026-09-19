@@ -4,7 +4,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   const name = params.slug.replace(/-/g, ' ');
   return {
     title: `${name.toUpperCase()} Birthday, Stats, and Legacy | Mivaj Sports`,
-    description: `Celebrate ${name}'s birthday today! View their career stats, iconic moments, and place in football history.`
+    description: `Celebrate ${name}'s birthday today! View their career stats, iconic moments, and place in football history.`,
+    alternates: { canonical: `/birthdays/${params.slug}` }
   };
 }
 

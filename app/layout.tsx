@@ -21,6 +21,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://mivaj.com'),
+  alternates: { canonical: '/' },
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://mivaj.com'),
   title: {
     default: 'Mivaj Sports | 100% Free Football Predictions, Live Scores & Matchday Intelligence',
@@ -218,5 +220,6 @@ export default function RootLayout({
     </html>
   );
 }
+
 
 
