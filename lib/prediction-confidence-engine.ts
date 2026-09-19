@@ -278,19 +278,13 @@ export function buildSmartPrediction(
 ): SmartPrediction {
   const profile = getLeagueConfidence(leagueCode);
 
-
-
   const hwp = dcOutput.homeWinProb ?? 0.40;
   const dp  = dcOutput.drawProb   ?? 0.27;
   const awp = dcOutput.awayWinProb ?? 0.33;
   const ehg = dcOutput.expectedHomeGoals ?? 1.3;
   const eag = dcOutput.expectedAwayGoals ?? 1.0;
-
-
-
   const modelProb = dcOutput.topPick?.probability ?? 55;
 
-  // NO_PREDICTION or LOW below threshold â†’ Watch Only
   const noDataCondition =
     profile.confidenceLevel === 'NO_PREDICTION' ||
     (profile.confidenceLevel === 'LOW' && modelProb < profile.minProbabilityThreshold);
@@ -315,11 +309,6 @@ export function buildSmartPrediction(
     };
   }
 
-
-  // Premium Pre-Match Prediction Logic
-  // Focus on identifying extremely high-probability safety markets (1X, 2X, Over 1.5, Under 3.5)
-  // based purely on algorithmic pre-match probabilities, avoiding risky direct 1X2 predictions.
-
   const safeHomeDC = hwp + dp;
   const safeAwayDC = awp + dp;
   const totalExp = ehg + eag;
@@ -330,10 +319,6 @@ export function buildSmartPrediction(
   let optimalProb = 85;
   let reason = '';
 
-  // 1. If highly likely to have goals, Over 1.5 is the safest bet in football
-  
-  // Baseline scaling since the current dcEngine outputs ~4.24 totalExp on average
-  // We only want Over 1.5 for truly exceptional attacking matchups (e.g. totalExp > 4.8)
   if (totalExp >= 5.0) {
     optimalSelection = 'Over 2.5 Goals';
     optimalMarket = 'Total Goals';
@@ -348,14 +333,6 @@ export function buildSmartPrediction(
     optimalProb = 90;
     reason = `Open tactical structure expected. Over 1.5 provides maximum statistical safety.`;
   }
-
-    optimalSelection = 'Over 1.5 Goals';
-    optimalMarket = 'Total Goals';
-    optimalOdds = 1.28;
-    optimalProb = 92;
-    reason = `High-octane fixture (${totalExp.toFixed(1)} xG). Over 1.5 is mathematically premium.`;
-  } 
-  // 2. Heavy Home Favorite Double Chance
   else if (safeHomeDC >= 0.85) {
     optimalSelection = `1X (${homeTeam})`;
     optimalMarket = 'Double Chance';
@@ -363,7 +340,6 @@ export function buildSmartPrediction(
     optimalProb = Math.round(safeHomeDC * 100);
     reason = `Home fortress logic. ${Math.round(safeHomeDC * 100)}% statistical probability to avoid defeat.`;
   }
-  // 3. Heavy Away Favorite Double Chance
   else if (safeAwayDC >= 0.85) {
     optimalSelection = `2X (${awayTeam})`;
     optimalMarket = 'Double Chance';
@@ -371,7 +347,6 @@ export function buildSmartPrediction(
     optimalProb = Math.round(safeAwayDC * 100);
     reason = `Away dominance. ${Math.round(safeAwayDC * 100)}% statistical probability to secure points.`;
   }
-  // 4. Low-scoring cagey match
   else if (totalExp <= 3.2 && safeHomeDC < 0.85 && safeAwayDC < 0.85) {
     optimalSelection = 'Under 3.5 Goals';
     optimalMarket = 'Total Goals';
@@ -379,7 +354,6 @@ export function buildSmartPrediction(
     optimalProb = 89;
     reason = `Cagey tactical battle (${totalExp.toFixed(1)} xG). Under 3.5 is the optimal statistical angle.`;
   }
-  // 5. If everything else fails, rely on baseline model top pick if confidence is decent
   else if (modelProb >= 75) {
     optimalSelection = dcOutput.topPick?.selection ?? (awp > hwp ? `2X (${awayTeam})` : `1X (${homeTeam})`);
     optimalMarket = dcOutput.topPick?.market ?? 'Double Chance';
@@ -387,7 +361,6 @@ export function buildSmartPrediction(
     optimalProb = Math.round(modelProb);
     reason = `Base Dixon-Coles output provides sufficient premium edge (${optimalProb}%).`;
   }
-  // 6. Too risky - Skip
   else {
     return {
       topPick: {
@@ -429,6 +402,4 @@ export function buildSmartPrediction(
     confidenceLevel: profile.confidenceLevel,
     leagueAccuracy: profile.historicalAccuracy,
   };
-
 }
-
