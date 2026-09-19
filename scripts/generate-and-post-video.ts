@@ -2,7 +2,7 @@
 const { PuppeteerScreenRecorder } = require('puppeteer-screen-recorder');
 const fs = require('fs');
 const axios = require('axios');
-const FormData = require('form-data');
+const NodeFormData = require('form-data');
 
 async function generateViralShort() {
   console.log("ðŸ”¥ Booting Mivaj TikTok/Shorts 99% Accuracy Engine...");
@@ -117,7 +117,7 @@ async function generateViralShort() {
   if (TELEGRAM_TOKEN) {
     console.log("ðŸ“¡ Uploading Viral Video to Telegram channel " + CHANNEL_ID + "...");
     try {
-      const formData = new FormData();
+      const formData = new NodeFormData();
       formData.append('chat_id', CHANNEL_ID);
       formData.append('video', fs.createReadStream(savePath));
       formData.append('caption', captionText);
@@ -134,7 +134,7 @@ async function generateViralShort() {
   if (DISCORD_WEBHOOK) {
     console.log("ðŸ“¡ Uploading Viral Video to Discord...");
     try {
-      const formData = new FormData();
+      const formData = new NodeFormData();
       formData.append('payload_json', JSON.stringify({ content: captionText, username: "Mivaj AI Video Bot" }));
       formData.append('file', fs.createReadStream(savePath), 'viral-tiktok.mp4');
       await axios.post(DISCORD_WEBHOOK, formData, { headers: formData.getHeaders() });
@@ -150,7 +150,7 @@ async function generateViralShort() {
   if (FB_TOKEN) {
     console.log("ðŸ“¡ Uploading Viral Video to Facebook Page...");
     try {
-      const fbData = new FormData();
+      const fbData = new NodeFormData();
       fbData.append('access_token', FB_TOKEN);
       fbData.append('description', captionText);
       fbData.append('source', fs.createReadStream(savePath));
@@ -163,5 +163,6 @@ async function generateViralShort() {
 }
 
 generateViralShort().catch(console.error);
+
 
 
