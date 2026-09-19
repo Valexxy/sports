@@ -331,7 +331,24 @@ export function buildSmartPrediction(
   let reason = '';
 
   // 1. If highly likely to have goals, Over 1.5 is the safest bet in football
-  if (totalExp >= 2.8) {
+  
+  // Baseline scaling since the current dcEngine outputs ~4.24 totalExp on average
+  // We only want Over 1.5 for truly exceptional attacking matchups (e.g. totalExp > 4.8)
+  if (totalExp >= 5.0) {
+    optimalSelection = 'Over 2.5 Goals';
+    optimalMarket = 'Total Goals';
+    optimalOdds = 1.45;
+    optimalProb = 88;
+    reason = `Heavy attacking matchup (${totalExp.toFixed(1)} xG). Over 2.5 is statistically sound.`;
+  }
+  else if (totalExp >= 4.6 && safeHomeDC < 0.85 && safeAwayDC < 0.85) {
+    optimalSelection = 'Over 1.5 Goals';
+    optimalMarket = 'Total Goals';
+    optimalOdds = 1.25;
+    optimalProb = 90;
+    reason = `Open tactical structure expected. Over 1.5 provides maximum statistical safety.`;
+  }
+
     optimalSelection = 'Over 1.5 Goals';
     optimalMarket = 'Total Goals';
     optimalOdds = 1.28;
@@ -355,7 +372,7 @@ export function buildSmartPrediction(
     reason = `Away dominance. ${Math.round(safeAwayDC * 100)}% statistical probability to secure points.`;
   }
   // 4. Low-scoring cagey match
-  else if (totalExp <= 2.2) {
+  else if (totalExp <= 3.2 && safeHomeDC < 0.85 && safeAwayDC < 0.85) {
     optimalSelection = 'Under 3.5 Goals';
     optimalMarket = 'Total Goals';
     optimalOdds = 1.30;
