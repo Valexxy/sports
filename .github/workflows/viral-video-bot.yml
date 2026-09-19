@@ -1,0 +1,32 @@
+name: ?? Viral Faceless Video Bot
+
+on:
+  schedule:
+    # Runs at 12:00 PM every day
+    - cron: '0 12 * * *'
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  render-and-post:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies (Including Puppeteer/FFmpeg)
+        run: |
+          npm install puppeteer puppeteer-screen-recorder form-data axios
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Run Video Generation & Broadcast Script
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          npx ts-node scripts/generate-and-post-video.ts
