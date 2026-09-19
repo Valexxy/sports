@@ -46,6 +46,12 @@ export async function GET(req: Request) {
       .then(r => r.json()).then(data => results.telegram = data).catch(e => results.telegram = { error: e.message })
   );
 
+  // 6. Trigger Mass Web Push Notifications to all opted-in mobile users
+  tasks.push(
+    fetch(`${baseUrl}/api/cron/push-autopost`, { headers: { 'Authorization': `Bearer ${process.env.CRON_SECRET}` }})
+      .then(r => r.json()).then(data => results.webpush = data).catch(e => results.webpush = { error: e.message })
+  );
+
   // Await all background jobs to finish
   await Promise.allSettled(tasks);
 
@@ -53,7 +59,7 @@ export async function GET(req: Request) {
 
   return NextResponse.json({
     success: true,
-    message: "Omni-Brain has successfully coordinated 5 global syndication networks.",
+    message: "Omni-Brain has successfully coordinated 6 global syndication networks.",
     diagnostics: results
   });
 }
