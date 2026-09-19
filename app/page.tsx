@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { BetSlipDrawer } from '../components/bet-slip-drawer';
 import { FEATURE_BUNDLES } from '../lib/feature-bundle-config';
@@ -536,7 +536,7 @@ export default function Home() {
 
         <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 py-4 space-y-5">
           <h1 className="sr-only">
-            Mivaj Sports — 100% Free Football Predictions, Live Scores &amp; Referee Settlement Ledger
+            Mivaj Sports â€” 100% Free Football Predictions, Live Scores &amp; Referee Settlement Ledger
           </h1>
 
           {/* 1. GOOGLE DATE NAVIGATOR & DATE-SCOPED SPORT SELECTOR */}
@@ -554,10 +554,10 @@ export default function Home() {
             }}
           />
 
-          {/* 🌟 VIRAL LIVE PROOF-OF-WIN COMMUNITY STREAM */}
+          {/* ðŸŒŸ VIRAL LIVE PROOF-OF-WIN COMMUNITY STREAM */}
           <LiveProofOfWinTicker />
 
-          {/* 🚀 TELEGRAM SQUAD VIRAL BATTLES */}
+          {/* ðŸš€ TELEGRAM SQUAD VIRAL BATTLES */}
           <TelegramSquadLauncher />
 
           {/* TOP FEATURED BANKER PREDICTIONS (DIXON-COLES POISSON ENGINE) */}
@@ -566,7 +566,7 @@ export default function Home() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <span className="p-1.5 rounded-xl bg-stadiumGreen text-black font-black text-xs">
-                    👑
+                    ðŸ‘‘
                   </span>
                   <div>
                     <span className="font-black text-xs text-white tracking-wide block">
@@ -589,7 +589,7 @@ export default function Home() {
                       className="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white text-[10px] font-black flex items-center space-x-1 border border-white/10"
                       title={collapseBankers ? 'Show all bankers' : 'Collapse to 1 row'}
                     >
-                      <span>{collapseBankers ? `View All (${topBankersList.length}) ▾` : '1 Row (Compact) ▴'}</span>
+                      <span>{collapseBankers ? `View All (${topBankersList.length}) â–¾` : '1 Row (Compact) â–´'}</span>
                     </button>
                   )}
                 </div>
@@ -647,11 +647,11 @@ export default function Home() {
                     <Calendar className="w-4 h-4 text-stadiumGreen" />
                     <span>
                       {isViewingToday ? "Today's Sports" : `${selectedDateLabel} Sports`}
-                      {activeSport === 'SOCCER' && ' ⚽ (Football)'}
-                      {activeSport === 'BASKETBALL' && ' 🏀 (Basketball)'}
-                      {activeSport === 'COMBAT' && ' 🥊 (UFC / MMA)'}
-                      {activeSport === 'TENNIS' && ' 🎾 (Tennis)'}
-                      {activeSport === 'AMERICAN_FOOTBALL' && ' 🏈 (NFL)'}
+                      {activeSport === 'SOCCER' && ' âš½ (Football)'}
+                      {activeSport === 'BASKETBALL' && ' ðŸ€ (Basketball)'}
+                      {activeSport === 'COMBAT' && ' ðŸ¥Š (UFC / MMA)'}
+                      {activeSport === 'TENNIS' && ' ðŸŽ¾ (Tennis)'}
+                      {activeSport === 'AMERICAN_FOOTBALL' && ' ðŸˆ (NFL)'}
                     </span>
                     {liveCount > 0 && (
                       <span className="px-2 py-0.5 rounded-full bg-crimson text-white text-[10px] font-black animate-pulse">
@@ -677,7 +677,7 @@ export default function Home() {
                   }`}
                   title={collapseAllMatches ? "Expand all match intelligence" : "Collapse all match intelligence for rapid scrolling"}
                 >
-                  <span>{collapseAllMatches ? '⊟ Collapsed (Easy Scroll)' : '⊞ Expanded Intel'}</span>
+                  <span>{collapseAllMatches ? 'âŠŸ Collapsed (Easy Scroll)' : 'âŠž Expanded Intel'}</span>
                 </button>
 
                 {lastSynced && (
@@ -741,7 +741,7 @@ export default function Home() {
                     activeFilter === 'FOLLOWING' ? 'bg-gold/20 border-gold text-gold shadow-lg shadow-gold/30' : 'border-white/10 text-gray-400 bg-panel hover:text-white'
                   }`}
                 >
-                  <span>⭐</span>
+                  <span>â­</span>
                   <span className="truncate">{t('Following')}</span>
                   {followingCount > 0 && <span className="px-1.5 py-0.5 rounded-full bg-white/10 text-[10px]">{followingCount}</span>}
                 </button>
@@ -753,13 +753,13 @@ export default function Home() {
                   }}
                   className="py-2.5 px-2 rounded-2xl border border-stadiumGreen/40 bg-stadiumGreen/15 hover:bg-stadiumGreen/25 text-stadiumGreen text-xs font-black transition-all flex items-center justify-center space-x-1.5 shadow-md"
                 >
-                  <span>🌍</span>
+                  <span>ðŸŒ</span>
                   <span className="truncate">{t('All Leagues')}</span>
                 </button>
               </div>
             </div>
 
-            {/* Direct Match Grid — Sectional & Free of Feature Micro-Collapsing */}
+            {/* Direct Match Grid â€” Sectional & Free of Feature Micro-Collapsing */}
             {loadingMatches ? (
               <AnimatedPredictionSkeleton />
             ) : filteredMatches.length > 0 ? (
@@ -822,7 +822,7 @@ export default function Home() {
                     }}
                     className="px-4 py-2 rounded-xl bg-stadiumGreen text-black font-black text-xs inline-flex items-center space-x-1 shadow-md hover:scale-105 transition-all"
                   >
-                    <span>View Upcoming Matches ➔</span>
+                    <span>View Upcoming Matches âž”</span>
                   </button>
                 )}
               </div>
@@ -834,7 +834,7 @@ export default function Home() {
 
           {/* 4. REAL-TIME PHYSICS AURA MOMENTUM METER */}
 
-          {/* 5. PAYSTACK GEN-Z FOMO MICRO-ODDS UNLOCKER (₦200, ₦300, ₦500) */}
+          {/* 5. PAYSTACK GEN-Z FOMO MICRO-ODDS UNLOCKER (â‚¦200, â‚¦300, â‚¦500) */}
           
 
           {/* 6. DAILY 10.00 ODDS ACCUMULATOR & CUT-1 SHIELD */}
@@ -1025,7 +1025,7 @@ export default function Home() {
         )}
 
 
-        {/* Affiliate Conversion Popup — opens after 3+ picks added to slip */}
+        {/* Affiliate Conversion Popup â€” opens after 3+ picks added to slip */}
         <AffiliateConversionPopup
           isOpen={showAffiliatePopup}
           onClose={() => setShowAffiliatePopup(false)}
