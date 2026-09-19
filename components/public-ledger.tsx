@@ -135,7 +135,7 @@ export const PublicLedgerModal: React.FC<LedgerModalProps> = ({ onClose, matches
                 className="p-3.5 rounded-2xl bg-black/70 border border-white/10 hover:border-stadiumGreen/50 transition-all space-y-2"
               >
                 <div className="flex items-center justify-between text-[10px]">
-                  <span className="text-gray-400 font-bold">{m.league} &bull; {m.utcDate ? new Date(m.utcDate).toLocaleDateString([], { month: 'short', day: 'numeric' }) : 'Today'}</span>
+                  <span className="text-gray-400 font-bold">{m.league} &bull; {m.utcDate ? new Date(m.utcDate).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Today'}</span>
                   <span className={`px-2 py-0.5 rounded-full font-black text-[9px] ${
                     isWon ? 'bg-stadiumGreen text-black' : 'bg-crimson text-white'
                   }`}>
@@ -169,5 +169,6 @@ export const PublicLedgerModal: React.FC<LedgerModalProps> = ({ onClose, matches
     </div>
   );
 };
+
 
 

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArchivedMatch } from '../lib/prediction-archive-engine';
@@ -50,7 +50,7 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
             homeScore: settlement.homeScore,
             awayScore: settlement.awayScore,
             league: m.league,
-            leagueFlag: m.leagueFlag || '🌍',
+            leagueFlag: m.leagueFlag || 'ðŸŒ',
             prediction: {
               selection: settlement.evaluatedSelection,
               market: m.prediction?.topPick?.market || 'Double Chance',
@@ -58,7 +58,7 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
               probabilityPercent: m.prediction?.topPick?.probability || 82,
               result: settlement.statusText,
               tipsterName: '@MivajMaster_NG',
-              tipsterBadge: 'VERIFIED ⚡',
+              tipsterBadge: 'VERIFIED âš¡',
             },
             accuracyHeatmapScore: settlement.isWon ? 92 : settlement.isVoid ? 85 : 45,
             settlementHash: `0x${m.id.slice(-6)}...${Date.now().toString(16).slice(-4)}`,
@@ -144,7 +144,7 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
           </div>
           <div>
             <h3 className="font-black text-sm text-white flex items-center space-x-2">
-              <span>HISTORICAL SETTLEMENT LEDGER &amp; CALENDAR 📜</span>
+              <span>HISTORICAL SETTLEMENT LEDGER &amp; CALENDAR ðŸ“œ</span>
               <span className="text-[9px] px-2 py-0.5 rounded bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/30 font-bold">
                 100% AUDITED
               </span>
@@ -166,7 +166,7 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
             title="Generate high-resolution winning games card for WhatsApp, Facebook & Telegram"
           >
             <ImageIcon className="w-3.5 h-3.5 text-gold" />
-            <span>📸 Winning Slip Card (PNG)</span>
+            <span>ðŸ“¸ Winning Slip Card (PNG)</span>
           </button>
 
           <Link
@@ -211,7 +211,7 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
             ))}
           </div>
           <span className="text-[10px] text-stadiumGreen font-black underline whitespace-nowrap sm:pl-2">
-            View All ({filteredArchive.length}) Settled Rows ▾
+            View All ({filteredArchive.length}) Settled Rows â–¾
           </span>
         </div>
       )}
@@ -237,7 +237,7 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
                     onClick={() => setSearchQuery('')}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white text-xs"
                   >
-                    ×
+                    Ã—
                   </button>
                 )}
               </div>
@@ -245,11 +245,11 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
               {/* Period Tabs: Today (Daily) | Yesterday | Week | Month | All Time */}
               <div className="flex items-center space-x-1 w-full sm:w-auto bg-black/60 p-1 rounded-xl border border-white/10 text-[10px]">
                 {[
-                  { key: 'TODAY', label: '📅 Today' },
-                  { key: 'YESTERDAY', label: '📆 Yesterday' },
-                  { key: 'WEEK', label: '📊 Week' },
-                  { key: 'MONTH', label: '🗓️ Month' },
-                  { key: 'ALL', label: `🏆 All-Time (${archive.length})` },
+                  { key: 'TODAY', label: 'ðŸ“… Today' },
+                  { key: 'YESTERDAY', label: 'ðŸ“† Yesterday' },
+                  { key: 'WEEK', label: 'ðŸ“Š Week' },
+                  { key: 'MONTH', label: 'ðŸ—“ï¸ Month' },
+                  { key: 'ALL', label: `ðŸ† All-Time (${archive.length})` },
                 ].map((p) => (
                   <button
                     key={p.key}
@@ -283,7 +283,7 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
                     filter === 'WON' ? 'bg-stadiumGreen/20 text-stadiumGreen border border-stadiumGreen/40 font-black' : 'text-gray-400 hover:text-white'
                   }`}
                 >
-                  🟢 Won ({wonCount})
+                  ðŸŸ¢ Won ({wonCount})
                 </button>
                 <button
                   onClick={() => setFilter('LOST')}
@@ -291,7 +291,7 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
                     filter === 'LOST' ? 'bg-crimson/20 text-crimson border border-crimson/40 font-black' : 'text-gray-400 hover:text-white'
                   }`}
                 >
-                  🔴 Lost ({lostCount})
+                  ðŸ”´ Lost ({lostCount})
                 </button>
                 <button
                   onClick={() => setFilter('VOID')}
@@ -299,7 +299,7 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
                     filter === 'VOID' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 font-black' : 'text-gray-400 hover:text-white'
                   }`}
                 >
-                  🛡️ Void ({voidCount})
+                  ðŸ›¡ï¸ Void ({voidCount})
                 </button>
               </div>
 
@@ -315,7 +315,7 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
                   className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-black/80 border border-stadiumGreen/40 text-white font-mono text-xs hover:border-stadiumGreen transition-all cursor-pointer shadow-md"
                 >
                   <Calendar className="w-4 h-4 text-stadiumGreen" />
-                  <span>{selectedDate || 'Select Date 📅'}</span>
+                  <span>{selectedDate || 'Select Date ðŸ“…'}</span>
                   <input
                     type="date"
                     value={selectedDate}
@@ -400,7 +400,7 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
                         {m.prediction.result === 'WON' ? (
                           <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-stadiumGreen/20 border border-stadiumGreen/50 text-stadiumGreen font-black text-[10px]">
                             <CheckCircle2 className="w-3 h-3" />
-                            <span>WON ✓</span>
+                            <span>WON âœ“</span>
                           </span>
                         ) : m.prediction.result === 'VOID' ? (
                           <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 font-black text-[10px]">
@@ -410,7 +410,7 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
                         ) : (
                           <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-crimson/20 border border-crimson/50 text-crimson font-black text-[10px]">
                             <XCircle className="w-3 h-3" />
-                            <span>LOST ✗</span>
+                            <span>LOST âœ—</span>
                           </span>
                         )}
                       </td>
@@ -449,3 +449,4 @@ export const SettlementLedgerSection: React.FC<SettlementLedgerSectionProps> = (
     </div>
   );
 };
+
