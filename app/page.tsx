@@ -516,6 +516,7 @@ export default function Home() {
     <div className={`min-h-screen bg-void flex flex-col pb-24 selection:bg-stadiumGreen selection:text-black font-sans `}>
       <BroadcastTicker matches={matches} onSelectUpdate={handleSelectTickerUpdate} />
       <OfflineBanner />
+        <LocalAiPredictorWidget />
       <PhoneHardwareBanner />
       <GenZLiveAlerts matches={matches} onOpenMatch={(match) => setSelectedMatchForInsights(match)} />
 
@@ -1037,3 +1038,4 @@ export default function Home() {
       </div>
   );
 }
+
