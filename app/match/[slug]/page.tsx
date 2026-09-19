@@ -1,7 +1,6 @@
 ﻿import { getRealLiveAndPlayedMatches, normalizeTeamKey } from '../../../lib/real-sports-stream';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import SmartBetslipButton from '@/components/SmartBetslipButton';
 import LiveMatchTracker from '@/components/LiveMatchTracker';
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
@@ -43,11 +42,12 @@ export default async function MatchPage({ params }: { params: { slug: string } }
             </div>
           </div>
         </section>
-        <LiveMatchTracker homeTeam={match.homeTeam} awayTeam={match.awayTeam} />
-        <SmartBetslipButton matchData={{ homeTeam: match.homeTeam, awayTeam: match.awayTeam, pick }} />
+        <LiveMatchTracker homeTeam={match.homeTeam} awayTeam={match.awayTeam} -->
+        <!-- Removed SmartBetslipButton matchData={{ homeTeam: match.homeTeam, awayTeam: match.awayTeam, pick }} />
       </div>
     </div>
   );
 }
+
 
 
