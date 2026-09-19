@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
@@ -186,65 +186,66 @@ export const StadiumHeader: React.FC<StadiumHeaderProps> = ({ onOpenPlayers, cur
         </div>
       </div>
 
-      {/* Fast Balanced Mobile Navigation — Single Smooth Horizontal Row */}
+      {/* Fast Balanced Mobile Navigation â€” Single Smooth Horizontal Row */}
       <div className="xl:hidden border-t border-white/10 px-2 py-1.5 bg-black/85 overflow-x-auto no-scrollbar flex items-center space-x-1.5">
         <Link 
           href="/standings" 
           className="py-1 px-2.5 rounded-full text-[11px] font-bold text-amber-400 bg-amber-400/10 border border-amber-400/20 hover:bg-amber-400/20 transition-all flex items-center space-x-1 flex-shrink-0"
         >
-          <span>🏆</span>
+          <span>ðŸ†</span>
           <span>Standings</span>
         </Link>
         <Link 
           href="/injuries" 
           className="py-1 px-2.5 rounded-full text-[11px] font-bold text-red-400 bg-red-400/10 border border-red-400/20 hover:bg-red-400/20 transition-all flex items-center space-x-1 flex-shrink-0"
         >
-          <span>🏥</span>
+          <span>ðŸ¥</span>
           <span>Injuries</span>
         </Link>
         <Link 
           href="/transfers" 
           className="py-1 px-2.5 rounded-full text-[11px] font-bold text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 hover:bg-emerald-400/20 transition-all flex items-center space-x-1 flex-shrink-0"
         >
-          <span>💰</span>
+          <span>ðŸ’°</span>
           <span>Transfers</span>
         </Link>
         <Link 
           href="/birthdays" 
           className="py-1 px-2.5 rounded-full text-[11px] font-bold text-pink-400 bg-pink-400/10 border border-pink-400/20 hover:bg-pink-400/20 transition-all flex items-center space-x-1 flex-shrink-0"
         >
-          <span>🎂</span>
+          <span>ðŸŽ‚</span>
           <span>Birthdays</span>
         </Link>
         <Link 
           href="/settlement" 
           className="py-1 px-2.5 rounded-full text-[11px] font-bold text-gold bg-gold/10 border border-gold/20 hover:bg-gold/20 transition-all flex items-center space-x-1 flex-shrink-0"
         >
-          <span>📜</span>
+          <span>ðŸ“œ</span>
           <span>Ledger</span>
         </Link>
         <Link 
           href="/converter" 
           className="py-1 px-2.5 rounded-full text-[11px] font-bold text-cyan-400 bg-cyan-400/10 border border-cyan-400/20 hover:bg-cyan-400/20 transition-all flex items-center space-x-1 flex-shrink-0"
         >
-          <span>🔄</span>
+          <span>ðŸ”„</span>
           <span>Revealer</span>
         </Link>
         <Link 
           href="/news" 
           className="py-1 px-2.5 rounded-full text-[11px] font-bold text-blue-400 bg-blue-400/10 border border-blue-400/20 hover:bg-blue-400/20 transition-all flex items-center space-x-1 flex-shrink-0"
         >
-          <span>📰</span>
+          <span>ðŸ“°</span>
           <span>News</span>
         </Link>
         <Link 
           href="/dashboard" 
           className="py-1 px-2.5 rounded-full text-[11px] font-bold text-purple-400 bg-purple-400/10 border border-purple-400/20 hover:bg-purple-400/20 transition-all flex items-center space-x-1 flex-shrink-0"
         >
-          <span>👤</span>
+          <span>ðŸ‘¤</span>
           <span>Account</span>
         </Link>
       </div>
     </header>
   );
 };
+

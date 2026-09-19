@@ -517,6 +517,7 @@ export default function Home() {
       <BroadcastTicker matches={matches} onSelectUpdate={handleSelectTickerUpdate} />
       <OfflineBanner />
         <LocalAiPredictorWidget />
+        <div className="max-w-7xl mx-auto px-4"><HyperStreamFeed /></div>
       <PhoneHardwareBanner />
       <GenZLiveAlerts matches={matches} onOpenMatch={(match) => setSelectedMatchForInsights(match)} />
 
@@ -1038,5 +1039,6 @@ export default function Home() {
       </div>
   );
 }
+
 
 
