@@ -198,3 +198,4 @@ export const PredictionHistoryModal: React.FC<PredictionHistoryModalProps> = ({ 
     </div>
   );
 };
+

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import React, { useState, useEffect } from 'react';
 import { MatchData } from '../lib/sports-api';
 import { X, ShieldCheck, CheckCircle2, XCircle, Calendar, ArrowRight, ExternalLink, Filter, TrendingUp } from 'lucide-react';
@@ -25,7 +25,7 @@ export const PublicLedgerModal: React.FC<LedgerModalProps> = ({ onClose, matches
   })));
 
   const filteredRecords = (playedMatches.length > 0 ? playedMatches : matches.slice(0, 10)).filter((m) => {
-    const isWon = (m.homeScore ?? 0) >= (m.awayScore ?? 0); // double chance / home pick standard
+    const isWon = ProfessionalSettlementEngine.settleMatch(m).isWon;
     if (selectedFilter === 'WON' && !isWon) return false;
     if (selectedFilter === 'LOST' && isWon) return false;
     if (selectedDate !== 'ALL' && m.utcDate && !m.utcDate.startsWith(selectedDate)) return false;
@@ -56,7 +56,7 @@ export const PublicLedgerModal: React.FC<LedgerModalProps> = ({ onClose, matches
           <div>
             <div className="flex items-center space-x-2">
               <h2 className="font-black text-sm sm:text-base text-white">
-                OFFICIAL VERIFIED SETTLEMENT & PREDICTION LEDGER 📜
+                OFFICIAL VERIFIED SETTLEMENT & PREDICTION LEDGER ðŸ“œ
               </h2>
               <span className="px-2 py-0.5 rounded-full bg-stadiumGreen text-black font-black text-[9px]">
                 100% AUDITED
@@ -68,7 +68,7 @@ export const PublicLedgerModal: React.FC<LedgerModalProps> = ({ onClose, matches
           </div>
         </div>
 
-        {/* Top Stats Summary in NAIRA (₦) */}
+        {/* Top Stats Summary in NAIRA (â‚¦) */}
         <div className="grid grid-cols-3 gap-2.5 text-center">
           <div className="p-3 rounded-2xl bg-black/60 border border-stadiumGreen/40">
             <span className="text-[9px] text-gray-400 block font-bold">ACCURACY RATE</span>
@@ -77,7 +77,7 @@ export const PublicLedgerModal: React.FC<LedgerModalProps> = ({ onClose, matches
 
           <div className="p-3 rounded-2xl bg-black/60 border border-gold/40">
             <span className="text-[9px] text-gray-400 block font-bold">AURA GAINED (1k STAKES)</span>
-            <span className="text-lg sm:text-xl font-black text-gold">+28,450 AURA ✨</span>
+            <span className="text-lg sm:text-xl font-black text-gold">+28,450 AURA âœ¨</span>
           </div>
 
           <div className="p-3 rounded-2xl bg-black/60 border border-white/10">
@@ -100,7 +100,7 @@ export const PublicLedgerModal: React.FC<LedgerModalProps> = ({ onClose, matches
                     : 'bg-white/5 text-gray-400 hover:text-white'
                 }`}
               >
-                {f === 'ALL' ? 'All Matches' : f === 'WON' ? 'Won Only ✅' : 'Lost ❌'}
+                {f === 'ALL' ? 'All Matches' : f === 'WON' ? 'Won Only âœ…' : 'Lost âŒ'}
               </button>
             ))}
           </div>
@@ -138,7 +138,7 @@ export const PublicLedgerModal: React.FC<LedgerModalProps> = ({ onClose, matches
                   <span className={`px-2 py-0.5 rounded-full font-black text-[9px] ${
                     isWon ? 'bg-stadiumGreen text-black' : 'bg-crimson text-white'
                   }`}>
-                    {isWon ? 'WON ✅' : 'LOST ❌'}
+                    {isWon ? 'WON âœ…' : 'LOST âŒ'}
                   </span>
                 </div>
 
@@ -147,16 +147,16 @@ export const PublicLedgerModal: React.FC<LedgerModalProps> = ({ onClose, matches
                     {m.homeTeam} <strong className="text-gold font-mono">[{m.homeScore ?? 0} - {m.awayScore ?? 0}]</strong> {m.awayTeam}
                   </span>
                   <span className="text-xs font-mono font-black text-stadiumGreen">
-                    {isWon ? `+${payout.toLocaleString()} AURA ✨` : '-1,000 AURA'}
+                    {isWon ? `+${payout.toLocaleString()} AURA âœ¨` : '-1,000 AURA'}
                   </span>
                 </div>
 
                 <div className="flex flex-wrap items-center justify-between text-[10px] pt-1.5 border-t border-white/5 text-gray-400">
                   <span>
-                    🎯 Prediction: <strong className="text-white">{m.prediction?.topPick?.selection || '1X Double Chance'}</strong> @ <strong className="text-gold">@{pickOdds.toFixed(2)}</strong>
+                    ðŸŽ¯ Prediction: <strong className="text-white">{m.prediction?.topPick?.selection || '1X Double Chance'}</strong> @ <strong className="text-gold">@{pickOdds.toFixed(2)}</strong>
                   </span>
                   <span>
-                    Audited: <strong className="text-stadiumGreen">Ref Whistle Verified ✓</strong>
+                    Audited: <strong className="text-stadiumGreen">Ref Whistle Verified âœ“</strong>
                   </span>
                 </div>
               </div>
@@ -168,3 +168,4 @@ export const PublicLedgerModal: React.FC<LedgerModalProps> = ({ onClose, matches
     </div>
   );
 };
+
