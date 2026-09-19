@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect } from 'react';
 
 export default function SmartBetslipButton({ matchData }: { matchData: any }) {
@@ -6,10 +6,7 @@ export default function SmartBetslipButton({ matchData }: { matchData: any }) {
   const [status, setStatus] = useState<string>('');
 
   useEffect(() => {
-    // Check if the extension injected itself
     const checkExt = () => {
-      // The extension might set a flag on window, or we just assume it's listening
-      // A robust way is sending a ping, but for now we assume true if they click
       setHasExtension(true); 
     };
     checkExt();
@@ -25,7 +22,6 @@ export default function SmartBetslipButton({ matchData }: { matchData: any }) {
   const handleGenerate = (bookie: string) => {
     setStatus(`Generating ${bookie} Code...`);
     
-    // Affiliate Links mapping
     const affiliates: Record<string, string> = {
       '1xbet': 'https://1xbet.com/?tag=mivaj_vip',
       'bet9ja': 'https://bet9ja.com/?aff=mivaj_ai'
@@ -34,7 +30,7 @@ export default function SmartBetslipButton({ matchData }: { matchData: any }) {
     const payload = {
       bookie,
       affiliateLink: affiliates[bookie],
-      matches: [matchData] // Send the selected match data
+      matches: [matchData]
     };
 
     window.dispatchEvent(new CustomEvent('MIVAJ_GENERATE_SLIP', { detail: payload }));
@@ -42,7 +38,7 @@ export default function SmartBetslipButton({ matchData }: { matchData: any }) {
 
   return (
     <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl mt-8">
-      <h3 className="text-xl font-black text-white mb-2">? Generate Native Betslip</h3>
+      <h3 className="text-xl font-black text-white mb-2">⚡ Generate Native Betslip</h3>
       <p className="text-sm text-slate-400 mb-6">Use the Mivaj AI VIP Agent to instantly push this prediction into your bookmaker.</p>
       
       {status && (
@@ -65,12 +61,6 @@ export default function SmartBetslipButton({ matchData }: { matchData: any }) {
           Generate Bet9ja
         </button>
       </div>
-      
-      {!hasExtension && (
-        <p className="text-xs text-red-400 mt-4 text-center">
-          *Requires the free Mivaj VIP Agent Extension to bypass bookmaker restrictions.
-        </p>
-      )}
     </div>
   );
 }
