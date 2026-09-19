@@ -6,7 +6,6 @@ import { useTranslation } from '../lib/translation-engine';
 import { phoneHardware } from '../lib/phone-hardware-engine';
 import { TARGET_AFFILIATES, getAffiliateUrl } from '../utils/affiliates';
 import { formatWhatsAppSlipMessage, openWhatsAppShare } from '../lib/whatsapp-share-engine';
-import { FlexReceiptCardModal } from './viral/FlexReceiptCardModal';
 import confetti from 'canvas-confetti';
 
 export interface SelectedSlipPick {
@@ -197,7 +196,6 @@ export const AccumulatorSlipDrawer: React.FC<AccumulatorSlipDrawerProps> = ({
       </div>
 
       {/* Flex Receipt Card Modal */}
-      <FlexReceiptCardModal
         isOpen={showFlexModal}
         onClose={() => setShowFlexModal(false)}
         totalOdds={totalOdds}

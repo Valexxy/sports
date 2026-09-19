@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { Share2, Sparkles, Trophy, Download } from 'lucide-react';
-import { StatusShareModal } from './status-share-modal';
 
 interface WhatsAppFlexerProps {
   oddsTarget?: string;
