@@ -2,6 +2,7 @@
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import LiveMatchTracker from '@/components/LiveMatchTracker';
+import ViralCodeFeed from '@/components/ViralCodeFeed';
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const matches = await getRealLiveAndPlayedMatches();
@@ -42,12 +43,11 @@ export default async function MatchPage({ params }: { params: { slug: string } }
             </div>
           </div>
         </section>
-        <LiveMatchTracker homeTeam={match.homeTeam} awayTeam={match.awayTeam} -->
-        <!-- Removed SmartBetslipButton matchData={{ homeTeam: match.homeTeam, awayTeam: match.awayTeam, pick }} />
+        
+        {/* Extreme Virality UI */}
+        <LiveMatchTracker homeTeam={match.homeTeam} awayTeam={match.awayTeam} />
+        <ViralCodeFeed />
       </div>
     </div>
   );
 }
-
-
-
