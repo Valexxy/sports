@@ -1,10 +1,12 @@
-name: ?? Viral Faceless Video Bot
+﻿name: ?? Viral Faceless Video Bot
 
 on:
   schedule:
     # Runs at 12:00 PM every day
     - cron: '0 12 * * *'
-  workflow_dispatch: # Allows manual trigger
+  workflow_dispatch:
+  push:
+    branches: [main] # Allows manual trigger
 
 jobs:
   render-and-post:
@@ -30,3 +32,4 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         run: |
           npx ts-node scripts/generate-and-post-video.ts
+
