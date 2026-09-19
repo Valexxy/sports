@@ -412,3 +412,6 @@ export function buildSmartPrediction(
     confidenceLevel: profile.confidenceLevel,
     leagueAccuracy: profile.historicalAccuracy,
   };
+
+}
+
